@@ -17,6 +17,8 @@ redirect_from:
 
 <span class='anchor' id='about-me'></span>
 
+# 🏄‍♀️ About Me
+
  - Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
  - Skilled in Java, Python, Golang, C# and JavaScript. 
  - Solid research background in backdoor learning, computer vision, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
