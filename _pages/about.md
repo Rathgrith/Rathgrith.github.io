@@ -20,7 +20,7 @@ redirect_from:
  - Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
  - Skilled in Java, Python, Golang, C# and JavaScript. 
  - Solid research background in backdoor learning, computer vision, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
- - Experienced in full-stack development and interned at Wensi Haihui Information Technology Co., Ltd. 
+ - Experienced in full-stack software development and interned at Wensi Haihui Information Technology(Pactera) Co., Ltd. 
  - Also a published researcher with strong time management and teamwork skills. 
  - Fluent in English, Mandarin, and Japanese.
 
@@ -28,8 +28,8 @@ My recent research interest includes robust machine learning and backdoor attack
 
 
 # 🔥 News
-- *2023.08*: &nbsp;🎉🎉 Started my Master degree in UIUC ECE.
-- *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree from UoL and XJTLU. 
+- *2023.08*: &nbsp;🎉🎉 Started my Master degree in [UIUC ECE](https://ece.illinois.edu/).
+- *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree at [UOL](https://www.liverpool.ac.uk/computer-science/) and [XJTLU](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science). 
 
 # 📝 Publications 
 
@@ -46,21 +46,21 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, Dongheng Lin<sup>1</sup>, Eri
 
 - [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, Dongheng Lin<sup>1</sup>, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>, submitted to **USENIX Security 2024**
    - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
-   - It is a more data-efficient backdoor attack algorithm to DNN models achieved the same attack success rate with only 38.44% of poisoned samples.
+   - With its assistance, we managed to realized a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
 
 # 🎖 Honors and Awards
 - *2022.07*  2022-2023 University Academic Excellence Award — Scholarship for top 5% students
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
 
 # 📖 Educations
-- *2023.08 - now*, MEng in Electrical and Computer Engineering, University of Illinois, Urbana-Champaign
-- *2019.09 - 2023.07*, BSc in Information and Computing Science, Xi'an Jiaotong-Liverpool University 
-- *2019.09 - 2023.07*, BSc in Information and Computing Science, University of Liverpool 
+- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign]((https://ece.illinois.edu/))
+- *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science)
+- *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/)
 
 
 <!-- # 💬 Invited Talks
 - *2022.10*, XJTLU STUDENT SYMPOSIUM OF RESEARCH-LED LEARNING, 1st Prize -->
 
 # 💻 Internships
-- *2021.06 - 2021.10*, [Pactera](https://en.pactera.com/), China.
+- *2021.06 - 2021.10*, Backend Developer Intern [Pactera](https://en.pactera.com/), China.
 
