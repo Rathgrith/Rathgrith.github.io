@@ -17,14 +17,19 @@ redirect_from:
 
 <span class='anchor' id='about-me'></span>
 
-Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. Skilled in Java, Python, Golang, C# and JavaScript. Strong research background in backdoor learning, computer vision, and medical image segmentation. Experienced in full-stack development and interned at Wensi Haihui Information Technology Co., Ltd. Published researcher with strong time management and teamwork skills. Fluent in English, Chinese, and Japanese.
+ - Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
+ - Skilled in Java, Python, Golang, C# and JavaScript. 
+ - Solid research background in backdoor learning, computer vision, and medical image segmentation. 
+ - Experienced in full-stack development and interned at Wensi Haihui Information Technology Co., Ltd. 
+ - Also a published researcher with strong time management and teamwork skills. 
+ - Fluent in English, Mandarin, and Japanese.
 
 My recent research interest includes robust machine learning and backdoor attacks in computer vision.
 
 
 # 🔥 News
-- *2023.08*: &nbsp;🎉🎉 Started my Master degree in ECE in UIUC
-- *2023.07*: &nbsp;🎉🎉 Graduated from UoL & XJTLU. 
+- *2023.08*: &nbsp;🎉🎉 Started my Master degree in UIUC ECE.
+- *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree from UoL and XJTLU. 
 
 # 📝 Publications 
 
@@ -40,9 +45,11 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, Dongheng Lin<sup>1</sup>, Eri
 </div>
 
 - [ SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, Dongheng Lin<sup>1</sup>, Jie Zhang†, Ruiming Zhang<sup>2</sup>, submitted to **USENIX Security 2024**
-
+   - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
+   - It is a more data-efficient backdoor attack algorithm to DNN models achieved the same attack success rate with only 38.44% of poisoned samples.
+   
 # 🎖 Honors and Awards
-- *2022.10* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet. 
+- *2022.10*  2022-2023 University Academic Excellence Award — Scholarship for top 5% students
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
 
 # 📖 Educations
