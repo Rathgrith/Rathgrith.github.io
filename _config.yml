@@ -7,7 +7,7 @@
 
 # Site Settings
 title                    : "Dongheng Lin"
-description              : "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet. "
+description              : ""
 repository               : "Rathgrith/Rathgrith.github.io"
 google_scholar_stats_use_cdn : true
 
@@ -25,13 +25,13 @@ author:
   avatar           : "images/android-chrome-512x512.png"
   bio              : "University of Illinois, Urbana-Champaign"
   location         : "IL, United States"
-  employer         :
+  employer         : 
   pubmed           : 
   googlescholar    : "https://scholar.google.com/citations?user=YOUR_GOOGLE_SCHOLAR_ID"
   email            : "dl58@illinois.edu"
   researchgate     :  # e.g., "https://www.researchgate.net/profile/yourprofile"
-  uri              :
-  bitbucket        :
+  uri              : 
+  bitbucket        : 
   codepen          :
   dribbble         :
   flickr           :
