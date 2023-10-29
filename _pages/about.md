@@ -40,18 +40,20 @@ My recent research interest includes robust machine learning and backdoor attack
 
 [Conditional Metadata Embedding Data Preprocessing Method for Semantic Segmentation](https://ieeexplore.ieee.org/document/10090205)
 
-Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, Dongheng Lin<sup>1</sup>, Erick Purwanto<sup>†</sup>, Ka Lok Man<sup>2</sup>
+Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Erick Purwanto<sup>†</sup>, Ka Lok Man<sup>2</sup>
 
 - In this paper, we propose a conditional data preprocessing strategy, i.e., Conditional Metadata Embedding (CME) data preprocessing strategy. The CME data preprocessing method will embed conditional information to the training data, which can assist the model to better overcome the differences in the datasets and extract useful feature information in the images.  
 </div>
 </div>
 
-- [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, Dongheng Lin<sup>1</sup>, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>, submitted to **USENIX Security 2024**
+- [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>, submitted to **USENIX Security 2024**
    - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
    - With its assistance, we managed to realized a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
 
 # 🎖 Honors and Awards
-- *2022.07*  2022-2023 University Academic Excellence Award — Scholarship for top 5% students
+- *2022.10* XJTLU 2022 Summer Undergraduate Research Fellowship Poster Group Winner 
+- *2022.07* University Academic Excellence Award — Scholarship for top 5% students
+
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
 
 # 📖 Educations
