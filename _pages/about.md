@@ -76,14 +76,14 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, Dongheng Lin<sup>1</sup>, Eri
   div#widget-container {
     width: 300px; /* Set the desired width */
     height: 200px; /* Set the desired height */
-    margin: 50px; /* Add margin as needed */
-    padding: 10px;
+    margin: 0 auto; /* Center-align the container horizontally */
+    text-align: center; /* Center-align the content within the container */
   }
 </style>
 </head>
   <body>
   <div id="widget-container">
-    <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=300&t=n&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080'></script>
+    <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=300&t=tt&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080'></script>
   </div>
   </body>
 </html>
