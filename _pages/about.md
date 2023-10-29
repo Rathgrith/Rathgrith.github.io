@@ -22,7 +22,7 @@ redirect_from:
  - Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
  - Skilled in Java, Python, Golang, C# and JavaScript. 
  - Solid research background in backdoor learning, computer vision, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
- - Experienced in full-stack software development and interned at Wensi Haihui Information Technology(Pactera) Co., Ltd. 
+ - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd. 
  - Also a published researcher with strong time management and teamwork skills. 
  - Fluent in English, Mandarin, and Japanese.
 
@@ -64,5 +64,11 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, Dongheng Lin<sup>1</sup>, Eri
 - *2022.10*, XJTLU STUDENT SYMPOSIUM OF RESEARCH-LED LEARNING, 1st Prize -->
 
 # 💻 Internships
-- *2021.06 - 2021.10*, Backend Developer Intern [Pactera](https://en.pactera.com/), China.
+- *2021.06 - 2021.10*, Backend Developer Intern at [Pactera](https://en.pactera.com/), China.
 
+
+# 🦉 Site Visits
+
+<html>
+<script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&cl=ffffff&w=a"></script>
+</html>
