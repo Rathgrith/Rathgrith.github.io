@@ -17,6 +17,8 @@ main:
 
   # - title: "Invited Talks"
   #   url: "/#-invited-talks"
+  - title: "CV"
+    url: "/assets/cv.pdf"  # This should point to the actual location of your PDF file.
 
   - title: "Internships"
     url: "/#-internships"
