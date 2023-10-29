@@ -70,5 +70,19 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, Dongheng Lin<sup>1</sup>, Eri
 # 🦉 Site Visits
 
 <html>
-<script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=a&t=tt&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&ct=808080&cmo=3acc3a&cmn=ff5353'></script>
+<head>
+<style>
+  /* Style for the widget container */
+  div#widget-container {
+    width: 300px; /* Set the desired width */
+    height: 200px; /* Set the desired height */
+    margin: 50px; /* Add margin as needed */
+    padding: 10px;
+  }
+</style>
+</head>
+<body>
+<div id="widget-container">
+  <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=a&t=n&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc'></script>
+</body>
 </html>
