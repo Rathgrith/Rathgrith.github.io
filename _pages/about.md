@@ -70,5 +70,5 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, Dongheng Lin<sup>1</sup>, Eri
 # 🦉 Site Visits
 
 <html>
-<script type="text/javascript" id="clustrmaps" src="//clustrmaps.com/map_v2.js?d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&cl=ffffff&w=a"></script>
+<script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=a&t=tt&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&ct=808080&cmo=3acc3a&cmn=ff5353'></script>
 </html>
