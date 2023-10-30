@@ -23,3 +23,6 @@ main:
     
   - title: "CV"
     url: "/assets/cv.pdf"  # This should point to the actual location of your PDF file.
+  
+  - title: "Manuscripts"
+    url: "/manuscripts"  # This should point to the actual location of your PDF file.
