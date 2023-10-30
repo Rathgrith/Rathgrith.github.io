@@ -75,12 +75,14 @@ Here are some personal manuscripts:
 <div class='paper-box-text' markdown="1">
 
  - My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
-
+</div>
+</div>
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
  - A tech report of our initial discovery on backdoor attack sample selection: [Random, Latent and Salient Backdoor Attacks on Deep-Learning Models](/assets/RLSBA.pdf)
-
+</div>
+</div>
 
 
 # 🦉 Site Visits
