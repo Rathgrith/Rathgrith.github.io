@@ -18,9 +18,13 @@ main:
   # - title: "Invited Talks"
   #   url: "/#-invited-talks"
 
+
   - title: "Internships"
     url: "/#-internships"
-    
+
+  - title: "Manuscripts"
+    url: "/#-manuscripts"
+
   - title: "CV"
     url: "/assets/cv.pdf"  # This should point to the actual location of your PDF file.
   
