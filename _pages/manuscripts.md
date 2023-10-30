@@ -1,5 +1,5 @@
 ---
-permalink: /
+permalink: /page/manuscripts
 title: ""
 excerpt: ""
 author_profile: true
@@ -18,5 +18,5 @@ redirect_from:
 
 # Personal Manuscripts
 
-My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
-Our initial step before SPSS: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/RLSBA.pdf)
+ - My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
+ - Our initial step before SPSS: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/RLSBA.pdf)
