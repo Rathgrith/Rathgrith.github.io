@@ -1,5 +1,5 @@
 ---
-permalink: /manuscripts
+permalink: /
 title: ""
 excerpt: ""
 author_profile: true
