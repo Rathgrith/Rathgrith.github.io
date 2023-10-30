@@ -1,5 +1,5 @@
 ---
-permalink: /page/manuscripts
+permalink: /manuscripts
 title: ""
 excerpt: ""
 author_profile: true
@@ -16,7 +16,3 @@ redirect_from:
 {% assign url = gsDataBaseUrl | append: "google-scholar-stats/gs_data_shieldsio.json" %}
 
 
-# Personal Manuscripts
-
- - My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
- - Our initial step before SPSS: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/RLSBA.pdf)

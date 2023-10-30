@@ -69,6 +69,20 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 - *2021.06 - 2021.10*, Backend Developer Intern at [Pactera](https://en.pactera.com/), China.
 
 
+# 🖨 Manuscripts
+Here are some personal manuscripts:
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\fyp.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
+ - My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
+
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
+ - A tech report of our initial discovery on backdoor attack sample selection: [Random, Latent and Salient Backdoor Attacks on Deep-Learning Models](/assets/RLSBA.pdf)
+
+
+
 # 🦉 Site Visits
 
 <html>
