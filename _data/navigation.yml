@@ -23,7 +23,7 @@ main:
     url: "/#-internships"
 
   - title: "Projects"
-    url: "/#-Projects"
+    url: "/#-projects"
 
   - title: "CV"
     url: "/assets/cv.pdf"  # This should point to the actual location of your PDF file.
