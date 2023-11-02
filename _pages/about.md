@@ -81,7 +81,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
- - A tech report of our initial discovery on backdoor attack sample selection: [Random, Latent and Salient Backdoor Attacks on Deep-Learning Models](/assets/RLSBA.pdf)
+ - A tech report of our initial discovery on the relation of backdoor attack sample and its feature representation: [Random, Latent and Salient Backdoor Attacks on Deep-Learning Models](/assets/RLSBA.pdf)
 </div>
 </div>
 
