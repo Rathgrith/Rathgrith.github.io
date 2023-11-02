@@ -21,12 +21,12 @@ redirect_from:
 
  - Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
  - Skilled in Java, Python, Golang, C# and JavaScript. 
- - Solid research background in backdoor learning, computer vision, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
+ - I have had solid research background in backdoor learning, feature representation in computer vision, and medical image segmentation. I have worked closely with [Dr.Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof.Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
  - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd. 
  - Also a published researcher with strong time management and teamwork skills. 
  - Fluent in English, Mandarin, and Japanese.
 
-My recent research interest includes robust machine learning and backdoor attacks in computer vision.
+My recent research interest includes *robust machine learning* and *backdoor attacks in computer vision*.
 
 
 # 🔥 News
