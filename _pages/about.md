@@ -61,7 +61,6 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science)
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/)
 
-
 <!-- # 💬 Invited Talks
 - *2022.10*, XJTLU STUDENT SYMPOSIUM OF RESEARCH-LED LEARNING, 1st Prize -->
 
@@ -71,7 +70,12 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 # 🖨 Projects
 
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
  - My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
+</div>
+</div>
 
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
