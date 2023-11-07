@@ -75,8 +75,6 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 Statistical Evaluation on LLM Reversal Curse: [Project Proposal Slide](/assets/598proposal.pdf)
   - This is a project that conducts statistical evaluation on whether an auto-regressive language model (LLM) that has learned “A is B” in training will generalize to the reversed form “B is A”
-  - We test generalization to “B is A” by giving the LLM a prompt containing B and evaluating its likelihood of generating A in response (a.k.a reversal process).
-  - By evaluating the distance between original input fact and recovered fact, using Sentence Transformer Encoding, we can see how the casual relations learned by LLM have shifted the distribution of input facts.
 </div>
 </div>
 
