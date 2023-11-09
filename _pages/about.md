@@ -35,8 +35,14 @@ My recent research interest includes *robust machine learning* and *backdoor att
 
 # 📝 Publications 
 
+- [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>, submitted to **USENIX Security 2024**
+   - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
+   - With its assistance, we managed to realized a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
+
+
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">CyberC 2022 (IEEE)</div><img src='images\1698515502562.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
+
 
 [Conditional Metadata Embedding Data Preprocessing Method for Semantic Segmentation](https://ieeexplore.ieee.org/document/10090205)
 
@@ -46,9 +52,6 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 </div>
 </div>
 
-- [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>, submitted to **USENIX Security 2024**
-   - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
-   - With its assistance, we managed to realized a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
 
 # 🎖 Honors and Awards
 - *2022.10* XJTLU 2022 Summer Undergraduate Research Fellowship Poster Group Winner 
