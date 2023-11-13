@@ -73,14 +73,14 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 # 🖨 Projects
 
-<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\d2p2d.svg' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\d2p2d.svg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
 [Statistical Evaluation on LLM Reversal Curse](/assets/598proposal.pdf)
   - This is a project that conducts statistical evaluation on whether an auto-regressive language model (LLM) that has learned “A is B” in training will generalize to the reversed form “B is A”
   - Instead of previous works that uses simple text matching that may not correctly evaluate the causal reverse outcome, we would like to devise a new quantitative metric based on sentence embedding and fact checking.
 </div>
-</div> -->
+</div>
 
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
