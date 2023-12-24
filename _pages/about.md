@@ -108,10 +108,10 @@ A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). Favorite manga: [臨海�
 
 I also enjoy photography and music.
 
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\sunset.jpeg' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\sunsetw.jpeg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
- - RVP100 Velvia, capture in my hometown.
+ - FUJIFILM Velvia RVP100, captured in my hometown.
 </div>
 </div>
 
