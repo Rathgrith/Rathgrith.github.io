@@ -82,6 +82,26 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 </div>
 </div> -->
 
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\MapleJuice.jpg' alt="sym" width="100%"></div></div>
+  <div class='paper-box-text' markdown="1">
+  [MapleJuice: A light-weight counterpart of Hadoop supported with SQL-like query](https://github.com/Rathgrith/ece428_mp4)
+  - In this project, we implemented a counterpart of Hadoop.
+  - The distributed system is built upon is self-implemented file system similar to GFS with corresponding NameNode and DataNode.
+  - We also implemented an efficient Gossip-style failure detection to maintain all the node status using UDP packets, a Bully-algorithm based re-election will be made while any of the master nodes failed.
+  - The task scheduling mechanism is similar to MapReduce, ensures the parallelism among nodes.
+  - We tested the system against Hadoop in a cluster with 10 VMs, The MapleJuice is generally 25% faster than Hadoop when dealing with small clusters.
+  </div>
+</div>
+
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
+  <div class='paper-box-text' markdown="1">
+  My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
+  - In this work, I have introduced a novel approach that fuses Generative Adversarial Networks (GANs) with the Stable Diffusion Model for creating cartoon-style images.
+  - Utilizes StyleGAN2 generated feature maps and corresponding metadata to constrain the Stable Diffusion Network.
+  - Reduces the number of diffusion steps required for the model to converge to a final image, streamlining the image generation process.
+  - The method reduces the reliance on verbose prompts for controlling the output, making the generation process more straightforward.
+  </div>
+</div>
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
