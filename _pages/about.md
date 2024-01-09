@@ -85,10 +85,9 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\MapleJuice.jpg' alt="sym" width="100%"></div></div>
   <div class='paper-box-text' markdown="1">
   [MapleJuice: A light-weight counterpart of Hadoop supported with SQL-like query](https://github.com/Rathgrith/ece428_mp4)
-  - The distributed system is built upon is self-implemented file system similar to GFS with corresponding NameNode and DataNode.
-  - We also implemented an efficient Gossip-style failure detection to maintain all the node status using UDP packets, a Bully-algorithm based re-election will be made while any of the master nodes failed.
-  - The task scheduling mechanism is similar to MapReduce, ensures the parallelism among nodes.
-  - We tested the system against Hadoop in a cluster with 10 VMs, The MapleJuice is generally 25% faster than Hadoop when dealing with small clusters.
+ - The distributed system is built upon a self-implemented file system similar to GFS with corresponding NameNode and DataNode.
+ - We also implemented an efficient Gossip-style failure detection protocol to maintain all the node status using UDP packets, a Bully-algorithm based re-election ensures new leader will be available in case of any failures on master nodes.
+ - The task scheduling mechanism is similar to MapReduce, ensures the parallelism among nodes. We tested the system against Hadoop within a cluster with 10 VMs. The MapleJuice is generally 25% faster than Hadoop when dealing with small clusters.
   </div>
 </div>
 
