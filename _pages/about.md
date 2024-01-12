@@ -59,7 +59,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
 
-# 📖 Educations
+# 📖 Education
 - *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign]((https://ece.illinois.edu/))
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science)
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/)
@@ -136,6 +136,11 @@ I also enjoy photography and music.
     height: 200px; /* Set the desired height */
     margin: 0 auto; /* Center-align the container horizontally */
     text-align: center; /* Center-align the content within the container */
+  }
+  @media only screen and (max-width: 768px) {
+    iframe {
+        display: none;
+    }
   }
 </style>
 </head>
