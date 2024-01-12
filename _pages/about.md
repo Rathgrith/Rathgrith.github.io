@@ -117,10 +117,9 @@ A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). Favorite manga: [臨海�
 I also enjoy photography and music.
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\sunsetw.jpeg' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
-
- - FUJIFILM Velvia RVP100, captured in my hometown.
-</div>
+  <div class='paper-box-text' markdown="1">
+    - Color Reversal Film, FUJICHROME Velvia 100, captured in my hometown.
+  </div>
 </div>
 
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
