@@ -112,7 +112,9 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
 
 # Miscellaneous
 
-A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). Favorite manga: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
+A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
+
+ - My favorite manga: [あざやかなりしはたそがれの](https://www.pixiv.net/artworks/54870069), TOUHOU Project Fanbook 初出：2013.11.3 第百二十八季 文々。新聞友の会.
 
 I also enjoy photography and music.
 
