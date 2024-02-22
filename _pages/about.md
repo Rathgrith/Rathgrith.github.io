@@ -125,17 +125,29 @@ I also enjoy photography and music.
 </div>
 
 
-<!-- Photography Widget Start -->
-<div class='photography-widget'>
-  <h2>📸 Photography</h2>
-  <div class='gallery'>
-    <a target="_blank" href="path_to_your_fullsize_image.jpg">
-      <img src="path_to_your_thumbnail_image.jpg" alt="Description of the image" width="600" height="400">
-    </a>
-    <div class="desc">Your image description here.</div>
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+  <ol class="carousel-indicators">
+    <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+  </ol>
+  <div class="carousel-inner">
+    {% for i in (1..3) %}
+    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+      <img class="d-block w-100" src="{{ 'images\sunsetw.jpeg' | append: forloop.index | append: '.jpg' | relative_url }}" alt="Slide {{ forloop.index }}">
+    </div>
+    {% endfor %}
   </div>
+  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
 </div>
-<!-- Photography Widget End -->
+
 
 
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
