@@ -118,13 +118,13 @@ A typical [Otaku](https://en.wikipedia.org/wiki/Otaku).
 
 I also enjoy photography and music.
 
-<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\sunsetw.jpeg' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\sunsetw.jpeg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 - Color Reversal Film, FUJICHROME Velvia 100, captured in my hometown.
 </div>
-</div> -->
+</div>
 
-<div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
+<!-- <div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
   <ol class="carousel-indicators">
     <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
     <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
@@ -145,7 +145,7 @@ I also enjoy photography and music.
     <span class="carousel-control-next-icon" aria-hidden="true"></span>
     <span class="sr-only">Next</span>
   </a>
-</div>
+</div> -->
 
 
 
