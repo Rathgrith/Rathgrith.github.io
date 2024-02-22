@@ -160,7 +160,7 @@ I also enjoy photography and music.
 .carousel-item {
   height: 300px; Set the height 
   /* width: 60%; */
-  padding: 5%;
+  padding: 10%;
   text-align: center; /* Center-align the content within the container */
 }
 .carousel-item img {
