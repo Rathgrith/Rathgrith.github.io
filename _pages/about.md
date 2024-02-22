@@ -110,7 +110,7 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
 </div>
 
 
-# Miscellaneous
+# 🎪 Miscellaneous
 
 A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
 
@@ -118,14 +118,13 @@ A typical [Otaku](https://en.wikipedia.org/wiki/Otaku).
 
 I also enjoy photography and music.
 
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\sunsetw.jpeg' alt="sym" width="100%"></div></div>
+<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\sunsetw.jpeg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 - Color Reversal Film, FUJICHROME Velvia 100, captured in my hometown.
 </div>
-</div>
+</div> -->
 
-
-<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+<div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
   <ol class="carousel-indicators">
     <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
     <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
@@ -134,7 +133,7 @@ I also enjoy photography and music.
   <div class="carousel-inner">
     {% for i in (1..3) %}
     <div class="carousel-item {% if forloop.first %}active{% endif %}">
-      <img class="d-block w-100" src="{{ 'images\sunsetw.jpeg' | append: forloop.index | append: '.jpg' | relative_url }}" alt="Slide {{ forloop.index }}">
+      <img class="d-block w-100" src="{{ '/images/UIUCphoto/' | append: forloop.index | append: '.jpg' | relative_url }}" alt="Slide {{ forloop.index }}">
     </div>
     {% endfor %}
   </div>
@@ -158,6 +157,14 @@ I also enjoy photography and music.
 <head>
 <style>
   /* Style for the widget container */
+.carousel-item {
+  height: 500px; /* Set the height you want */
+}
+.carousel-item img {
+  object-fit: cover; /* This will cover the area of the carousel-item, you can adjust it as per your need */
+  min-height: 100%;
+  width: 100%;
+}
   div#widget-container {
     width: 300px; /* Set the desired width */
     height: 200px; /* Set the desired height */
