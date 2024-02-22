@@ -118,7 +118,7 @@ A typical [Otaku](https://en.wikipedia.org/wiki/Otaku).
 
 I also enjoy photography and music.
 
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\sunsetw.jpeg' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 - Color Reversal Film, FUJICHROME Velvia 100, captured in my hometown.
 </div>
