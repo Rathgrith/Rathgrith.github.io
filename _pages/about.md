@@ -124,6 +124,20 @@ I also enjoy photography and music.
 </div>
 </div>
 
+
+<!-- Photography Widget Start -->
+<div class='photography-widget'>
+  <h2>📸 Photography</h2>
+  <div class='gallery'>
+    <a target="_blank" href="path_to_your_fullsize_image.jpg">
+      <img src="path_to_your_thumbnail_image.jpg" alt="Description of the image" width="600" height="400">
+    </a>
+    <div class="desc">Your image description here.</div>
+  </div>
+</div>
+<!-- Photography Widget End -->
+
+
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
 
 # 🦉 Site Visits
