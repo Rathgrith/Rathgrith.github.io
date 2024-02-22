@@ -158,11 +158,13 @@ I also enjoy photography and music.
 <style>
   /* Style for the widget container */
 .carousel-item {
-  height: 500px; /* Set the height you want */
+  /* height: 500px; Set the height  */
+  width: 60%;
 }
 .carousel-item img {
   object-fit: cover; /* This will cover the area of the carousel-item, you can adjust it as per your need */
   min-height: 100%;
+  min-width: 100%;
   width: 100%;
 }
   div#widget-container {
