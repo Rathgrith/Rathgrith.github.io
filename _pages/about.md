@@ -158,8 +158,10 @@ I also enjoy photography and music.
 <style>
   /* Style for the widget container */
 .carousel-item {
-  /* height: 500px; Set the height  */
-  width: 60%;
+  height: 200px; Set the height 
+  /* width: 60%; */
+  padding: 5%;
+  text-align: center; /* Center-align the content within the container */
 }
 .carousel-item img {
   object-fit: cover; /* This will cover the area of the carousel-item, you can adjust it as per your need */
