@@ -157,17 +157,19 @@ I also enjoy photography and music.
 <head>
 <style>
   /* Style for the widget container */
+/* Style for the widget container */
 .carousel-item {
-  height: 200px; Set the height 
-  /* width: 60%; */
+  height: 200px; /* Set the height */
   padding: 5%;
   text-align: center; /* Center-align the content within the container */
+  display: flex; /* Use flexbox to center the image vertically */
+  align-items: center; /* Align items vertically */
+  justify-content: center; /* Center content horizontally */
 }
 .carousel-item img {
-  object-fit: cover; /* This will cover the area of the carousel-item, you can adjust it as per your need */
-  min-height: 100%;
-  /* min-width: 100%; */
-  width: 100%;
+  object-fit: contain; /* Adjusts the image to be fully visible */
+  max-height: 100%; /* Ensure the image's maximum height is the container's height */
+  max-width: 100%; /* Ensures the image's maximum width fits within the container */
 }
   div#widget-container {
     width: 300px; /* Set the desired width */
