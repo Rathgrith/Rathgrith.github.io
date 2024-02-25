@@ -26,10 +26,11 @@ redirect_from:
  - Also a published researcher with strong time management and teamwork skills. 
  - Fluent in English, Mandarin, and Japanese.
 
-My recent research interest includes *robust machine learning* and *backdoor attacks in computer vision*.
+My recent research interest includes *robust machine learning* and *representation learning in computer vision*. 
 
 
 # 🔥 News
+- *2023.12*: &nbsp;🎉🎉Glad to join [MIx group](https://mix.jianbojiao.com/) as a research intern.
 - *2023.08*: &nbsp;🎉🎉 Started my Master degree in [UIUC ECE](https://ece.illinois.edu/).
 - *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree at [UOL](https://www.liverpool.ac.uk/computer-science/) and [XJTLU](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science). 
 
