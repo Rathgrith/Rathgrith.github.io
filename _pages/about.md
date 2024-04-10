@@ -119,11 +119,13 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
 
  - I also enjoy photography and music.
 
+
 <div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
-    <div class='paper-box-text' markdown="1">
-    - FUJICHROME Velvia 100, taken at my hometown.
-    </div>
+<div class='paper-box-text' markdown="1">
+ - FUJICHROME Velvia 100, taken at my hometown.
 </div>
+</div>
+
 
 <!-- <div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
   <ol class="carousel-indicators">
