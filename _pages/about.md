@@ -36,7 +36,7 @@ My recent research interest includes *robust machine learning* and *representati
 
 # 📝 Publications 
 
-- [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>, submitted to **USENIX Security 2024**
+- [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup> **IJCNN 2024**
    - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
    - With its assistance, we managed to realized a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
 
@@ -115,14 +115,14 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
 
  - A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
 
-   - My favorite manga: [あざやかなりしはたそがれの](https://www.pixiv.net/artworks/54870069), 初出：2013.11.3 第百二十八季 文々。新聞友の会.
+   - My favorite manga: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
 
  - I also enjoy photography and music.
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
- - FUJICHROME Velvia 100, taken at my hometown.
-</div>
+    <div class='paper-box-text' markdown="1">
+    - FUJICHROME Velvia 100, taken at my hometown.
+    </div>
 </div>
 
 <!-- <div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
