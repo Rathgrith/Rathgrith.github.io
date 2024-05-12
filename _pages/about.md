@@ -69,6 +69,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 - *2022.10*, XJTLU STUDENT SYMPOSIUM OF RESEARCH-LED LEARNING, 1st Prize -->
 
 # 💻 Internships
+- *2023.11 - Now*, Research Intern at [MiX group at UofB](https://mix.jianbojiao.com/), UK (Remote).
 - *2021.06 - 2021.10*, Backend Developer Intern at [Pactera](https://en.pactera.com/), China.
 
 
@@ -82,6 +83,14 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
   - Instead of previous works that uses simple text matching that may not correctly evaluate the causal reverse outcome, we would like to devise a new quantitative metric based on sentence embedding and fact checking.
 </div>
 </div> -->
+
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
+  - All papers are compressed into paper embeddings using category, abstract, and title, stored in a FAISS indexing system.
+  - We modeled a coauthorship map to conduct authority/hub based HITS reranking of the paper recommendation results.
+</div>
+</div>
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\MapleJuice.jpg' alt="sym" width="100%"></div></div>
   <div class='paper-box-text' markdown="1">
@@ -103,12 +112,13 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
 </div>
 
 
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
+<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
  - A tech report of our initial discovery on the relation of backdoor attack sample and its feature representation: [Random, Latent and Salient Backdoor Attacks on Deep-Learning Models](/assets/RLSBA.pdf)
 </div>
-</div>
+</div> -->
+
 
 
 # 🎪 Miscellaneous
