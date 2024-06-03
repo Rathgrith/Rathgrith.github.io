@@ -21,6 +21,7 @@ redirect_from:
 
  - Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
  - Skilled in Java, Python, Golang, C# and JavaScript. 
+ - I currently working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/) on Representation Learning and Application on Computer Vision tasks. 
  - I have had solid research background in backdoor learning, feature representation in computer vision, and medical image segmentation. I have worked closely with [Dr.Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof.Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
  - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd. 
  - Also a published researcher with strong time management and teamwork skills. 
@@ -86,7 +87,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
-An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
+[Arxiv Explorer](https://github.com/Rathgrith/CS410Project): An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
   - All papers are compressed into paper embeddings using category, abstract, and title, stored in a FAISS indexing system.
   - We modeled a coauthorship map to conduct authority/hub based HITS reranking of the paper recommendation results.
 </div>
