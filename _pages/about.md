@@ -36,10 +36,12 @@ My recent research interest includes *robust machine learning* and *representati
 - *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree at [UOL](https://www.liverpool.ac.uk/computer-science/) and [XJTLU](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science). 
 
 # 📝 Publications 
+<div class='paper-box'><div class='paper-box-image'><div><div class="badge">IJCNN 2024</div><img src='images\SPSSfigure.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
 
-- [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup> **IJCNN 2024**
-   - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
-   - With its assistance, we managed to realized a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
+[SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://github.com/Rathgrith/SalientAttack), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>
+- Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
+- With its assistance, we managed to realized a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
 
 
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">CyberC 2022 (IEEE)</div><img src='images\1698515502562.png' alt="sym" width="100%"></div></div>
@@ -62,7 +64,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
 
 # 📖 Education
-- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign]((https://ece.illinois.edu/))
+- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science)
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/)
 
