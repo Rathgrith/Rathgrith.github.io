@@ -18,15 +18,12 @@ redirect_from:
 <span class='anchor' id='about-me'></span>
 
 # 🏄‍♀️ About Me
-
- - Highly motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
- - Skilled in Java, Python, Golang, C# and JavaScript. 
- - I currently working under the supervision of [Prof.Jianbo Jiao](https://jianbojiao.com/) on Representation Learning and Application on Computer Vision tasks. 
- - I have had solid research background in backdoor learning, feature representation in computer vision, and medical image segmentation. I have worked closely with [Dr.Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof.Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
+ - I currently working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/) on Representation Learning and Application on Computer Vision tasks. 
+ - Motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
+ - I have had solid research background in backdoor learning, feature representation in computer vision, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
  - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd. 
  - Also a published researcher with strong time management and teamwork skills. 
  - Fluent in English, Mandarin, and Japanese.
-
 My recent research interest includes *robust machine learning* and *representation learning in computer vision*. 
 
 
@@ -36,6 +33,14 @@ My recent research interest includes *robust machine learning* and *representati
 - *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree at [University of Liverpool](https://www.liverpool.ac.uk/computer-science/) and [XJTLU](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science). 
 
 # 📝 Publications 
+<!-- <div class='paper-box'><div class='paper-box-image'><div><div class="Red">Arxiv</div><img src='images\SPSSfigure.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
+What Time Tells Us? Time-Aware Representation Learning from Static Images, **Dongheng Lin<sup>*</sup>**, **Han Hu<sup>*</sup>**, Jianbo Jiao<sup>†</sup>
+- A new paradigm to learn visual cues for time. Coming soon...
+</div>
+</div> -->
+
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">IJCNN 2024</div><img src='images\SPSSfigure.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
@@ -130,6 +135,8 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
  - A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
 
    - My favorite manga: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
+
+   - Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (Single Episode): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E)
 
  - I also enjoy photography and music.
 
