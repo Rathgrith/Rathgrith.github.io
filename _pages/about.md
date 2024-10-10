@@ -36,7 +36,7 @@ My recent research interest includes *robust machine learning* and *representati
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">Under Review</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
-What Time Tells Us? Time-Aware Representation Learning from Static Images, **Dongheng Lin<sup>*</sup>**, **Han Hu<sup>*</sup>**, Jianbo Jiao<sup>†</sup>
+What Time Tells Us? Time-Aware Representation Learning from Static Images, **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
 - A new paradigm to learn visual cues for timestamps leading to time-aware understanding. 
 </div>
 </div>
