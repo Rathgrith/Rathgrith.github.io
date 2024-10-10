@@ -1,1 +1,1 @@
-bundle exec jekyll liveserve
+bundle exec jekyll liveserve -w --host=0.0.0.0
