@@ -119,7 +119,7 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
  - The method reduces the reliance on verbose prompts for controlling the output, making the generation process more straightforward.
 </div>
 </div>
-This site contains various resources. Check out the [PDF list here]({{ '/pdf-list/' | relative_url }}).
+Apart from these empirical/engineering style projects, here are few interesting homeworks to refer: [Homework Samples]({{ '/pdf-list/' | relative_url }}).
 
 
 <!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
