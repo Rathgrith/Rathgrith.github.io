@@ -18,12 +18,12 @@ redirect_from:
 <span class='anchor' id='about-me'></span>
 
 # 🏄‍♀️ About Me
- - I currently working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/) on Representation Learning and Application on Computer Vision tasks. 
- - Motivated Computer Engineering graduate student with expertise in Software Development and Artificial Intelligence. 
- - I have had solid research background in backdoor learning, feature representation in computer vision, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
- - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd. 
- - Also a published researcher with strong time management and teamwork skills. 
- - Fluent in English, Mandarin, and Japanese.
+ - Motivated Computer Engineering graduate student with expertise in Software Development and Deep Learning. 
+ - I am currently working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/) on Representation Learning and Application on Computer Vision tasks. 
+ - I have had some research background in backdoor learning, visual representation learning, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
+ <!-- - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd.  -->
+ <!-- - Also a published researcher with strong time management and teamwork skills.  -->
+ - Fluent in English, Mandarin, and Japanese (Learned in an unsupervised manner).
 My recent research interest includes *robust machine learning* and *representation learning in computer vision*. 
 
 
@@ -46,7 +46,7 @@ What Time Tells Us? Time-Aware Representation Learning from Static Images, **Don
 
 [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://ieeexplore.ieee.org/document/10650242), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>
 - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
-- With its assistance, we managed to realize a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only 38.44% of poisoned samples.
+- With its assistance, we managed to realize a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only **38.44%** of poisoned samples.
 </div>
 </div>
 
