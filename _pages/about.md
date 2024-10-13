@@ -23,7 +23,9 @@ redirect_from:
  - I have had some research background in backdoor learning, visual representation learning, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
  <!-- - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd.  -->
  <!-- - Also a published researcher with strong time management and teamwork skills.  -->
- - Fluent in English, Mandarin, and Japanese (Learned in an unsupervised manner).
+ - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
+
+
 My recent research interest includes *robust machine learning* and *representation learning in computer vision*. 
 
 
