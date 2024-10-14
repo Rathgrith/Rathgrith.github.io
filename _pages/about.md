@@ -178,9 +178,10 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
 
 
-BTW, my Erdős number is 4:
+BTW, my [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4:
 
-Dongheng Lin → Jianbo Jiao → Ana I. L. Namburete → Israel Koren → Paul Erdős
+Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
+           ↘ [Ka Lok Man](https://scholar.google.com/citations?user=Pa_xqn8AAAAJ&hl=en) → [Prudence W. H. Wong](https://scholar.google.co.uk/citations?user=vjIXDW4AAAAJ&hl=en) → [Shmuel Zaks](https://scholar.google.com/citations?user=rWc3QtgAAAAJ) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
 
 # 🦉 Site Visits
 
