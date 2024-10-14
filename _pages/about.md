@@ -21,8 +21,6 @@ redirect_from:
  - Motivated Computer Engineering graduate student with expertise in Software Development and Deep Learning. 
  - I am currently working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/) on Representation Learning and Application on Computer Vision tasks. 
  - I have had some research background in backdoor learning, visual representation learning, and medical image segmentation. I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
- <!-- - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd.  -->
- <!-- - Also a published researcher with strong time management and teamwork skills.  -->
  - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
 
 
@@ -87,50 +85,37 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 # 🖨 Projects
 
-<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\d2p2d.svg' alt="sym" width="100%"></div></div>
+<div class='paper-box'>
+<div class='paper-box-image'>
+<div><img src='images/recafter.png' alt="sym" width="100%"></div>
+</div>
 <div class='paper-box-text' markdown="1">
-
-[Statistical Evaluation on LLM Reversal Curse](/assets/598proposal.pdf)
-  - This is a project that conducts statistical evaluation on whether an auto-regressive language model (LLM) that has learned “A is B” in training will generalize to the reversed form “B is A”
-  - Instead of previous works that uses simple text matching that may not correctly evaluate the causal reverse outcome, we would like to devise a new quantitative metric based on sentence embedding and fact checking.
+[**Arxiv Explorer**](https://github.com/Rathgrith/CS410Project): Developed an efficient paper recommendation system on a comprehensive dataset of all Arxiv papers (until Feb 2024). Utilized FAISS indexing and a co-authorship map to enhance recommendation results through authority/hub-based HITS reranking.
 </div>
-</div> -->
+</div>
 
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
+<div class='paper-box'>
+<div class='paper-box-image'>
+<div><img src='images/MapleJuice.jpg' alt="sym" width="100%"></div>
+</div>
 <div class='paper-box-text' markdown="1">
-[Arxiv Explorer](https://github.com/Rathgrith/CS410Project): An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
-  - All papers are compressed into paper embeddings using category, abstract, and title, stored in a FAISS indexing system.
-  - We modeled a coauthorship map to conduct authority/hub based HITS reranking of the paper recommendation results.
+[**MapleJuice: A Lightweight Counterpart to Hadoop with SQL-like Query Support**](https://github.com/Rathgrith/ece428_mp4): Developed a distributed system inspired by GFS, with efficient gossip-style failure detection and a Bully-algorithm-based leader election process, achieving a 25% performance improvement over Hadoop in small clusters.
 </div>
 </div>
 
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\MapleJuice.jpg' alt="sym" width="100%"></div></div>
-  <div class='paper-box-text' markdown="1">
-  [MapleJuice: A light-weight counterpart of Hadoop supported with SQL-like query](https://github.com/Rathgrith/ece428_mp4)
- - The distributed system is built upon a self-implemented file system similar to GFS with corresponding NameNode and DataNode.
- - We also implemented an efficient Gossip-style failure detection protocol to maintain all the node status using UDP packets, a Bully-algorithm based re-election ensures new leader will be available in case of any failures on master nodes.
- - The task scheduling mechanism is similar to MapReduce, ensures the parallelism among nodes. We tested the system against Hadoop within a cluster with 10 VMs. The MapleJuice is generally 25% faster than Hadoop when dealing with small clusters.
-  </div>
+<div class='paper-box'>
+<div class='paper-box-image'>
+<div><img src='images/1698952628334.png' alt="sym" width="100%"></div>
 </div>
-
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
-My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
- - In this work, I have introduced a novel approach that fuses Generative Adversarial Networks (GANs) with the Stable Diffusion Model for creating cartoon-style images.
- - Utilizes StyleGAN2 generated feature maps and corresponding metadata to constrain the Stable Diffusion Network.
- - Reduces the number of diffusion steps required for the model to converge to a final image, streamlining the image generation process.
- - The method reduces the reliance on verbose prompts for controlling the output, making the generation process more straightforward.
+[**StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion**](/assets/FYP_Thesis.pdf): Introduced a novel fusion of GANs with a Stable Diffusion Model for cartoon-style image generation, significantly reducing the number of diffusion steps and simplifying the image generation process.
 </div>
 </div>
+
 Apart from these projects, here are few interesting written homeworks to refer: [Homework Samples]({{ '/pdf-list/' | relative_url }}).
 
 
-<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
 
- - A tech report of our initial discovery on the relation of backdoor attack sample and its feature representation: [Random, Latent and Salient Backdoor Attacks on Deep-Learning Models](/assets/RLSBA.pdf)
-</div>
-</div> -->
 
 
 
@@ -150,40 +135,17 @@ Apart from these projects, here are few interesting written homeworks to refer: 
  - FUJICHROME Velvia 100, taken at my hometown.
 </div>
 </div>
-<!-- <div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
-  <ol class="carousel-indicators">
-    <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-    <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-    <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-  </ol>
-  <div class="carousel-inner">
-    {% for i in (1..3) %}
-    <div class="carousel-item {% if forloop.first %}active{% endif %}">
-      <img class="d-block w-100" src="{{ '/images/UIUCphoto/' | append: forloop.index | append: '.jpg' | relative_url }}" alt="Slide {{ forloop.index }}">
-    </div>
-    {% endfor %}
-  </div>
-  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="sr-only">Previous</span>
-  </a>
-  <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="sr-only">Next</span>
-  </a>
-</div> -->
+
 
 
 
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
 
-
-BTW, my [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4:
+## ✍Erdős Number
+My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calculated via two paths:
 
  - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
-
  - Dongheng Lin → [Ka Lok Man](https://scholar.google.com/citations?user=Pa_xqn8AAAAJ&hl=en) → [Prudence W. H. Wong](https://scholar.google.co.uk/citations?user=vjIXDW4AAAAJ&hl=en) → [Shmuel Zaks](https://scholar.google.com/citations?user=rWc3QtgAAAAJ) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
-
 # 🦉 Site Visits
 
 <html>
@@ -222,3 +184,67 @@ BTW, my [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4:
   </div>
   </body>
 </html>
+<!-- <div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
+  <ol class="carousel-indicators">
+    <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+  </ol>
+  <div class="carousel-inner">
+    {% for i in (1..3) %}
+    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+      <img class="d-block w-100" src="{{ '/images/UIUCphoto/' | append: forloop.index | append: '.jpg' | relative_url }}" alt="Slide {{ forloop.index }}">
+    </div>
+    {% endfor %}
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div> -->
+<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\d2p2d.svg' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+[Statistical Evaluation on LLM Reversal Curse](/assets/598proposal.pdf)
+  - This is a project that conducts statistical evaluation on whether an auto-regressive language model (LLM) that has learned “A is B” in training will generalize to the reversed form “B is A”
+  - Instead of previous works that uses simple text matching that may not correctly evaluate the causal reverse outcome, we would like to devise a new quantitative metric based on sentence embedding and fact checking.
+</div>
+</div> -->
+
+<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\RLSBA.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
+ - A tech report of our initial discovery on the relation of backdoor attack sample and its feature representation: [Random, Latent and Salient Backdoor Attacks on Deep-Learning Models](/assets/RLSBA.pdf)
+</div>
+</div> -->
+ <!-- - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd.  -->
+ <!-- - Also a published researcher with strong time management and teamwork skills.  -->
+ <!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+[Arxiv Explorer](https://github.com/Rathgrith/CS410Project): An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
+  - All papers are compressed into paper embeddings using category, abstract, and title, stored in a FAISS indexing system.
+  - We modeled a coauthorship map to conduct authority/hub based HITS reranking of the paper recommendation results.
+</div>
+</div>
+
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\MapleJuice.jpg' alt="sym" width="100%"></div></div>
+  <div class='paper-box-text' markdown="1">
+  [MapleJuice: A light-weight counterpart of Hadoop supported with SQL-like query](https://github.com/Rathgrith/ece428_mp4)
+ - The distributed system is built upon a self-implemented file system similar to GFS with corresponding NameNode and DataNode.
+ - We also implemented an efficient Gossip-style failure detection protocol to maintain all the node status using UDP packets, a Bully-algorithm based re-election ensures new leader will be available in case of any failures on master nodes.
+ - The task scheduling mechanism is similar to MapReduce, ensures the parallelism among nodes. We tested the system against Hadoop within a cluster with 10 VMs. The MapleJuice is generally 25% faster than Hadoop when dealing with small clusters.
+  </div>
+</div>
+
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
+ - In this work, I have introduced a novel approach that fuses Generative Adversarial Networks (GANs) with the Stable Diffusion Model for creating cartoon-style images.
+ - Utilizes StyleGAN2 generated feature maps and corresponding metadata to constrain the Stable Diffusion Network.
+ - Reduces the number of diffusion steps required for the model to converge to a final image, streamlining the image generation process.
+ - The method reduces the reliance on verbose prompts for controlling the output, making the generation process more straightforward.
+</div>
+</div> -->
