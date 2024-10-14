@@ -85,33 +85,33 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 # 🖨 Projects
 
-<div class='paper-box'>
-<div class='paper-box-image'>
-<div><img src='images/recafter.png' alt="sym" width="100%"></div>
-</div>
+
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
-[**Arxiv Explorer**](https://github.com/Rathgrith/CS410Project): Developed an efficient paper recommendation system on a comprehensive dataset of all Arxiv papers (until Feb 2024). Utilized FAISS indexing and a co-authorship map to enhance recommendation results through authority/hub-based HITS reranking.
+[Arxiv Explorer](https://github.com/Rathgrith/CS410Project): An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
+  - All papers are compressed into paper embeddings using category, abstract, and title, stored in a FAISS indexing system.
+  - We modeled a coauthorship map to conduct authority/hub based HITS reranking of the paper recommendation results.
 </div>
 </div>
 
-<div class='paper-box'>
-<div class='paper-box-image'>
-<div><img src='images/MapleJuice.jpg' alt="sym" width="100%"></div>
-</div>
-<div class='paper-box-text' markdown="1">
-[**MapleJuice: A Lightweight Counterpart to Hadoop with SQL-like Query Support**](https://github.com/Rathgrith/ece428_mp4): Developed a distributed system inspired by GFS, with efficient gossip-style failure detection and a Bully-algorithm-based leader election process, achieving a 25% performance improvement over Hadoop in small clusters.
-</div>
-</div>
-
-<div class='paper-box'>
-<div class='paper-box-image'>
-<div><img src='images/1698952628334.png' alt="sym" width="100%"></div>
-</div>
-<div class='paper-box-text' markdown="1">
-[**StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion**](/assets/FYP_Thesis.pdf): Introduced a novel fusion of GANs with a Stable Diffusion Model for cartoon-style image generation, significantly reducing the number of diffusion steps and simplifying the image generation process.
-</div>
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\MapleJuice.jpg' alt="sym" width="100%"></div></div>
+  <div class='paper-box-text' markdown="1">
+  [MapleJuice: A light-weight counterpart of Hadoop supported with SQL-like query](https://github.com/Rathgrith/ece428_mp4)
+ - The distributed system is built upon a self-implemented file system similar to GFS with corresponding NameNode and DataNode.
+ - We also implemented an efficient Gossip-style failure detection protocol to maintain all the node status using UDP packets, a Bully-algorithm based re-election ensures new leader will be available in case of any failures on master nodes.
+ - The task scheduling mechanism is similar to MapReduce, ensures the parallelism among nodes. We tested the system against Hadoop within a cluster with 10 VMs. The MapleJuice is generally 25% faster than Hadoop when dealing with small clusters.
+  </div>
 </div>
 
+<div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
+ - In this work, I have introduced a novel approach that fuses Generative Adversarial Networks (GANs) with the Stable Diffusion Model for creating cartoon-style images.
+ - Utilizes StyleGAN2 generated feature maps and corresponding metadata to constrain the Stable Diffusion Network.
+ - Reduces the number of diffusion steps required for the model to converge to a final image, streamlining the image generation process.
+ - The method reduces the reliance on verbose prompts for controlling the output, making the generation process more straightforward.
+</div>
+</div>
 Apart from these projects, here are few interesting written homeworks to refer: [Homework Samples]({{ '/pdf-list/' | relative_url }}).
 
 
@@ -222,29 +222,3 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calcul
 </div> -->
  <!-- - Experienced in full-stack software development and interned at Wensi Haihui Information Technology (Pactera) Co., Ltd.  -->
  <!-- - Also a published researcher with strong time management and teamwork skills.  -->
- <!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
-[Arxiv Explorer](https://github.com/Rathgrith/CS410Project): An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
-  - All papers are compressed into paper embeddings using category, abstract, and title, stored in a FAISS indexing system.
-  - We modeled a coauthorship map to conduct authority/hub based HITS reranking of the paper recommendation results.
-</div>
-</div>
-
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\MapleJuice.jpg' alt="sym" width="100%"></div></div>
-  <div class='paper-box-text' markdown="1">
-  [MapleJuice: A light-weight counterpart of Hadoop supported with SQL-like query](https://github.com/Rathgrith/ece428_mp4)
- - The distributed system is built upon a self-implemented file system similar to GFS with corresponding NameNode and DataNode.
- - We also implemented an efficient Gossip-style failure detection protocol to maintain all the node status using UDP packets, a Bully-algorithm based re-election ensures new leader will be available in case of any failures on master nodes.
- - The task scheduling mechanism is similar to MapReduce, ensures the parallelism among nodes. We tested the system against Hadoop within a cluster with 10 VMs. The MapleJuice is generally 25% faster than Hadoop when dealing with small clusters.
-  </div>
-</div>
-
-<div class='paper-box'><div class='paper-box-image'><div><img src='images\1698952628334.png' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
-My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffusion Model and GAN Fusion](/assets/FYP_Thesis.pdf)
- - In this work, I have introduced a novel approach that fuses Generative Adversarial Networks (GANs) with the Stable Diffusion Model for creating cartoon-style images.
- - Utilizes StyleGAN2 generated feature maps and corresponding metadata to constrain the Stable Diffusion Network.
- - Reduces the number of diffusion steps required for the model to converge to a final image, streamlining the image generation process.
- - The method reduces the reliance on verbose prompts for controlling the output, making the generation process more straightforward.
-</div>
-</div> -->
