@@ -26,8 +26,9 @@ redirect_from:
  - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
 
 
-My recent research interest includes *robust machine learning* and *representation learning in computer vision*. 
+My recent research interest includes *robust machine learning* and *representation learning* (cross-modal). 
 
+> ΟΣΟΝ ΖΗΣ ΦΑΙΝΟΥ / ΜΗΔΕΝ ΟΛΩΣ ΣΥ / ΛΥΠΟΥ ΠΡΟΣ ΟΛΙ / ΓΟΝ ΕΣΤΙ ΤΟ ΖΗΝ / ΤΟ ΤΕΛΟΣ Ο ΧΡΟ / ΝΟΣ ΑΠΑΙΤΕΙ   ----ΣΕΙΚΙΛΟΣ ΕΥΤΕΡ
 
 # 🔥 News
 - *2023.12*: &nbsp;🎉🎉 Glad to join [MIx group](https://mix.jianbojiao.com/) as a research intern.
@@ -150,7 +151,9 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 </div>
 </div>
 
+BTW, my Erdős number is 4:
 
+Dongheng Lin → Jianbo Jiao → Ana I. L. Namburete → Israel Koren → Paul Erdős
 <!-- <div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
   <ol class="carousel-indicators">
     <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
