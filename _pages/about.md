@@ -180,34 +180,9 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 
 BTW, my [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4:
 
-<div class="path-container">
-<!-- Path 1 -->
-<div class="path">
-<ul>
-<li>Dongheng Lin</li>
-<li><a href="https://jianbojiao.com/">Jianbo Jiao</a></li>
-<li><a href="https://scholar.google.com/citations?user=6QzRJ6MAAAAJ">Ana I. L. Namburete</a></li>
-<li><a href="https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl">Israel Koren</a></li>
-</ul>
-</div>
+ - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
 
-<!-- Convergence Point -->
-<div class="converge">
-<p>↘</p>
-<p>↗</p>
-<p><a href="https://en.wikipedia.org/wiki/Paul_Erd%C5%91s">Paul Erdős</a></p>
-</div>
-
-<!-- Path 2 -->
-<div class="path">
-<ul>
-<li>Dongheng Lin</li>
-<li><a href="https://scholar.google.com/citations?user=Pa_xqn8AAAAJ&hl=en">Ka Lok Man</a></li>
-<li><a href="https://scholar.google.co.uk/citations?user=vjIXDW4AAAAJ&hl=en">Prudence W. H. Wong</a></li>
-<li><a href="https://scholar.google.com/citations?user=rWc3QtgAAAAJ">Shmuel Zaks</a></li>
-</ul>
-</div>
-</div>
+ - Dongheng Lin → [Ka Lok Man](https://scholar.google.com/citations?user=Pa_xqn8AAAAJ&hl=en) → [Prudence W. H. Wong](https://scholar.google.co.uk/citations?user=vjIXDW4AAAAJ&hl=en) → [Shmuel Zaks](https://scholar.google.com/citations?user=rWc3QtgAAAAJ) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
 
 # 🦉 Site Visits
 
@@ -238,44 +213,7 @@ BTW, my [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4:
         display: none;
     }
   }
-  .path-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .path {
-            width: 50%;
-        }
-        .converge {
-            text-align: center;
-        }
-        ul {
-            list-style-type: none;
-            position: relative;
-        }
-        ul::before {
-            content: '';
-            border-left: 2px solid black;
-            position: absolute;
-            top: 0;
-            bottom: 50%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        li {
-            margin: 10px 0;
-            position: relative;
-            padding-left: 20px;
-        }
-        li::before {
-            content: '';
-            border-top: 2px solid black;
-            position: absolute;
-            top: 50%;
-            width: 20px;
-            height: 0;
-            left: 0;
-        }
+  
 </style>
 </head>
   <body>
