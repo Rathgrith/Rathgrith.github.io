@@ -87,7 +87,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 <div class='paper-box'>
 <div class='paper-box-image'>
-<div><img src='assets/images/recafter.png' alt="sym" width="100%"></div>
+<div><img src='images/recafter.png' alt="sym" width="100%"></div>
 </div>
 <div class='paper-box-text' markdown="1">
 [**Arxiv Explorer**](https://github.com/Rathgrith/CS410Project): Developed an efficient paper recommendation system on a comprehensive dataset of all Arxiv papers (until Feb 2024). Utilized FAISS indexing and a co-authorship map to enhance recommendation results through authority/hub-based HITS reranking.
