@@ -18,12 +18,11 @@ redirect_from:
 <span class='anchor' id='about-me'></span>
 
 # 🏄‍♀️ About Me
- - I'm a MEng student studying Computer Engineering with some expertise in Software Development and Deep Learning. 
- - I am currently working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/). 
+ - I am a MEng student studying Computer Engineering with some expertise in Software Development and Deep Learning. 
+ - Currently, I am working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/). 
  - Before that, I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
- - That means I have some research background in backdoor learning, visual representation learning, and medical image segmentation. 
+ - These experiences show that I have some research background in backdoor learning, visual representation learning, and medical image segmentation. 
  - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
-
 
 My recent research interest includes *robust machine learning* and *representation learning* (cross-modal).
 
