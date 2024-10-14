@@ -150,10 +150,6 @@ Apart from these projects, here are few interesting written homeworks to refer: 
  - FUJICHROME Velvia 100, taken at my hometown.
 </div>
 </div>
-
-BTW, my Erdős number is 4:
-
-Dongheng Lin → Jianbo Jiao → Ana I. L. Namburete → Israel Koren → Paul Erdős
 <!-- <div id="carouselExampleIndicators" class="carousel slide" data-interval="false">
   <ol class="carousel-indicators">
     <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
@@ -181,6 +177,10 @@ Dongheng Lin → Jianbo Jiao → Ana I. L. Namburete → Israel Koren → Paul E
 
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
 
+
+BTW, my Erdős number is 4:
+
+Dongheng Lin → Jianbo Jiao → Ana I. L. Namburete → Israel Koren → Paul Erdős
 
 # 🦉 Site Visits
 
