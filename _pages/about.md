@@ -83,8 +83,9 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 - *2021.06 - 2021.10*, Backend Developer Intern at [Pactera](https://en.pactera.com/), China.
 
 
-# 🖨 Projects
+# 🖨 University Projects & Homeworks
 
+## 🔧Projects
 <div class='paper-box'>
 <div class='paper-box-image'>
 <div><img src='images/recafter.png' alt="sym" width="100%"></div>
@@ -112,6 +113,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 </div>
 </div>
 
+## 📎Homework
 Apart from these projects, here are few interesting written homeworks to refer: [Homework Samples]({{ '/pdf-list/' | relative_url }}).
 
 
