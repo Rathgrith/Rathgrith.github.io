@@ -22,8 +22,11 @@ main:
   - title: "Internships"
     url: "/#-internships"
 
-  - title: "Projects"
+  - title: "University Projects & Homeworks"
     url: "/#-projects"
+
+  - title: "Miscellaneous"
+    url: "/#-miscellaneous"
 
   - title: "CV"
     url: "/assets/cv.pdf"  # This should point to the actual location of your PDF file.
