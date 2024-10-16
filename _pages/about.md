@@ -86,9 +86,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 - *2021.06 - 2021.10*, Backend Developer Intern at [Pactera](https://en.pactera.com/), China.
 
 
-# 🖨 University Projects & Homeworks
-
-## 🔧Projects
+# 🖨 Projects
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 [Arxiv Explorer](https://github.com/Rathgrith/CS410Project): An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
