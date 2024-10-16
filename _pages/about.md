@@ -23,7 +23,7 @@ redirect_from:
  - Before that, I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
  - These experiences show that I have some research background in backdoor learning, visual representation learning, and medical image segmentation. 
  - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
- - You are more than welcome to look at my CV on the navigation bar or [here](https://rathgrith.github.io/assets/cv.pdf)
+ - You are more than welcome to look at my CV on the navigation bar or [here](https://rathgrith.github.io/assets/cv.pdf).
 
 My recent research interest includes *robust machine learning* and *representation learning* (cross-modal).
 
