@@ -22,7 +22,7 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 # Site Author
 author:
   name             : "Dongheng Lin"
-  avatar           : "images/00005.jpg"
+  avatar           : "images/120928725_p0.png"
   bio              : "University of Illinois, Urbana-Champaign"
   location         : "IL, United States"
   employer         : 
@@ -30,7 +30,7 @@ author:
   googlescholar    : "https://scholar.google.com/citations?user=DpiMTsoAAAAJ&hl=en&oi=ao"
   email            : "dl58@illinois.edu"
   researchgate     :  # e.g., "https://www.researchgate.net/profile/yourprofile"
-  uri              : "http://www.senla.top"
+  uri              : # "http://www.senla.top"
   bitbucket        : 
   codepen          :
   dribbble         :
