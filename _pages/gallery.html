@@ -4,55 +4,75 @@ permalink: /gallery/
 ---
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo Gallery</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    .gallery-container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 15px;
-    }
-    .gallery a {
-      display: block;
-      position: relative;
-      overflow: hidden;
-      border-radius: 5px;
-      width: 100%;
-      padding-top: 100%; /* Creates a square aspect ratio */
-    }
-    .gallery img {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* Crops image to fit within the square */
-      transition: transform 0.3s;
-    }
-    .gallery img:hover {
-      transform: scale(1.05);
-    }
-  </style>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Photo Gallery</title>
+        <!-- Link to Google Fonts for custom fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto&display=swap" rel="stylesheet">
+        <style>
+          body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+          }
+          .gallery-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+          }
+          h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 20px;
+          }
+          .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+          }
+          .gallery-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+          }
+          .gallery a {
+            display: block;
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            width: 100%;
+            padding-top: 100%; /* Square aspect ratio */
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.15);
+          }
+          .gallery img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+          }
+          .gallery img:hover {
+            transform: scale(1.1);
+          }
+          .gallery .caption {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 8px;
+          }
+        </style>
+      </head>
 <body>
 
 
@@ -63,17 +83,78 @@ permalink: /gallery/
     <!-- <img src="/images/RATH6620.jpg" alt="Crow">
     <img src="/images/RATH6538.jpg" alt="Busey Woods">
     <img src="/images/RATH6545.jpg" alt="Fallusion"> -->
-    <a href="/images/RATH6538.jpg" target="_blank">
-        <img src="/images/RATH6538.jpg" alt="Busey Woods">
-    </a>
-    <a href="/images/RATH6538.jpg" target="_blank">
-        <img src="/images/RATH6538.jpg" alt="Busey Woods">
-    </a>
-    <a href="/images/RATH6545.jpg" target="_blank">
-        <img src="/images/RATH6545.jpg" alt="Fallusion">
-    </a>
-
-  </div>
+    <div class="gallery-item">
+        <a href="/images/RATH6620.jpg" target="_blank">
+            <img src="/images/RATH6620.jpg" alt="Crow">
+        </a>
+        <div class="caption">Crow</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH6538.jpg" target="_blank">
+            <img src="/images/RATH6538.jpg" alt="Busey Woods">
+        </a>
+        <div class="caption">Busey Woods</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH6545.jpg" target="_blank">
+            <img src="/images/RATH6545.jpg" alt="Fallusion">
+        </a>
+        <div class="caption">Fallusion</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH8442.jpg" target="_blank">
+            <img src="/images/RATH8442.jpg" alt="A dog">
+        </a>
+        <div class="caption">A dog</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH9065w.jpg" target="_blank">
+            <img src="/images/RATH9065w.jpg" alt="Steel Blood">
+        </a>
+        <div class="caption">Steel Blood</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH9618.jpg" target="_blank">
+            <img src="/images/RATH9618.jpg" alt="Bachelor Dorm">
+        </a>
+        <div class="caption">Bachelor Dorm</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/StartrailsJ.jpg" target="_blank">
+            <img src="/images/StartrailsJ.jpg" alt="Starlight">
+        </a>
+        <div class="caption">Starlight</div>    
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH6595.jpg" target="_blank">
+            <img src="/images/RATH6595.jpg" alt="Clouds">
+        </a>
+        <div class="caption">Clouds</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH3037.jpg" target="_blank">
+            <img src="/images/RATH3037.jpg" alt="Asuka">
+        </a>
+        <div class="caption">Asuka</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH3602.jpg" target="_blank">
+            <img src="/images/RATH3602.jpg" alt="Roxy">
+        </a>
+        <div class="caption">Roxy</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH3135-2.jpg" target="_blank">
+            <img src="/images/RATH3135-2.jpg" alt="Reimu">
+        </a>
+        <div class="caption">Reimu</div>
+    </div>
+    <div class="gallery-item">
+        <a href="/images/RATH4513.jpg" target="_blank">
+            <img src="/images/RATH4513.jpg" alt="Ginko">
+        </a>
+        <div class="caption">Ginko</div>
+    </div>
 </div>
 
 </body>
