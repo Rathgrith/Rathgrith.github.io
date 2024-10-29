@@ -204,7 +204,27 @@ permalink: /gallery/
                 <div class="caption">Yard</div>
             </div>
         </div>
-
+        <script>
+            // JavaScript to implement lazy loading and remove blur after image loads
+            document.addEventListener("DOMContentLoaded", function() {
+              const lazyImages = document.querySelectorAll("img[data-src]");
+              const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.getAttribute("data-src");
+                    img.onload = () => img.classList.add("loaded"); // Remove blur on load
+                    img.removeAttribute("data-src");
+                    observer.unobserve(img);
+                  }
+                });
+              });
+          
+              lazyImages.forEach(img => {
+                imageObserver.observe(img);
+              });
+            });
+          </script>
 </body>
 
 </html>
