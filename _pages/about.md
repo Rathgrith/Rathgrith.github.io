@@ -135,7 +135,7 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
- - FUJICHROME Velvia 100, taken at my hometown.
+ - FUJICHROME Velvia 100, taken at my hometown. See [more]({{ '/gallery/' | relative_url }}).
 </div>
 </div>
 
@@ -149,6 +149,8 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calcul
 
  - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
  - Dongheng Lin → [Ka Lok Man](https://scholar.google.com/citations?user=Pa_xqn8AAAAJ&hl=en) → [Prudence W. H. Wong](https://scholar.google.co.uk/citations?user=vjIXDW4AAAAJ&hl=en) → [Shmuel Zaks](https://scholar.google.com/citations?user=rWc3QtgAAAAJ) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
+
+
 # 🦉 Site Visits
 
 <html>
