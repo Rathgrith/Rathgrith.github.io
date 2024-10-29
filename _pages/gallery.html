@@ -31,11 +31,21 @@ permalink: /gallery/
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 15px;
     }
-    .gallery img {
-      width: 100%;
-      height: auto;
+    .gallery a {
       display: block;
+      position: relative;
+      overflow: hidden;
       border-radius: 5px;
+      width: 100%;
+      padding-top: 100%; /* Creates a square aspect ratio */
+    }
+    .gallery img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* Crops image to fit within the square */
       transition: transform 0.3s;
     }
     .gallery img:hover {
@@ -45,13 +55,23 @@ permalink: /gallery/
 </head>
 <body>
 
+
 <div class="gallery-container">
   <h1>Photo Gallery</h1>
   <div class="gallery">
     <!-- Replace each src with the path to your images -->
-    <img src="/images/RATH6620.jpg" alt="Crow">
+    <!-- <img src="/images/RATH6620.jpg" alt="Crow">
     <img src="/images/RATH6538.jpg" alt="Busey Woods">
-    <img src="/images/RATH6545.jpg" alt="Fallusion">
+    <img src="/images/RATH6545.jpg" alt="Fallusion"> -->
+    <a href="/images/RATH6538.jpg" target="_blank">
+        <img src="/images/RATH6538.jpg" alt="Busey Woods">
+    </a>
+    <a href="/images/RATH6538.jpg" target="_blank">
+        <img src="/images/RATH6538.jpg" alt="Busey Woods">
+    </a>
+    <a href="/images/RATH6545.jpg" target="_blank">
+        <img src="/images/RATH6545.jpg" alt="Fallusion">
+    </a>
 
   </div>
 </div>
