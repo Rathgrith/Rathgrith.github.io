@@ -185,7 +185,7 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calcul
 <div id="widget-container">
 <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=300&t=tt&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080'></script>
 <br>
-A few friends of mine: <a href="https://zhuyouheng.github.io/">Youheng Zhu </a>
+A few friends of mine: <a href="https://zhuyouheng.github.io/">Youheng Zhu</a>, <a href="https://jiaweiz9.github.io/">Jiawei (Kyle) Zhang</a>.
 <br>
 </div>
 </body>
