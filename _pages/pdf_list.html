@@ -9,86 +9,167 @@ permalink: /pdf-list/
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>University Projects and Homework</title>
     <!-- Link to Google Fonts for custom fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        h3 {
+            color: #555;
+            margin-top: 20px;
+            font-size: 1.3em;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        a {
+            color: #0073e6;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .project {
+            background: #fff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .project h2 {
+            font-size: 1.5em;
+            margin-top: 0;
+        }
+
+        .project p, .project ul {
+            margin: 10px 0;
+        }
+
+        .return-link {
+            display: block;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #0073e6;
+            text-decoration: none;
+        }
+
+        .return-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-  <h1>Sample Notes and Homework</h1>
 
-  <ul>
-      <li>
-          <h3>Statistical Machine Learning</h3>
-          <ul>
-              <li><a href="{{ '/assets/stat_ml_hw1.pdf' | relative_url }}">HW 1 - Trustworthy ML</a></li>
-              <li><a href="{{ '/assets/stat_ml_hw2.pdf' | relative_url }}">HW 2 - Trustworthy ML</a></li>
-              <li><a href="{{ '/assets/CS442_HW3__2_.pdf' | relative_url }}">HW 3 - Trustworthy ML</a></li>
-          </ul>
-      </li>
-      <li>
-          <h3>Traditional Computer Vision</h3>
-          <ul>
-              <li><a href="{{ '/assets/cvmp1.pdf' | relative_url }}">HW 1 - Computer Vision</a></li>
-              <li><a href="{{ '/assets/CS543_MP2.pdf' | relative_url }}">HW 2 - Computer Vision</a></li>
-              <li><a href="{{ '/assets/CS543_MP3.pdf' | relative_url }}">HW 3 - Computer Vision</a></li>
-              <li><a href="{{ '/assets/CS543_MP4_.pdf' | relative_url }}">HW 4 - Computer Vision</a></li>
-          </ul>
-      </li>
-      <li>
-          <h3>Notes on Other Topics</h3>
-          <ul>
-              <li><a href="{{ '/assets/cs425_cheatsheet.pdf' | relative_url }}">On Distributed Systems</a></li>
-              <li><a href="{{ '/assets/cs438_cheatsheet.pdf' | relative_url }}">On Computer Networking</a></li>
-          </ul>
-      </li>
-  </ul>
+    <div class="container">
+        <h1>Sample Notes and Homework</h1>
 
-
-    <h1>University Projects</h1>
-
-    <div class="project">
-        <h2>Mobile Computing Group Project</h2>
-        <p><strong>Project:</strong> Android University Library Seat Manager App (Java, Android Development)</p>
-        <p><strong>Duration:</strong> October 2022 - November 2022</p>
         <ul>
-            <li>Developed an Android app for students to track and update library seat status in real-time.</li>
-            <li>Created responsive user interfaces and connected the front-end with a Spring Boot-based back-end server using the OkHttp API.</li>
-            <li>Project archived at: <a href="https://github.com/Rathgrith/CAN301">GitHub Repository</a></li>
+            <li>
+                <h3>Statistical Machine Learning</h3>
+                <ul>
+                    <li><a href="{{ '/assets/stat_ml_hw1.pdf' | relative_url }}">HW 1 - Trustworthy ML</a></li>
+                    <li><a href="{{ '/assets/stat_ml_hw2.pdf' | relative_url }}">HW 2 - Trustworthy ML</a></li>
+                    <li><a href="{{ '/assets/CS442_HW3__2_.pdf' | relative_url }}">HW 3 - Trustworthy ML</a></li>
+                </ul>
+            </li>
+            <li>
+                <h3>Traditional Computer Vision</h3>
+                <ul>
+                    <li><a href="{{ '/assets/cvmp1.pdf' | relative_url }}">HW 1 - Computer Vision</a></li>
+                    <li><a href="{{ '/assets/CS543_MP2.pdf' | relative_url }}">HW 2 - Computer Vision</a></li>
+                    <li><a href="{{ '/assets/CS543_MP3.pdf' | relative_url }}">HW 3 - Computer Vision</a></li>
+                    <li><a href="{{ '/assets/CS543_MP4_.pdf' | relative_url }}">HW 4 - Computer Vision</a></li>
+                </ul>
+            </li>
+            <li>
+                <h3>Notes on Other Topics</h3>
+                <ul>
+                    <li><a href="{{ '/assets/cs425_cheatsheet.pdf' | relative_url }}">On Distributed Systems</a></li>
+                    <li><a href="{{ '/assets/cs438_cheatsheet.pdf' | relative_url }}">On Computer Networking</a></li>
+                </ul>
+            </li>
         </ul>
-    </div>
 
-    <div class="project">
-        <h2>Software Engineering Group Project</h2>
-        <p><strong>Project:</strong> XJTLU Bonding Forum Program (Spring Boot, Vue.js, Axios, MyBatis)</p>
-        <p><strong>Duration:</strong> April 2022 - June 2022</p>
-        <ul>
-            <li>Developed a fully functional web forum with an expected user base of over 10,000 university students using Spring Boot and Vue.js.</li>
-            <li>Led front-end development, designed consistent pages, built complex routing logic, and managed data transmission between Spring Boot and Vue.js.</li>
-            <li>Project available at: <a href="https://github.com/Rathgrith/XJTLUbonding">GitHub Repository</a></li>
-        </ul>
-    </div>
+        <h1>University Projects</h1>
 
-    <div class="project">
-        <h2>Computer Networking Project</h2>
-        <p><strong>Project:</strong> LEFT: Large, Efficient, Flexible, and Trustworthy File Sharing System (Socket Programming)</p>
-        <p><strong>Duration:</strong> November 2021 - January 2022</p>
-        <ul>
-            <li>Implemented an Application-Layer Protocol with a local file transfer history for state-based P2P file sharing.</li>
-            <li>Achieved efficient transfer of large files (up to 10GB) between VMs in 5 seconds.</li>
-            <li>Code available at: <a href="https://github.com/Rathgrith/python_peer_file_sharing">GitHub Repository</a></li>
-        </ul>
-    </div>
+        <div class="project">
+            <h2>Mobile Computing Group Project</h2>
+            <p><strong>Project:</strong> Android University Library Seat Manager App (Java, Android Development)</p>
+            <p><strong>Duration:</strong> October 2022 - November 2022</p>
+            <ul>
+                <li>Developed an Android app for students to track and update library seat status in real-time.</li>
+                <li>Created responsive user interfaces and connected the front-end with a Spring Boot-based back-end server using the OkHttp API.</li>
+                <li>Project archived at: <a href="https://github.com/Rathgrith/CAN301">GitHub Repository</a></li>
+            </ul>
+        </div>
 
-    <div class="project">
-        <h2>Video Game Design Project</h2>
-        <p><strong>Project:</strong> Warzone Scavenger Unity Game (C#, Unity3D)</p>
-        <p><strong>Duration:</strong> April 2023 - May 2023</p>
-        <ul>
-            <li>Designed and developed a 3D survival game using the Unity Engine, combining survival, strategy, and action gameplay mechanics.</li>
-            <li>Implemented Singleton Generators following design patterns for events such as supplies and bombardments, ensuring a robust and efficient game system.</li>
-            <li>Partial code and demo available at: <a href="https://github.com/Rathgrith/Warzone_Scavenger_Unity">GitHub Repository</a></li>
-        </ul>
+        <div class="project">
+            <h2>Software Engineering Group Project</h2>
+            <p><strong>Project:</strong> XJTLU Bonding Forum Program (Spring Boot, Vue.js, Axios, MyBatis)</p>
+            <p><strong>Duration:</strong> April 2022 - June 2022</p>
+            <ul>
+                <li>Developed a fully functional web forum with an expected user base of over 10,000 university students using Spring Boot and Vue.js.</li>
+                <li>Led front-end development, designed consistent pages, built complex routing logic, and managed data transmission between Spring Boot and Vue.js.</li>
+                <li>Project available at: <a href="https://github.com/Rathgrith/XJTLUbonding">GitHub Repository</a></li>
+            </ul>
+        </div>
+
+        <div class="project">
+            <h2>Computer Networking Project</h2>
+            <p><strong>Project:</strong> LEFT: Large, Efficient, Flexible, and Trustworthy File Sharing System (Socket Programming)</p>
+            <p><strong>Duration:</strong> November 2021 - January 2022</p>
+            <ul>
+                <li>Implemented an Application-Layer Protocol with a local file transfer history for state-based P2P file sharing.</li>
+                <li>Achieved efficient transfer of large files (up to 10GB) between VMs in 5 seconds.</li>
+                <li>Code available at: <a href="https://github.com/Rathgrith/python_peer_file_sharing">GitHub Repository</a></li>
+            </ul>
+        </div>
+
+        <div class="project">
+            <h2>Video Game Design Project</h2>
+            <p><strong>Project:</strong> Warzone Scavenger Unity Game (C#, Unity3D)</p>
+            <p><strong>Duration:</strong> April 2023 - May 2023</p>
+            <ul>
+                <li>Designed and developed a 3D survival game using the Unity Engine, combining survival, strategy, and action gameplay mechanics.</li>
+                <li>Implemented Singleton Generators following design patterns for events such as supplies and bombardments, ensuring a robust and efficient game system.</li>
+                <li>Partial code and demo available at: <a href="https://github.com/Rathgrith/Warzone_Scavenger_Unity">GitHub Repository</a></li>
+            </ul>
+        </div>
+
+        <!-- return to homepage -->
+        <a href="{{ '/' | relative_url }}" class="return-link">Back to Homepage</a>
     </div>
-    <!-- return to homepage -->
-    <a href="{{ '/' | relative_url }}">Back to Homepage</a>
+    
 </body>
 </html>
