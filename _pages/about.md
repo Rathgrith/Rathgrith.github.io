@@ -121,7 +121,6 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 
 
 
-
 # 🎪 Miscellaneous
 
  - A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
@@ -143,6 +142,8 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 
 
 <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
+
+
 
 ## ✍Erdős Number
 My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calculated via two paths:
@@ -184,9 +185,9 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calcul
 <body>
 <div id="widget-container">
 <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=300&t=tt&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080'></script>
-<br>
-A few friends of mine: <a href="https://zhuyouheng.github.io/">Youheng Zhu</a>, <a href="https://jiaweiz9.github.io/">Jiawei (Kyle) Zhang</a>.
-<br>
 </div>
+<br/>
+A few friends of mine: <a href="https://zhuyouheng.github.io/">Youheng Zhu</a>, <a href="https://jiaweiz9.github.io/">Jiawei (Kyle) Zhang</a>
+<br/>
 </body>
 </html>
