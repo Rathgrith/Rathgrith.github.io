@@ -74,8 +74,8 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
 
 # 📖 Education
-- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/), [[Transcript]](assets/TE89ADTH.pdf)
-- *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science), [[Transcript]](assets/transcript_bachelor.pdf), [[Certificate]](assets/degree_cert.pdf)
+- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
+- *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science)
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/)
 
 <!-- # 💬 Invited Talks
@@ -135,7 +135,7 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 
 <div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
- - FUJICHROME Velvia 100, taken at my hometown. See [more]({{ '/gallery/' | relative_url }}).
+ - FUJICHROME Velvia 100, taken at my hometown.
 </div>
 </div>
 
@@ -149,8 +149,6 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calcul
 
  - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
  - Dongheng Lin → [Ka Lok Man](https://scholar.google.com/citations?user=Pa_xqn8AAAAJ&hl=en) → [Prudence W. H. Wong](https://scholar.google.co.uk/citations?user=vjIXDW4AAAAJ&hl=en) → [Shmuel Zaks](https://scholar.google.com/citations?user=rWc3QtgAAAAJ) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
-
-
 # 🦉 Site Visits
 
 <html>
@@ -187,5 +185,6 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calcul
   <div id="widget-container">
     <script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=300&t=tt&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080'></script>
   </div>
+  A few friends of mine: <a href="{{https://zhuyouheng.github.io/}}">Youheng Zhu/a>
   </body>
 </html>
