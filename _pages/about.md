@@ -41,7 +41,9 @@ My recent research interest includes *robust machine learning* and *representati
 <div class='paper-box-text' markdown="1">
 
 What Time Tells Us? Time-Aware Representation Learning from Static Images, **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
-- A new paradigm to learn visual cues for timestamps leading to time-aware understanding. 
+- A new paradigm to learn visual cues for timestamps leading to time-aware understanding on visual inputs. 
+- Built a new benchmark dataset with 130k accurate samples paired with metadata.
+- Tested the learned representations on various downstream tasks (Image Retrieval, Video Scene Recognition and Time-conditioned Image Editing).
 </div>
 </div>
 
