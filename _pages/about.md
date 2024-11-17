@@ -38,8 +38,8 @@ redirect_from:
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">Under Review</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
-What Time Tells Us? Time-Aware Representation Learning from Static Images, **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
-- A new paradigm to learn visual cues for timestamps leading to time-aware understanding on visual inputs. 
+What Time Tells Us? Learning time-Awareness from Static Images, **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
+- A new paradigm to learn visual cues for timestamps leading to time-aware understanding on random visual inputs. 
 - Built a new benchmark dataset with 130k accurate samples paired with metadata.
 - Tested the learned representations on various downstream tasks (Image Retrieval, Video Scene Recognition and Time-conditioned Image Editing).
 </div>
