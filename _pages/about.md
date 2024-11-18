@@ -34,6 +34,11 @@ redirect_from:
 - *2023.08*: &nbsp;🎉🎉 Started my Master degree in [UIUC ECE](https://ece.illinois.edu/).
 - *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree at [University of Liverpool](https://www.liverpool.ac.uk/computer-science/) and [XJTLU](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science). 
 
+# 📖 Education
+- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/) [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf)
+<!-- - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science) -->
+- *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/) [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf)
+
 # 📝 Publications 
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">Under Review</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
@@ -72,11 +77,6 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 - *2022.07* University Academic Excellence Award — Scholarship for top 5% students
 
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
-
-# 📖 Education
-- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
-- *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science)
-- *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/)
 
 <!-- # 💬 Invited Talks
 - *2022.10*, XJTLU STUDENT SYMPOSIUM OF RESEARCH-LED LEARNING, 1st Prize -->
