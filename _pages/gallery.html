@@ -159,7 +159,16 @@ permalink: /gallery/
             "RATH3081.jpg": "Tanzanite",
             "000039.jpg": "Watcher",
             "DSC01744.jpg": "Light",
-            "RATH9560~1.jpg": "Landsknechte"
+            "000105710019.jpg": "Villa",
+            "RATH2455.jpg": "Cloud Split",
+            "RATH2766.jpg": "Tabletop",
+            "RATH2074.jpg": "Tilt Train",
+            "000054710009.jpg": "Glass",
+            "DSCF4421.jpg": "EE Building",
+            "RATH8000.jpg": "Sad Cat",
+            "DSC01565_2.jpg": "Valaraukar",
+            "RATH2145.jpg": "Cable",
+            "RATH2122.jpg": "Stretch",
         };
 
         // Directories for thumbnails and original images
@@ -168,7 +177,8 @@ permalink: /gallery/
 
         // Populate gallery dynamically
         const gallery = document.getElementById("gallery");
-
+        // randomize order of images
+        const filenames = Object.keys(captions).sort(() => Math.random() - 0.5);
         Object.keys(captions).forEach(filename => {
             const galleryItem = document.createElement("div");
             galleryItem.classList.add("gallery-item");
