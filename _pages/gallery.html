@@ -162,8 +162,9 @@ permalink: /gallery/
             "RATH9560~1.jpg": "Landsknechte"
         };
 
-        // Directory where images are stored
-        const imageDir = "/images/raw/";
+        // Directories for thumbnails and original images
+        const thumbnailDir = "/images/";
+        const originalDir = "/images/raw/";
 
         // Populate gallery dynamically
         const gallery = document.getElementById("gallery");
@@ -173,8 +174,8 @@ permalink: /gallery/
             galleryItem.classList.add("gallery-item");
 
             galleryItem.innerHTML = `
-                <a href="${imageDir}${filename}" target="_blank">
-                    <img src="${imageDir}${filename}" alt="${captions[filename]}">
+                <a href="${originalDir}${filename}" target="_blank">
+                    <img src="${thumbnailDir}${filename}" alt="${captions[filename]}">
                 </a>
                 <div class="caption">${captions[filename]}</div>
             `;
