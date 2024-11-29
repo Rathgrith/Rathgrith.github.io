@@ -179,18 +179,22 @@ permalink: /gallery/
         const gallery = document.getElementById("gallery");
         // randomize order of images
         const filenames = Object.keys(captions).sort(() => Math.random() - 0.5);
-        Object.keys(captions).forEach(filename => {
-            const galleryItem = document.createElement("div");
-            galleryItem.classList.add("gallery-item");
-
-            galleryItem.innerHTML = `
-                <a href="${originalDir}${filename}" target="_blank">
-                    <img src="${thumbnailDir}${filename}" alt="${captions[filename]}">
-                </a>
-                <div class="caption">${captions[filename]}</div>
-            `;
-
-            gallery.appendChild(galleryItem);
+        filenames.forEach((filename) => {
+            const thumbnail = document.createElement("a");
+            thumbnail.href = originalDir + filename;
+            thumbnail.target = "_blank";
+            const img = document.createElement("img");
+            img.src = thumbnailDir + filename;
+            img.alt = captions[filename];
+            thumbnail.appendChild(img);
+            const caption = document.createElement("div");
+            caption.className = "caption";
+            caption.textContent = captions[filename];
+            const item = document.createElement("div");
+            item.className = "gallery-item";
+            item.appendChild(thumbnail);
+            item.appendChild(caption);
+            gallery.appendChild(item);
         });
     </script>
 
