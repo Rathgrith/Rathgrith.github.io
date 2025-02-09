@@ -19,7 +19,7 @@ redirect_from:
 
 # 🏄‍♀️ About Me
  - I am a MEng student studying Computer Engineering with some expertise in Software Development and Deep Learning. 
- - Currently, I am working under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/). 
+ - Currently, I am working with [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Yunchao Wei](https://weiyc.github.io/). 
  - Before that, I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
  - These experiences show that I have some research background in visual representation learning, backdoor learning, and medical image segmentation. 
  - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
@@ -30,6 +30,7 @@ redirect_from:
 
 
 # 🔥 News
+- *2024.12* &nbsp;🎉🎉 Glad to join [WEI Lab@BJTU](https://weiyc.github.io/) as a research intern.
 - *2023.12*: &nbsp;🎉🎉 Glad to join [MIx group](https://mix.jianbojiao.com/) as a research intern.
 - *2023.08*: &nbsp;🎉🎉 Started my Master degree in [UIUC ECE](https://ece.illinois.edu/).
 - *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree at [University of Liverpool](https://www.liverpool.ac.uk/computer-science/) and [XJTLU](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science). 
