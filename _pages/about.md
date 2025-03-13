@@ -40,6 +40,16 @@ redirect_from:
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/), Distinction: [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf)
 
 # 📝 Publications 
+<div class='paper-box'><div class='paper-box-image'><div><div class="badge">Under Review</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
+Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
+- We proposed Hierarchical Fusion Strategy that integrates middle and late fusion to enhance separation across diverse sound characteristics.
+- We introduced a new loss term for the task that aligns U-Net’s latent audio features with pre-trained audio embeddings (CLAP) to improve semantic quality and reduce modality gap.
+- It achieves superior results on MUSIC and MUSIC-21 datasets, surpassing previous self-supervised methods.
+</div>
+</div>
+
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">Under Review</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
