@@ -40,7 +40,7 @@ redirect_from:
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/), Distinction: [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf)
 
 # 📝 Publications 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">Under Review</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><div class="badge">BMVC 2025</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
 Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
