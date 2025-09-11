@@ -22,7 +22,7 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 # Site Author
 author:
   name             : "Dongheng Lin"
-  avatar           : "images/119157966_p0.jpg"
+  avatar           : "images/flan_avatar.png" # Path to your avatar image inside the "assets" folder
   bio              : "University of Illinois, Urbana-Champaign"
   location         : "IL, United States"
   employer         : 

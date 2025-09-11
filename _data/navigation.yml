@@ -3,14 +3,14 @@ main:
   - title: "About Me"
     url: "/#about-me"
 
-  - title: "News"
-    url: "/#-news"
+  # - title: "News"
+  #   url: "/#-news"
 
   - title: "Publications"
     url: "/#-publications"
 
-  - title: "Honors and Awards"
-    url: "/#-honors-and-awards"
+  # - title: "Honors and Awards"
+  #   url: "/#-honors-and-awards"
 
   - title: "Education"
     url: "/#-education"
@@ -21,11 +21,11 @@ main:
   # - title: "Internships"
   #   url: "/#-internships"
 
-  - title: "Projects"
-    url: "/#-projects"
+  # - title: "Projects"
+  #   url: "/#-projects"
 
-  # - title: "Miscellaneous"
-  #   url: "/#-miscellaneous"
+  - title: "Miscellaneous"
+    url: "/#-miscellaneous"
 
   - title: "CV"
     url: "/assets/cv.pdf"  # This should point to the actual location of your PDF file.

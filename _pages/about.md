@@ -18,26 +18,26 @@ redirect_from:
 <span class='anchor' id='about-me'></span>
 
 # 🏄‍♀️ About Me
- - I am a MEng student studying Computer Engineering with some expertise in Software Development and Deep Learning. 
- - Currently, I am working with [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Yunchao Wei](https://weiyc.github.io/). 
+ - I am a 1st year CS PhD student at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) supervised by [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Eyal Ofek](https://eyalofek.org/).
+ - Previously, I was an [MEng ECE@UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and a [BSc ICS@UoL&XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). 
+ - Currently, I am also working with [Prof. Yunchao Wei](https://weiyc.github.io/). 
  - Before that, I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
  - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
  - You are more than welcome to look at my CV on the navigation bar or [here](https://rathgrith.github.io/assets/cv.pdf).
 
 
-> ΟΣΟΝ ΖΗΣ ΦΑΙΝΟΥ / ΜΗΔΕΝ ΟΛΩΣ ΣΥ / ΛΥΠΟΥ ΠΡΟΣ ΟΛΙ / ΓΟΝ ΕΣΤΙ ΤΟ ΖΗΝ / ΤΟ ΤΕΛΟΣ Ο ΧΡΟ / ΝΟΣ ΑΠΑΙΤΕΙ   ----ΣΕΙΚΙΛΟΣ ΕΥΤΕΡ
+> 
 
 
-# 🔥 News
-- *2024.12* &nbsp;🎉🎉 Glad to join [WEI Lab@BJTU](https://weiyc.github.io/) as a research intern.
-- *2023.12*: &nbsp;🎉🎉 Glad to join [MIx group](https://mix.jianbojiao.com/) as a research intern.
-- *2023.08*: &nbsp;🎉🎉 Started my Master degree in [UIUC ECE](https://ece.illinois.edu/).
-- *2023.07*: &nbsp;🎉🎉 Got my distinction bachelor degree at [University of Liverpool](https://www.liverpool.ac.uk/computer-science/) and [XJTLU](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science). 
 
 # 📖 Education
-- *2023.08 - now*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/), GPA:3.94/4 [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf)
+- *2025.09 - Now*, PhD. in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/)
+- *2023.08 - 2024.12*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
+<!-- GPA:3.94/4  -->
+<!-- [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf) -->
 <!-- - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science) -->
-- *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/), Distinction: [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf)
+- *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/), Distinction: 
+<!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
 # 📝 Publications 
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">BMVC 2025</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
@@ -50,10 +50,10 @@ Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, H
 </div>
 </div>
 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">Under Review</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><div class="badge">TMLR 2025</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
-What Time Tells Us? Learning time-Awareness from Static Images, **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
+[What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images](https://openreview.net/pdf?id=f1MYOG4iDG), **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
 - A new paradigm to learn visual cues for timestamps leading to time-aware understanding on random visual inputs. 
 - Built a new benchmark dataset with 130k accurate samples paired with metadata.
 - Tested the learned representations on various downstream tasks (Image Retrieval, Video Scene Recognition and Time-conditioned Image Editing).
@@ -69,7 +69,7 @@ What Time Tells Us? Learning time-Awareness from Static Images, **Dongheng Lin<s
 </div>
 </div>
 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">CyberC 2022 (IEEE)</div><img src='images\1698515502562.png' alt="sym" width="100%"></div></div>
+<!-- <div class='paper-box'><div class='paper-box-image'><div><div class="badge">CyberC 2022 (IEEE)</div><img src='images\1698515502562.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
 
@@ -78,25 +78,25 @@ What Time Tells Us? Learning time-Awareness from Static Images, **Dongheng Lin<s
 Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Erick Purwanto<sup>†</sup>, Ka Lok Man<sup>2</sup>
 
 - In this paper, we propose a conditional data preprocessing strategy, i.e., Conditional Metadata Embedding (CME) data preprocessing strategy. The CME data preprocessing method will embed conditional information to the training data, which can assist the model to better overcome the differences in the datasets and extract useful feature information in the images.  
-</div>
+</div> -->
 </div>
 
 
-# 🎖 Honors and Awards
+<!-- # 🎖 Honors and Awards
 - *2022.10* XJTLU 2022 Summer Undergraduate Research Fellowship Poster Group Winner 
-- *2022.07* University Academic Excellence Award — Scholarship for top 5% students
+- *2022.07* University Academic Excellence Award — Scholarship for top 5% students -->
 
 <!-- - *2021.09* Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ornare aliquet ipsum, ac tempus justo dapibus sit amet.  -->
 
 <!-- # 💬 Invited Talks
 - *2022.10*, XJTLU STUDENT SYMPOSIUM OF RESEARCH-LED LEARNING, 1st Prize -->
 
-# 💻 Internships
+<!-- # 💻 Internships
 - *2023.11 - Now*, Research Intern at [MiX group at UofB](https://mix.jianbojiao.com/), UK (Remote).
-- *2021.06 - 2021.10*, Backend Developer Intern at [Pactera](https://en.pactera.com/), China.
+- *2021.06 - 2021.10*, Backend Developer Intern at [Pactera](https://en.pactera.com/), China. -->
 
 
-# 🖨 Projects
+<!-- # 🖨 Projects
 <div class='paper-box'><div class='paper-box-image'><div><img src='images\recafter.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 [Arxiv Explorer](https://github.com/Rathgrith/CS410Project): An efficient paper recommendation system we developed on a full dataset of all available Arxiv Papers (until Feb 2024).
@@ -125,7 +125,7 @@ My undergraduate thesis: [StyleDiffuser: Cartoon-Style Image Creation with Diffu
 </div>
 
 ## 📎Homework
-Apart from these projects, here are few interesting written homeworks to refer: [Homework Samples]({{ '/pdf-list/' | relative_url }}).
+Apart from these projects, here are few interesting written homeworks to refer: [Homework Samples]({{ '/pdf-list/' | relative_url }}). -->
 
 
 
@@ -135,9 +135,10 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 
  - A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
 
-   - My favorite manga: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
+   - My favorite manga chapter: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
 
    - Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (Single Episode): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E)
+   
 
  - I also enjoy photography and music.
 
@@ -153,13 +154,12 @@ Apart from these projects, here are few interesting written homeworks to refer: 
 
 
 
-## ✍Erdős Number
-My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4, calculated via two paths:
+## 👥Social
+My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
 
   - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
-  - Dongheng Lin → [Ka Lok Man](https://scholar.google.com/citations?user=Pa_xqn8AAAAJ&hl=en) → [Prudence W. H. Wong](https://scholar.google.co.uk/citations?user=vjIXDW4AAAAJ&hl=en) → [Shmuel Zaks](https://scholar.google.com/citations?user=rWc3QtgAAAAJ) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
 
- - A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/)
+A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/)
 
 ## 📝Service
   - *Invited Reviewer:* [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
