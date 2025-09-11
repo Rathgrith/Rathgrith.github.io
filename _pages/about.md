@@ -44,9 +44,6 @@ redirect_from:
 <div class='paper-box-text' markdown="1">
 
 Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
-- We proposed Hierarchical Fusion Strategy that integrates middle and late fusion to enhance separation across diverse sound characteristics.
-- We introduced a new loss term for the task that aligns U-Net’s latent audio features with pre-trained audio embeddings (CLAP) to improve semantic quality and reduce modality gap.
-- It achieves superior results on MUSIC and MUSIC-21 datasets, surpassing previous self-supervised methods.
 </div>
 </div>
 
@@ -54,9 +51,6 @@ Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, H
 <div class='paper-box-text' markdown="1">
 
 [What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images](https://openreview.net/pdf?id=f1MYOG4iDG), **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
-- A new paradigm to learn visual cues for timestamps leading to time-aware understanding on random visual inputs. 
-- Built a new benchmark dataset with 130k accurate samples paired with metadata.
-- Tested the learned representations on various downstream tasks (Image Retrieval, Video Scene Recognition and Time-conditioned Image Editing).
 </div>
 </div>
 
@@ -64,8 +58,6 @@ Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, H
 <div class='paper-box-text' markdown="1">
 
 [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://ieeexplore.ieee.org/document/10650242), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>
-- Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
-- With its assistance, we managed to realize a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only **38.44%** of poisoned samples.
 </div>
 </div>
 
@@ -79,7 +71,7 @@ Juntuo Wang<sup>1</sup>, Qiaochu Zhao<sup>1</sup>, **Dongheng Lin<sup>1</sup>**,
 
 - In this paper, we propose a conditional data preprocessing strategy, i.e., Conditional Metadata Embedding (CME) data preprocessing strategy. The CME data preprocessing method will embed conditional information to the training data, which can assist the model to better overcome the differences in the datasets and extract useful feature information in the images.  
 </div> -->
-</div>
+<!-- </div> -->
 
 
 <!-- # 🎖 Honors and Awards
