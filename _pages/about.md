@@ -21,9 +21,7 @@ redirect_from:
  - I am a 1st year CS PhD student at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) supervised by [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Eyal Ofek](https://eyalofek.org/).
  - Previously, I was an [MEng ECE@UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and a [BSc ICS@UoL&XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). 
  - Currently, I am also working with [Prof. Yunchao Wei](https://weiyc.github.io/). 
- - Before that, I have worked closely with [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
- - Fluent in English, Mandarin, and Japanese (Learned through an unsupervised manner).
- - You are more than welcome to look at my CV on the navigation bar or [here](https://rathgrith.github.io/assets/cv.pdf).
+ - Before that, I have been supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
 
 
 > 
@@ -39,11 +37,13 @@ redirect_from:
 - *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/), Distinction: 
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
-# 📝 Publications 
+# 📝 Selected Publications 
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">BMVC 2025</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
 Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
+- We proposed Hierarchical Fusion Strategy that integrates middle and late fusion to enhance separation across diverse sound characteristics.
+- We introduced a new loss term for the task that aligns U-Net’s latent audio features with pre-trained audio embeddings (CLAP) to improve semantic quality and reduce modality gap.
 </div>
 </div>
 
@@ -51,6 +51,9 @@ Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, H
 <div class='paper-box-text' markdown="1">
 
 [What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images](https://openreview.net/pdf?id=f1MYOG4iDG), **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
+- A new paradigm to learn visual cues for timestamps leading to time-aware understanding on random visual inputs. 
+- Built a new benchmark dataset with 130k accurate samples paired with metadata.
+- Tested the learned representations on various downstream tasks (Image Retrieval, Video Scene Recognition and Time-conditioned Image Editing).
 </div>
 </div>
 
@@ -58,6 +61,8 @@ Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, H
 <div class='paper-box-text' markdown="1">
 
 [SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://ieeexplore.ieee.org/document/10650242), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>
+- Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
+- We managed to realize a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only **38.44%** of poisoned samples.
 </div>
 </div>
 
@@ -151,7 +156,7 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
 
   - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
 
-A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/)
+A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/), [Zhiyuan Ma](https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate).
 
 ## 📝Service
   - *Invited Reviewer:* [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
