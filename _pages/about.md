@@ -38,6 +38,7 @@ redirect_from:
 - *2019.09 - 2023.07*, BSc(Hon) in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/).
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
+
 # 📝 Selected Publications 
 
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">TMLR 2025</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
@@ -71,6 +72,8 @@ redirect_from:
 
 
 
+---
+
 # 🎪 Miscellaneous
 
  - A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
@@ -93,7 +96,6 @@ redirect_from:
 
 
 
-
 # 👥Social
 My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
 
@@ -101,9 +103,13 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
 
 A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/), [Zhiyuan Ma](https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate).
 
-# 📝Service
+# 📝Services
+
   - *Invited Reviewer:* [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
   - *Software Engineer*, [Allsee Technologies Ltd](https://www.allsee-tech.com/)
+
+
+
 # 🦉 Site Visits
 
 <html>
