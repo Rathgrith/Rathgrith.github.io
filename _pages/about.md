@@ -24,7 +24,7 @@ redirect_from:
  - Before that, I have been supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
 
 
-> 力強い竹の下には、さらに力強い根が張り巡らされている。 
+> 力強い竹の下には、さらに力強い根が張り巡らされている。   
 > Beneath the sturdy bamboo, even sturdier roots spread out.  
 > From:『東方永夜抄　～ Imperishable Night.』~ Stage 4  
 
@@ -39,22 +39,24 @@ redirect_from:
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
 # 📝 Selected Publications 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">BMVC 2025</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
-
-Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
-- We proposed Hierarchical Fusion Strategy that integrates middle and late fusion to enhance separation across diverse sound characteristics.
-- We introduced a new loss term for the task that aligns U-Net’s latent audio features with pre-trained audio embeddings (CLAP) to improve semantic quality and reduce modality gap.
-</div>
-</div>
 
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">TMLR 2025</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
 [What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images](https://openreview.net/pdf?id=f1MYOG4iDG), **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
 - A new paradigm to learn visual cues for timestamps leading to time-aware understanding on random visual inputs. 
-- Built a new benchmark dataset with 130k accurate samples paired with metadata.
+- Built a new benchmark dataset with 130k samples paired with accurate time/geolocation metadata.
 - Tested the learned representations on various downstream tasks (Image Retrieval, Video Scene Recognition and Time-conditioned Image Editing).
+</div>
+</div>
+
+
+<div class='paper-box'><div class='paper-box-image'><div><div class="badge">BMVC 2025</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
+Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
+- We proposed Hierarchical Fusion Strategy that integrates middle and late fusion to enhance separation across diverse sound characteristics.
+- We introduced a new loss term for the task that aligns U-Net’s latent audio features with pre-trained audio embeddings (CLAP) to improve semantic quality and reduce modality gap.
 </div>
 </div>
 
@@ -161,7 +163,7 @@ A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Ky
 
 # 📝Service
   - *Invited Reviewer:* [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
-
+  - *Software Engineer*[@Allsee Technologies Ltd](https://www.allsee-tech.com/)
 # 🦉 Site Visits
 
 <html>
