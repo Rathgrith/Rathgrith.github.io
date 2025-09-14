@@ -24,17 +24,19 @@ redirect_from:
  - Before that, I have been supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
 
 
-> 
+> 力強い竹の下には、さらに力強い根が張り巡らされている。
+> Beneath the sturdy bamboo, even sturdier roots spread out.
+> From:『東方永夜抄　～ Imperishable Night.』~ Stage 4
 
 
 
 # 📖 Education
-- *2025.09 - Now*, PhD. in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/)
+- *2025.09 - Now*, PhD in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/)
 - *2023.08 - 2024.12*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
 <!-- GPA:3.94/4  -->
 <!-- [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf) -->
 <!-- - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science) -->
-- *2019.09 - 2023.07*, BSc in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/), Distinction: 
+- *2019.09 - 2023.07*, BSc(Hon) in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/).
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
 # 📝 Selected Publications 
