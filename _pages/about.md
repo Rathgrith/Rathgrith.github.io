@@ -103,7 +103,7 @@ A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Ky
 
 # 📝Service
   - *Invited Reviewer:* [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
-  - *Software Engineer*[@Allsee Technologies Ltd](https://www.allsee-tech.com/)
+  - *Software Engineer*, [Allsee Technologies Ltd](https://www.allsee-tech.com/)
 # 🦉 Site Visits
 
 <html>
