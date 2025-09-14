@@ -24,13 +24,9 @@ redirect_from:
  - Before that, I have been supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
 
 
-> 力強い竹の下には、さらに力強い根が張り巡らされている。
-
-> Beneath the sturdy bamboo, even sturdier roots spread out.
-
-
-> From:『東方永夜抄　～ Imperishable Night.』~ Stage 4
-
+> 力強い竹の下には、さらに力強い根が張り巡らされている。 
+> Beneath the sturdy bamboo, even sturdier roots spread out.  
+> From:『東方永夜抄　～ Imperishable Night.』~ Stage 4  
 
 
 # 📖 Education
