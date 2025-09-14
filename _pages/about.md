@@ -64,7 +64,7 @@ redirect_from:
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">IJCNN 2024</div><img src='images\SPSSfigure.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
-[SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://ieeexplore.ieee.org/document/10650242), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>
+[SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://ieeexplore.ieee.org/document/10650242), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Shengkai Sun<sup>2</sup>, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>
 - Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
 - We managed to realize a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only **38.44%** of poisoned samples.
 </div>
