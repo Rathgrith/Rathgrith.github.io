@@ -26,7 +26,7 @@ redirect_from:
 
 > 力強い竹の下には、さらに力強い根が張り巡らされている。   
 > Beneath the sturdy bamboo, even sturdier roots spread out.  
-> From:『東方永夜抄　～ Imperishable Night.』~ Stage 4  
+> From:[『東方永夜抄　～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4  
 
 
 # 📖 Education
@@ -54,7 +54,7 @@ redirect_from:
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">BMVC 2025</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
-Audio-Visual Separation with Hierarchical Fusion and Representation Alignment, Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
+[Audio-Visual Separation with Hierarchical Fusion and Representation Alignment](https://openreview.net/pdf?id=lFzBY8w4y7), Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
 - We proposed Hierarchical Fusion Strategy that integrates middle and late fusion to enhance separation across diverse sound characteristics.
 - We introduced a new loss term for the task that aligns U-Net’s latent audio features with pre-trained audio embeddings (CLAP) to improve semantic quality and reduce modality gap.
 </div>
