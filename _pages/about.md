@@ -41,7 +41,7 @@ redirect_from:
 
 # 📝 Selected Publications 
 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">NeurIPS 2025</div><img src='images\NIPS25_TTR_VAD.png.png' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><div class="badge">NeurIPS 2025</div><img src='images\NIPS25_TTR_VAD.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
 [A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis](https://openreview.net/pdf?id=Qla5PqFL0s), **Dongheng Lin**, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup>
@@ -52,7 +52,7 @@ redirect_from:
 </div>
 
 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">TMLR 2025</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
+<div class='paper-box'><div class='paper-box-image'><div><div class="redbadge">TMLR 2025</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
 [What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images](https://openreview.net/pdf?id=f1MYOG4iDG), **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
