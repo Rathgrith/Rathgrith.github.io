@@ -41,6 +41,17 @@ redirect_from:
 
 # 📝 Selected Publications 
 
+<div class='paper-box'><div class='paper-box-image'><div><div class="badge">NeurIPS 2025</div><img src='images\NIPS25_TTR_VAD.png.png' alt="sym" width="100%"></div></div>
+<div class='paper-box-text' markdown="1">
+
+[A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis](https://openreview.net/pdf?id=Qla5PqFL0s), **Dongheng Lin**, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup>
+- A new zero-shot method for structured Video Anomaly Detection/Localisation/Understanding. 
+- Intra-task Reasoning (IntraTR) improves task-specific performance via extracting priors for anomaly contexts.
+- Inter-task Chaining (InterTC) builds Chain-of-Thoughts to unify capabilities on different sub-tasks in Video Anomaly Analysis.
+</div>
+</div>
+
+
 <div class='paper-box'><div class='paper-box-image'><div><div class="badge">TMLR 2025</div><img src='images\timerep3.png' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
 
