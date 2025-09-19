@@ -19,7 +19,7 @@ redirect_from:
 
 # 🏄‍♀️ About Me
  - I am a 1st year CS PhD student at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) supervised by [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Eyal Ofek](https://eyalofek.org/).
- - Previously, I was an [MEng ECE@UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and a [BSc ICS@UoL&XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). 
+ - Previously, I was an [MEng ECE@UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and a [BSc ICS @UoL&XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). 
  - Currently, I am also working with [Prof. Yunchao Wei](https://weiyc.github.io/). 
  - Before that, I have been supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) during my undergraduate study.
 
@@ -30,12 +30,14 @@ redirect_from:
 
 
 # 📖 Education
-- *2025.09 - Now*, PhD in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/)
+- <img src='images/school_logos/birmingham_logo.png' alt="UoB" width="14"> *2025.09 - Now*, PhD in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/)
 - *2023.08 - 2024.12*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
+- *2019.09 - 2023.07*, BSc(Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/)
+
 <!-- GPA:3.94/4  -->
 <!-- [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf) -->
 <!-- - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science) -->
-- *2019.09 - 2023.07*, BSc(Hons) in Information and Computing Science, [University of Liverpool](https://www.liverpool.ac.uk/computer-science/).
+
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
 
