@@ -107,6 +107,8 @@ h1:before, .anchor:before {
     background-color: #00369f;
     font-size: .8em;
     font-weight: bold;
+    // rounded corners
+    border-radius: 1em;
 }
 
 .redbadge {
@@ -119,6 +121,8 @@ h1:before, .anchor:before {
     background-color: #8d0202;
     font-size: .8em;
     font-weight: bold;
+    // rounded corners
+    border-radius: 1em;
 }
 
 .greenbadge {
@@ -131,4 +135,6 @@ h1:before, .anchor:before {
     background-color: #008000;
     font-size: .8em;
     font-weight: bold;
+    // rounded corners
+    border-radius: 1em;
 }
