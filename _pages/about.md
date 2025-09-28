@@ -19,8 +19,8 @@ redirect_from:
 
 # 🏄‍♀️ About Me
  - I am delighted to be pursuing my PhD in Computer Science at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Eyal Ofek](https://eyalofek.org/).
- - I completed my MEng in Electrical and Computer Engineering at [UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and earned my BSc in Information and Computing Science from [UoL&XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). 
- - I am fortunate to be collaborating with [Prof. Yunchao Wei](https://weiyc.github.io/) on current research projects. 
+ - Previously, I was an [MEng ECE@UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and a [BSc ICS @UoL&XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons).
+ - I am also fortunate to be collaborating with [Prof. Yunchao Wei](https://weiyc.github.io/) on current research projects. 
  - During my undergraduate studies, I had the privilege of being supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en).
 
 
