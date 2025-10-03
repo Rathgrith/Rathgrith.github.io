@@ -7,7 +7,7 @@ permalink: /pdf-list/
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Past Notes before PhD</title>
+    <title>University Projects and Homework</title>
     <!-- Link to Google Fonts for custom fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto&display=swap" rel="stylesheet">
     <style>
@@ -87,71 +87,13 @@ permalink: /pdf-list/
         .return-link:hover {
             text-decoration: underline;
         }
-
-        .page-header {
-            background: linear-gradient(135deg, #f0f4ff, #dfe7ff);
-            border-bottom: 1px solid #d0d7e8;
-            padding: 40px 0 30px;
-        }
-
-        .page-subtitle {
-            color: #555;
-            text-align: center;
-            margin: 10px auto 0;
-            max-width: 600px;
-        }
-
-        .highlight-quote {
-            background: #fff;
-            border-left: 4px solid #4a6fe3;
-            margin: 20px 0 40px;
-            padding: 20px 25px;
-            font-style: italic;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .highlight-quote cite {
-            display: block;
-            margin-top: 10px;
-            font-style: normal;
-            color: #666;
-            text-align: right;
-        }
-
-        .page-footer {
-            background: #1f2a44;
-            color: #f4f4f9;
-            padding: 30px 0;
-            margin-top: 40px;
-        }
-
-        .page-footer p {
-            margin: 5px 0;
-            text-align: center;
-        }
-
-        .page-footer a {
-            color: #cdd9ff;
-        }
     </style>
 </head>
 <body>
 
-    <header class="page-header">
-        <div class="container">
-            <h1>Past Projects and Notes</h1>
-            <p class="page-subtitle">Personally archived versions.</p>
-        </div>
-    </header>
-
     <div class="container">
-        <blockquote class="highlight-quote">
-            <p>"For doubt can exist only where a question exists, a question only where an answer exists, and an answer only where something can be said. (6.51)"</p>
-            <cite>— Ludwig Wittgenstein</cite>
-        </blockquote>
+        <h1>Sample Notes and Homework</h1>
 
-        <h2>Sample Notes and Homework</h2>
-        
         <ul>
             <li>
                 <h3>Trustworthy Machine Learning</h3>
@@ -180,14 +122,14 @@ permalink: /pdf-list/
             <li>
                 <h3>Transcripts</h3>
                 <ul>
-                    <li><a href="{{ '/assets/cs425_cheatsheet.pdf' | relative_url }}">On Distributed Systems</a></li>
-                    <li><a href="{{ '/assets/cs438_cheatsheet.pdf' | relative_url }}">On Computer Networking</a></li>
+                    <li><a href="{{ '/assets/TE89ADTH.pdf' | relative_url }}">UIUC</a></li>
+                    <li><a href="{{ '/assets/liverpool_transcript.pdf' | relative_url }}">Liverpool</a></li>
                 </ul>
             </li>
         </ul>
 
-        <h2>University Projects</h2>
-        <div class="project">
+        <h1>University Projects</h1>
+                <div class="project">
             <h2>Arxiv Explorer</h2>
             <p><strong>Project:</strong> Paper Recommendation System</p>
             <ul>
@@ -267,11 +209,5 @@ permalink: /pdf-list/
         <a href="{{ '/' | relative_url }}" class="return-link">Back to Homepage</a>
     </div>
     
-    <footer class="page-footer">
-        <div class="container">
-            <p>Go back to <a href="{{ '/about/' | relative_url }}">About page</a> for context and contact details.</p>
-            <p>&copy; {{ site.time | date: '%Y' }} Dongheng Lin. </p>
-        </div>
-    </footer>
 </body>
 </html>
