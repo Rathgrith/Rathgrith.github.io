@@ -50,6 +50,14 @@ permalink: /gallery/
             flex-direction: column;
             align-items: center;
             text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+        }
+
+        .gallery-item.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .gallery a {
@@ -70,11 +78,11 @@ permalink: /gallery/
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s, filter 0.3s ease-out;
+            transition: transform 0.3s ease-out, filter 0.3s ease-out;
         }
 
         .gallery img:hover {
-            transform: scale(1.1);
+            transform: scale(1.08);
         }
 
         .gallery .caption {
@@ -85,17 +93,43 @@ permalink: /gallery/
 
         .button {
             display: inline-block;
-            padding: 10px 20px;
-            margin: 20px 0;
+            padding: 12px 24px;
+            margin: 24px 12px 0;
             border-radius: 5px;
             background-color: #333;
             color: #fff;
             text-decoration: none;
-            transition: background-color 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         .button:hover {
             background-color: #555;
+            transform: translateY(-2px);
+        }
+
+        .button:disabled,
+        .button[disabled] {
+            background-color: #999;
+            cursor: default;
+            transform: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .gallery-item {
+                transition: none;
+                transform: none !important;
+            }
+
+            .gallery img {
+                transition: none;
+            }
+
+            .button {
+                transition: none;
+            }
         }
     </style>
 </head>
@@ -107,6 +141,7 @@ permalink: /gallery/
         <div class="gallery" id="gallery">
             <!-- JavaScript will populate this section -->
         </div>
+        <button type="button" id="load-more" class="button">Load more photos</button>
         <a href="/" class="button">Back to Home</a>
     </div>
 
@@ -181,34 +216,97 @@ permalink: /gallery/
             "RATH6441.jpg": "Liberty",
             "RATH6253.jpg": "Fumo",
             "zeke.jpeg": "Hangar",
-            "end_of_the_day.jpeg": "Hangar",
+            "end_of_the_day.jpeg": "Hangar"
         };
 
         // Directories for thumbnails and original images
         const thumbnailDir = "/images/";
         const originalDir = "/images/raw/";
 
-        // Populate gallery dynamically
         const gallery = document.getElementById("gallery");
-        // randomize order of images
+        const loadMoreButton = document.getElementById("load-more");
+
+        const INITIAL_BATCH_SIZE = 10;
+        const LOAD_BATCH_SIZE = 5;
+
         const filenames = Object.keys(captions).sort(() => Math.random() - 0.5);
-        filenames.forEach((filename) => {
+        let currentIndex = 0;
+
+        function createGalleryItem(filename, indexInBatch) {
             const thumbnail = document.createElement("a");
             thumbnail.href = originalDir + filename;
             thumbnail.target = "_blank";
+
             const img = document.createElement("img");
             img.src = thumbnailDir + filename;
             img.alt = captions[filename];
             thumbnail.appendChild(img);
+
             const caption = document.createElement("div");
             caption.className = "caption";
             caption.textContent = captions[filename];
+
             const item = document.createElement("div");
             item.className = "gallery-item";
+            item.style.transitionDelay = `${indexInBatch * 60}ms`;
             item.appendChild(thumbnail);
             item.appendChild(caption);
-            gallery.appendChild(item);
+
+            return item;
+        }
+
+        function revealItems(items) {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    items.forEach((item) => item.classList.add("is-visible"));
+                });
+            });
+        }
+
+        function updateButtonState() {
+            if (!loadMoreButton) {
+                return;
+            }
+
+            const remaining = filenames.length - currentIndex;
+            if (remaining <= 0) {
+                loadMoreButton.disabled = true;
+                loadMoreButton.textContent = "All photos loaded";
+            } else {
+                const nextCount = Math.min(remaining, LOAD_BATCH_SIZE);
+                loadMoreButton.disabled = false;
+                loadMoreButton.textContent = "Load more photos";
+            }
+        }
+
+        function renderNextBatch(batchSize) {
+            if (currentIndex >= filenames.length) {
+                updateButtonState();
+                return;
+            }
+
+            const nextFiles = filenames.slice(currentIndex, currentIndex + batchSize);
+            const fragment = document.createDocumentFragment();
+            const newItems = [];
+
+            nextFiles.forEach((filename, indexInBatch) => {
+                const item = createGalleryItem(filename, indexInBatch);
+                fragment.appendChild(item);
+                newItems.push(item);
+            });
+
+            gallery.appendChild(fragment);
+            revealItems(newItems);
+
+            currentIndex += nextFiles.length;
+            updateButtonState();
+        }
+
+        loadMoreButton.addEventListener("click", () => {
+            renderNextBatch(LOAD_BATCH_SIZE);
         });
+
+        renderNextBatch(INITIAL_BATCH_SIZE);
     </script>
 
 </body>
