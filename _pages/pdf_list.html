@@ -1,4 +1,4 @@
----
+﻿---
 layout: none
 permalink: /pdf-list/
 ---
@@ -7,7 +7,7 @@ permalink: /pdf-list/
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>University Projects and Homework</title>
+    <title>Past Notes before PhD</title>
     <!-- Link to Google Fonts for custom fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto&display=swap" rel="stylesheet">
     <style>
@@ -87,16 +87,74 @@ permalink: /pdf-list/
         .return-link:hover {
             text-decoration: underline;
         }
+
+        .page-header {
+            background: linear-gradient(135deg, #f0f4ff, #dfe7ff);
+            border-bottom: 1px solid #d0d7e8;
+            padding: 40px 0 30px;
+        }
+
+        .page-subtitle {
+            color: #555;
+            text-align: center;
+            margin: 10px auto 0;
+            max-width: 600px;
+        }
+
+        .highlight-quote {
+            background: #fff;
+            border-left: 4px solid #4a6fe3;
+            margin: 20px 0 40px;
+            padding: 20px 25px;
+            font-style: italic;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .highlight-quote cite {
+            display: block;
+            margin-top: 10px;
+            font-style: normal;
+            color: #666;
+            text-align: right;
+        }
+
+        .page-footer {
+            background: #1f2a44;
+            color: #f4f4f9;
+            padding: 30px 0;
+            margin-top: 40px;
+        }
+
+        .page-footer p {
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        .page-footer a {
+            color: #cdd9ff;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Sample Notes and Homework</h1>
+    <header class="page-header">
+        <div class="container">
+            <h1>Past Projects and Notes</h1>
+            <p class="page-subtitle">Personally archived versions.</p>
+        </div>
+    </header>
 
+    <div class="container">
+        <blockquote class="highlight-quote">
+            <p>"For doubt can exist only where a question exists, a question only where an answer exists, and an answer only where something can be said. (6.51)"</p>
+            <cite>— Ludwig Wittgenstein</cite>
+        </blockquote>
+
+        <h2>Sample Notes and Homework</h2>
+        
         <ul>
             <li>
-                <h3>Statistical Machine Learning</h3>
+                <h3>Trustworthy Machine Learning</h3>
                 <ul>
                     <li><a href="{{ '/assets/stat_ml_hw1.pdf' | relative_url }}">HW 1 - Trustworthy ML</a></li>
                     <li><a href="{{ '/assets/stat_ml_hw2.pdf' | relative_url }}">HW 2 - Trustworthy ML</a></li>
@@ -119,10 +177,48 @@ permalink: /pdf-list/
                     <li><a href="{{ '/assets/cs438_cheatsheet.pdf' | relative_url }}">On Computer Networking</a></li>
                 </ul>
             </li>
+            <li>
+                <h3>Transcripts</h3>
+                <ul>
+                    <li><a href="{{ '/assets/cs425_cheatsheet.pdf' | relative_url }}">On Distributed Systems</a></li>
+                    <li><a href="{{ '/assets/cs438_cheatsheet.pdf' | relative_url }}">On Computer Networking</a></li>
+                </ul>
+            </li>
         </ul>
 
-        <h1>University Projects</h1>
+        <h2>University Projects</h2>
+        <div class="project">
+            <h2>Arxiv Explorer</h2>
+            <p><strong>Project:</strong> Paper Recommendation System</p>
+            <ul>
+                <li>Developed an efficient paper recommendation system for the complete Arxiv dataset.</li>
+                <li>Implemented paper embeddings using category, abstract, and title data.</li>
+                <li>Created coauthorship mapping for authority/hub based HITS reranking.</li>
+                <li>Project available at: <a href="https://github.com/Rathgrith/CS410Project">GitHub Repository</a></li>
+            </ul>
+        </div>
 
+        <div class="project">
+            <h2>MapleJuice</h2>
+            <p><strong>Project:</strong> Lightweight Hadoop Alternative with SQL Support</p>
+            <ul>
+                <li>Built a distributed system with GFS-like architecture including NameNode and DataNode.</li>
+                <li>Implemented Gossip-style failure detection and Bully algorithm for leader election.</li>
+                <li>Achieved 25% faster performance compared to Hadoop in small clusters.</li>
+                <li>Project available at: <a href="https://github.com/Rathgrith/ece428_mp4">GitHub Repository</a></li>
+            </ul>
+        </div>
+
+        <div class="project">
+            <h2>StyleDiffuser</h2>
+            <p><strong>Project:</strong> Cartoon-Style Image Generation System</p>
+            <ul>
+                <li>Developed a fusion system combining GANs with Stable Diffusion Model.</li>
+                <li>Integrated StyleGAN2 feature maps for diffusion network constraints.</li>
+                <li>Optimized diffusion steps for faster image generation.</li>
+                <li>Thesis available at: <a href="{{ '/assets/FYP_Thesis.pdf' | relative_url }}">View Thesis</a></li>
+            </ul>
+        </div>
         <div class="project">
             <h2>Mobile Computing Group Project</h2>
             <p><strong>Project:</strong> Android University Library Seat Manager App (Java, Android Development)</p>
@@ -171,5 +267,11 @@ permalink: /pdf-list/
         <a href="{{ '/' | relative_url }}" class="return-link">Back to Homepage</a>
     </div>
     
+    <footer class="page-footer">
+        <div class="container">
+            <p>Go back to <a href="{{ '/about/' | relative_url }}">About page</a> for context and contact details.</p>
+            <p>&copy; {{ site.time | date: '%Y' }} Dongheng Lin. </p>
+        </div>
+    </footer>
 </body>
 </html>
