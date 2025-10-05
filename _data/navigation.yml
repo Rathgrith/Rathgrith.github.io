@@ -30,8 +30,8 @@ main:
   - title: "CV"
     url: "/assets/Dongheng_Lin_PhD_CV.pdf"  # This should point to the actual location of your PDF file.
   
-  - title: "Notes"
-    url: "/assets/pdf_list.html"
+  # - title: "Notes"
+  #   url: "/assets/pdf_list.html"
 
   - title: "Gallery"
     url: "/assets/gallery.html"
