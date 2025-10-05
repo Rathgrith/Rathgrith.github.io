@@ -212,6 +212,7 @@
             <!-- JavaScript will populate this section -->
         </div>
         <button type="button" id="load-more" class="button">Load more photos</button>
+        <button type="button" id="load-all" class="button">Load all photos</button>
     </main>
 
     <footer class="page-footer">
@@ -235,7 +236,7 @@
             "RATH3037.jpg": "Asuka",
             "RATH3602.jpg": "Roxy",
             "RATH3135-2.jpg": "Reimu",
-            "RATH4513.jpg": "Sora",
+            "RATH4513.jpg": "Ginko",
             "saber.jpg": "Saber",
             "shinobu.jpg": "Kokorowatari",
             "flan.jpg": "Flandre",
@@ -292,7 +293,18 @@
             "RATH6441.jpg": "Liberty",
             "RATH6253.jpg": "Fumo",
             "zeke.jpeg": "Hangar",
-            "end_of_the_day.jpeg": "Hangar"
+            "alice.jpg": "Alice",
+            "mayoi.jpg": "Stray Snail",
+            "meiling.jpg": "Gatekeeper",
+            "reimu.jpg": "Summer Miko",
+            "sora.jpg": "Yuzukano Sora",
+            "sakura_kimono.jpg": "Blossom Rain",
+            "nekomata.jpg": "Nekomata",
+            "nekopara.jpg": "Nekopara",
+            "miyako.jpg": "Miyako",
+            "moukou.jpg": "Phoenix",
+            "foreigner.jpg": "Foreigner",
+            "marine.jpg": "Dressing Doll"
         };
 
         // Directories for thumbnails and original images
@@ -301,6 +313,7 @@
 
         const gallery = document.getElementById("gallery");
         const loadMoreButton = document.getElementById("load-more");
+        const loadAllButton = document.getElementById("load-all");
 
         const INITIAL_BATCH_SIZE = 10;
         const LOAD_BATCH_SIZE = 5;
@@ -340,18 +353,26 @@
         }
 
         function updateButtonState() {
-            if (!loadMoreButton) {
-                return;
+            const remaining = filenames.length - currentIndex;
+
+            if (loadMoreButton) {
+                if (remaining <= 0) {
+                    loadMoreButton.disabled = true;
+                    loadMoreButton.textContent = "All photos loaded";
+                } else {
+                    loadMoreButton.disabled = false;
+                    loadMoreButton.textContent = "Load more photos";
+                }
             }
 
-            const remaining = filenames.length - currentIndex;
-            if (remaining <= 0) {
-                loadMoreButton.disabled = true;
-                loadMoreButton.textContent = "All photos loaded";
-            } else {
-                const nextCount = Math.min(remaining, LOAD_BATCH_SIZE);
-                loadMoreButton.disabled = false;
-                loadMoreButton.textContent = "Load more photos";
+            if (loadAllButton) {
+                if (remaining <= 0) {
+                    loadAllButton.disabled = true;
+                    loadAllButton.textContent = "All photos loaded";
+                } else {
+                    loadAllButton.disabled = false;
+                    loadAllButton.textContent = "Load all photos";
+                }
             }
         }
 
@@ -381,6 +402,12 @@
         if (loadMoreButton) {
             loadMoreButton.addEventListener("click", () => {
                 renderNextBatch(LOAD_BATCH_SIZE);
+            });
+        }
+
+        if (loadAllButton) {
+            loadAllButton.addEventListener("click", () => {
+                renderNextBatch(filenames.length - currentIndex);
             });
         }
 
