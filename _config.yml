@@ -23,7 +23,7 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 author:
   name             : "Dongheng Lin"
   avatar           : "images/alice_head.png" # Path to your avatar image inside the "assets" folder
-  bio              : "University of Birmingham"
+  bio              : 
   location         : "West Midlands, UK"
   employer         : 
   pubmed           : 
