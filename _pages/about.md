@@ -115,10 +115,12 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
 
 A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/), [Zhiyuan Ma](https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate).
 
-# 📝Services
-
-  - *Invited Reviewer:* [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
-  - *Software Engineer*, [Allsee Technologies Ltd](https://www.allsee-tech.com/)
+# 🔨Award & Services
+ - **Awards**
+    - **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial Assistance to present at [NeurIPS 2025](https://neurips.cc/).
+ - **Services**
+    - **Invited Reviewer:** [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
+    - **Software Engineer**, [Allsee Technologies Ltd](https://www.allsee-tech.com/)
 
 
 
