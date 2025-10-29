@@ -64,23 +64,6 @@ redirect_from:
 </div>
 
 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">BMVC 2025</div><img src='images\ASFHR.png' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
-
-[Audio-Visual Separation with Hierarchical Fusion and Representation Alignment](https://openreview.net/pdf?id=lFzBY8w4y7), Han Hu<sup>*</sup>, **Dongheng Lin<sup>*</sup>**, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao<sup>†</sup>
-- We proposed Hierarchical Fusion Strategy that integrates middle and late fusion to enhance separation across diverse sound characteristics.
-- We introduced a new loss term for the task that aligns U-Net’s latent audio features with pre-trained audio embeddings (CLAP) to improve semantic quality and reduce modality gap.
-</div>
-</div>
-
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">IJCNN 2024</div><img src='images\SPSSfigure.png' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
-
-[SPSS: A Salience-based Poisoning Selection Strategy for Selecting Backdoor Attack Victims](https://ieeexplore.ieee.org/document/10650242), Zihan Lyu<sup>1</sup>, **Dongheng Lin<sup>1</sup>**, Shengkai Sun<sup>2</sup>, Jie Zhang<sup>†</sup>, Ruiming Zhang<sup>2</sup>
-- Designed an algorithm uses Salience Metric to evaluate sample feature significance towards backdoor learning process.
-- We managed to realize a more data-efficient backdoor attack to DNN models achieved the same attack success rate to vanilla backdoor attack with only **38.44%** of poisoned samples.
-</div>
-</div>
 
 
 
