@@ -36,7 +36,7 @@ redirect_from:
 <!-- GPA:3.94/4  -->
 <!-- [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf) -->
 <!-- - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science) -->
-- *2019.09 - 2023.07*, <img src="/images/universities/liverpool.png" alt="University of Liverpool icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> <img src="/images/universities/xjtlu.png" alt="XJTLU icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
+- *2019.09 - 2023.07*, <img src="/images/universities/liverpool.png" alt="University of Liverpool icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
 <!-- blue conference, red transactions/journal, green preprints-->
