@@ -32,11 +32,11 @@ redirect_from:
 
 # 📖 Education
 
-- *2023.08 - 2024.12*, MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
+- *2023.08 - 2024.12*, <img src="/images/universities/uiuc.png" alt="UIUC icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
 <!-- GPA:3.94/4  -->
 <!-- [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf) -->
 <!-- - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science) -->
-- *2019.09 - 2023.07*, BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
+- *2019.09 - 2023.07*, <img src="/images/universities/liverpool.png" alt="University of Liverpool icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> <img src="/images/universities/xjtlu.png" alt="XJTLU icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
 <!-- blue conference, red transactions/journal, green preprints-->
@@ -96,13 +96,13 @@ My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
 
   - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
 
-A few friends of mine: [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/), [Zhiyuan Ma](https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate).
+A few friends of mine: [Yiming Huang](https://www.linkedin.com/in/yiming-huang-93785a12a/), [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/), [Zhiyuan Ma](https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate).
 
 # 🔨Award & Services
  - **Awards**
     - **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial Assistance to present at [NeurIPS 2025](https://neurips.cc/).
  - **Services**
-    - **Invited Reviewer:** [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
+    - **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
     - **Software Engineer**, [Allsee Technologies Ltd](https://www.allsee-tech.com/)
 
 
