@@ -1,0 +1,87 @@
+{% assign playlist_key = include.playlist | default: "homepage" %}
+{% assign playlist = site.data.music_playlists[playlist_key] %}
+{% if playlist and playlist.size > 0 %}
+<div class="music-player" data-music-player data-music-baseurl="{{ '/' | relative_url }}">
+  <audio class="music-player__audio" data-music-audio preload="metadata"></audio>
+
+  <div class="music-player__main">
+    <img class="music-player__cover" data-music-cover alt="Album cover">
+
+    <div class="music-player__body">
+      <div class="music-player__head">
+        <div class="music-player__meta">
+          <p class="music-player__title" data-music-title></p>
+          <p class="music-player__artist" data-music-artist></p>
+        </div>
+
+        <div class="music-player__controls">
+          <button type="button" class="music-player__btn" data-music-action="random" aria-label="Random track">
+            <i class="fas fa-random" aria-hidden="true"></i>
+            <span class="visually-hidden">Shuffle</span>
+          </button>
+          <button type="button" class="music-player__btn music-player__btn--primary" data-music-action="toggle" aria-label="Play">
+            <i class="fas fa-play" data-music-toggle-icon aria-hidden="true"></i>
+            <span class="visually-hidden" data-music-toggle-text>Play</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="music-player__seek-row">
+        <span class="music-player__time" data-music-time-current>0:00</span>
+        <div
+          class="music-player__seek-wrap"
+          data-music-scrub
+          role="slider"
+          tabindex="0"
+          aria-label="Seek position"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          aria-valuetext="0:00 / 0:00"
+        >
+          <div class="music-player__wave" data-music-wave aria-hidden="true"></div>
+        </div>
+        <span class="music-player__time" data-music-time-total>0:00</span>
+      </div>
+
+      <div class="music-player__footer">
+        <p class="music-player__status" data-music-status aria-live="polite" hidden></p>
+
+        <label class="music-player__volume-wrap">
+          <span class="music-player__volume-label" aria-hidden="true">
+            <i class="fas fa-volume-up"></i>
+          </span>
+          <input
+            class="music-player__volume"
+            data-music-volume
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value="0.85"
+            aria-label="Volume"
+          >
+        </label>
+
+        <a
+          class="music-player__song-link"
+          data-music-song-link
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open source link"
+          hidden
+        >
+          <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+          <span class="visually-hidden">Source</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" data-music-playlist>
+    {{ playlist | jsonify }}
+  </script>
+</div>
+{% else %}
+<p class="music-player__empty">Playlist "{{ playlist_key }}" is empty.</p>
+{% endif %}

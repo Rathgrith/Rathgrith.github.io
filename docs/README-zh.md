@@ -32,6 +32,19 @@ AcadHomepage
 - **美观而简约**: 此主页美观而简约，适合个人学术主页的搭建。
 - **搜索引擎优化**: 搜索引擎优化 (SEO) 帮助搜索引擎轻松找到您在主页上发布的信息，然后将其与类似网站进行排名，并获得排名优势。
 
+## 前端结构
+
+- `assets/js/core/`：存放导航级行为模块：
+  - `link-target-policy.js`：站内链接保持当前标签页，站外链接默认新开标签页。
+  - `page-transition.js`：站内页面切换时的平滑过渡动画。
+- `assets/css/core/`：存放跨页面 UX 样式（例如 `page-transitions.css`）。
+- `assets/js/components/music-player.js` + `assets/css/components/music-player.css`：可控的自定义音乐播放器 UI。
+- `_data/music_playlists.yml`：播放器数据源，可通过 `{% raw %}{% include music-player.html playlist="homepage" %}{% endraw %}` 引用。
+  - 可选字段：`stream_url`、`cover`、`song_url`。
+  - `stream_url` 与 `cover` 支持仓库内本地路径（例如 `assets/music/voyage-1970.mp3`、`assets/music/voyage-1970.png`）。
+  - 也支持别名字段：`local_audio`、`local_cover`。
+  - 不填写 `song_url` 时会自动隐藏 `Source` 按钮。
+
 ## 快速开始
 
 1. Fork本仓库到`USERNAME/USERNAME.github.io`，其中`USERNAME`是你的github用户名。
@@ -55,9 +68,11 @@ AcadHomepage
 ## 本地调试
 
 1. 使用`git clone`将本项目克隆到本地。
-1. 安装Jekyll的构建环境，包括`Ruby`、`RubyGems`、`GCC`和`Make`。可参考[该教程](https://jekyllrb.com/docs/installation/#requirements)。
+1. 在 macOS 上，如果尚未安装 Command Line Tools，请先运行一次 `xcode-select --install`。
+1. 运行 `bash scripts/setup_debug_env.sh`，为本仓库自动安装本地 Ruby（安装到 `~/.rbenv`）、bundler 和依赖。
 1. 运行 `bash run_server.sh` 来启动Jekyll实时重载服务器。
 1. 在浏览器里打开 [http://127.0.0.1:4000](http://127.0.0.1:4000)。如果你修改了网页的源码，服务器会自动重新编译并刷新页面。
+1. （可选）VS Code 用户可以直接运行任务 `Jekyll: Run Local Server`，并使用 `Jekyll: Open in Chrome` 调试配置。
 1. 当你修改完毕你的页面以后, 使用`git`命令，`commit`你的改动并`push`到你的github仓库中。
 
 # Acknowledges

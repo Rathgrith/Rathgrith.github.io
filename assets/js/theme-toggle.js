@@ -18,6 +18,10 @@
     return theme === "dark" ? "Light mode" : "Dark mode";
   }
 
+  function iconClassFor(theme) {
+    return theme === "dark" ? "fa-sun" : "fa-moon";
+  }
+
   function persist(theme) {
     try {
       localStorage.setItem(storageKey, theme);
@@ -26,12 +30,26 @@
     }
   }
 
+  function renderButton(button) {
+    var theme = currentTheme();
+    var label = labelFor(theme);
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
+    button.innerHTML = [
+      '<i class="fas ',
+      iconClassFor(theme),
+      '" aria-hidden="true"></i>',
+      '<span class="visually-hidden">',
+      label,
+      "</span>"
+    ].join("");
+  }
+
   function handleToggle(button) {
     var theme = nextTheme();
     applyTheme(theme);
     persist(theme);
-    button.textContent = labelFor(theme);
-    button.setAttribute("aria-label", labelFor(theme));
+    renderButton(button);
   }
 
   function resolveButton() {
@@ -48,8 +66,7 @@
 
   function initButton() {
     var button = resolveButton();
-    button.textContent = labelFor(currentTheme());
-    button.setAttribute("aria-label", labelFor(currentTheme()));
+    renderButton(button);
     button.addEventListener("click", function () {
       handleToggle(button);
     });

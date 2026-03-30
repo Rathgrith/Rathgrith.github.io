@@ -30,6 +30,19 @@ Some examples:
 - **Beautiful and Simple Design**: this homepage is beautiful and simple, which is very suitable for academic personal homepage.
 - **SEO**: search Engine Optimization (SEO) helps search engines find the information you publish on your homepage easily, then rank it against similar websites.
 
+## Frontend Structure
+
+- `assets/js/core/` keeps navigation-level behavior modules:
+  - `link-target-policy.js`: internal links stay in the same tab, external links open in a new tab.
+  - `page-transition.js`: smooth page transition animation for internal page switches.
+- `assets/css/core/` stores cross-page UX styles (e.g. transition styles in `page-transitions.css`).
+- `assets/js/components/music-player.js` + `assets/css/components/music-player.css` provide a controllable custom music player UI.
+- `_data/music_playlists.yml` defines playlist data used by `{% raw %}{% include music-player.html playlist="homepage" %}{% endraw %}`.
+  - Optional keys: `stream_url`, `cover`, `song_url`.
+  - `stream_url` and `cover` can use local repo paths (for example `assets/music/voyage-1970.mp3` and `assets/music/voyage-1970.png`).
+  - `local_audio` and `local_cover` are also supported as aliases.
+  - If `song_url` is omitted, the `Source` button is hidden automatically.
+
 ## Quick Start
 
 1. Fork this REPO and rename to `USERNAME.github.io`, where `USERNAME` is your github USERNAME.
@@ -59,10 +72,12 @@ Some examples:
 ## Debug Locally
 
 1. Clone your REPO to local using `git clone`.
-1. Install Jekyll building environment, including `Ruby`, `RubyGems`, `GCC` and `Make` following [the installation guide](https://jekyllrb.com/docs/installation/#requirements).
-1. Run `bash run_server.sh` to start Jekyll livereload server.
+1. On macOS, run `xcode-select --install` once if Command Line Tools are not installed.
+1. Run `bash scripts/setup_debug_env.sh` to install a local Ruby (`rbenv` under `~/.rbenv`), bundler and site gems for this repo.
+1. Run `bash run_server.sh` to start the Jekyll livereload server.
 1. Open http://127.0.0.1:4000 in your browser.
 1. If you change the source code of the website, the livereload server will automatically refresh.
+1. (Optional) VS Code users can run task `Jekyll: Run Local Server` and use launch config `Jekyll: Open in Chrome`.
 1. When you finish the modification of your homepage, `commit` your changings and `push` to your remote REPO using `git` command.
 
 # Acknowledges

@@ -1,0 +1,54 @@
+:root {
+  --page-transition-enter-duration: 220ms;
+  --page-transition-exit-duration: 180ms;
+}
+
+/* Disable legacy theme intro animations when page transitions are active. */
+body.page-transition-enabled .masthead,
+body.page-transition-enabled .breadcrumbs,
+body.page-transition-enabled #main,
+body.page-transition-enabled .page__hero,
+body.page-transition-enabled .page__hero--overlay,
+body.page-transition-enabled .page__footer {
+  -webkit-animation: none;
+  animation: none;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.page-transition-enter #main {
+  -webkit-animation: page-fade-in var(--page-transition-enter-duration) ease both;
+  animation: page-fade-in var(--page-transition-enter-duration) ease both;
+}
+
+body.page-transition-out #main {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition:
+    opacity var(--page-transition-exit-duration) ease,
+    transform var(--page-transition-exit-duration) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.page-transition-enter #main {
+    -webkit-animation: none;
+    animation: none;
+  }
+
+  body.page-transition-out #main {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

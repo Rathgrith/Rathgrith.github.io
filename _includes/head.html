@@ -15,8 +15,8 @@
     try {
       var key = "site-theme";
       var saved = localStorage.getItem(key);
-      if (!saved) {
-        saved = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      if (saved !== "dark" && saved !== "light") {
+        saved = "light";
       }
       document.documentElement.setAttribute("data-theme", saved);
       document.documentElement.style.colorScheme = saved === "dark" ? "dark" : "light";
@@ -27,6 +27,7 @@
 <!-- For all browsers -->
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/css/site-shared.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/core/page-transitions.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/components/music-player.css' | relative_url }}">
 
 <meta http-equiv="cleartype" content="on">
-<base target="_blank">
