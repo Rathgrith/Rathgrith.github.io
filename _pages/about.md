@@ -32,11 +32,11 @@ redirect_from:
 
 # 📖 Education
 
-- *2023.08 - 2024.12*, <img src="/images/universities/uiuc.png" alt="UIUC icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
+- *2023.08 - 2024.12*, <img src="/images/universities/uiuc.png" alt="UIUC icon" class="inline-school-icon"> MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
 <!-- GPA:3.94/4  -->
 <!-- [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf) -->
 <!-- - *2019.09 - 2023.07*, BSc in Information and Computing Science, [Xi'an Jiaotong-Liverpool University](https://www.xjtlu.edu.cn/en/study/undergraduate/information-and-computing-science) -->
-- *2019.09 - 2023.07*, <img src="/images/universities/liverpool.png" alt="University of Liverpool icon" style="height:1em;width:1em;vertical-align:-0.15em;margin-right:0.25em;"> BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
+- *2019.09 - 2023.07*, <img src="/images/universities/liverpool.png" alt="University of Liverpool icon" class="inline-school-icon"> BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
 <!-- blue conference, red transactions/journal, green preprints-->
@@ -65,10 +65,6 @@ redirect_from:
 
 
 
-
-
----
-
 # 🎪 Miscellaneous
 
  - A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
@@ -87,7 +83,9 @@ redirect_from:
 </div>
 </div>
 
-<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="auto" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66"></iframe>
+<div class="music-embed-shell">
+<iframe class="music-embed" frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height="86" src="//music.163.com/outchain/player?type=2&id=732185&auto=0&height=66" loading="lazy"></iframe>
+</div>
 
 
 
@@ -109,39 +107,50 @@ A few friends of mine: [Yiming Huang](https://www.linkedin.com/in/yiming-huang-9
 
 # 🦉 Site Visits
 
-<html>
-<head>
-<style>
-  /* Style for the widget container */
-.carousel-item {
-  height: 300px; Set the height 
-  /* width: 60%; */
-  padding: 10%;
-  text-align: center; /* Center-align the content within the container */
-}
-.carousel-item img {
-  object-fit: contain; /* This will cover the area of the carousel-item, you can adjust it as per your need */
-  min-height: 100%;
-  /* min-width: 100%; */
-  /* width: 100%; */
-}
-  div#widget-container {
-    width: 300px; /* Set the desired width */
-    height: 200px; /* Set the desired height */
-    margin: 0 auto; /* Center-align the container horizontally */
-    text-align: center; /* Center-align the content within the container */
+<div id="site-visit-widget"></div>
+<script>
+(function () {
+  var widget = document.getElementById("site-visit-widget");
+  if (!widget) return;
+
+  var token = "2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc";
+  var common = "w=300&t=tt&d=" + token + "&cmo=3acc3a&cmn=ff5353";
+  var activeTheme = null;
+
+  function theme() {
+    return document.documentElement.getAttribute("data-theme") || "light";
   }
-  @media only screen and (max-width: 768px) {
-    iframe {
-        display: none;
+
+  function sourceFor(currentTheme) {
+    if (currentTheme === "dark") {
+      return "//cdn.clustrmaps.com/map_v2.js?cl=f2f6ff&co=1f304d&ct=b4c6e8&" + common;
     }
+    return "//cdn.clustrmaps.com/map_v2.js?cl=080808&co=ffffff&ct=808080&" + common;
   }
-  
-</style>
-</head>
-<body>
-<div id="widget-container">
-<script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=080808&w=300&t=tt&d=2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080'></script>
-</div>
-</body>
-</html>
+
+  function render(currentTheme) {
+    widget.innerHTML = "";
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.id = "clustrmaps";
+    script.async = true;
+    script.src = sourceFor(currentTheme);
+    widget.appendChild(script);
+  }
+
+  function sync() {
+    var currentTheme = theme();
+    if (currentTheme === activeTheme) return;
+    activeTheme = currentTheme;
+    render(currentTheme);
+  }
+
+  sync();
+
+  var observer = new MutationObserver(sync);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"]
+  });
+})();
+</script>
