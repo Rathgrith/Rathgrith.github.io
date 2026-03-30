@@ -1,11 +1,21 @@
 {% if page.author and site.data.authors[page.author] %}
   {% assign author = site.data.authors[page.author] %}{% else %}{% assign author = site.author %}
 {% endif %}
+{% assign avatar_src = author.avatar | default: "" %}
+{% assign avatar_src_down = avatar_src | downcase %}
+{% assign avatar_is_gif = false %}
+{% if avatar_src_down contains ".gif" %}
+  {% assign avatar_is_gif = true %}
+{% endif %}
+{% assign avatar_url = avatar_src %}
+{% unless avatar_src contains "://" %}
+  {% assign avatar_url = avatar_src | relative_url %}
+{% endunless %}
 
 <div itemscope itemtype="http://schema.org/Person" class="profile_box">
 
   <div class="author__avatar">
-    <img src="{{ author.avatar }}" class="author__avatar" alt="{{ author.name }}">
+    <img src="{{ avatar_url }}" class="author__avatar{% if avatar_is_gif %} author__avatar--gif{% endif %}" alt="{{ author.name }}">
   </div>
 
   <div class="author__content">

@@ -16,8 +16,34 @@ body_class: "standalone-page gallery-page"
         <div class="gallery" id="gallery">
             <!-- JavaScript will populate this section -->
         </div>
-        <button type="button" id="load-more" class="button">Load more photos</button>
-        <button type="button" id="load-all" class="button">Load all photos</button>
+        <div class="gallery-actions" role="group" aria-label="Gallery loading controls">
+            <button
+                type="button"
+                id="load-more"
+                class="button gallery-action"
+                data-default-label="Load more photos"
+                data-done-label="All photos loaded"
+                data-icon="fas fa-plus"
+                data-done-icon="fas fa-check"
+            >
+                <span class="gallery-action__icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
+                <span class="gallery-action__label">Load more photos</span>
+                <span class="gallery-action__spinner" aria-hidden="true"></span>
+            </button>
+            <button
+                type="button"
+                id="load-all"
+                class="button gallery-action"
+                data-default-label="Load all photos"
+                data-done-label="All photos loaded"
+                data-icon="fas fa-layer-group"
+                data-done-icon="fas fa-check"
+            >
+                <span class="gallery-action__icon" aria-hidden="true"><i class="fas fa-layer-group"></i></span>
+                <span class="gallery-action__label">Load all photos</span>
+                <span class="gallery-action__spinner" aria-hidden="true"></span>
+            </button>
+        </div>
     </main>
 
     <footer class="page-footer">
@@ -119,7 +145,7 @@ body_class: "standalone-page gallery-page"
             "95B50FC9_IMG_6954.jpg": "Road Ends",
             "tea.jpg": "Tea Time",
             "BAD46FF1_IMG_7534.jpg": "B7R",
-            "RATH8162-enhanced-denoise.jpg": "Icebound Figure",
+            "RATH8162-enhanced-denoise.jpg": "Half-Spirited",
             "RATH8183-enhanced-denoise.jpg": "Alice in Spring",
             "RATH8153.jpg": "Blossom Haze",
             "RATH8201.jpg": "Pink Cascade",
@@ -141,14 +167,57 @@ body_class: "standalone-page gallery-page"
         const originalDir = "{{ '/images/gallery/originals/' | relative_url }}";
 
         const gallery = document.getElementById("gallery");
+        const galleryActions = document.querySelector(".gallery-actions");
         const loadMoreButton = document.getElementById("load-more");
         const loadAllButton = document.getElementById("load-all");
 
         const INITIAL_BATCH_SIZE = 10;
         const LOAD_BATCH_SIZE = 5;
+        const MIN_LOADING_MS = 260;
 
         const filenames = Object.keys(captions).sort(() => Math.random() - 0.5);
         let currentIndex = 0;
+        let isRenderingBatch = false;
+
+        function setButtonLabel(button, text) {
+            if (!button) return;
+            const label = button.querySelector(".gallery-action__label");
+            if (label) {
+                label.textContent = text;
+                return;
+            }
+            button.textContent = text;
+        }
+
+        function setButtonIcon(button, iconClass) {
+            if (!button || !iconClass) return;
+            const icon = button.querySelector(".gallery-action__icon i");
+            if (!icon) return;
+            icon.className = iconClass;
+        }
+
+        function setButtonLoading(button, loading) {
+            if (!button) return;
+            button.classList.toggle("is-loading", loading);
+            button.setAttribute("aria-busy", loading ? "true" : "false");
+        }
+
+        function setCompletedLayout(completed) {
+            if (galleryActions) {
+                galleryActions.classList.toggle("is-complete", completed);
+            }
+
+            if (loadAllButton) {
+                loadAllButton.hidden = completed;
+                loadAllButton.style.display = completed ? "none" : "";
+                loadAllButton.setAttribute("aria-hidden", completed ? "true" : "false");
+                if (completed) {
+                    loadAllButton.setAttribute("tabindex", "-1");
+                } else {
+                    loadAllButton.removeAttribute("tabindex");
+                }
+            }
+        }
 
         function createGalleryItem(filename, indexInBatch) {
             const thumbnail = document.createElement("a");
@@ -183,31 +252,40 @@ body_class: "standalone-page gallery-page"
 
         function updateButtonState() {
             const remaining = filenames.length - currentIndex;
+            const completed = remaining <= 0;
+            setCompletedLayout(completed);
 
             if (loadMoreButton) {
-                if (remaining <= 0) {
+                if (completed) {
+                    loadMoreButton.dataset.state = "done";
                     loadMoreButton.disabled = true;
-                    loadMoreButton.textContent = "All photos loaded";
+                    setButtonLabel(loadMoreButton, loadMoreButton.dataset.doneLabel || "All photos loaded");
+                    setButtonIcon(loadMoreButton, loadMoreButton.dataset.doneIcon || "fas fa-check");
                 } else {
+                    loadMoreButton.dataset.state = "ready";
                     loadMoreButton.disabled = false;
-                    loadMoreButton.textContent = "Load more photos";
+                    setButtonLabel(loadMoreButton, loadMoreButton.dataset.defaultLabel || "Load more photos");
+                    setButtonIcon(loadMoreButton, loadMoreButton.dataset.icon || "fas fa-plus");
                 }
             }
 
             if (loadAllButton) {
-                if (remaining <= 0) {
+                if (completed) {
+                    loadAllButton.dataset.state = "done";
                     loadAllButton.disabled = true;
-                    loadAllButton.textContent = "All photos loaded";
+                    setButtonLabel(loadAllButton, loadAllButton.dataset.doneLabel || "All photos loaded");
+                    setButtonIcon(loadAllButton, loadAllButton.dataset.doneIcon || "fas fa-check");
                 } else {
+                    loadAllButton.dataset.state = "ready";
                     loadAllButton.disabled = false;
-                    loadAllButton.textContent = "Load all photos";
+                    setButtonLabel(loadAllButton, loadAllButton.dataset.defaultLabel || "Load all photos");
+                    setButtonIcon(loadAllButton, loadAllButton.dataset.icon || "fas fa-layer-group");
                 }
             }
         }
 
         function renderNextBatch(batchSize) {
-            if (currentIndex >= filenames.length) {
-                updateButtonState();
+            if (currentIndex >= filenames.length || batchSize <= 0) {
                 return;
             }
 
@@ -225,20 +303,56 @@ body_class: "standalone-page gallery-page"
             revealItems(newItems);
 
             currentIndex += nextFiles.length;
-            updateButtonState();
+        }
+
+        function setLoadingControls(activeButton, loading) {
+            [loadMoreButton, loadAllButton].forEach((button) => {
+                if (!button) return;
+
+                if (loading) {
+                    button.disabled = true;
+                    setButtonLoading(button, button === activeButton);
+                    return;
+                }
+
+                setButtonLoading(button, false);
+            });
+        }
+
+        function runBatchAction(button, batchSizeGetter) {
+            if (!button || isRenderingBatch || button.disabled) return;
+
+            isRenderingBatch = true;
+            const start = performance.now();
+            setLoadingControls(button, true);
+
+            requestAnimationFrame(() => {
+                const batchSize = typeof batchSizeGetter === "function" ? batchSizeGetter() : 0;
+                renderNextBatch(batchSize);
+
+                const elapsed = performance.now() - start;
+                const wait = Math.max(0, MIN_LOADING_MS - elapsed);
+
+                setTimeout(() => {
+                    isRenderingBatch = false;
+                    setLoadingControls(button, false);
+                    updateButtonState();
+                }, wait);
+            });
         }
 
         if (loadMoreButton) {
             loadMoreButton.addEventListener("click", () => {
-                renderNextBatch(LOAD_BATCH_SIZE);
+                runBatchAction(loadMoreButton, () => LOAD_BATCH_SIZE);
             });
         }
 
         if (loadAllButton) {
             loadAllButton.addEventListener("click", () => {
-                renderNextBatch(filenames.length - currentIndex);
+                runBatchAction(loadAllButton, () => filenames.length - currentIndex);
             });
         }
 
         renderNextBatch(INITIAL_BATCH_SIZE);
+        updateButtonState();
     </script>

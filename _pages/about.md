@@ -18,17 +18,16 @@ redirect_from:
 <span class='anchor' id='about-me'></span>
 
 # 🏄‍♀️ About Me
- - I am a software engineer at Allsee Technology, with part-time Research Assistantship at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/
- computer-science-and-data-science-courses/computer-science-phd) under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/).
- - I am also fortunate to be collaborating with [Prof. Yunchao Wei](https://weiyc.github.io/) on current research projects. 
- - Previously, I was an [MEng ECE@UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and a [BSc ICS @UoL&XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons).
- - During my undergraduate studies, I had the privilege of being supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en).
 
+I am a software engineer at [Allsee Technology](https://www.allsee-tech.com/), and a part-time research assistant at [the University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/). I am also fortunate to be collaborating with [Prof. Yunchao Wei](https://weiyc.github.io/) on ongoing research projects.
+
+Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). During my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en).
 
 > 力強い竹の下には、さらに力強い根が張り巡らされている。   
 > Beneath the sturdy bamboo, even sturdier roots spread out.  
-> From:[『東方永夜抄　～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4  
+> From:[『東方永夜抄 ～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4
 
+<span class='anchor' id='education'></span>
 
 # 📖 Education
 
@@ -39,69 +38,72 @@ redirect_from:
 - *2019.09 - 2023.07*, <img src="/images/universities/liverpool.png" alt="University of Liverpool icon" class="inline-school-icon"> BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
 <!-- [[Transcript]](https://rathgrith.github.io/assets/liverpool_transcript.pdf) -->
 
-<!-- blue conference, red transactions/journal, green preprints-->
-# 📝 Selected Publications 
+<span class='anchor' id='publications'></span>
 
-<div class='paper-box'><div class='paper-box-image'><div><div class="badge">NeurIPS 2025</div><img src='images\NIPS25_TTR_VAD.png' alt="sym" width="100%" class="paper-preview"></div></div>
-<div class='paper-box-text' markdown="1">
+<!-- blue conference, red transactions/journal, green preprints -->
+# 📝 Selected Publications
 
-[A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis](https://openreview.net/pdf?id=Qla5PqFL0s), **Dongheng Lin**, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup>
-- A new zero-shot method for structured Video Anomaly Detection/Localisation/Understanding. 
-- Intra-task Reasoning (IntraTR) improves task-specific performance via extracting priors for anomaly contexts.
-- Inter-task Chaining (InterTC) builds Chain-of-Thoughts to unify capabilities on different sub-tasks in Video Anomaly Analysis.
+<div class="publication-list">
+  <div class="publication-item">
+    <div class="publication-item-inner">
+      <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
+        <span class="publication-tag conference">NeurIPS 2025</span>
+        <img src="images/NIPS25_TTR_VAD.png" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
+      </a>
+      <p class="publication-line"><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></p>
+    </div>
+  </div>
+  <div class="publication-item">
+    <div class="publication-item-inner">
+      <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=f1MYOG4iDG" target="_blank" rel="noopener noreferrer">
+        <span class="publication-tag journal">TMLR 2025</span>
+        <img src="images/timerep3.png" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
+      </a>
+      <p class="publication-line"><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></p>
+    </div>
+  </div>
 </div>
-</div>
 
+<span class='anchor' id='awards-services'></span>
 
-<div class='paper-box'><div class='paper-box-image'><div><div class="redbadge">TMLR 2025</div><img src='images\timerep3.png' alt="sym" width="100%" class="paper-preview"></div></div>
-<div class='paper-box-text' markdown="1">
+# 🔨 Awards & Services
 
-[What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images](https://openreview.net/pdf?id=f1MYOG4iDG), **Dongheng Lin<sup>*</sup>**, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup>
-- A new paradigm to learn visual cues for timestamps leading to time-aware understanding on random visual inputs. 
-- Built a new benchmark dataset with 130k samples paired with accurate time/geolocation metadata.
-- Tested the learned representations on various downstream tasks (Image Retrieval, Video Scene Recognition and Time-conditioned Image Editing).
-</div>
-</div>
+**Awards**
+- **[EPSRC Doctoral Landscape Award](https://www.ukri.org/publications/doctoral-landscape-awards/doctoral-landscape-award-investments/):** University Scholarship for PhD Study.
+- **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial assistance to present at [NeurIPS 2025](https://neurips.cc/).
 
+**Services**
+- **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings).
+- **Software Engineer:** [Allsee Technologies Ltd](https://www.allsee-tech.com/).
 
+<span class='anchor' id='miscellaneous'></span>
 
 # 🎪 Miscellaneous
 
- - A typical [Otaku](https://en.wikipedia.org/wiki/Otaku). 
+- A typical [Otaku](https://en.wikipedia.org/wiki/Otaku).
+- Favorite manga chapter: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
+- Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (single volume): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E).
+- I also enjoy [photography](/gallery/), balcony gardening, and [doujin music](https://en.wikipedia.org/wiki/Doujin_music).
 
-   - My favorite manga chapter: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
-
-   - Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (Single Episode): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E)
-   
-
- - I also enjoy photography and music.
-
-
-<div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
+<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
  - FUJICHROME Velvia 100, taken at my hometown.
 </div>
-</div>
+</div> -->
 
 {% include music-player.html playlist="homepage" %}
 
+<span class='anchor' id='social'></span>
 
+# 👥 Social
 
-# 👥Social
 My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
 
-  - Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
+- Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
 
 A few friends of mine: [Yiming Huang](https://www.linkedin.com/in/yiming-huang-93785a12a/), [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/), [Zhiyuan Ma](https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate).
 
-# 🔨Award & Services
- - **Awards**
-    - **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial Assistance to present at [NeurIPS 2025](https://neurips.cc/).
- - **Services**
-    - **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings) 
-    - **Software Engineer**, [Allsee Technologies Ltd](https://www.allsee-tech.com/)
-
-
+<span class='anchor' id='site-visits'></span>
 
 # 🦉 Site Visits
 

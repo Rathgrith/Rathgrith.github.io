@@ -39,6 +39,10 @@
     });
   }
 
+  window.__siteApplyLinkTargetPolicy = applyLinkPolicy;
+
+  document.addEventListener("site:content-updated", applyLinkPolicy);
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", applyLinkPolicy);
   } else {

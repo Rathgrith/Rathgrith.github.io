@@ -5,7 +5,7 @@
   --player-text: #1b273a;
   --player-muted: rgba(35, 49, 74, 0.68);
   --player-wave-base: rgba(64, 88, 130, 0.28);
-  --player-wave-active: #315fbe;
+  --player-wave-active: var(--link);
   --player-seek-track: rgba(58, 84, 127, 0.26);
   --player-thumb: #23499f;
   --player-btn-border: rgba(67, 88, 126, 0.32);
@@ -37,7 +37,7 @@ html[data-theme="dark"] .music-player {
   --player-text: #f7f8fa;
   --player-muted: rgba(229, 234, 241, 0.7);
   --player-wave-base: rgba(236, 240, 246, 0.4);
-  --player-wave-active: #f7f8fa;
+  --player-wave-active: var(--link);
   --player-seek-track: rgba(245, 247, 252, 0.35);
   --player-thumb: #ffffff;
   --player-btn-border: rgba(255, 255, 255, 0.24);
@@ -102,7 +102,7 @@ html[data-theme="dark"] .music-player {
 
 .music-player__title {
   color: var(--player-text);
-  font-size: 0.98rem;
+  font-size: 0.93rem;
   font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
@@ -113,7 +113,7 @@ html[data-theme="dark"] .music-player {
 .music-player__artist {
   margin-top: 0.14rem;
   color: var(--player-muted);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -150,6 +150,11 @@ html[data-theme="dark"] .music-player {
 .music-player__btn:hover {
   border-color: var(--player-btn-hover-border);
   background: var(--player-btn-hover-bg);
+}
+
+.music-player__btn:focus-visible {
+  outline: 2px solid var(--player-link-hover-border);
+  outline-offset: 2px;
 }
 
 .music-player__btn--primary {
@@ -309,6 +314,12 @@ html[data-theme="dark"] .music-player {
   width: 68px;
 }
 
+.music-player__volume:focus-visible {
+  outline: 2px solid var(--player-link-hover-border);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
 .music-player__song-link {
   color: var(--player-text);
   font-size: 0.78rem;
@@ -326,6 +337,11 @@ html[data-theme="dark"] .music-player {
 .music-player__song-link:hover {
   color: var(--player-text);
   border-color: var(--player-link-hover-border);
+}
+
+.music-player__song-link:focus-visible {
+  outline: 2px solid var(--player-link-hover-border);
+  outline-offset: 2px;
 }
 
 @media (max-width: 760px) {

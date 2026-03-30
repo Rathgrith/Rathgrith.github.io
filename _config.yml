@@ -22,7 +22,7 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 # Site Author
 author:
   name             : "Dongheng Lin"
-  avatar           : "images/alice_head.png" # Path to your avatar image inside the "assets" folder
+  avatar           : "images/star.png" # Path to your avatar image inside the "assets" folder
   bio              : 
   location         : "West Midlands, UK"
   employer         : 

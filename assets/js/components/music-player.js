@@ -1,6 +1,9 @@
 (function () {
   var decodeContext = null;
   var wavePeakCache = Object.create(null);
+  var audioArrayBufferCache = Object.create(null);
+  var embeddedCoverCache = Object.create(null);
+  var createdCoverObjectUrls = [];
 
   function isAbsoluteUrl(value) {
     return /^[a-z][a-z0-9+.-]*:/i.test(value) || /^\/\//.test(value);
@@ -17,10 +20,10 @@
     if (!value) return "";
     var raw = String(value).trim();
     if (!raw) return "";
-    if (isAbsoluteUrl(raw)) return raw;
+    if (isAbsoluteUrl(raw)) return encodeURI(raw);
 
     var cleaned = raw.replace(/^\/+/, "").replace(/^\.\//, "");
-    return baseUrl + cleaned;
+    return encodeURI(baseUrl + cleaned);
   }
 
   function parsePlaylist(root) {
@@ -85,6 +88,242 @@
     return new Promise(function (resolve, reject) {
       context.decodeAudioData(cloned, resolve, reject);
     });
+  }
+
+  function fetchAudioArrayBuffer(url) {
+    if (!url) return Promise.reject(new Error("Missing audio URL"));
+    if (audioArrayBufferCache[url]) return audioArrayBufferCache[url];
+
+    audioArrayBufferCache[url] = fetch(url)
+      .then(function (response) {
+        if (!response.ok) throw new Error("Failed to fetch audio");
+        return response.arrayBuffer();
+      })
+      .catch(function (error) {
+        delete audioArrayBufferCache[url];
+        throw error;
+      });
+
+    return audioArrayBufferCache[url];
+  }
+
+  function readSynchsafeInt(bytes, offset) {
+    return (
+      ((bytes[offset] & 0x7f) << 21) |
+      ((bytes[offset + 1] & 0x7f) << 14) |
+      ((bytes[offset + 2] & 0x7f) << 7) |
+      (bytes[offset + 3] & 0x7f)
+    );
+  }
+
+  function readUInt32BE(bytes, offset) {
+    return (
+      (bytes[offset] << 24) |
+      (bytes[offset + 1] << 16) |
+      (bytes[offset + 2] << 8) |
+      bytes[offset + 3]
+    ) >>> 0;
+  }
+
+  function bytesToAscii(bytes, start, count) {
+    var chars = [];
+    for (var i = 0; i < count && start + i < bytes.length; i++) {
+      chars.push(String.fromCharCode(bytes[start + i]));
+    }
+    return chars.join("");
+  }
+
+  function findTextTerminator(bytes, start, encoding) {
+    var i;
+    if (encoding === 0 || encoding === 3) {
+      for (i = start; i < bytes.length; i++) {
+        if (bytes[i] === 0) return i;
+      }
+      return -1;
+    }
+    for (i = start; i + 1 < bytes.length; i++) {
+      if (bytes[i] === 0 && bytes[i + 1] === 0) return i;
+    }
+    return -1;
+  }
+
+  function formatToMime(format) {
+    var value = (format || "").toUpperCase();
+    if (value === "PNG") return "image/png";
+    if (value === "GIF") return "image/gif";
+    if (value === "JPG" || value === "JPEG") return "image/jpeg";
+    return "image/jpeg";
+  }
+
+  function blobUrlFromImageBytes(imageBytes, mime) {
+    if (!imageBytes || !imageBytes.length) return "";
+    var type = mime && /^image\//i.test(mime) ? mime : "image/jpeg";
+    var url = URL.createObjectURL(new Blob([imageBytes], { type: type }));
+    createdCoverObjectUrls.push(url);
+    return url;
+  }
+
+  function mimeFromImageHeader(bytes, offset) {
+    var i = Number(offset) || 0;
+    if (i + 2 < bytes.length && bytes[i] === 0xff && bytes[i + 1] === 0xd8 && bytes[i + 2] === 0xff) {
+      return "image/jpeg";
+    }
+    if (
+      i + 7 < bytes.length &&
+      bytes[i] === 0x89 &&
+      bytes[i + 1] === 0x50 &&
+      bytes[i + 2] === 0x4e &&
+      bytes[i + 3] === 0x47 &&
+      bytes[i + 4] === 0x0d &&
+      bytes[i + 5] === 0x0a &&
+      bytes[i + 6] === 0x1a &&
+      bytes[i + 7] === 0x0a
+    ) {
+      return "image/png";
+    }
+    if (
+      i + 3 < bytes.length &&
+      bytes[i] === 0x47 &&
+      bytes[i + 1] === 0x49 &&
+      bytes[i + 2] === 0x46 &&
+      bytes[i + 3] === 0x38
+    ) {
+      return "image/gif";
+    }
+    return "";
+  }
+
+  function findImageHeaderOffset(bytes, start) {
+    var from = Math.max(0, Number(start) || 0);
+    for (var i = from; i < bytes.length - 8; i++) {
+      if (mimeFromImageHeader(bytes, i)) return i;
+    }
+    return -1;
+  }
+
+  function parseApicFrame(frameBytes) {
+    if (!frameBytes || frameBytes.length < 5) return "";
+    var encoding = frameBytes[0];
+    var cursor = 1;
+    var mimeEnd = frameBytes.indexOf(0, cursor);
+    if (mimeEnd < 0) return "";
+
+    var mime = bytesToAscii(frameBytes, cursor, mimeEnd - cursor).toLowerCase();
+    cursor = mimeEnd + 1;
+    if (cursor >= frameBytes.length) return "";
+
+    cursor += 1; // picture type
+    if (cursor >= frameBytes.length) return "";
+
+    var payloadStart = cursor;
+    var descEnd = findTextTerminator(frameBytes, cursor, encoding);
+    if (descEnd >= 0) {
+      cursor = encoding === 0 || encoding === 3 ? descEnd + 1 : descEnd + 2;
+      if (cursor < frameBytes.length) {
+        return blobUrlFromImageBytes(frameBytes.subarray(cursor), mime);
+      }
+    }
+
+    var imageOffset = findImageHeaderOffset(frameBytes, payloadStart);
+    if (imageOffset >= 0) {
+      var detectedMime = mimeFromImageHeader(frameBytes, imageOffset);
+      return blobUrlFromImageBytes(frameBytes.subarray(imageOffset), detectedMime || mime);
+    }
+
+    return "";
+  }
+
+  function parsePicFrame(frameBytes) {
+    if (!frameBytes || frameBytes.length < 7) return "";
+    var encoding = frameBytes[0];
+    var format = bytesToAscii(frameBytes, 1, 3);
+    var cursor = 4;
+    if (cursor >= frameBytes.length) return "";
+
+    cursor += 1; // picture type
+    if (cursor >= frameBytes.length) return "";
+
+    var payloadStart = cursor;
+    var descEnd = findTextTerminator(frameBytes, cursor, encoding);
+    if (descEnd >= 0) {
+      cursor = encoding === 0 || encoding === 3 ? descEnd + 1 : descEnd + 2;
+      if (cursor < frameBytes.length) {
+        return blobUrlFromImageBytes(frameBytes.subarray(cursor), formatToMime(format));
+      }
+    }
+
+    var imageOffset = findImageHeaderOffset(frameBytes, payloadStart);
+    if (imageOffset >= 0) {
+      var detectedMime = mimeFromImageHeader(frameBytes, imageOffset);
+      return blobUrlFromImageBytes(frameBytes.subarray(imageOffset), detectedMime || formatToMime(format));
+    }
+
+    return "";
+  }
+
+  function extractEmbeddedCoverUrl(arrayBuffer) {
+    var bytes = new Uint8Array(arrayBuffer);
+    if (bytes.length < 10) return "";
+    if (bytesToAscii(bytes, 0, 3) !== "ID3") return "";
+
+    var version = bytes[3];
+    var tagSize = readSynchsafeInt(bytes, 6);
+    var offset = 10;
+    var end = Math.min(bytes.length, offset + tagSize);
+
+    if (version === 2) {
+      while (offset + 6 <= end) {
+        var frameIdV2 = bytesToAscii(bytes, offset, 3);
+        var frameSizeV2 = (bytes[offset + 3] << 16) | (bytes[offset + 4] << 8) | bytes[offset + 5];
+        if (!frameIdV2.trim() || frameSizeV2 <= 0) break;
+
+        var frameStartV2 = offset + 6;
+        var frameEndV2 = Math.min(end, frameStartV2 + frameSizeV2);
+        if (frameEndV2 <= frameStartV2) break;
+
+        if (frameIdV2 === "PIC") {
+          return parsePicFrame(bytes.subarray(frameStartV2, frameEndV2));
+        }
+
+        offset = frameStartV2 + frameSizeV2;
+      }
+      return "";
+    }
+
+    while (offset + 10 <= end) {
+      var frameId = bytesToAscii(bytes, offset, 4);
+      var frameSize = version === 4 ? readSynchsafeInt(bytes, offset + 4) : readUInt32BE(bytes, offset + 4);
+      if (!frameId.trim() || frameSize <= 0) break;
+
+      var frameStart = offset + 10;
+      var frameEnd = Math.min(end, frameStart + frameSize);
+      if (frameEnd <= frameStart) break;
+
+      if (frameId === "APIC") {
+        return parseApicFrame(bytes.subarray(frameStart, frameEnd));
+      }
+
+      offset = frameStart + frameSize;
+    }
+
+    return "";
+  }
+
+  function fetchTrackEmbeddedCover(track) {
+    var key = track.streamUrl;
+    if (!key) return Promise.reject(new Error("No stream URL"));
+    if (Object.prototype.hasOwnProperty.call(embeddedCoverCache, key)) {
+      if (embeddedCoverCache[key]) return Promise.resolve(embeddedCoverCache[key]);
+      return Promise.reject(new Error("No embedded cover"));
+    }
+
+    return fetchAudioArrayBuffer(key)
+      .then(function (arrayBuffer) {
+        var coverUrl = extractEmbeddedCoverUrl(arrayBuffer);
+        embeddedCoverCache[key] = coverUrl || "";
+        if (!coverUrl) throw new Error("No embedded cover");
+        return coverUrl;
+      });
   }
 
   function resamplePeaks(source, count) {
@@ -177,11 +416,7 @@
       decodeContext = new Ctx();
     }
 
-    return fetch(key)
-      .then(function (response) {
-        if (!response.ok) throw new Error("Failed to fetch audio");
-        return response.arrayBuffer();
-      })
+    return fetchAudioArrayBuffer(key)
       .then(function (arrayBuffer) {
         return decodeAudioBuffer(decodeContext, arrayBuffer);
       })
@@ -211,6 +446,9 @@
   }
 
   function initPlayer(root) {
+    if (root.getAttribute("data-music-player-bound") === "true") return;
+    root.setAttribute("data-music-player-bound", "true");
+
     var baseUrl = normaliseBaseUrl(root);
     var playlist = parsePlaylist(root)
       .map(function (track, index) {
@@ -242,7 +480,8 @@
       isSeeking: false,
       isDragging: false,
       waveBars: [],
-      waveRenderJob: 0
+      waveRenderJob: 0,
+      coverRenderJob: 0
     };
 
     function setStatus(message, level) {
@@ -335,9 +574,21 @@
     }
 
     function updateCover(track) {
+      var coverJobId = ++state.coverRenderJob;
       if (!track.cover) {
         cover.removeAttribute("src");
         cover.setAttribute("data-empty", "true");
+        fetchTrackEmbeddedCover(track)
+          .then(function (embeddedCoverUrl) {
+            if (coverJobId !== state.coverRenderJob) return;
+            cover.src = embeddedCoverUrl;
+            cover.removeAttribute("data-empty");
+          })
+          .catch(function () {
+            if (coverJobId !== state.coverRenderJob) return;
+            cover.removeAttribute("src");
+            cover.setAttribute("data-empty", "true");
+          });
         return;
       }
       cover.src = track.cover;
@@ -393,14 +644,14 @@
       }
     }
 
-    function playRandomTrack(autoplay) {
+    function playRandomTrack() {
       var nextIndex = randomIndex(playlist.length, state.index);
-      loadTrack(nextIndex, autoplay);
+      loadTrack(nextIndex, false);
     }
 
     if (randomButton) {
       randomButton.addEventListener("click", function () {
-        playRandomTrack(true);
+        playRandomTrack();
       });
     }
 
@@ -495,7 +746,7 @@
     });
 
     audio.addEventListener("ended", function () {
-      playRandomTrack(true);
+      playRandomTrack();
     });
 
     audio.addEventListener("error", function () {
@@ -521,6 +772,16 @@
     var players = document.querySelectorAll("[data-music-player]");
     Array.prototype.forEach.call(players, initPlayer);
   }
+
+  window.addEventListener("beforeunload", function () {
+    while (createdCoverObjectUrls.length) {
+      URL.revokeObjectURL(createdCoverObjectUrls.pop());
+    }
+  });
+
+  window.__siteInitMusicPlayers = boot;
+
+  document.addEventListener("site:content-updated", boot);
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
