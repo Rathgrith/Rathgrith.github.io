@@ -232,6 +232,18 @@ html[data-theme="dark"] .paper-box .paper-box-image img {
   border-color: var(--link);
 }
 
+#live2d-widget,
+#live2dcanvas,
+.live2d-widget-container {
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+html[data-theme="dark"] #live2d-widget,
+html[data-theme="dark"] #live2dcanvas,
+html[data-theme="dark"] .live2d-widget-container {
+  filter: brightness(0.72) saturate(0.82) hue-rotate(-8deg) contrast(0.95);
+}
+
 /* Standalone pages */
 body.standalone-page {
   font-family: "Roboto", sans-serif;
@@ -455,11 +467,32 @@ body.notes-page .project {
   margin-top: 1rem;
   margin-bottom: 1.5rem;
   padding: 0;
+  position: relative;
+  --music-cover-width: 0px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
   box-shadow: none;
   overflow: hidden;
+}
+
+.music-embed-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+html[data-theme="dark"] .music-embed-shell::after {
+  left: 0;
+  background: none;
+}
+
+html[data-theme="dark"] .music-embed-shell[data-cover-ready="true"]::after {
+  left: var(--music-cover-width);
+  background: rgba(0, 0, 0, 0.01);
+  -webkit-backdrop-filter: invert(1) hue-rotate(180deg) brightness(0.78) saturate(0.84);
+  backdrop-filter: invert(1) hue-rotate(180deg) brightness(0.78) saturate(0.84);
 }
 
 .music-embed {
