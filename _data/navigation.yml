@@ -15,9 +15,6 @@ main:
   - title: "Misc"
     url: "/#miscellaneous"
 
-  - title: "Social"
-    url: "/#social"
-
   - title: "CV"
     url: "/assets/Dongheng_Lin_PhD_CV.pdf"
 

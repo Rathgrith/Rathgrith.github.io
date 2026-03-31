@@ -168,6 +168,13 @@
 
     document.body.className = (nextBody.getAttribute("class") || "").trim();
 
+    var nextDisableLive2D = nextBody.getAttribute("data-disable-live2d");
+    if (nextDisableLive2D != null) {
+      document.body.setAttribute("data-disable-live2d", nextDisableLive2D);
+    } else {
+      document.body.removeAttribute("data-disable-live2d");
+    }
+
     Object.keys(preserved).forEach(function (className) {
       document.body.classList.add(className);
     });

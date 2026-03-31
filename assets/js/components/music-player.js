@@ -349,15 +349,38 @@
     return result;
   }
 
+  function normaliseWavePeaks(raw) {
+    if (!raw) return [];
+
+    var source = raw;
+    if (typeof source === "string") {
+      source = source.split(/[,\s]+/g);
+    }
+    if (!Array.isArray(source)) return [];
+
+    var peaks = source
+      .map(function (value) {
+        var parsed = Number(value);
+        if (!Number.isFinite(parsed)) return null;
+        return clamp(parsed, 0.04, 0.99);
+      })
+      .filter(function (value) {
+        return value != null;
+      });
+
+    return peaks;
+  }
+
   function fallbackPeaks(key, count) {
     var random = seededRandom(hashString(key || "music-player"));
     var peaks = [];
-    var level = 0.46;
+    var level = 0.5;
     for (var i = 0; i < count; i++) {
-      level += (random() - 0.5) * 0.26;
-      level = clamp(level, 0.12, 0.92);
-      var curve = Math.abs(Math.sin((i / Math.max(1, count - 1)) * Math.PI * (2 + random() * 2)));
-      peaks.push(clamp(level * 0.62 + curve * 0.38, 0.12, 0.96));
+      level += (random() - 0.5) * 0.34;
+      level = clamp(level, 0.08, 0.95);
+      var curveBase = Math.abs(Math.sin((i / Math.max(1, count - 1)) * Math.PI * (2 + random() * 2)));
+      var curve = Math.pow(curveBase, 1.28);
+      peaks.push(clamp(level * 0.42 + curve * 0.58, 0.04, 0.98));
     }
     return peaks;
   }
@@ -398,7 +421,9 @@
 
     for (var k = 0; k < peaks.length; k++) {
       var normalized = peaks[k] / maxPeak;
-      peaks[k] = clamp(Math.pow(normalized, 0.72), 0.12, 0.96);
+      var contrasted = Math.pow(normalized, 1.28);
+      var expanded = (contrasted - 0.04) / 0.96;
+      peaks[k] = clamp(expanded, 0.04, 0.98);
     }
     return peaks;
   }
@@ -434,6 +459,10 @@
     var cover = (track && (track.cover || track.cover_url || track.local_cover)) || "";
     var streamUrl = (track && (track.stream_url || track.audio_url || track.local_audio || track.url || track.src)) || "";
     var songUrl = (track && (track.song_url || track.source_url || track.link)) || "";
+    var vgmdbTrackUrl = (track && (track.vgmdb_track_url || track.vgmdb_track || track.vgmdbTrackUrl || track.track_vgmdb_url)) || "";
+    var vgmdbArtistUrl = (track && (track.vgmdb_artist_url || track.vgmdb_artist || track.vgmdbArtistUrl || track.artist_vgmdb_url)) || "";
+    var vgmdbAlbumUrl = (track && (track.vgmdb_album_url || track.vgmdb_album || track.vgmdbAlbumUrl || track.album_vgmdb_url)) || "";
+    var wavePeaks = track && (track.wave_peaks || track.wavePeaks || track.waveform_peaks);
 
     return {
       title: title,
@@ -441,7 +470,11 @@
       album: album,
       cover: resolveAssetUrl(cover, baseUrl),
       streamUrl: resolveAssetUrl(streamUrl, baseUrl),
-      songUrl: resolveAssetUrl(songUrl, baseUrl)
+      songUrl: resolveAssetUrl(songUrl, baseUrl),
+      vgmdbTrackUrl: resolveAssetUrl(vgmdbTrackUrl, baseUrl),
+      vgmdbArtistUrl: resolveAssetUrl(vgmdbArtistUrl, baseUrl),
+      vgmdbAlbumUrl: resolveAssetUrl(vgmdbAlbumUrl, baseUrl),
+      wavePeaks: normaliseWavePeaks(wavePeaks)
     };
   }
 
@@ -461,6 +494,7 @@
 
     var audio = root.querySelector("[data-music-audio]");
     var cover = root.querySelector("[data-music-cover]");
+    var body = root.querySelector(".music-player__body");
     var title = root.querySelector("[data-music-title]");
     var artist = root.querySelector("[data-music-artist]");
     var status = root.querySelector("[data-music-status]");
@@ -481,13 +515,36 @@
       isDragging: false,
       waveBars: [],
       waveRenderJob: 0,
-      coverRenderJob: 0
+      coverRenderJob: 0,
+      coverSizeFrame: 0
     };
 
     function setStatus(message, level) {
       status.textContent = message || "";
       status.dataset.level = level || "info";
       status.hidden = !message;
+      scheduleCoverSizeSync();
+    }
+
+    function syncCoverSize() {
+      if (!cover) return;
+      var basisHeight = (body && body.clientHeight) || root.clientHeight || 0;
+      if (!basisHeight) return;
+
+      var size = Math.round(basisHeight * 0.8);
+      size = Math.max(44, size);
+      cover.style.width = size + "px";
+      cover.style.height = size + "px";
+    }
+
+    function scheduleCoverSizeSync() {
+      if (state.coverSizeFrame) {
+        window.cancelAnimationFrame(state.coverSizeFrame);
+      }
+      state.coverSizeFrame = window.requestAnimationFrame(function () {
+        state.coverSizeFrame = 0;
+        syncCoverSize();
+      });
     }
 
     function ratioFromCurrentTime() {
@@ -521,7 +578,7 @@
       for (var i = 0; i < heights.length; i++) {
         var bar = document.createElement("span");
         bar.className = "music-player__wave-bar";
-        bar.style.height = String(Math.round(clamp(heights[i], 0.12, 0.96) * 100)) + "%";
+        bar.style.height = String(Math.round(clamp(heights[i], 0.04, 0.98) * 100)) + "%";
         fragment.appendChild(bar);
         bars.push(bar);
       }
@@ -533,6 +590,11 @@
 
     function renderStaticWave(track) {
       var count = waveBarCount();
+      if (track.wavePeaks && track.wavePeaks.length) {
+        renderWaveBars(resamplePeaks(track.wavePeaks, count));
+        return;
+      }
+
       var baseKey = [track.streamUrl, track.title, track.artist, track.album].join("|");
       var fallback = fallbackPeaks(baseKey, count);
       renderWaveBars(fallback);
@@ -573,6 +635,35 @@
       songLink.hidden = false;
     }
 
+    function createMetaNode(textValue, hrefValue) {
+      var text = String(textValue || "");
+      if (!hrefValue) {
+        var plainText = document.createElement("span");
+        plainText.className = "music-player__meta-link";
+        plainText.textContent = text;
+        return plainText;
+      }
+
+      var link = document.createElement("a");
+      link.className = "music-player__meta-link music-player__meta-link--clickable";
+      link.href = hrefValue;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = text;
+      return link;
+    }
+
+    function renderTrackMeta(track) {
+      title.textContent = track.title;
+
+      artist.textContent = "";
+      artist.appendChild(createMetaNode(track.artist, track.vgmdbArtistUrl));
+      if (track.album) {
+        artist.appendChild(document.createTextNode(" | "));
+        artist.appendChild(createMetaNode(track.album, track.vgmdbAlbumUrl));
+      }
+    }
+
     function updateCover(track) {
       var coverJobId = ++state.coverRenderJob;
       if (!track.cover) {
@@ -583,16 +674,19 @@
             if (coverJobId !== state.coverRenderJob) return;
             cover.src = embeddedCoverUrl;
             cover.removeAttribute("data-empty");
+            scheduleCoverSizeSync();
           })
           .catch(function () {
             if (coverJobId !== state.coverRenderJob) return;
             cover.removeAttribute("src");
             cover.setAttribute("data-empty", "true");
+            scheduleCoverSizeSync();
           });
         return;
       }
       cover.src = track.cover;
       cover.removeAttribute("data-empty");
+      scheduleCoverSizeSync();
     }
 
     function seekToRatio(ratio) {
@@ -621,8 +715,7 @@
       audio.src = track.streamUrl;
       audio.load();
 
-      title.textContent = track.title;
-      artist.textContent = track.album ? track.artist + " | " + track.album : track.artist;
+      renderTrackMeta(track);
       cover.alt = track.title + " cover";
       updateCover(track);
       updateSongLink(track);
@@ -630,6 +723,7 @@
       totalTime.textContent = "0:00";
       setStatus("");
       renderStaticWave(track);
+      scheduleCoverSizeSync();
 
       if (autoplay) {
         var promise = audio.play();
@@ -735,6 +829,7 @@
         totalTime.textContent = formatTime(audio.duration);
       }
       setWaveProgress(ratioFromCurrentTime());
+      scheduleCoverSizeSync();
     });
 
     audio.addEventListener("timeupdate", function () {
@@ -761,6 +856,7 @@
       var track = playlist[state.index];
       if (!track) return;
       renderStaticWave(track);
+      scheduleCoverSizeSync();
     });
 
     audio.volume = Number(volume.value);

@@ -8,7 +8,7 @@ layout: compress
     {% include head/custom.html %}
   </head>
 
-  <body{% if page.body_class %} class="{{ page.body_class }}"{% endif %}>
+  <body{% if page.body_class %} class="{{ page.body_class }}"{% endif %}{% if page.disable_live2d %} data-disable-live2d="true"{% endif %}>
 
     {% include browser-upgrade.html %}
     {% include masthead.html %}
@@ -26,38 +26,13 @@ layout: compress
       </article>
     </div>
 
-    <script src="https://www.unpkg.com/mouse-firework@latest/dist/index.umd.js"></script>
-    {% include scripts.html %}
-
-    {% unless page.disable_live2d %}
-    <script src="https://cdn.jsdelivr.net/npm/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
+    {% include site-runtime-footer.html %}
     <script>
-      (function () {
-        var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1280;
-        var isSmallScreen = viewportWidth < 980;
-        var widgetWidth = Math.round(Math.max(220, Math.min(360, viewportWidth * 0.24)));
-        var widgetHeight = Math.round(widgetWidth * 1.52);
-
-        L2Dwidget.init({
-          model: {
-            jsonPath: "https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/kp31_310/model.json"
-          },
-          display: {
-            position: "right",
-            width: widgetWidth,
-            height: widgetHeight,
-            hOffset: isSmallScreen ? -34 : -68,
-            vOffset: isSmallScreen ? -250 : -350
-          },
-          mobile: {
-            show: false,
-            scale: 0.25,
-            motion: false
-          }
-        });
-      })();
+      window.__siteLive2DConfig = window.__siteLive2DConfig || {
+        modelPath: "{{ site.live2d_model_path | default: 'https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/kp31_310/model.json' }}"
+      };
     </script>
-    {% endunless %}
+    {% include scripts.html %}
   </body>
 
 </html>

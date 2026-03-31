@@ -1,21 +1,14 @@
 {% if page.author and site.data.authors[page.author] %}
   {% assign author = site.data.authors[page.author] %}{% else %}{% assign author = site.author %}
 {% endif %}
-{% assign avatar_src = author.avatar | default: "" %}
-{% assign avatar_src_down = avatar_src | downcase %}
-{% assign avatar_is_gif = false %}
-{% if avatar_src_down contains ".gif" %}
-  {% assign avatar_is_gif = true %}
-{% endif %}
-{% assign avatar_url = avatar_src %}
-{% unless avatar_src contains "://" %}
-  {% assign avatar_url = avatar_src | relative_url %}
-{% endunless %}
+{% assign avatar_light_url = '/images/rumia.jpeg' | relative_url %}
+{% assign avatar_dark_url = '/images/rumia.jpeg' | relative_url %}
 
 <div itemscope itemtype="http://schema.org/Person" class="profile_box">
 
   <div class="author__avatar">
-    <img src="{{ avatar_url }}" class="author__avatar{% if avatar_is_gif %} author__avatar--gif{% endif %}" alt="{{ author.name }}">
+    <img src="{{ avatar_light_url }}" class="author__avatar-image author__avatar-image--light" alt="{{ author.name }}">
+    <img src="{{ avatar_dark_url }}" class="author__avatar-image author__avatar-image--dark" alt="{{ author.name }}">
   </div>
 
   <div class="author__content">
@@ -223,6 +216,23 @@
       {% if author.wikipedia %}
         <a href="https://en.wikipedia.org/wiki/User:{{ author.wikipedia }}"><i class="fab fa-fw fa-wikipedia-w" aria-hidden="true"></i></a>
       {% endif %}
+    </div>
+
+    <div class="author__affiliations" aria-label="Past affiliations">
+      <div class="author__affiliations-grid">
+        <a class="author__affiliation" href="https://www.liverpool.ac.uk/" target="_blank" rel="noopener noreferrer" aria-label="University of Liverpool">
+          <img src="{{ '/images/universities/liverpool-emblem.svg' | relative_url }}" alt="University of Liverpool emblem">
+        </a>
+        <a class="author__affiliation" href="https://illinois.edu/" target="_blank" rel="noopener noreferrer" aria-label="University of Illinois Urbana-Champaign">
+          <img class="author__affiliation-logo--round" src="{{ '/images/universities/uiuc-seal.svg' | relative_url }}" alt="University of Illinois seal">
+        </a>
+        <a class="author__affiliation" href="https://www.bjtu.edu.cn/" target="_blank" rel="noopener noreferrer" aria-label="Beijing Jiaotong University">
+          <img class="author__affiliation-logo--round" src="{{ '/images/universities/bjtu-emblem.svg' | relative_url }}" alt="Beijing Jiaotong University emblem">
+        </a>
+        <a class="author__affiliation" href="https://www.birmingham.ac.uk/" target="_blank" rel="noopener noreferrer" aria-label="University of Birmingham">
+          <img src="{{ '/images/universities/birmingham-shield.svg' | relative_url }}" alt="University of Birmingham shield">
+        </a>
+      </div>
     </div>
   </div>
 </div>

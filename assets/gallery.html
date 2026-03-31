@@ -9,10 +9,16 @@ body_class: "standalone-page gallery-page"
         <div class="header-inner">
             <h1>Gallery</h1>
             <p class="page-subtitle">A selection of 2D images.</p>
+            <p class="page-subtitle page-subtitle--hint">Click a thumbnail to preview the full-resolution image in a popup carousel.</p>
         </div>
     </header>
 
-    <main class="gallery-container" role="main">
+    <main
+      class="gallery-container"
+      role="main"
+      data-thumbnail-dir="{{ '/images/gallery/thumbnails/' | relative_url }}"
+      data-original-dir="{{ '/images/gallery/originals/' | relative_url }}"
+    >
         <div class="gallery" id="gallery">
             <!-- JavaScript will populate this section -->
         </div>
@@ -46,313 +52,32 @@ body_class: "standalone-page gallery-page"
         </div>
     </main>
 
-    <footer class="page-footer">
-        <div class="footer-inner">
-            <p>Thumbnails open the full-resolution images in a new tab.</p>
+    <div class="gallery-modal" id="gallery-modal" aria-hidden="true" hidden>
+        <div class="gallery-modal__backdrop" data-gallery-close></div>
+        <div class="gallery-modal__dialog" role="dialog" aria-modal="true" aria-label="Image preview">
+            <button type="button" class="gallery-modal__close" data-gallery-close aria-label="Close preview">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="gallery-modal__nav gallery-modal__nav--prev" data-gallery-prev aria-label="Previous image">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <figure class="gallery-modal__figure">
+                <div class="gallery-modal__image-stage">
+                    <img id="gallery-modal-image" class="gallery-modal__image" src="" alt="">
+                </div>
+                <figcaption class="gallery-modal__meta">
+                    <div class="gallery-modal__meta-text">
+                        <span id="gallery-modal-caption" class="gallery-modal__caption"></span>
+                    </div>
+                    <span id="gallery-modal-counter" class="gallery-modal__counter"></span>
+                </figcaption>
+                <div id="gallery-modal-strip" class="gallery-modal__strip" role="listbox" aria-label="Thumbnail carousel"></div>
+            </figure>
+            <button type="button" class="gallery-modal__nav gallery-modal__nav--next" data-gallery-next aria-label="Next image">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
         </div>
-    </footer>
+    </div>
 
-    <script>
-        // Captions mapping based on filenames
-        const captions = {
-            "RATH6620.jpg": "Crow",
-            "RATH6538.jpg": "Busey Woods",
-            "RATH6545.jpg": "Fallusion",
-            "RATH8442.jpg": "A Dog",
-            "RATH9065w.jpg": "Steel Blood",
-            "RATH9618.jpg": "Bachelor Dorm",
-            "StartrailsJ.jpg": "Starlight",
-            "RATH6595.jpg": "Clouds",
-            "RATH3037.jpg": "Asuka",
-            "RATH3602.jpg": "Roxy",
-            "RATH3135-2.jpg": "Reimu",
-            "RATH4513.jpg": "Ginko",
-            "saber.jpg": "Saber",
-            "shinobu.jpg": "Kokorowatari",
-            "flan.jpg": "Flandre",
-            "pathouli.jpg": "Patchouli",
-            "yard.jpg": "Yard",
-            "youmu.png": "Half Spirit",
-            "tower.jpg": "Tower",
-            "sakura.jpg": "Sakura",
-            "sanae.jpg": "Arahitogami",
-            "SilhouetteBirds.jpg": "Silhouette Birds",
-            "altina.jpg": "Altina Orion",
-            "marisa.png": "Marisa",
-            "3.jpg": "Winterealm",
-            "RATH2214.jpg": "Remilia",
-            "RATH9995.jpg": "Silhouette",
-            "RATH9131.jpg": "Colours",
-            "RATH8951.jpg": "Sunset Chapel",
-            "RATH6848.jpg": "Cloud Plant",
-            "DSC05793-gigapixel-standard-scale-2_00x.jpg": "Canal Crossing",
-            "RATH1927.jpg": "Heavenly Descent",
-            "000040_1.jpg": "Sunset Lake",
-            "DSC01738.jpg": "Scales",
-            "4B5A0106.jpg": "Buds",
-            "DSC01830.jpg": "Maple",
-            "RATH7530.jpg": "Miniature",
-            "RATH9090w.jpg": "Keep Out",
-            "RATH3317.jpg": "Rei",
-            "DSC05069~1.jpg": "Shanghai",
-            "RATH4226.jpg": "Miku",
-            "000045.jpg": "Framed",
-            "RATH2425.jpg": "Tap",
-            "RATH3081.jpg": "Tanzanite",
-            "000039.jpg": "Watcher",
-            "DSC01744.jpg": "Light",
-            "000105710019.jpg": "Villa",
-            "RATH2455.jpg": "Cloud Split",
-            "RATH2766.jpg": "Tabletop",
-            "RATH2074.jpg": "Tilt Train",
-            "000054710009.jpg": "Glass",
-            "DSCF4421.jpg": "EE Building",
-            "RATH8000.jpg": "Sad Cat",
-            "DSC01565_2.jpg": "Valaraukar",
-            "RATH2145.jpg": "Cable",
-            "RATH2122.jpg": "Stretch",
-            "RATH6525.jpg": "Autumn",
-            "RATH6603.jpg": "Rift",
-            "RATH6175.jpg": "Utakata",
-            "RATH6219.jpg": "Michigan Lake",
-            "RATH6058.jpg": "Wings",
-            "RATH5914.jpg": "San Francisco",
-            "RATH5648.jpg": "Sayonara",
-            "RATH6375.jpg": "Stained glass",
-            "RATH6425.jpg": "Ferry",
-            "RATH6441.jpg": "Liberty",
-            "RATH6253.jpg": "Fumo",
-            "zeke.jpeg": "Hangar",
-            "alice.jpg": "Alice",
-            "mayoi.jpg": "Stray Snail",
-            "meiling.jpg": "Gatekeeper",
-            "reimu.jpg": "Summer Miko",
-            "sora.jpg": "Yuzukano Sora",
-            "sakura_kimono.jpg": "Blossom Rain",
-            "nekomata.jpg": "Nekomata",
-            "nekopara.jpg": "Nekopara",
-            "miyako.jpg": "Miyako",
-            "moukou.jpg": "Phoenix",
-            "foreigner.jpg": "Foreigner",
-            "marine.jpg": "Dressing Doll",
-            "Pycnonotus_jocosus.jpg": "Pycnonotus Jocosus",
-            "vegetable.jpg": "Farming",
-            "window.jpg": "Window",
-            "docker.jpg": "Docker",
-            "cloud.jpg": "Cloud",
-            "shimakaze.jpg": "Shimakaze",
-            "1751695639015.jpeg": "Doll&Bear",
-            "95B50FC9_IMG_6954.jpg": "Road Ends",
-            "tea.jpg": "Tea Time",
-            "BAD46FF1_IMG_7534.jpg": "B7R",
-            "RATH8162-enhanced-denoise.jpg": "Half-Spirited",
-            "RATH8183-enhanced-denoise.jpg": "Alice in Spring",
-            "RATH8153.jpg": "Blossom Haze",
-            "RATH8201.jpg": "Pink Cascade",
-            "RATH8203.jpg": "Forsythia",
-            "RATH8213.jpg": "Daffodils",
-            "RATH8216.jpg": "Dandelions",
-            "RATH8214.jpg": "Golden Catkins",
-            "RATH8240.jpg": "Sky Blossoms",
-            "RATH8265.jpg": "Fresh Sprig",
-            "RATH8268.jpg": "New Shoot",
-            "RATH8258.jpg": "White Bloom",
-            "RATH8243.jpg": "Spring Daisy",
-            "RATH8237.jpg": "Sakura Cluster",
-            "RATH8246.jpg": "Treeward"
-        };
-
-        // Directories for thumbnails and original images
-        const thumbnailDir = "{{ '/images/gallery/thumbnails/' | relative_url }}";
-        const originalDir = "{{ '/images/gallery/originals/' | relative_url }}";
-
-        const gallery = document.getElementById("gallery");
-        const galleryActions = document.querySelector(".gallery-actions");
-        const loadMoreButton = document.getElementById("load-more");
-        const loadAllButton = document.getElementById("load-all");
-
-        const INITIAL_BATCH_SIZE = 10;
-        const LOAD_BATCH_SIZE = 5;
-        const MIN_LOADING_MS = 260;
-
-        const filenames = Object.keys(captions).sort(() => Math.random() - 0.5);
-        let currentIndex = 0;
-        let isRenderingBatch = false;
-
-        function setButtonLabel(button, text) {
-            if (!button) return;
-            const label = button.querySelector(".gallery-action__label");
-            if (label) {
-                label.textContent = text;
-                return;
-            }
-            button.textContent = text;
-        }
-
-        function setButtonIcon(button, iconClass) {
-            if (!button || !iconClass) return;
-            const icon = button.querySelector(".gallery-action__icon i");
-            if (!icon) return;
-            icon.className = iconClass;
-        }
-
-        function setButtonLoading(button, loading) {
-            if (!button) return;
-            button.classList.toggle("is-loading", loading);
-            button.setAttribute("aria-busy", loading ? "true" : "false");
-        }
-
-        function setCompletedLayout(completed) {
-            if (galleryActions) {
-                galleryActions.classList.toggle("is-complete", completed);
-            }
-
-            if (loadAllButton) {
-                loadAllButton.hidden = completed;
-                loadAllButton.style.display = completed ? "none" : "";
-                loadAllButton.setAttribute("aria-hidden", completed ? "true" : "false");
-                if (completed) {
-                    loadAllButton.setAttribute("tabindex", "-1");
-                } else {
-                    loadAllButton.removeAttribute("tabindex");
-                }
-            }
-        }
-
-        function createGalleryItem(filename, indexInBatch) {
-            const thumbnail = document.createElement("a");
-            thumbnail.href = originalDir + filename;
-            thumbnail.target = "_blank";
-
-            const img = document.createElement("img");
-            img.src = thumbnailDir + filename;
-            img.alt = captions[filename];
-            thumbnail.appendChild(img);
-
-            const caption = document.createElement("div");
-            caption.className = "caption";
-            caption.textContent = captions[filename];
-
-            const item = document.createElement("div");
-            item.className = "gallery-item";
-            item.style.transitionDelay = `${indexInBatch * 60}ms`;
-            item.appendChild(thumbnail);
-            item.appendChild(caption);
-
-            return item;
-        }
-
-        function revealItems(items) {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    items.forEach((item) => item.classList.add("is-visible"));
-                });
-            });
-        }
-
-        function updateButtonState() {
-            const remaining = filenames.length - currentIndex;
-            const completed = remaining <= 0;
-            setCompletedLayout(completed);
-
-            if (loadMoreButton) {
-                if (completed) {
-                    loadMoreButton.dataset.state = "done";
-                    loadMoreButton.disabled = true;
-                    setButtonLabel(loadMoreButton, loadMoreButton.dataset.doneLabel || "All photos loaded");
-                    setButtonIcon(loadMoreButton, loadMoreButton.dataset.doneIcon || "fas fa-check");
-                } else {
-                    loadMoreButton.dataset.state = "ready";
-                    loadMoreButton.disabled = false;
-                    setButtonLabel(loadMoreButton, loadMoreButton.dataset.defaultLabel || "Load more photos");
-                    setButtonIcon(loadMoreButton, loadMoreButton.dataset.icon || "fas fa-plus");
-                }
-            }
-
-            if (loadAllButton) {
-                if (completed) {
-                    loadAllButton.dataset.state = "done";
-                    loadAllButton.disabled = true;
-                    setButtonLabel(loadAllButton, loadAllButton.dataset.doneLabel || "All photos loaded");
-                    setButtonIcon(loadAllButton, loadAllButton.dataset.doneIcon || "fas fa-check");
-                } else {
-                    loadAllButton.dataset.state = "ready";
-                    loadAllButton.disabled = false;
-                    setButtonLabel(loadAllButton, loadAllButton.dataset.defaultLabel || "Load all photos");
-                    setButtonIcon(loadAllButton, loadAllButton.dataset.icon || "fas fa-layer-group");
-                }
-            }
-        }
-
-        function renderNextBatch(batchSize) {
-            if (currentIndex >= filenames.length || batchSize <= 0) {
-                return;
-            }
-
-            const nextFiles = filenames.slice(currentIndex, currentIndex + batchSize);
-            const fragment = document.createDocumentFragment();
-            const newItems = [];
-
-            nextFiles.forEach((filename, indexInBatch) => {
-                const item = createGalleryItem(filename, indexInBatch);
-                fragment.appendChild(item);
-                newItems.push(item);
-            });
-
-            gallery.appendChild(fragment);
-            revealItems(newItems);
-
-            currentIndex += nextFiles.length;
-        }
-
-        function setLoadingControls(activeButton, loading) {
-            [loadMoreButton, loadAllButton].forEach((button) => {
-                if (!button) return;
-
-                if (loading) {
-                    button.disabled = true;
-                    setButtonLoading(button, button === activeButton);
-                    return;
-                }
-
-                setButtonLoading(button, false);
-            });
-        }
-
-        function runBatchAction(button, batchSizeGetter) {
-            if (!button || isRenderingBatch || button.disabled) return;
-
-            isRenderingBatch = true;
-            const start = performance.now();
-            setLoadingControls(button, true);
-
-            requestAnimationFrame(() => {
-                const batchSize = typeof batchSizeGetter === "function" ? batchSizeGetter() : 0;
-                renderNextBatch(batchSize);
-
-                const elapsed = performance.now() - start;
-                const wait = Math.max(0, MIN_LOADING_MS - elapsed);
-
-                setTimeout(() => {
-                    isRenderingBatch = false;
-                    setLoadingControls(button, false);
-                    updateButtonState();
-                }, wait);
-            });
-        }
-
-        if (loadMoreButton) {
-            loadMoreButton.addEventListener("click", () => {
-                runBatchAction(loadMoreButton, () => LOAD_BATCH_SIZE);
-            });
-        }
-
-        if (loadAllButton) {
-            loadAllButton.addEventListener("click", () => {
-                runBatchAction(loadAllButton, () => filenames.length - currentIndex);
-            });
-        }
-
-        renderNextBatch(INITIAL_BATCH_SIZE);
-        updateButtonState();
-    </script>
+    <script id="gallery-captions-data" type="application/json">{{ site.data.gallery_captions | jsonify }}</script>
+    <script src="{{ '/assets/js/pages/gallery-page.js' | relative_url }}"></script>

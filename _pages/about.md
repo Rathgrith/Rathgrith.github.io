@@ -3,6 +3,8 @@ permalink: /
 title: ""
 excerpt: ""
 author_profile: true
+body_class: home-page
+has_music_player: true
 redirect_from: 
   - /about/
   - /about.html
@@ -18,6 +20,25 @@ redirect_from:
 <span class='anchor' id='about-me'></span>
 
 # 🏄‍♀️ About Me
+
+<div
+  class="y2k-banner"
+  role="region"
+  aria-label="Personal circle banner"
+  style="
+    --y2k-banner-image-light: url('{{ '/images/banners/y2k-home-banner_light.jpg' | relative_url }}');
+    --y2k-banner-image-dark: url('{{ '/images/banners/y2k-home-banner_dark.jpg' | relative_url }}');
+  "
+>
+  <span class="y2k-banner__bg" aria-hidden="true"></span>
+  <p class="y2k-banner__line">RATHGRITH PERSONAL CIRCLE SITE// SINCE 2023</p>
+  <p class="y2k-banner__title">ARCHIVE PAGE</p>
+  <div class="y2k-banner__links">
+    <!-- <a href="{{ '/#publications' | relative_url }}">Papers</a> -->
+    <a href="{{ '/gallery/' | relative_url }}">Gallery</a>
+    <a href="{{ '/assets/Dongheng_Lin_PhD_CV.pdf' | relative_url }}">CV</a>
+  </div>
+</div>
 
 I am a software engineer at [Allsee Technology](https://www.allsee-tech.com/), and a part-time research assistant at [the University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/). I am also fortunate to be collaborating with [Prof. Yunchao Wei](https://weiyc.github.io/) on ongoing research projects.
 
@@ -70,10 +91,10 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 **Awards**
 - **[EPSRC Doctoral Landscape Award](https://www.ukri.org/publications/doctoral-landscape-awards/doctoral-landscape-award-investments/):** University Scholarship for PhD Study.
-- **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial assistance to present at [NeurIPS 2025](https://neurips.cc/).
+- **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial assistance to present at [NeurIPS](https://neurips.cc/).
 
 **Services**
-- **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://ieeexplore.ieee.org/xpl/conhome/1000500/all-proceedings).
+- **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://www.ijcnn.org/), [NeurIPS](https://neurips.cc/).
 - **Software Engineer:** [Allsee Technologies Ltd](https://www.allsee-tech.com/).
 
 <span class='anchor' id='miscellaneous'></span>
@@ -93,64 +114,16 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 {% include music-player.html playlist="homepage" %}
 
-<span class='anchor' id='social'></span>
+<div class="misc-note">
+  <p> My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is <span class="erdos-count">4</span>.</p>
+  <p class="misc-erdos-path">Dongheng Lin → <a href="https://jianbojiao.com/">Jianbo Jiao</a> → <a href="https://scholar.google.com/citations?user=6QzRJ6MAAAAJ">Ana I. L. Namburete</a> → <a href="https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl">Israel Koren</a> → <a href="https://en.wikipedia.org/wiki/Paul_Erd%C5%91s">Paul Erdős</a>.</p>
+</div>
 
-# 👥 Social
-
-My [Erdős number](https://en.wikipedia.org/wiki/Erd%C5%91s_number) is 4.
-
-- Dongheng Lin → [Jianbo Jiao](https://jianbojiao.com/) → [Ana I. L. Namburete](https://scholar.google.com/citations?user=6QzRJ6MAAAAJ) → [Israel Koren](https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl) → [Paul Erdős](https://en.wikipedia.org/wiki/Paul_Erd%C5%91s)
-
-A few friends of mine: [Yiming Huang](https://www.linkedin.com/in/yiming-huang-93785a12a/), [Youheng Zhu](https://zhuyouheng.github.io/), [Jiawei (Kyle) Zhang](https://jiaweiz9.github.io/), [Zhiyuan Ma](https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate).
+<p><strong>Friends:</strong> <a href="https://www.linkedin.com/in/yiming-huang-93785a12a/">Yiming Huang</a>, <a href="https://zhuyouheng.github.io/">Youheng Zhu</a>, <a href="https://jiaweiz9.github.io/">Jiawei (Kyle) Zhang</a>, <a href="https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate">Zhiyuan Ma</a>.</p>
 
 <span class='anchor' id='site-visits'></span>
 
 # 🦉 Site Visits
 
-<div id="site-visit-widget"></div>
-<script>
-(function () {
-  var widget = document.getElementById("site-visit-widget");
-  if (!widget) return;
-
-  var token = "2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc";
-  var common = "w=300&t=tt&d=" + token + "&cmo=3acc3a&cmn=ff5353";
-  var activeTheme = null;
-
-  function theme() {
-    return document.documentElement.getAttribute("data-theme") || "light";
-  }
-
-  function sourceFor(currentTheme) {
-    if (currentTheme === "dark") {
-      return "//cdn.clustrmaps.com/map_v2.js?cl=f2f6ff&co=1f304d&ct=b4c6e8&" + common;
-    }
-    return "//cdn.clustrmaps.com/map_v2.js?cl=080808&co=ffffff&ct=808080&" + common;
-  }
-
-  function render(currentTheme) {
-    widget.innerHTML = "";
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.id = "clustrmaps";
-    script.async = true;
-    script.src = sourceFor(currentTheme);
-    widget.appendChild(script);
-  }
-
-  function sync() {
-    var currentTheme = theme();
-    if (currentTheme === activeTheme) return;
-    activeTheme = currentTheme;
-    render(currentTheme);
-  }
-
-  sync();
-
-  var observer = new MutationObserver(sync);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-theme"]
-  });
-})();
-</script>
+<div id="site-visit-widget" data-clustrmaps-token="2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc"></div>
+<script src="{{ '/assets/js/pages/site-visits-widget.js' | relative_url }}"></script>

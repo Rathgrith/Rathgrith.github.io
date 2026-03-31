@@ -10,6 +10,8 @@ title                    : "Dongheng Lin"
 description              : ""
 repository               : "Rathgrith/Rathgrith.github.io"
 google_scholar_stats_use_cdn : true
+site_started_at          : "2023-10-28T12:31:48-05:00"
+site_started_commit      : "24a7ac3bdae6b25d4ee07557c534c77f69bd0593"
 
 # google analytics
 google_analytics_id      :  # get google_analytics_id from https://analytics.google.com/analytics/
@@ -22,7 +24,7 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 # Site Author
 author:
   name             : "Dongheng Lin"
-  avatar           : "images/star.png" # Path to your avatar image inside the "assets" folder
+  avatar           : "images/rumia.jpeg" # Path to your avatar image inside the "assets" folder
   bio              : 
   location         : "West Midlands, UK"
   employer         : 
@@ -44,7 +46,7 @@ author:
   impactstory      : # e.g., "https://profiles.impactstory.org/u/xxxx-xxxx-xxxx-xxxx"
   lastfm           :
   linkedin         : 
-  dblp             : # e.g., "https://dblp.org/pid/xx/xxxx.html"
+  dblp             : "https://dblp.uni-trier.de/pid/345/0739.html" # e.g., "https://dblp.org/pid/xx/xxxx.html"
   orcid            : # e.g., "https://orcid.org/xxxx"
   pinterest        :
   soundcloud       :
