@@ -606,7 +606,8 @@ html[data-theme="dark"] .author__affiliation:hover {
 
 @media (max-width: 48em) {
   body.home-page .profile_box {
-    --profile-mobile-chip-size: 3rem;
+    --profile-mobile-chip-gap: 0.42rem;
+    --profile-mobile-row-width: min(100%, 16.68rem);
     padding: 0.82rem 0.84rem 0.72rem;
   }
 
@@ -660,16 +661,17 @@ html[data-theme="dark"] .author__affiliation:hover {
 
   body.home-page .profile_box .author__urls_sm {
     display: grid;
-    grid-template-columns: repeat(5, var(--profile-mobile-chip-size));
-    gap: 0.42rem;
+    width: var(--profile-mobile-row-width);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--profile-mobile-chip-gap);
     justify-content: center;
   }
 
   body.home-page .profile_box .author__urls_sm a {
-    width: var(--profile-mobile-chip-size);
-    min-width: var(--profile-mobile-chip-size);
-    height: var(--profile-mobile-chip-size);
-    min-height: var(--profile-mobile-chip-size);
+    width: 100%;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    min-height: 0;
     border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
     border-radius: 0.8rem;
     background: color-mix(in srgb, var(--surface) 88%, var(--surface-alt) 12%);
@@ -686,15 +688,17 @@ html[data-theme="dark"] .author__affiliation:hover {
   }
 
   body.home-page .profile_box .author__affiliations-grid {
-    grid-template-columns: repeat(4, var(--profile-mobile-chip-size));
-    gap: 0.42rem;
+    width: var(--profile-mobile-row-width);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--profile-mobile-chip-gap);
     justify-content: center;
   }
 
   body.home-page .profile_box .author__affiliation {
-    width: var(--profile-mobile-chip-size);
-    min-width: var(--profile-mobile-chip-size);
-    min-height: var(--profile-mobile-chip-size);
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
     border-radius: 10px;
   }
 }
