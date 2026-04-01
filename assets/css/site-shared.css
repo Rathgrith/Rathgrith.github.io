@@ -581,6 +581,7 @@ html[data-theme="dark"] .y2k-banner__bg::after {
   max-height: 32px;
   object-fit: contain;
   display: block;
+  margin: auto;
 }
 
 .author__affiliation img.author__affiliation-logo--round {
@@ -679,7 +680,25 @@ html[data-theme="dark"] .author__affiliation:hover {
     align-items: center;
     justify-content: center;
     font-size: 1.32rem;
+    line-height: 1;
+    text-align: center;
     box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 72%, transparent);
+  }
+
+  body.home-page .profile_box .author__urls_sm a i,
+  body.home-page .profile_box .author__urls_sm a .ai,
+  body.home-page .profile_box .author__urls_sm a .fab,
+  body.home-page .profile_box .author__urls_sm a .fas,
+  body.home-page .profile_box .author__urls_sm a .far,
+  body.home-page .profile_box .author__urls_sm a .fa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+    text-align: center;
+    margin: 0;
   }
 
   body.home-page .profile_box .author__affiliations {
@@ -699,7 +718,15 @@ html[data-theme="dark"] .author__affiliation:hover {
     min-width: 0;
     min-height: 0;
     aspect-ratio: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 10px;
+  }
+
+  body.home-page .profile_box .author__affiliation img,
+  body.home-page .profile_box .author__affiliation img.author__affiliation-logo--round {
+    margin: auto;
   }
 }
 
