@@ -220,9 +220,13 @@
   }
 
   .publication-item-inner {
-    grid-template-columns: minmax(76px, 28%) minmax(0, 1fr);
+    grid-template-columns: 1fr;
     align-items: start;
-    column-gap: 0.64rem;
+    row-gap: 0.72rem;
+  }
+
+  .publication-thumb-wrap {
+    max-width: min(100%, 250px);
   }
 
   .publication-line {
@@ -242,14 +246,15 @@
   }
 
   .publication-item-inner {
-    grid-template-columns: minmax(88px, 31%) minmax(0, 1fr);
-    column-gap: 0.56rem;
+    row-gap: 0.62rem;
   }
 
   .publication-thumb-wrap {
     max-width: 100%;
-    aspect-ratio: 16 / 10;
-    border-radius: 10px;
+    width: 100%;
+    justify-self: center;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
   }
 
   .publication-tag {

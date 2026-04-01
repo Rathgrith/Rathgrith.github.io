@@ -606,6 +606,7 @@ html[data-theme="dark"] .author__affiliation:hover {
 
 @media (max-width: 48em) {
   body.home-page .profile_box {
+    --profile-mobile-chip-size: 3rem;
     padding: 0.82rem 0.84rem 0.72rem;
   }
 
@@ -659,13 +660,16 @@ html[data-theme="dark"] .author__affiliation:hover {
 
   body.home-page .profile_box .author__urls_sm {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.56rem;
-    justify-items: stretch;
+    grid-template-columns: repeat(5, var(--profile-mobile-chip-size));
+    gap: 0.42rem;
+    justify-content: center;
   }
 
   body.home-page .profile_box .author__urls_sm a {
-    min-height: 3rem;
+    width: var(--profile-mobile-chip-size);
+    min-width: var(--profile-mobile-chip-size);
+    height: var(--profile-mobile-chip-size);
+    min-height: var(--profile-mobile-chip-size);
     border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
     border-radius: 0.8rem;
     background: color-mix(in srgb, var(--surface) 88%, var(--surface-alt) 12%);
@@ -682,11 +686,15 @@ html[data-theme="dark"] .author__affiliation:hover {
   }
 
   body.home-page .profile_box .author__affiliations-grid {
+    grid-template-columns: repeat(4, var(--profile-mobile-chip-size));
     gap: 0.42rem;
+    justify-content: center;
   }
 
   body.home-page .profile_box .author__affiliation {
-    min-height: 54px;
+    width: var(--profile-mobile-chip-size);
+    min-width: var(--profile-mobile-chip-size);
+    min-height: var(--profile-mobile-chip-size);
     border-radius: 10px;
   }
 }
@@ -724,11 +732,7 @@ html[data-theme="dark"] .author__affiliation:hover {
   }
 
   body.home-page .profile_box .author__urls_sm {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  body.home-page .profile_box .author__affiliations-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.32rem;
   }
 }
 
