@@ -31,7 +31,7 @@ redirect_from:
   "
 >
   <span class="y2k-banner__bg" aria-hidden="true"></span>
-  <p class="y2k-banner__line">RATHGRITH PERSONAL CIRCLE SITE// SINCE 2023</p>
+  <p class="y2k-banner__line">RATHGRITH PERSONAL LAB SITE// SINCE 2023</p>
   <p class="y2k-banner__title">ARCHIVE PAGE</p>
   <div class="y2k-banner__links">
     <!-- <a href="{{ '/#publications' | relative_url }}">Papers</a> -->
@@ -114,16 +114,11 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 {% include music-player.html playlist="homepage" %}
 
-<div class="misc-note">
-  <p> My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is <span class="erdos-count">4</span>.</p>
-  <p class="misc-erdos-path">Dongheng Lin → <a href="https://jianbojiao.com/">Jianbo Jiao</a> → <a href="https://scholar.google.com/citations?user=6QzRJ6MAAAAJ">Ana I. L. Namburete</a> → <a href="https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl">Israel Koren</a> → <a href="https://en.wikipedia.org/wiki/Paul_Erd%C5%91s">Paul Erdős</a>.</p>
-</div>
+My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is <span class="erdos-count">4</span>, calculated via: 
+
+- Dongheng Lin → <a href="https://jianbojiao.com/">Jianbo Jiao</a> → <a href="https://scholar.google.com/citations?user=6QzRJ6MAAAAJ">Ana I. L. Namburete</a> → <a href="https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl">Israel Koren</a> → <a href="https://en.wikipedia.org/wiki/Paul_Erd%C5%91s">Paul Erdős</a>.
+
 
 <p><strong>Friends:</strong> <a href="https://www.linkedin.com/in/yiming-huang-93785a12a/">Yiming Huang</a>, <a href="https://zhuyouheng.github.io/">Youheng Zhu</a>, <a href="https://jiaweiz9.github.io/">Jiawei (Kyle) Zhang</a>, <a href="https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate">Zhiyuan Ma</a>.</p>
 
-<span class='anchor' id='site-visits'></span>
-
-# 🦉 Site Visits
-
-<div id="site-visit-widget" data-clustrmaps-token="2jXlKGzMnriy0ZWRRHcgHG2MARTylxM4nW7o16uKIlc"></div>
-<script src="{{ '/assets/js/pages/site-visits-widget.js' | relative_url }}"></script>
+<p>Thanks for stopping by.</p>

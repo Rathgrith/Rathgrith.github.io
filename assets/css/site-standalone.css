@@ -107,6 +107,16 @@ body.gallery-page .gallery a {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
+body.gallery-page .gallery a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 58%, rgba(5, 8, 14, 0.22) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
 body.gallery-page .gallery img {
   position: absolute;
   inset: 0;
@@ -117,8 +127,41 @@ body.gallery-page .gallery img {
   transition: transform 0.3s ease-out;
 }
 
-body.gallery-page .gallery img:hover {
+body.gallery-page .gallery a:hover::after,
+body.gallery-page .gallery a:focus-visible::after {
+  opacity: 1;
+}
+
+body.gallery-page .gallery a:hover img,
+body.gallery-page .gallery a:focus-visible img {
   transform: scale(1.08);
+}
+
+body.gallery-page .gallery-card__zoom {
+  position: absolute;
+  right: 0.52rem;
+  bottom: 0.52rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(10, 14, 22, 0.64);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+body.gallery-page .gallery a:hover .gallery-card__zoom,
+body.gallery-page .gallery a:focus-visible .gallery-card__zoom {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 body.gallery-page .caption {
@@ -250,6 +293,12 @@ body.gallery-page .gallery-modal__meta-text {
 body.gallery-page .gallery-modal__caption {
   color: var(--text);
   text-align: left;
+}
+
+body.gallery-page .gallery-modal__gear {
+  color: var(--text-muted);
+  text-align: left;
+  font-size: 0.84rem;
 }
 
 body.gallery-page .gallery-modal__counter {
@@ -563,29 +612,6 @@ body.notes-page .highlight-quote cite {
 body.notes-page .project {
   padding: 15px;
   margin: 20px 0;
-}
-
-#site-visit-widget {
-  margin: 0 auto 2rem;
-  text-align: center;
-}
-
-#site-visit-widget iframe,
-#site-visit-widget img,
-#site-visit-widget canvas,
-#site-visit-widget svg,
-#site-visit-widget > div {
-  margin: 0 auto;
-  max-width: 100%;
-}
-
-/* Hide embedded map zoom controls in the site visits widget. */
-#site-visit-widget .leaflet-control-zoom,
-#site-visit-widget .leaflet-bar,
-#site-visit-widget .mapboxgl-ctrl-zoom-in,
-#site-visit-widget .mapboxgl-ctrl-zoom-out,
-#site-visit-widget .mapboxgl-ctrl-group {
-  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

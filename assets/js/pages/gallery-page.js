@@ -18,6 +18,20 @@
     }
   }
 
+  function getCaptionEntry(filename) {
+    var entry = galleryModalState.captions[filename];
+    if (typeof entry === "string") {
+      return { caption: entry, gear: "" };
+    }
+    if (!entry || typeof entry !== "object") {
+      return { caption: "", gear: "" };
+    }
+    return {
+      caption: entry.caption || "",
+      gear: entry.gear || ""
+    };
+  }
+
   function disableLegacyPopupForAnchor(anchor) {
     if (!anchor) return;
 
@@ -109,6 +123,7 @@
       root: root,
       image: document.getElementById("gallery-modal-image"),
       caption: document.getElementById("gallery-modal-caption"),
+      gear: document.getElementById("gallery-modal-gear"),
       counter: document.getElementById("gallery-modal-counter"),
       strip: document.getElementById("gallery-modal-strip"),
       closeButton: root.querySelector(".gallery-modal__close")
@@ -147,7 +162,8 @@
         button.setAttribute("data-gallery-thumb-index", String(index));
         button.setAttribute("role", "option");
 
-        var caption = galleryModalState.captions[filename] || "";
+        var entry = getCaptionEntry(filename);
+        var caption = entry.caption;
         var label = caption ? caption + " (" + (index + 1) + ")" : "Image " + (index + 1);
         button.setAttribute("aria-label", label);
         if (caption) {
@@ -210,11 +226,17 @@
     var total = galleryModalState.filenames.length;
     var index = (galleryModalState.currentIndex + total) % total;
     var filename = galleryModalState.filenames[index];
-    var captionText = galleryModalState.captions[filename] || "";
+    var entry = getCaptionEntry(filename);
+    var captionText = entry.caption;
+    var gearText = entry.gear;
 
     refs.image.src = galleryModalState.originalDir + filename;
     refs.image.alt = captionText || "Gallery image";
     refs.caption.textContent = captionText;
+    if (refs.gear) {
+      refs.gear.textContent = gearText;
+      refs.gear.hidden = !gearText;
+    }
     refs.counter.textContent = index + 1 + " / " + total;
     syncModalStripActive(refs, index);
 
@@ -414,6 +436,7 @@
     }
 
     function createGalleryItem(filename, indexInBatch) {
+      var entry = getCaptionEntry(filename);
       var thumbnail = document.createElement("a");
       thumbnail.href = originalDir + filename;
       thumbnail.setAttribute("data-gallery-filename", filename);
@@ -422,14 +445,20 @@
 
       var img = document.createElement("img");
       img.src = thumbnailDir + filename;
-      img.alt = captions[filename];
+      img.alt = entry.caption || "Gallery image";
       img.loading = "lazy";
       img.decoding = "async";
       thumbnail.appendChild(img);
 
+      var zoomIcon = document.createElement("span");
+      zoomIcon.className = "gallery-card__zoom";
+      zoomIcon.setAttribute("aria-hidden", "true");
+      zoomIcon.innerHTML = '<i class="fas fa-search-plus"></i>';
+      thumbnail.appendChild(zoomIcon);
+
       var caption = document.createElement("div");
       caption.className = "caption";
-      caption.textContent = captions[filename];
+      caption.textContent = entry.caption;
 
       var item = document.createElement("div");
       item.className = "gallery-item";

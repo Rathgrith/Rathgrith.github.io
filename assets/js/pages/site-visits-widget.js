@@ -1,8 +1,10 @@
 (function () {
   var globalState = window.__siteVisitsWidgetState || {
     observer: null,
+    counterObserver: null,
     theme: "",
-    widget: null
+    widget: null,
+    output: null
   };
   window.__siteVisitsWidgetState = globalState;
 
@@ -44,7 +46,7 @@
   }
 
   function sourceFor(theme, token) {
-    var common = "w=300&t=tt&d=" + token + "&cmo=3acc3a&cmn=ff5353";
+    var common = "w=180&t=tt&d=" + token + "&cmo=3acc3a&cmn=ff5353";
     var background = readVarHex("--bg", theme === "dark" ? "#111214" : "#f5f7fb");
     var foreground = readVarHex("--text", theme === "dark" ? "#e6e8eb" : "#1e2433");
     var accent = readVarHex("--text-muted", theme === "dark" ? "#adb3bc" : "#5b6378");
@@ -64,17 +66,61 @@
     widget.appendChild(script);
   }
 
+  function extractCounterText(widget) {
+    var visitorsNode = widget.querySelector(".clustrmaps-visitors");
+    if (!visitorsNode) return "";
+
+    var raw = String(visitorsNode.textContent || "").trim();
+    if (!raw) return "";
+
+    var numberMatch = raw.match(/[\d][\d,]*/);
+    return numberMatch ? numberMatch[0] : raw;
+  }
+
+  function syncCounter(widget, output) {
+    if (!output) return;
+    var value = extractCounterText(widget);
+    if (value) {
+      output.textContent = value;
+    }
+  }
+
+  function observeCounter(widget, output) {
+    if (globalState.counterObserver) {
+      globalState.counterObserver.disconnect();
+      globalState.counterObserver = null;
+    }
+
+    syncCounter(widget, output);
+
+    if (!window.MutationObserver) return;
+
+    globalState.counterObserver = new MutationObserver(function () {
+      syncCounter(widget, output);
+    });
+
+    globalState.counterObserver.observe(widget, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
+
   function mount() {
     var widget = document.getElementById("site-visit-widget");
-    if (!widget) return;
+    var output = document.getElementById("site-visit-counter");
+    if (!widget || !output) return;
 
     globalState.widget = widget;
+    globalState.output = output;
 
     function sync() {
       var theme = currentTheme();
-      if (theme === globalState.theme && globalState.widget === widget) return;
+      if (theme === globalState.theme && globalState.widget === widget && globalState.output === output) return;
       globalState.theme = theme;
+      output.textContent = "--";
       render(widget, theme);
+      observeCounter(widget, output);
     }
 
     sync();
