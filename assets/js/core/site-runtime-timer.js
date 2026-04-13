@@ -19,18 +19,45 @@
     };
   }
 
-  function formatSince(date) {
-    try {
-      return date.toLocaleString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    } catch (e) {
-      return date.toISOString();
+  function formatSince(startedRaw, date) {
+    var fixedMatch = String(startedRaw || "").match(
+      /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/
+    );
+
+    if (fixedMatch) {
+      var timezone = fixedMatch[6] || "Z";
+      if (timezone === "Z") {
+        timezone = "+00:00";
+      } else if (/^[+-]\d{4}$/.test(timezone)) {
+        timezone = timezone.slice(0, 3) + ":" + timezone.slice(3);
+      }
+
+      return fixedMatch[1] + "-" + fixedMatch[2] + "-" + fixedMatch[3] + " " + fixedMatch[4] + ":" + fixedMatch[5] + " UTC" + timezone;
     }
+
+    return [
+      date.getFullYear(),
+      "-",
+      pad2(date.getMonth() + 1),
+      "-",
+      pad2(date.getDate()),
+      " ",
+      pad2(date.getHours()),
+      ":",
+      pad2(date.getMinutes()),
+      " UTC",
+      formatTimezoneOffset(date)
+    ].join("");
+  }
+
+  function formatTimezoneOffset(date) {
+    var offsetMinutes = -date.getTimezoneOffset();
+    var sign = offsetMinutes >= 0 ? "+" : "-";
+    var absoluteMinutes = Math.abs(offsetMinutes);
+    var hours = Math.floor(absoluteMinutes / 60);
+    var minutes = absoluteMinutes % 60;
+
+    return sign + pad2(hours) + ":" + pad2(minutes);
   }
 
   function mountRuntimeTimer() {
@@ -48,7 +75,7 @@
 
     if (!elapsedNode || !sinceNode) return;
 
-    sinceNode.textContent = formatSince(startedAt);
+    sinceNode.textContent = formatSince(startedRaw, startedAt);
     sinceNode.setAttribute("datetime", startedAt.toISOString());
 
     function update() {

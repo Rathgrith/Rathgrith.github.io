@@ -296,9 +296,18 @@ body.gallery-page .gallery-modal__caption {
 }
 
 body.gallery-page .gallery-modal__gear {
+  display: block;
   color: var(--text-muted);
   text-align: left;
   font-size: 0.84rem;
+}
+
+body.gallery-page .gallery-gear__item {
+  display: block;
+}
+
+body.gallery-page .gallery-gear__value {
+  color: var(--text-muted);
 }
 
 body.gallery-page .gallery-modal__counter {

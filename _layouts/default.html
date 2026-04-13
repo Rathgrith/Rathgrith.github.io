@@ -8,9 +8,18 @@ layout: compress
     {% include head/custom.html %}
   </head>
 
-  <body{% if page.body_class %} class="{{ page.body_class }}"{% endif %}{% if page.disable_live2d %} data-disable-live2d="true"{% endif %}>
+  {% assign body_classes = page.body_class | default: "" %}
+  {% if page.body_class == "home-page" %}
+    {% assign body_classes = body_classes | append: " home-loading" %}
+  {% endif %}
+  <body{% if body_classes != "" %} class="{{ body_classes | strip }}"{% endif %}{% if page.disable_live2d %} data-disable-live2d="true"{% endif %}>
 
     {% include browser-upgrade.html %}
+    {% if page.body_class == "home-page" %}
+      <div class="home-loading-screen" id="home-loading-screen" aria-live="polite" aria-label="Page loading">
+        <span class="home-loading-screen__label">Now Loading...</span>
+      </div>
+    {% endif %}
     {% include masthead.html %}
 
     <div id="main" role="main">

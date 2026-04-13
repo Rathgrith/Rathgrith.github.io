@@ -5,6 +5,7 @@
 <script src="{{ '/assets/js/core/page-transition.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/core/site-runtime-timer.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/pages/site-visits-widget.js' | relative_url }}"></script>
+{% if page.body_class == "home-page" %}<script src="{{ '/assets/js/core/home-loading.js' | relative_url }}"></script>{% endif %}
 <script src="{{ '/assets/js/core/feature-loader.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/core/live2d-toggle.js' | relative_url }}"></script>
 <script src="{{ '/assets/js/core/live2d-loader.js' | relative_url }}"></script>

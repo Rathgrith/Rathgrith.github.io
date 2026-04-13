@@ -81,6 +81,67 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+body.home-loading {
+  overflow: hidden;
+}
+
+.home-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--surface-alt) 72%, transparent) 0%, transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 96%, black 4%) 0%, var(--bg) 100%);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.home-loading-screen.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.home-loading-screen__label {
+  display: inline-block;
+  width: 14ch;
+  overflow: hidden;
+  border-right: 1px solid currentColor;
+  color: var(--text);
+  font-family: "Fontin", Georgia, Times, serif;
+  font-size: clamp(1rem, 2.2vw, 1.24rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: home-loading-type 0.72s steps(14, end) infinite alternate, home-loading-caret 0.72s steps(1, end) infinite;
+}
+
+@keyframes home-loading-type {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 14ch;
+  }
+}
+
+@keyframes home-loading-caret {
+  0%,
+  50% {
+    border-right-color: currentColor;
+  }
+
+  50.01%,
+  100% {
+    border-right-color: transparent;
+  }
+}
+
 .site-runtime {
   margin: 0.86rem auto 0;
   padding: 0.55rem 0 0.78rem;

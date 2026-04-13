@@ -21,15 +21,72 @@
   function getCaptionEntry(filename) {
     var entry = galleryModalState.captions[filename];
     if (typeof entry === "string") {
-      return { caption: entry, gear: "" };
+      return { caption: entry, camera: "", lens: "", gear: "" };
     }
     if (!entry || typeof entry !== "object") {
-      return { caption: "", gear: "" };
+      return { caption: "", camera: "", lens: "", gear: "" };
     }
+    var camera = entry.camera || "";
+    var lens = entry.lens || "";
+    var gear = entry.gear || "";
+
+    if ((!camera && !lens) && gear) {
+      if (gear.indexOf(" + ") !== -1) {
+        var parts = gear.split(" + ", 2);
+        camera = parts[0] || "";
+        lens = parts[1] || "";
+      } else {
+        camera = gear;
+      }
+    }
+
     return {
       caption: entry.caption || "",
-      gear: entry.gear || ""
+      camera: camera,
+      lens: lens,
+      gear: gear
     };
+  }
+
+  function createGearLine(type, value) {
+    if (!value) return null;
+
+    var line = document.createElement("span");
+    line.className = "gallery-gear__item";
+
+    var text = document.createElement("span");
+    text.className = "gallery-gear__value";
+    text.textContent = value;
+
+    line.appendChild(text);
+    return line;
+  }
+
+  function renderGear(ref, entry) {
+    if (!ref) return;
+
+    ref.textContent = "";
+
+    var parts = [];
+
+    if (entry.camera) {
+      parts.push(entry.camera);
+    }
+    if (entry.lens) {
+      parts.push(entry.lens);
+    }
+
+    if (!parts.length) {
+      ref.hidden = true;
+      return;
+    }
+
+    var line = createGearLine("gear", parts.join("  ·  "));
+    if (line) {
+      ref.appendChild(line);
+    }
+
+    ref.hidden = false;
   }
 
   function disableLegacyPopupForAnchor(anchor) {
@@ -228,14 +285,12 @@
     var filename = galleryModalState.filenames[index];
     var entry = getCaptionEntry(filename);
     var captionText = entry.caption;
-    var gearText = entry.gear;
 
     refs.image.src = galleryModalState.originalDir + filename;
     refs.image.alt = captionText || "Gallery image";
     refs.caption.textContent = captionText;
     if (refs.gear) {
-      refs.gear.textContent = gearText;
-      refs.gear.hidden = !gearText;
+      renderGear(refs.gear, entry);
     }
     refs.counter.textContent = index + 1 + " / " + total;
     syncModalStripActive(refs, index);
