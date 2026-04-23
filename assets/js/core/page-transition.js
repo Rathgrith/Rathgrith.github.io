@@ -165,8 +165,15 @@
     if (document.body.classList.contains(ENABLED_CLASS)) preserved[ENABLED_CLASS] = true;
     if (document.body.classList.contains(ENTER_CLASS)) preserved[ENTER_CLASS] = true;
     if (document.body.classList.contains(EXIT_CLASS)) preserved[EXIT_CLASS] = true;
+    var nextClasses = (nextBody.getAttribute("class") || "")
+      .trim()
+      .split(/\s+/)
+      .filter(function (className) {
+        return className && className !== "home-loading";
+      })
+      .join(" ");
 
-    document.body.className = (nextBody.getAttribute("class") || "").trim();
+    document.body.className = nextClasses;
 
     var nextDisableLive2D = nextBody.getAttribute("data-disable-live2d");
     if (nextDisableLive2D != null) {
