@@ -16,7 +16,7 @@ main:
     url: "/#miscellaneous"
 
   - title: "CV"
-    url: "/assets/Dongheng_Lin_PhD_CV.pdf"
+    url: "/assets/resume.pdf"
 
   - title: "Gallery"
     url: "/gallery/"

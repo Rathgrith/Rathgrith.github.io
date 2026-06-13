@@ -12,6 +12,8 @@ repository               : "Rathgrith/Rathgrith.github.io"
 google_scholar_stats_use_cdn : true
 site_started_at          : "2023-10-28T12:31:48-05:00"
 site_started_commit      : "24a7ac3bdae6b25d4ee07557c534c77f69bd0593"
+site_visit_baseline      : 937
+site_visit_counter_src   : "https://mapmyvisitors.com/map.js?cl=080808&w=a&t=tt&d=vado6mrOqi-LMvCclR9j8Aopy8TQUgeT5OtQqChUSDY&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080"
 
 # google analytics
 google_analytics_id      :  # get google_analytics_id from https://analytics.google.com/analytics/
@@ -24,7 +26,8 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 # Site Author
 author:
   name             : "Dongheng Lin"
-  avatar           : "images/rumia.jpeg" # Path to your avatar image inside the "assets" folder
+  avatar           : "images/avatar_day.png" # Path to your avatar image.
+  avatar_dark      : "images/avatar_night.png"
   bio              : 
   location         : "West Midlands, UK"
   employer         : 

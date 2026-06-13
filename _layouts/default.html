@@ -9,13 +9,13 @@ layout: compress
   </head>
 
   {% assign body_classes = page.body_class | default: "" %}
-  {% if page.body_class == "home-page" %}
+  {% if page.body_class == "home-page" and page.disable_home_loading != true %}
     {% assign body_classes = body_classes | append: " home-loading" %}
   {% endif %}
-  <body{% if body_classes != "" %} class="{{ body_classes | strip }}"{% endif %}{% if page.disable_live2d %} data-disable-live2d="true"{% endif %}>
+  <body{% if body_classes != "" %} class="{{ body_classes | strip }}"{% endif %}{% if page.disable_live2d %} data-disable-live2d="true"{% endif %}{% if page.disable_mouse_firework %} data-disable-mouse-firework="true"{% endif %}>
 
     {% include browser-upgrade.html %}
-    {% if page.body_class == "home-page" %}
+    {% if page.body_class == "home-page" and page.disable_home_loading != true %}
       <div class="home-loading-screen" id="home-loading-screen" aria-live="polite" aria-label="Page loading">
         <span class="home-loading-screen__label">Now Loading...</span>
       </div>

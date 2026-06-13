@@ -12,10 +12,6 @@
   --nav-link: #2b3550;
   --nav-link-muted: #5f6b86;
   --nav-link-hover: #245bd6;
-  --retro-cyan: #66dfff;
-  --retro-pink: #ff8ccf;
-  --retro-chrome: #f4f8ff;
-  --retro-grid: rgba(83, 114, 166, 0.2);
   --footer-bg: #1f2a44;
   --footer-text: #f1f5ff;
   --shadow: 0 10px 30px rgba(15, 25, 44, 0.08);
@@ -62,10 +58,6 @@ html[data-theme="dark"] {
   --nav-link: #e6e8eb;
   --nav-link-muted: #adb3bc;
   --nav-link-hover: var(--link);
-  --retro-cyan: #86e1ff;
-  --retro-pink: #ffc0e6;
-  --retro-chrome: #22272f;
-  --retro-grid: rgba(151, 173, 212, 0.16);
   --footer-bg: #131417;
   --footer-text: #c9ced6;
   --shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
@@ -213,48 +205,18 @@ body.home-loading {
 
 #site-visit-widget {
   position: absolute;
-  width: 1px;
+  left: -9999px;
+  width: 300px;
   height: 1px;
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
 }
 
-#site-visit-widget .clustrmaps-map,
-#site-visit-widget .clustrmaps-map-container,
-#site-visit-widget .clustrmaps-bottom-text,
-#site-visit-widget .clustrmaps-date,
-#site-visit-widget .clustrmaps-logo,
-#site-visit-widget .clustrmaps-loading,
-#site-visit-widget .clustrmaps-map-control {
-  display: none !important;
-}
-
-#site-visit-widget #clustrmaps-widget-v2,
-#site-visit-widget .clustrmaps-widget,
-#site-visit-widget .clustrmaps-widget-v2 {
-  width: auto !important;
-  height: auto !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-#site-visit-widget .clustrmaps-visitors {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  color: inherit !important;
-  font-family: inherit !important;
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  line-height: 1 !important;
-  text-shadow: none !important;
-  white-space: nowrap;
+#site-visit-widget #mapmyvisitors-widget,
+#site-visit-widget .mapmyvisitors-map-container,
+#site-visit-widget .mapmyvisitors-map {
+  pointer-events: none !important;
 }
 
 a {
@@ -387,263 +349,77 @@ a:hover {
 }
 
 body.home-page .profile_box {
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  border-radius: 12px;
-  padding: 0.48rem 0.56rem 0.42rem;
-  background:
-    radial-gradient(140% 78% at 6% -18%, color-mix(in srgb, var(--retro-cyan) 20%, transparent) 0%, transparent 56%),
-    radial-gradient(120% 72% at 94% 118%, color-mix(in srgb, var(--retro-pink) 16%, transparent) 0%, transparent 52%),
-    linear-gradient(160deg, color-mix(in srgb, var(--surface) 90%, var(--retro-chrome) 10%), var(--surface));
-  box-shadow:
-    0 10px 20px color-mix(in srgb, var(--text) 10%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #ffffff 72%, transparent);
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.y2k-banner {
-  --y2k-banner-image: none;
-  --y2k-banner-image-light: var(--y2k-banner-image);
-  --y2k-banner-image-dark: var(--y2k-banner-image-light);
-  --y2k-banner-border: color-mix(in srgb, var(--border) 74%, var(--retro-cyan) 26%);
-  --y2k-banner-bg-start: color-mix(in srgb, var(--surface) 76%, var(--retro-cyan) 24%);
-  --y2k-banner-bg-end: color-mix(in srgb, var(--surface) 86%, var(--retro-pink) 14%);
-  --y2k-banner-shadow: 0 8px 18px color-mix(in srgb, var(--text) 12%, transparent);
-  --y2k-banner-inset: inset 0 1px 0 color-mix(in srgb, #ffffff 74%, transparent);
-  --y2k-banner-line: color-mix(in srgb, var(--text) 76%, var(--nav-link-muted) 24%);
-  --y2k-banner-title: color-mix(in srgb, var(--text) 88%, #0e1f56 12%);
-  --y2k-banner-chip-border: color-mix(in srgb, var(--border) 70%, var(--retro-cyan) 30%);
-  --y2k-banner-chip-bg: color-mix(in srgb, var(--surface) 88%, transparent);
-  --y2k-banner-chip-text: var(--text);
-  --y2k-banner-chip-hover-bg: color-mix(in srgb, var(--link) 11%, transparent);
-  --y2k-banner-chip-hover-border: color-mix(in srgb, var(--link) 62%, var(--border) 38%);
-  --y2k-banner-grid-opacity: 0.32;
-  --y2k-banner-lightband-opacity: 0.5;
-  --y2k-banner-hover-border: color-mix(in srgb, var(--retro-cyan) 42%, var(--border) 58%);
-  --y2k-banner-hover-shadow:
-    0 16px 28px color-mix(in srgb, var(--text) 16%, transparent),
-    0 5px 14px color-mix(in srgb, var(--retro-cyan) 14%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #ffffff 86%, transparent),
-    inset 0 -2px 0 color-mix(in srgb, var(--retro-pink) 16%, transparent);
-  --y2k-banner-chip-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffffff 78%, transparent),
-    0 1px 2px color-mix(in srgb, var(--text) 8%, transparent);
-  --y2k-banner-chip-hover-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffffff 88%, transparent),
-    0 6px 10px color-mix(in srgb, var(--text) 12%, transparent);
-  position: relative;
-  isolation: isolate;
-  margin: 0.68rem 0 1.08rem;
-  padding: 0.7rem 0.84rem 0.78rem;
-  border-radius: 10px;
-  border: 1px solid var(--y2k-banner-border);
-  background:
-    linear-gradient(145deg, var(--y2k-banner-bg-start), var(--y2k-banner-bg-end));
-  box-shadow:
-    var(--y2k-banner-shadow),
-    var(--y2k-banner-inset);
-  overflow: hidden;
-  transform: translateY(0);
-  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.24s ease, box-shadow 0.24s ease;
+body.home-page #main {
+  width: min(1120px, 92vw);
+  margin-top: 1.5rem;
+  padding-left: 0;
+  padding-right: 0;
 }
 
-.y2k-banner:hover,
-.y2k-banner:focus-within {
-  transform: translateY(-3px);
-  border-color: var(--y2k-banner-hover-border);
-  box-shadow: var(--y2k-banner-hover-shadow);
+body.home-page .page__content {
+  max-width: 760px;
+  line-height: 1.66;
 }
 
-.y2k-banner__bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: var(--y2k-banner-image-light, var(--y2k-banner-image));
-  background-size: cover;
-  background-position: center;
-  opacity: 0.28;
-  filter: saturate(0.84) contrast(1.04) brightness(0.96);
-  transform: scale(1);
-  pointer-events: none;
-  transition: opacity 0.48s ease, filter 0.48s ease, transform 0.48s ease;
+body.home-page .page__content h1 {
+  margin: 2rem 0 0.82rem;
+  padding-bottom: 0.42rem;
+  border-bottom: 1px solid var(--divider);
+  font-size: 1.34rem;
+  line-height: 1.25;
 }
 
-.y2k-banner__bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: var(--y2k-banner-image-dark, var(--y2k-banner-image-light, var(--y2k-banner-image)));
-  background-size: cover;
-  background-position: center;
-  opacity: 0;
-  transition: opacity 0.48s ease;
-  pointer-events: none;
+body.home-page .page__content h1:first-of-type {
+  margin-top: 0;
 }
 
-.y2k-banner:hover .y2k-banner__bg,
-.y2k-banner:focus-within .y2k-banner__bg {
-  opacity: 0.35;
-  filter: saturate(0.96) contrast(1.08) brightness(1);
-  transform: scale(1.025);
+body.home-page .page__content p {
+  margin-bottom: 0.86rem;
 }
 
-.y2k-banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      var(--retro-grid) 0,
-      var(--retro-grid) 1px,
-      transparent 1px,
-      transparent 4px
-    );
-  pointer-events: none;
-  opacity: var(--y2k-banner-grid-opacity);
-  transition: opacity 0.24s ease;
+body.home-page .page__content blockquote {
+  margin: 1.6rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--divider);
+  color: var(--text-muted);
+  font-size: 0.96rem;
 }
 
-.y2k-banner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--retro-cyan) 20%, transparent), transparent 36%, color-mix(in srgb, var(--retro-pink) 18%, transparent));
-  mix-blend-mode: soft-light;
-  pointer-events: none;
-  opacity: var(--y2k-banner-lightband-opacity);
-  transform: translateY(0);
-  transition: opacity 0.24s ease, transform 0.24s ease;
-}
-
-.y2k-banner:hover::before,
-.y2k-banner:focus-within::before {
-  opacity: calc(var(--y2k-banner-grid-opacity) + 0.08);
-}
-
-.y2k-banner:hover::after,
-.y2k-banner:focus-within::after {
-  opacity: calc(var(--y2k-banner-lightband-opacity) + 0.12);
-  transform: translateY(-1px);
-}
-
-.y2k-banner__line,
-.y2k-banner__title,
-.y2k-banner__links {
-  position: relative;
-  z-index: 3;
-  margin: 0;
-  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.y2k-banner:hover .y2k-banner__line,
-.y2k-banner:hover .y2k-banner__title,
-.y2k-banner:hover .y2k-banner__links,
-.y2k-banner:focus-within .y2k-banner__line,
-.y2k-banner:focus-within .y2k-banner__title,
-.y2k-banner:focus-within .y2k-banner__links {
-  transform: translateY(-1px);
-}
-
-.y2k-banner__line {
-  font-family: "Courier New", "Lucida Console", monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--y2k-banner-line);
-}
-
-.y2k-banner__title {
-  margin-top: 0.26rem;
-  font-size: 1.06rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--y2k-banner-title);
-}
-
-.y2k-banner__links {
-  margin-top: 0.44rem;
-  display: inline-flex;
-  gap: 0.38rem;
+.home-links {
+  display: flex;
   flex-wrap: wrap;
+  gap: 0.72rem;
+  margin: -0.15rem 0 1.05rem;
 }
 
-.y2k-banner__links a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.44rem;
-  padding: 0.12rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--y2k-banner-chip-border);
-  background: var(--y2k-banner-chip-bg);
-  color: var(--y2k-banner-chip-text);
-  font-size: 0.72rem;
+.home-links a {
+  color: var(--text-muted);
+  font-size: 0.92rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-decoration: none;
-  box-shadow: var(--y2k-banner-chip-shadow);
-  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
 }
 
-.y2k-banner__links a:hover {
-  border-color: var(--y2k-banner-chip-hover-border);
+.home-links a:hover {
   color: var(--link);
-  background: var(--y2k-banner-chip-hover-bg);
-  transform: translateY(-1px);
-  box-shadow: var(--y2k-banner-chip-hover-shadow);
 }
 
-html[data-theme="dark"] .y2k-banner {
-  --y2k-banner-border: color-mix(in srgb, var(--retro-cyan) 36%, var(--border) 64%);
-  --y2k-banner-bg-start: color-mix(in srgb, #101f37 74%, #1b2e4a 26%);
-  --y2k-banner-bg-end: color-mix(in srgb, #1d1f36 76%, #3a2246 24%);
-  --y2k-banner-shadow: 0 10px 24px rgba(6, 10, 18, 0.52);
-  --y2k-banner-inset: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  --y2k-banner-line: color-mix(in srgb, var(--text) 74%, #9ac5ff 26%);
-  --y2k-banner-title: color-mix(in srgb, var(--link) 84%, #ffffff 16%);
-  --y2k-banner-chip-border: color-mix(in srgb, var(--retro-cyan) 30%, var(--border) 70%);
-  --y2k-banner-chip-bg: color-mix(in srgb, #0f1522 86%, transparent);
-  --y2k-banner-chip-text: color-mix(in srgb, var(--text) 92%, #cbe2ff 8%);
-  --y2k-banner-chip-hover-bg: color-mix(in srgb, var(--link) 18%, transparent);
-  --y2k-banner-chip-hover-border: color-mix(in srgb, var(--link) 70%, var(--border) 30%);
-  --y2k-banner-grid-opacity: 0.24;
-  --y2k-banner-lightband-opacity: 0.34;
-  --y2k-banner-hover-border: color-mix(in srgb, var(--link) 54%, var(--border) 46%);
-  --y2k-banner-hover-shadow:
-    0 18px 30px rgba(2, 6, 12, 0.62),
-    0 5px 14px color-mix(in srgb, var(--link) 16%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -2px 0 color-mix(in srgb, var(--retro-cyan) 16%, transparent);
-  --y2k-banner-chip-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 1px 2px rgba(0, 0, 0, 0.3);
-  --y2k-banner-chip-hover-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 8px 14px rgba(0, 0, 0, 0.34);
-}
-
-html[data-theme="dark"] .y2k-banner__bg {
-  transform: scale(1);
-  opacity: 0.24;
-  filter: saturate(0.74) contrast(1.08) brightness(0.72);
-}
-
-html[data-theme="dark"] .y2k-banner__bg::after {
-  opacity: 1;
-}
-
-@media (max-width: 40em) {
-  .y2k-banner {
-    padding: 0.62rem 0.68rem 0.66rem;
+@media (min-width: 57.8125em) {
+  body.home-page .sidebar {
+    width: 220px;
   }
 
-  .y2k-banner__title {
-    font-size: 0.96rem;
-  }
-
-  .y2k-banner__line {
-    font-size: 0.63rem;
+  body.home-page .page {
+    width: calc(100% - 250px);
+    padding-left: 2rem;
   }
 }
 
@@ -1300,25 +1076,7 @@ html[data-theme="dark"] .author__avatar .author__avatar-image--dark {
 }
 
 .author__avatar img {
-  transform-origin: center;
   transition: filter 0.2s ease, opacity 0.2s ease;
-  will-change: transform;
-  animation: avatar-spin 8s linear infinite;
-  animation-play-state: paused;
-}
-
-.author__avatar:hover img,
-.author__avatar:focus-within img {
-  animation-play-state: running;
-}
-
-@keyframes avatar-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 html[data-theme="dark"] .author__avatar img {
@@ -1369,11 +1127,6 @@ body.live2d-is-entering .live2d-widget-container {
   .theme-toggle--floating,
   .live2d-toggle--floating,
   .author__avatar img,
-  .y2k-banner,
-  .y2k-banner::before,
-  .y2k-banner::after,
-  .y2k-banner__bg,
-  .y2k-banner__links a,
   #live2d-widget,
   #live2dcanvas,
   .live2d-widget-container {
@@ -1384,26 +1137,6 @@ body.live2d-is-entering .live2d-widget-container {
   .author__avatar:hover img,
   .author__avatar:focus-within img {
     animation: none;
-    transform: none;
-  }
-
-  .y2k-banner,
-  .y2k-banner:hover,
-  .y2k-banner:focus-within,
-  .y2k-banner__bg,
-  .y2k-banner:hover .y2k-banner__bg,
-  .y2k-banner:focus-within .y2k-banner__bg,
-  .y2k-banner__line,
-  .y2k-banner__title,
-  .y2k-banner__links,
-  .y2k-banner:hover .y2k-banner__line,
-  .y2k-banner:hover .y2k-banner__title,
-  .y2k-banner:hover .y2k-banner__links,
-  .y2k-banner:focus-within .y2k-banner__line,
-  .y2k-banner:focus-within .y2k-banner__title,
-  .y2k-banner:focus-within .y2k-banner__links,
-  .y2k-banner__links a,
-  .y2k-banner__links a:hover {
     transform: none;
   }
 
@@ -1432,34 +1165,8 @@ html[data-theme="dark"] .live2d-widget-container {
 
   body.home-page .profile_box {
     border-color: var(--border);
-    background: linear-gradient(160deg, var(--surface-alt), var(--surface));
-    box-shadow: 0 10px 20px rgba(15, 25, 44, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  }
-
-  .y2k-banner {
-    --y2k-banner-border: var(--border);
-    --y2k-banner-bg-start: var(--surface-alt);
-    --y2k-banner-bg-end: var(--surface);
-    --y2k-banner-shadow: 0 8px 18px rgba(15, 25, 44, 0.12);
-    --y2k-banner-inset: inset 0 1px 0 rgba(255, 255, 255, 0.72);
-    --y2k-banner-hover-border: var(--link);
-    --y2k-banner-hover-shadow:
-      0 16px 28px rgba(15, 25, 44, 0.16),
-      0 5px 14px rgba(36, 91, 214, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.82),
-      inset 0 -2px 0 rgba(255, 140, 207, 0.16);
-    --y2k-banner-line: var(--text-muted);
-    --y2k-banner-title: var(--text);
-    --y2k-banner-chip-border: var(--border);
-    --y2k-banner-chip-bg: var(--surface);
-    --y2k-banner-chip-hover-bg: var(--surface-alt);
-    --y2k-banner-chip-hover-border: var(--link);
-    --y2k-banner-chip-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.76),
-      0 1px 2px rgba(15, 25, 44, 0.08);
-    --y2k-banner-chip-hover-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      0 6px 10px rgba(15, 25, 44, 0.12);
+    background: transparent;
+    box-shadow: none;
   }
 
   .author__affiliations {

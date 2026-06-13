@@ -1,8 +1,10 @@
 {% if page.author and site.data.authors[page.author] %}
   {% assign author = site.data.authors[page.author] %}{% else %}{% assign author = site.author %}
 {% endif %}
-{% assign avatar_light_url = '/images/rumia.jpeg' | relative_url %}
-{% assign avatar_dark_url = '/images/rumia.jpeg' | relative_url %}
+{% assign avatar_light_path = author.avatar | default: 'images/avatar.png' %}
+{% assign avatar_dark_path = author.avatar_dark | default: avatar_light_path %}
+{% assign avatar_light_url = avatar_light_path | relative_url %}
+{% assign avatar_dark_url = avatar_dark_path | relative_url %}
 
 <div itemscope itemtype="http://schema.org/Person" class="profile_box">
 

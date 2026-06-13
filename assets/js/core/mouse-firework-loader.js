@@ -4,6 +4,7 @@
   function shouldEnable() {
     if (!document.body) return false;
     if (!document.body.classList.contains("home-page")) return false;
+    if (document.body.getAttribute("data-disable-mouse-firework") === "true") return false;
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
     if ((window.innerWidth || 0) < 1024) return false;
     return true;

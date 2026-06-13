@@ -5,52 +5,29 @@ excerpt: ""
 author_profile: true
 body_class: home-page
 has_music_player: true
+disable_home_loading: true
+disable_live2d: true
+disable_mouse_firework: true
 redirect_from: 
   - /about/
   - /about.html
 ---
 
-{% if site.google_scholar_stats_use_cdn %}
-{% assign gsDataBaseUrl = "https://cdn.jsdelivr.net/gh/" | append: site.repository | append: "@" %}
-{% else %}
-{% assign gsDataBaseUrl = "https://raw.githubusercontent.com/" | append: site.repository | append: "/" %}
-{% endif %}
-{% assign url = gsDataBaseUrl | append: "google-scholar-stats/gs_data_shieldsio.json" %}
-
 <span class='anchor' id='about-me'></span>
 
-# 🏄‍♀️ About Me
+# About
 
-<div
-  class="y2k-banner"
-  role="region"
-  aria-label="Personal circle banner"
-  style="
-    --y2k-banner-image-light: url('{{ '/images/banners/y2k-home-banner_light.jpg' | relative_url }}');
-    --y2k-banner-image-dark: url('{{ '/images/banners/y2k-home-banner_dark.jpg' | relative_url }}');
-  "
->
-  <span class="y2k-banner__bg" aria-hidden="true"></span>
-  <p class="y2k-banner__line">RATHGRITH PERSONAL LAB SITE// SINCE 2023</p>
-  <p class="y2k-banner__title">ARCHIVE PAGE</p>
-  <div class="y2k-banner__links">
-    <!-- <a href="{{ '/#publications' | relative_url }}">Papers</a> -->
-    <a href="{{ '/gallery/' | relative_url }}">Gallery</a>
-    <a href="{{ '/assets/Dongheng_Lin_PhD_CV.pdf' | relative_url }}">CV</a>
-  </div>
-</div>
+<p>Thanks for stopping by.</p>
 
 I am a software engineer at [Allsee Technology](https://www.allsee-tech.com/), and a part-time research assistant at [the University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/). I am also fortunate to be collaborating with [Prof. Yunchao Wei](https://weiyc.github.io/) on ongoing research projects.
 
 Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). During my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en).
 
-> 力強い竹の下には、さらに力強い根が張り巡らされている。   
-> Beneath the sturdy bamboo, even sturdier roots spread out.  
-> From:[『東方永夜抄 ～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4
+
 
 <span class='anchor' id='education'></span>
 
-# 📖 Education
+# Education
 
 - *2023.08 - 2024.12*, <img src="/images/universities/uiuc.png" alt="UIUC icon" class="inline-school-icon"> MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
 <!-- GPA:3.94/4  -->
@@ -62,7 +39,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 <span class='anchor' id='publications'></span>
 
 <!-- blue conference, red transactions/journal, green preprints -->
-# 📝 Selected Publications
+# Selected Publications
 
 <div class="publication-list">
   <div class="publication-item">
@@ -87,7 +64,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 <span class='anchor' id='awards-services'></span>
 
-# 🔨 Awards & Services
+# Awards & Services
 
 **Awards**
 - **[EPSRC Doctoral Landscape Award](https://www.ukri.org/publications/doctoral-landscape-awards/doctoral-landscape-award-investments/):** University Scholarship for PhD Study.
@@ -99,12 +76,18 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 <span class='anchor' id='miscellaneous'></span>
 
-# 🎪 Miscellaneous
+# Miscellaneous
 
-- A typical [Otaku](https://en.wikipedia.org/wiki/Otaku).
-- Favorite manga chapter: [臨海センチメント (Nostalgic Ocean Landscape)](https://www.pixiv.net/artworks/37362275).
-- Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (single volume): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E).
-- I also enjoy [photography](/gallery/), balcony gardening, and [doujin music](https://en.wikipedia.org/wiki/Doujin_music).
+Favorite manga chapter: [Nostalgic Ocean Landscape](https://www.pixiv.net/artworks/37362275).
+
+<!-- Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (single volume): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E). -->
+
+
+I also enjoy [photography](/gallery/), balcony gardening, and [doujin music](https://en.wikipedia.org/wiki/Doujin_music).
+
+> 力強い竹の下には、さらに力強い根が張り巡らされている。<br>
+> Beneath the sturdy bamboo, even sturdier roots spread out.<br>
+> From:[『東方永夜抄 ～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4
 
 <!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
 <div class='paper-box-text' markdown="1">
@@ -114,11 +97,9 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 {% include music-player.html playlist="homepage" %}
 
-My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is <span class="erdos-count">4</span>, calculated via: 
+My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is 4, calculated via:
 
 - Dongheng Lin → <a href="https://jianbojiao.com/">Jianbo Jiao</a> → <a href="https://scholar.google.com/citations?user=6QzRJ6MAAAAJ">Ana I. L. Namburete</a> → <a href="https://scholar.google.com/citations?user=eFelBdoAAAAJ&hl">Israel Koren</a> → <a href="https://en.wikipedia.org/wiki/Paul_Erd%C5%91s">Paul Erdős</a>.
 
 
 <p><strong>Friends:</strong> <a href="https://www.linkedin.com/in/yiming-huang-93785a12a/">Yiming Huang</a>, <a href="https://zhuyouheng.github.io/">Youheng Zhu</a>, <a href="https://jiaweiz9.github.io/">Jiawei (Kyle) Zhang</a>, <a href="https://scholar.google.com/citations?view_op=list_works&hl=en&hl=en&user=9b_OmpkAAAAJ&sortby=pubdate">Zhiyuan Ma</a>.</p>
-
-<p>Thanks for stopping by.</p>

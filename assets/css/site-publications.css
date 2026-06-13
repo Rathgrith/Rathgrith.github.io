@@ -96,24 +96,24 @@
 }
 
 .publication-list {
-  margin: 0.9em 0 1.35em;
+  margin: 0.95em 0 1.4em;
+  border-top: 1px solid var(--divider);
 }
 
 .publication-item {
-  margin-bottom: 0.72em;
-  padding: 0.48rem 0.58rem;
-  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surface) 90%, var(--surface-alt) 10%);
+  margin: 0;
+  padding: 0.82rem 0;
+  border-bottom: 1px solid var(--divider);
+  background: transparent;
 }
 
 .publication-item:last-child {
-  margin-bottom: 0;
+  border-bottom: 0;
 }
 
 .publication-item-inner {
   display: grid;
-  grid-template-columns: 20% minmax(0, 1fr);
+  grid-template-columns: minmax(120px, 18%) minmax(0, 1fr);
   align-items: center;
   column-gap: 0.82rem;
 }
@@ -124,8 +124,8 @@
   width: 100%;
   max-width: 180px;
   aspect-ratio: 16 / 10;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  border-radius: 6px;
+  border: 1px solid var(--border);
   background: #ffffff;
   overflow: hidden;
 }
@@ -146,7 +146,7 @@
 .publication-line {
   margin: 0;
   line-height: 1.36;
-  font-size: 1.02rem;
+  font-size: 1rem;
 }
 
 .publication-line a {
@@ -168,15 +168,15 @@
   align-items: center;
   gap: 0.24rem;
   margin: 0;
-  padding: 0.12rem 0.4rem;
-  border-radius: 0.28rem;
+  padding: 0.1rem 0.34rem;
+  border-radius: 0.24rem;
   border: 1px solid transparent;
-  color: #ffffff;
+  color: var(--text);
   font-size: 0.66rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.01em;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+  box-shadow: none;
 }
 
 .publication-tag::before {
@@ -188,8 +188,9 @@
 }
 
 .publication-tag.conference {
-  background: #1f57c8;
-  border-color: #2e6adf;
+  background: color-mix(in srgb, #1f57c8 10%, var(--surface));
+  border-color: color-mix(in srgb, #1f57c8 38%, var(--border));
+  color: color-mix(in srgb, #1f57c8 86%, var(--text));
 }
 
 .publication-tag.conference::before {
@@ -197,8 +198,9 @@
 }
 
 .publication-tag.journal {
-  background: #a11d1d;
-  border-color: #bf2e2e;
+  background: color-mix(in srgb, #a11d1d 10%, var(--surface));
+  border-color: color-mix(in srgb, #a11d1d 36%, var(--border));
+  color: color-mix(in srgb, #a11d1d 82%, var(--text));
 }
 
 .publication-tag.journal::before {
@@ -206,8 +208,9 @@
 }
 
 .publication-tag.preprint {
-  background: #5b6674;
-  border-color: #6f7c8b;
+  background: color-mix(in srgb, #5b6674 10%, var(--surface));
+  border-color: color-mix(in srgb, #5b6674 36%, var(--border));
+  color: color-mix(in srgb, #5b6674 82%, var(--text));
 }
 
 .publication-tag.preprint::before {
@@ -216,7 +219,7 @@
 
 @media (max-width: 48em) {
   .publication-item {
-    padding: 0.42rem 0.42rem;
+    padding: 0.78rem 0;
   }
 
   .publication-item-inner {
@@ -241,8 +244,7 @@
 
 @media (max-width: 36em) {
   .publication-item {
-    padding: 0.48rem;
-    border-radius: 14px;
+    padding: 0.78rem 0;
   }
 
   .publication-item-inner {
@@ -254,7 +256,7 @@
     width: 100%;
     justify-self: center;
     aspect-ratio: 16 / 9;
-    border-radius: 12px;
+    border-radius: 6px;
   }
 
   .publication-tag {

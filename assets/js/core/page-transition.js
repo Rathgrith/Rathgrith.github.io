@@ -158,6 +158,15 @@
     syncHeadTag(nextDoc, "meta[property='og:url']", "content");
   }
 
+  function syncBodyDataAttribute(nextBody, attributeName) {
+    var nextValue = nextBody.getAttribute(attributeName);
+    if (nextValue != null) {
+      document.body.setAttribute(attributeName, nextValue);
+    } else {
+      document.body.removeAttribute(attributeName);
+    }
+  }
+
   function applyBodyClass(nextBody) {
     if (!document.body || !nextBody) return;
 
@@ -175,12 +184,8 @@
 
     document.body.className = nextClasses;
 
-    var nextDisableLive2D = nextBody.getAttribute("data-disable-live2d");
-    if (nextDisableLive2D != null) {
-      document.body.setAttribute("data-disable-live2d", nextDisableLive2D);
-    } else {
-      document.body.removeAttribute("data-disable-live2d");
-    }
+    syncBodyDataAttribute(nextBody, "data-disable-live2d");
+    syncBodyDataAttribute(nextBody, "data-disable-mouse-firework");
 
     Object.keys(preserved).forEach(function (className) {
       document.body.classList.add(className);

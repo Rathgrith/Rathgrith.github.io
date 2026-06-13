@@ -1,6 +1,6 @@
 .music-player {
-  --player-bg: #f8fbff;
-  --player-bg-soft: #edf3ff;
+  --player-bg: var(--surface);
+  --player-bg-soft: var(--surface);
   --player-border: rgba(67, 88, 126, 0.24);
   --player-text: #1b273a;
   --player-muted: rgba(35, 49, 74, 0.68);
@@ -20,20 +20,20 @@
   --player-cover-empty-end: #dbe5f8;
   --player-wave-wrap-bg: linear-gradient(180deg, rgba(24, 44, 74, 0.08), rgba(24, 44, 74, 0));
   --player-wave-wrap-bg-hover: linear-gradient(180deg, rgba(24, 44, 74, 0.13), rgba(24, 44, 74, 0));
-  --player-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 12px 24px rgba(27, 43, 73, 0.14);
+  --player-shadow: none;
   border: 1px solid var(--player-border);
-  border-radius: 12px;
-  background: linear-gradient(165deg, var(--player-bg-soft), var(--player-bg));
+  border-radius: 8px;
+  background: var(--player-bg);
   box-shadow: var(--player-shadow);
-  padding: 0.68rem 0.72rem 0.62rem;
-  margin: 0.9rem 0 1.2rem;
+  padding: 0.58rem 0.62rem 0.54rem;
+  margin: 0.85rem 0 1rem;
   overflow: hidden;
   container-type: inline-size;
 }
 
 html[data-theme="dark"] .music-player {
-  --player-bg: #090c10;
-  --player-bg-soft: #10151d;
+  --player-bg: var(--surface);
+  --player-bg-soft: var(--surface);
   --player-border: rgba(242, 246, 251, 0.22);
   --player-text: #f7f8fa;
   --player-muted: rgba(229, 234, 241, 0.7);
@@ -53,7 +53,7 @@ html[data-theme="dark"] .music-player {
   --player-cover-empty-end: #151a22;
   --player-wave-wrap-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0));
   --player-wave-wrap-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0));
-  --player-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(4, 8, 14, 0.28);
+  --player-shadow: none;
 }
 
 .music-player__audio {
@@ -63,13 +63,13 @@ html[data-theme="dark"] .music-player {
 .music-player__main {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.72rem;
+  gap: 0.62rem;
   align-items: center;
 }
 
 .music-player__cover {
-  width: 84px;
-  height: 84px;
+  width: 64px;
+  height: 64px;
   aspect-ratio: 1 / 1;
   justify-self: center;
   border-radius: 9px;
@@ -106,7 +106,7 @@ html[data-theme="dark"] .music-player {
 
 .music-player__title {
   color: var(--player-text);
-  font-size: 0.93rem;
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
