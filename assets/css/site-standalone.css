@@ -41,9 +41,17 @@ body.standalone-page .page__content {
 }
 
 .page-header {
-  background: linear-gradient(135deg, var(--surface-alt), var(--surface));
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 5px),
+    linear-gradient(180deg, var(--surface), var(--surface-alt));
   border-bottom: 1px solid var(--border);
+  box-shadow: inset 0 -1px 0 var(--paper-edge);
   padding: 40px 0 30px;
+}
+
+.page-header h1::first-letter {
+  color: var(--header-initial-1);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 82%, transparent);
 }
 
 .page-subtitle {
@@ -65,13 +73,17 @@ body.standalone-page .page__content {
 body.gallery-page .gallery-container {
   width: min(1200px, 90vw);
   margin: 24px auto 0;
-  padding: 30px;
+  padding: 28px;
   flex: 1 0 auto;
   text-align: center;
-  background: var(--surface);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #ffffff 4%), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--paper-edge) 12%);
+  border-radius: 8px;
+  box-shadow:
+    0 14px 30px rgba(45, 52, 45, 0.1),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 68%, transparent);
 }
 
 body.gallery-page .gallery {
@@ -100,18 +112,37 @@ body.gallery-page .gallery a {
   display: block;
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, var(--text) 18%);
+  border-radius: 6px;
   width: 100%;
   padding-top: 100%;
   margin: 0 auto;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  background: var(--surface);
+  box-shadow:
+    0 8px 16px rgba(45, 52, 45, 0.12),
+    0 1px 0 color-mix(in srgb, #ffffff 70%, transparent) inset;
+}
+
+body.gallery-page .gallery a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 8px solid color-mix(in srgb, var(--surface) 92%, var(--paper-edge) 8%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--border) 76%, transparent),
+    inset 0 10px 18px rgba(45, 52, 45, 0.06);
+  pointer-events: none;
 }
 
 body.gallery-page .gallery a::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 58%, rgba(5, 8, 14, 0.22) 100%);
+  z-index: 2;
+  background:
+    linear-gradient(180deg, transparent 62%, rgba(5, 8, 14, 0.18) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 9px);
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
@@ -119,9 +150,9 @@ body.gallery-page .gallery a::after {
 
 body.gallery-page .gallery img {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
   object-fit: cover;
   object-position: center center;
   transition: transform 0.3s ease-out;
@@ -134,7 +165,7 @@ body.gallery-page .gallery a:focus-visible::after {
 
 body.gallery-page .gallery a:hover img,
 body.gallery-page .gallery a:focus-visible img {
-  transform: scale(1.08);
+  transform: scale(1.035);
 }
 
 body.gallery-page .gallery-card__zoom {
@@ -143,10 +174,10 @@ body.gallery-page .gallery-card__zoom {
   bottom: 0.52rem;
   width: 2rem;
   height: 2rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  background: rgba(10, 14, 22, 0.64);
-  color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, #ffffff 28%);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -155,7 +186,7 @@ body.gallery-page .gallery-card__zoom {
   transform: translateY(4px);
   transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
 }
 
 body.gallery-page .gallery a:hover .gallery-card__zoom,
@@ -168,6 +199,7 @@ body.gallery-page .caption {
   font-size: 0.9em;
   color: var(--text-muted);
   margin-top: 8px;
+  font-style: italic;
 }
 
 body.gallery-page.gallery-modal-open {
@@ -189,7 +221,7 @@ body.gallery-page .gallery-modal[hidden] {
 body.gallery-page .gallery-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(8, 10, 14, 0.78);
+  background: color-mix(in srgb, var(--bg) 74%, rgba(8, 10, 14, 0.72));
   backdrop-filter: blur(2px);
 }
 
@@ -202,10 +234,14 @@ body.gallery-page .gallery-modal__dialog {
   min-height: 72vh;
   max-height: calc(100vh - 1.8rem);
   padding: 1rem 3.35rem 0.8rem;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 76%, #ffffff 24%);
-  background: color-mix(in srgb, var(--surface) 92%, #0f1422 8%);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.42);
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, #ffffff 18%);
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    var(--surface);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 68%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,12 +273,16 @@ body.gallery-page .gallery-modal__image-stage {
   height: 74vh;
   max-height: 760px;
   min-width: 0;
-  border-radius: 8px;
-  padding: 0.12rem;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, var(--text) 18%);
+  border-radius: 6px;
+  padding: 0.42rem;
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: color-mix(in srgb, var(--surface-alt) 86%, #000 14%);
+  background:
+    repeating-linear-gradient(90deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 7px),
+    color-mix(in srgb, var(--surface-alt) 86%, #000 14%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface) 68%, transparent);
 }
 
 body.gallery-page .gallery-modal__image {
@@ -256,10 +296,10 @@ body.gallery-page .gallery-modal__image {
   margin: 0;
   position: static;
   transform: none;
-  border-radius: 8px;
+  border-radius: 4px;
   object-fit: contain;
   object-position: center center;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
   background: transparent;
 }
 
@@ -321,12 +361,15 @@ body.gallery-page .gallery-modal__strip {
   display: flex;
   justify-content: center;
   gap: 0.4rem;
-  padding: 0.14rem 0.08rem 0.22rem;
+  padding: 0.24rem 0.28rem 0.32rem;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
+  background: color-mix(in srgb, var(--surface-alt) 74%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 6px;
 }
 
 body.gallery-page .gallery-modal__strip::-webkit-scrollbar {
@@ -342,8 +385,8 @@ body.gallery-page .gallery-modal__thumb {
   flex: 0 0 auto;
   width: 58px;
   height: 58px;
-  padding: 0;
-  border-radius: 8px;
+  padding: 3px;
+  border-radius: 5px;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   background: color-mix(in srgb, var(--surface-alt) 84%, transparent);
   overflow: hidden;
@@ -372,6 +415,7 @@ body.gallery-page .gallery-modal__thumb:focus-visible {
 body.gallery-page .gallery-modal__thumb-image {
   width: 100%;
   height: 100%;
+  border-radius: 3px;
   object-fit: cover;
   object-position: center center;
   display: block;
@@ -380,7 +424,8 @@ body.gallery-page .gallery-modal__thumb-image {
 body.gallery-page .gallery-modal__nav,
 body.gallery-page .gallery-modal__close {
   border: 1px solid color-mix(in srgb, var(--border) 76%, #ffffff 24%);
-  background: color-mix(in srgb, var(--surface-alt) 84%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, #ffffff 6%), var(--surface-alt));
   color: var(--text);
   cursor: pointer;
   display: inline-flex;
@@ -395,7 +440,7 @@ body.gallery-page .gallery-modal__nav {
   transform: translateY(-50%);
   width: 2.7rem;
   height: 2.7rem;
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: 1rem;
 }
 
@@ -413,7 +458,7 @@ body.gallery-page .gallery-modal__close {
   right: 0.56rem;
   width: 2.15rem;
   height: 2.15rem;
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: 0.9rem;
 }
 
@@ -430,13 +475,15 @@ body.gallery-page .gallery-modal__close:focus-visible {
 }
 
 html[data-theme="dark"] body.gallery-page .gallery-modal__dialog {
-  border-color: color-mix(in srgb, var(--border) 86%, #8ba4d6 14%);
-  background: color-mix(in srgb, var(--surface) 84%, #0a1020 16%);
+  border-color: color-mix(in srgb, var(--border) 86%, var(--link) 14%);
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    color-mix(in srgb, var(--surface) 94%, #050604 6%);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.56);
 }
 
 html[data-theme="dark"] body.gallery-page .gallery-modal__backdrop {
-  background: rgba(3, 6, 12, 0.84);
+  background: rgba(12, 13, 10, 0.86);
 }
 
 html[data-theme="dark"] body.gallery-page .gallery-modal__image {
@@ -444,12 +491,14 @@ html[data-theme="dark"] body.gallery-page .gallery-modal__image {
 }
 
 html[data-theme="dark"] body.gallery-page .gallery-modal__image-stage {
-  background: color-mix(in srgb, var(--surface-alt) 80%, #000 20%);
+  background:
+    repeating-linear-gradient(90deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 7px),
+    color-mix(in srgb, var(--surface-alt) 84%, #000 16%);
 }
 
 html[data-theme="dark"] body.gallery-page .gallery-modal__thumb {
-  border-color: color-mix(in srgb, var(--border) 84%, #0f1525 16%);
-  background: color-mix(in srgb, var(--surface-alt) 76%, #080b13 24%);
+  border-color: color-mix(in srgb, var(--border) 84%, #0c0d0a 16%);
+  background: color-mix(in srgb, var(--surface-alt) 78%, #080906 22%);
 }
 
 body.gallery-page .gallery-actions {
@@ -465,10 +514,14 @@ body.gallery-page .gallery-action.button {
   margin: 0;
   min-height: 44px;
   padding: 0.6rem 1rem;
-  border-radius: 999px;
+  border-radius: 6px;
   border-color: color-mix(in srgb, var(--border) 88%, var(--link) 12%);
-  background: linear-gradient(180deg, var(--surface-alt), var(--surface));
-  box-shadow: 0 8px 16px rgba(15, 25, 44, 0.12);
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    linear-gradient(180deg, var(--surface), var(--surface-alt));
+  box-shadow:
+    0 7px 14px rgba(45, 52, 45, 0.12),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 68%, transparent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -494,7 +547,7 @@ body.gallery-page .gallery-action.button:hover:not(:disabled) {
 body.gallery-page .gallery-action__icon {
   width: 1.45rem;
   height: 1.45rem;
-  border-radius: 999px;
+  border-radius: 5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -533,7 +586,9 @@ body.gallery-page .gallery-action.button:disabled:not(.is-loading) {
 }
 
 html[data-theme="dark"] body.gallery-page .gallery-action.button {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 88%, #0d0f13 12%), var(--surface));
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 88%, #0d0f13 12%), var(--surface));
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.34);
 }
 

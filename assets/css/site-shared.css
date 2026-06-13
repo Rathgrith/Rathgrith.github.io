@@ -18,6 +18,12 @@
   --paper-grain: rgba(65, 75, 65, 0.035);
   --paper-fiber: rgba(255, 255, 255, 0.58);
   --paper-edge: rgba(97, 108, 96, 0.14);
+  --header-initial-1: #315f70;
+  --header-initial-2: #6c5f88;
+  --header-initial-3: #4d705d;
+  --header-initial-4: #80575a;
+  --header-initial-5: #53706f;
+  --header-initial-6: #7a6540;
 }
 
 /* A font by Jos Buivenga (exljbris) -> www.exljbris.com */
@@ -55,8 +61,8 @@ html[data-theme="dark"] {
   --text-muted: #b2b2a7;
   --border: #3b4038;
   --divider: #454a42;
-  --link: #a9d1c5;
-  --link-hover: #d2eee7;
+  --link: #f3e6a1;
+  --link-hover: #fff3bf;
   --nav-bg: rgba(31, 34, 29, 0.94);
   --nav-link: #e7e6dc;
   --nav-link-muted: #b2b2a7;
@@ -67,6 +73,12 @@ html[data-theme="dark"] {
   --paper-grain: rgba(245, 244, 232, 0.03);
   --paper-fiber: rgba(255, 255, 255, 0.045);
   --paper-edge: rgba(235, 232, 218, 0.12);
+  --header-initial-1: #f3e6a1;
+  --header-initial-2: #d6b7e2;
+  --header-initial-3: #a9d0a8;
+  --header-initial-4: #e0aaa6;
+  --header-initial-5: #a9d1c5;
+  --header-initial-6: #d8c58a;
 }
 
 html,
@@ -387,11 +399,38 @@ body.home-page .page__content {
 }
 
 body.home-page .page__content h1 {
+  --header-initial: var(--header-initial-1);
   margin: 2rem 0 0.82rem;
   padding-bottom: 0.42rem;
   border-bottom: 1px solid var(--divider);
   font-size: 1.34rem;
   line-height: 1.25;
+}
+
+body.home-page .page__content h1::first-letter {
+  color: var(--header-initial);
+  font-weight: 700;
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+body.home-page .page__content h1:nth-of-type(2) {
+  --header-initial: var(--header-initial-2);
+}
+
+body.home-page .page__content h1:nth-of-type(3) {
+  --header-initial: var(--header-initial-3);
+}
+
+body.home-page .page__content h1:nth-of-type(4) {
+  --header-initial: var(--header-initial-4);
+}
+
+body.home-page .page__content h1:nth-of-type(5) {
+  --header-initial: var(--header-initial-5);
+}
+
+body.home-page .page__content h1:nth-of-type(6) {
+  --header-initial: var(--header-initial-6);
 }
 
 body.home-page .page__content h1:first-of-type {
