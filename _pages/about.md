@@ -6,7 +6,6 @@ author_profile: true
 body_class: home-page
 has_music_player: true
 disable_home_loading: true
-disable_live2d: true
 disable_mouse_firework: true
 redirect_from: 
   - /about/

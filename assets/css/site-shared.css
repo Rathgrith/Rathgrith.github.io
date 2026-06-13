@@ -1,20 +1,29 @@
 :root {
-  --bg: #f5f7fb;
-  --surface: #ffffff;
-  --surface-alt: #eef3ff;
-  --text: #1e2433;
-  --text-muted: #5b6378;
-  --border: #d6ddec;
-  --divider: #cfd8ea;
-  --link: #245bd6;
-  --link-hover: #173f9c;
-  --nav-bg: #ffffff;
-  --nav-link: #2b3550;
-  --nav-link-muted: #5f6b86;
-  --nav-link-hover: #245bd6;
-  --footer-bg: #1f2a44;
-  --footer-text: #f1f5ff;
-  --shadow: 0 10px 30px rgba(15, 25, 44, 0.08);
+  --bg: #f3f5ef;
+  --surface: #fbfcf7;
+  --surface-alt: #eef2ea;
+  --text: #242a25;
+  --text-muted: #626b61;
+  --border: #d7ddd2;
+  --divider: #cdd5c8;
+  --link: #315f70;
+  --link-hover: #224757;
+  --nav-bg: rgba(251, 252, 247, 0.94);
+  --nav-link: #2d382f;
+  --nav-link-muted: #647064;
+  --nav-link-hover: #315f70;
+  --footer-bg: #ecefe8;
+  --footer-text: #29312b;
+  --shadow: 0 8px 18px rgba(45, 52, 45, 0.08);
+  --paper-grain: rgba(65, 75, 65, 0.035);
+  --paper-fiber: rgba(255, 255, 255, 0.58);
+  --paper-edge: rgba(97, 108, 96, 0.14);
+  --header-initial-1: #315f70;
+  --header-initial-2: #6c5f88;
+  --header-initial-3: #4d705d;
+  --header-initial-4: #80575a;
+  --header-initial-5: #53706f;
+  --header-initial-6: #7a6540;
 }
 
 /* A font by Jos Buivenga (exljbris) -> www.exljbris.com */
@@ -45,22 +54,31 @@
 }
 
 html[data-theme="dark"] {
-  --bg: #111214;
-  --surface: #181a1d;
-  --surface-alt: #202327;
-  --text: #e6e8eb;
-  --text-muted: #adb3bc;
-  --border: #2f343b;
-  --divider: #3a4048;
+  --bg: #171915;
+  --surface: #20231e;
+  --surface-alt: #272b25;
+  --text: #e7e6dc;
+  --text-muted: #b2b2a7;
+  --border: #3b4038;
+  --divider: #454a42;
   --link: #f3e6a1;
   --link-hover: #fff3bf;
-  --nav-bg: #181a1d;
-  --nav-link: #e6e8eb;
-  --nav-link-muted: #adb3bc;
+  --nav-bg: rgba(31, 34, 29, 0.94);
+  --nav-link: #e7e6dc;
+  --nav-link-muted: #b2b2a7;
   --nav-link-hover: var(--link);
-  --footer-bg: #131417;
-  --footer-text: #c9ced6;
-  --shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  --footer-bg: #1d201b;
+  --footer-text: #d7d6cc;
+  --shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+  --paper-grain: rgba(245, 244, 232, 0.03);
+  --paper-fiber: rgba(255, 255, 255, 0.045);
+  --paper-edge: rgba(235, 232, 218, 0.12);
+  --header-initial-1: #f3e6a1;
+  --header-initial-2: #d6b7e2;
+  --header-initial-3: #a9d0a8;
+  --header-initial-4: #e0aaa6;
+  --header-initial-5: #a9d1c5;
+  --header-initial-6: #d8c58a;
 }
 
 html,
@@ -70,6 +88,10 @@ body {
 }
 
 body {
+  background-image:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 5px),
+    repeating-linear-gradient(90deg, var(--paper-fiber) 0, var(--paper-fiber) 1px, transparent 1px, transparent 7px);
+  background-attachment: fixed;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -138,6 +160,7 @@ body.home-loading {
   margin: 0.86rem auto 0;
   padding: 0.55rem 0 0.78rem;
   border-top: 1px solid var(--divider);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 42%, transparent), transparent);
 }
 
 .site-runtime__inner {
@@ -165,6 +188,10 @@ body.home-loading {
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--text);
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  border: 1px solid var(--paper-edge);
+  border-radius: 4px;
+  padding: 0.05rem 0.24rem;
 }
 
 .site-runtime__since {
@@ -230,6 +257,7 @@ a:hover {
 .masthead {
   background: var(--nav-bg);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.62), 0 4px 12px rgba(45, 52, 45, 0.04);
 }
 
 .masthead__inner-wrap {
@@ -251,7 +279,7 @@ a:hover {
   color: var(--nav-link);
   padding: 0.12rem 0.44rem;
   border: 1px solid transparent;
-  border-radius: 0.32rem;
+  border-radius: 4px;
   font-size: 1.08rem;
   line-height: 1.2;
   transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
@@ -283,8 +311,8 @@ a:hover {
 
 .greedy-nav .visible-links a:hover {
   color: var(--nav-link-hover);
-  border-color: color-mix(in srgb, var(--nav-link-hover) 45%, var(--border) 55%);
-  background: color-mix(in srgb, var(--surface-alt) 76%, transparent);
+  border-color: var(--divider);
+  background: color-mix(in srgb, var(--surface-alt) 82%, transparent);
 }
 
 .greedy-nav a:focus-visible {
@@ -349,11 +377,13 @@ a:hover {
 }
 
 body.home-page .profile_box {
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.72rem;
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 5px),
+    var(--surface);
+  box-shadow: var(--shadow);
 }
 
 body.home-page #main {
@@ -369,11 +399,38 @@ body.home-page .page__content {
 }
 
 body.home-page .page__content h1 {
+  --header-initial: var(--header-initial-1);
   margin: 2rem 0 0.82rem;
   padding-bottom: 0.42rem;
   border-bottom: 1px solid var(--divider);
   font-size: 1.34rem;
   line-height: 1.25;
+}
+
+body.home-page .page__content h1::first-letter {
+  color: var(--header-initial);
+  font-weight: 700;
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+body.home-page .page__content h1:nth-of-type(2) {
+  --header-initial: var(--header-initial-2);
+}
+
+body.home-page .page__content h1:nth-of-type(3) {
+  --header-initial: var(--header-initial-3);
+}
+
+body.home-page .page__content h1:nth-of-type(4) {
+  --header-initial: var(--header-initial-4);
+}
+
+body.home-page .page__content h1:nth-of-type(5) {
+  --header-initial: var(--header-initial-5);
+}
+
+body.home-page .page__content h1:nth-of-type(6) {
+  --header-initial: var(--header-initial-6);
 }
 
 body.home-page .page__content h1:first-of-type {
@@ -386,10 +443,11 @@ body.home-page .page__content p {
 
 body.home-page .page__content blockquote {
   margin: 1.6rem 0 0;
-  padding-left: 1rem;
+  padding: 0.58rem 0.72rem 0.58rem 1rem;
   border-left: 2px solid var(--divider);
   color: var(--text-muted);
   font-size: 0.96rem;
+  background: color-mix(in srgb, var(--surface-alt) 64%, transparent);
 }
 
 .home-links {
@@ -400,12 +458,13 @@ body.home-page .page__content blockquote {
 }
 
 .home-links a {
-  color: var(--text-muted);
+  color: var(--link);
   font-size: 0.92rem;
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 0.18em;
   text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--link) 46%, transparent);
 }
 
 .home-links a:hover {
