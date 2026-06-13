@@ -98,11 +98,14 @@
 .publication-list {
   margin: 0.95em 0 1.4em;
   border-top: 1px solid var(--divider);
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain, rgba(65, 75, 65, 0.035)) 0, var(--paper-grain, rgba(65, 75, 65, 0.035)) 1px, transparent 1px, transparent 6px),
+    color-mix(in srgb, var(--surface) 76%, transparent);
 }
 
 .publication-item {
   margin: 0;
-  padding: 0.82rem 0;
+  padding: 0.82rem 0.58rem;
   border-bottom: 1px solid var(--divider);
   background: transparent;
 }
@@ -124,10 +127,13 @@
   width: 100%;
   max-width: 180px;
   aspect-ratio: 16 / 10;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid var(--border);
-  background: #ffffff;
+  background:
+    repeating-linear-gradient(0deg, rgba(65, 75, 65, 0.025) 0, rgba(65, 75, 65, 0.025) 1px, transparent 1px, transparent 5px),
+    #fbfcf7;
   overflow: hidden;
+  box-shadow: 0 4px 10px rgba(45, 52, 45, 0.08);
 }
 
 .publication-thumb {
@@ -152,6 +158,7 @@
 .publication-line a {
   text-underline-offset: 0.08em;
   text-decoration-thickness: 1.3px;
+  text-decoration-color: color-mix(in srgb, var(--link) 44%, transparent);
 }
 
 .publication-authors {
@@ -169,14 +176,14 @@
   gap: 0.24rem;
   margin: 0;
   padding: 0.1rem 0.34rem;
-  border-radius: 0.24rem;
+  border-radius: 4px;
   border: 1px solid transparent;
   color: var(--text);
   font-size: 0.66rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.01em;
-  box-shadow: none;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.64);
 }
 
 .publication-tag::before {
@@ -188,9 +195,9 @@
 }
 
 .publication-tag.conference {
-  background: color-mix(in srgb, #1f57c8 10%, var(--surface));
-  border-color: color-mix(in srgb, #1f57c8 38%, var(--border));
-  color: color-mix(in srgb, #1f57c8 86%, var(--text));
+  background: color-mix(in srgb, #315f70 12%, var(--surface));
+  border-color: color-mix(in srgb, #315f70 36%, var(--border));
+  color: color-mix(in srgb, #315f70 82%, var(--text));
 }
 
 .publication-tag.conference::before {
@@ -198,9 +205,9 @@
 }
 
 .publication-tag.journal {
-  background: color-mix(in srgb, #a11d1d 10%, var(--surface));
-  border-color: color-mix(in srgb, #a11d1d 36%, var(--border));
-  color: color-mix(in srgb, #a11d1d 82%, var(--text));
+  background: color-mix(in srgb, #7a3d3a 12%, var(--surface));
+  border-color: color-mix(in srgb, #7a3d3a 34%, var(--border));
+  color: color-mix(in srgb, #7a3d3a 82%, var(--text));
 }
 
 .publication-tag.journal::before {
@@ -323,21 +330,17 @@ html[data-theme="dark"] .publication-thumb.paper-preview {
 
 html[data-theme="dark"] .publication-item {
   border-color: color-mix(in srgb, var(--border) 78%, transparent);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.015) 100%
-  );
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  background: transparent;
+  box-shadow: none;
 }
 
 html[data-theme="dark"] .publication-thumb-wrap {
-  border-color: #323b48;
-  background: #141a23;
+  border-color: var(--border);
+  background:
+    repeating-linear-gradient(0deg, rgba(245, 244, 232, 0.025) 0, rgba(245, 244, 232, 0.025) 1px, transparent 1px, transparent 5px),
+    #242820;
   padding: 0.24rem;
-  box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
 }
 
 html[data-theme="dark"] .publication-thumb-wrap::after {
@@ -355,7 +358,7 @@ html[data-theme="dark"] .publication-thumb-wrap::after {
 }
 
 html[data-theme="dark"] .publication-tag {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.34);
+  box-shadow: none;
 }
 
 html[data-theme="dark"] .paper-box .paper-box-image img.preview-invert {

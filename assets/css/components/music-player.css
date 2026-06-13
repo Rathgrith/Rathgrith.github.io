@@ -1,29 +1,31 @@
 .music-player {
   --player-bg: var(--surface);
-  --player-bg-soft: var(--surface);
-  --player-border: rgba(67, 88, 126, 0.24);
-  --player-text: #1b273a;
-  --player-muted: rgba(35, 49, 74, 0.68);
-  --player-wave-base: rgba(64, 88, 130, 0.28);
+  --player-bg-soft: var(--surface-alt);
+  --player-border: var(--border);
+  --player-text: var(--text);
+  --player-muted: color-mix(in srgb, var(--text-muted) 88%, transparent);
+  --player-wave-base: color-mix(in srgb, var(--text-muted) 28%, transparent);
   --player-wave-active: var(--link);
-  --player-seek-track: rgba(58, 84, 127, 0.26);
-  --player-thumb: #23499f;
-  --player-btn-border: rgba(67, 88, 126, 0.32);
-  --player-btn-bg: rgba(255, 255, 255, 0.34);
-  --player-btn-hover-border: rgba(49, 88, 181, 0.64);
-  --player-btn-hover-bg: rgba(255, 255, 255, 0.78);
-  --player-link-border: rgba(67, 88, 126, 0.3);
-  --player-link-hover-border: rgba(49, 88, 181, 0.64);
-  --player-cover-bg: #dfe8fb;
-  --player-cover-border: rgba(67, 88, 126, 0.3);
-  --player-cover-empty-start: #f6f9ff;
-  --player-cover-empty-end: #dbe5f8;
-  --player-wave-wrap-bg: linear-gradient(180deg, rgba(24, 44, 74, 0.08), rgba(24, 44, 74, 0));
-  --player-wave-wrap-bg-hover: linear-gradient(180deg, rgba(24, 44, 74, 0.13), rgba(24, 44, 74, 0));
-  --player-shadow: none;
+  --player-seek-track: color-mix(in srgb, var(--divider) 78%, transparent);
+  --player-thumb: var(--link);
+  --player-btn-border: var(--border);
+  --player-btn-bg: color-mix(in srgb, var(--surface-alt) 58%, transparent);
+  --player-btn-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
+  --player-btn-hover-bg: color-mix(in srgb, var(--surface-alt) 86%, transparent);
+  --player-link-border: var(--border);
+  --player-link-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
+  --player-cover-bg: var(--surface-alt);
+  --player-cover-border: var(--border);
+  --player-cover-empty-start: var(--surface);
+  --player-cover-empty-end: var(--surface-alt);
+  --player-wave-wrap-bg: linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 58%, transparent), transparent);
+  --player-wave-wrap-bg-hover: linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 78%, transparent), transparent);
+  --player-shadow: 0 6px 14px rgba(45, 52, 45, 0.08);
   border: 1px solid var(--player-border);
   border-radius: 8px;
-  background: var(--player-bg);
+  background:
+    repeating-linear-gradient(0deg, var(--paper-grain, rgba(65, 75, 65, 0.035)) 0, var(--paper-grain, rgba(65, 75, 65, 0.035)) 1px, transparent 1px, transparent 5px),
+    var(--player-bg);
   box-shadow: var(--player-shadow);
   padding: 0.58rem 0.62rem 0.54rem;
   margin: 0.85rem 0 1rem;
@@ -33,27 +35,27 @@
 
 html[data-theme="dark"] .music-player {
   --player-bg: var(--surface);
-  --player-bg-soft: var(--surface);
-  --player-border: rgba(242, 246, 251, 0.22);
-  --player-text: #f7f8fa;
-  --player-muted: rgba(229, 234, 241, 0.7);
-  --player-wave-base: rgba(236, 240, 246, 0.4);
+  --player-bg-soft: var(--surface-alt);
+  --player-border: var(--border);
+  --player-text: var(--text);
+  --player-muted: color-mix(in srgb, var(--text-muted) 88%, transparent);
+  --player-wave-base: color-mix(in srgb, var(--text-muted) 34%, transparent);
   --player-wave-active: var(--link);
-  --player-seek-track: rgba(245, 247, 252, 0.35);
-  --player-thumb: #ffffff;
-  --player-btn-border: rgba(255, 255, 255, 0.24);
-  --player-btn-bg: rgba(255, 255, 255, 0.02);
-  --player-btn-hover-border: rgba(255, 255, 255, 0.66);
-  --player-btn-hover-bg: rgba(255, 255, 255, 0.08);
-  --player-link-border: rgba(255, 255, 255, 0.23);
-  --player-link-hover-border: rgba(255, 255, 255, 0.65);
-  --player-cover-bg: #0f141d;
-  --player-cover-border: rgba(255, 255, 255, 0.2);
-  --player-cover-empty-start: #313842;
-  --player-cover-empty-end: #151a22;
-  --player-wave-wrap-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0));
-  --player-wave-wrap-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0));
-  --player-shadow: none;
+  --player-seek-track: color-mix(in srgb, var(--divider) 72%, transparent);
+  --player-thumb: var(--link);
+  --player-btn-border: var(--border);
+  --player-btn-bg: color-mix(in srgb, var(--surface-alt) 62%, transparent);
+  --player-btn-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
+  --player-btn-hover-bg: color-mix(in srgb, var(--surface-alt) 90%, transparent);
+  --player-link-border: var(--border);
+  --player-link-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
+  --player-cover-bg: var(--surface-alt);
+  --player-cover-border: var(--border);
+  --player-cover-empty-start: #30342e;
+  --player-cover-empty-end: #1d211c;
+  --player-wave-wrap-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+  --player-wave-wrap-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent);
+  --player-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
 }
 
 .music-player__audio {
@@ -72,7 +74,7 @@ html[data-theme="dark"] .music-player {
   height: 64px;
   aspect-ratio: 1 / 1;
   justify-self: center;
-  border-radius: 9px;
+  border-radius: 5px;
   object-fit: cover;
   background: var(--player-cover-bg);
   border: 1px solid var(--player-cover-border);
@@ -166,7 +168,7 @@ html[data-theme="dark"] .music-player {
   border: 1px solid var(--player-btn-border);
   background: var(--player-btn-bg);
   color: var(--player-text);
-  border-radius: 999px;
+  border-radius: 6px;
   width: 2.08rem;
   height: 2.05rem;
   padding: 0;
@@ -210,7 +212,7 @@ html[data-theme="dark"] .music-player {
   align-items: center;
   height: 28px;
   width: 100%;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   outline: none;
   background: var(--player-wave-wrap-bg);
@@ -361,7 +363,7 @@ html[data-theme="dark"] .music-player {
   text-decoration: none;
   border: 1px solid var(--player-btn-border);
   background: var(--player-btn-bg);
-  border-radius: 999px;
+  border-radius: 6px;
   width: 2.08rem;
   height: 2.05rem;
   display: inline-flex;
