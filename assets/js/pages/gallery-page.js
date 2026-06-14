@@ -514,6 +514,9 @@
       var caption = document.createElement("div");
       caption.className = "caption";
       caption.textContent = entry.caption;
+      if (entry.caption) {
+        caption.title = entry.caption;
+      }
 
       var item = document.createElement("div");
       item.className = "gallery-item";

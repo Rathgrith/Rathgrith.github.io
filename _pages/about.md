@@ -61,15 +61,17 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
   </div>
 </div>
 
-<span class='anchor' id='awards-services'></span>
+<span class='anchor' id='awards'></span><span id='awards-services' aria-hidden='true'></span>
 
-# Awards & Services
+# Awards
 
-**Awards**
 - **[EPSRC Doctoral Landscape Award](https://www.ukri.org/publications/doctoral-landscape-awards/doctoral-landscape-award-investments/):** University Scholarship for PhD Study.
 - **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial assistance to present at [NeurIPS](https://neurips.cc/).
 
-**Services**
+<span class='anchor' id='services'></span>
+
+# Services
+
 - **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://www.ijcnn.org/), [NeurIPS](https://neurips.cc/).
 - **Software Engineer:** [Allsee Technologies Ltd](https://www.allsee-tech.com/).
 
@@ -77,22 +79,18 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 # Miscellaneous
 
-Favorite manga chapter: [Nostalgic Ocean Landscape](https://www.pixiv.net/artworks/37362275).
+Favorite manga chapter: <a class="hover-photo hover-photo--manga" href="https://www.pixiv.net/artworks/37362275" target="_blank" rel="noopener noreferrer">Nostalgic Ocean Landscape<span class="hover-photo__card" aria-hidden="true"><img src="/images/nol_preview.png" alt=""></span></a>.
 
 <!-- Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (single volume): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E). -->
 
 
-I also enjoy [photography](/gallery/), balcony gardening, and [doujin music](https://en.wikipedia.org/wiki/Doujin_music).
+I also enjoy <a class="hover-photo hover-photo--gallery" href="/gallery/" data-gallery-hover-preview data-gallery-thumbnail-dir="/images/gallery/thumbnails/">photography<span class="hover-photo__card" aria-hidden="true"><img src="" alt="" loading="lazy" decoding="async"></span></a>, <a class="hover-photo hover-photo--balcony" href="/images/IMG20260419144241.jpg" target="_blank" rel="noopener noreferrer">balcony gardening<span class="hover-photo__card" aria-hidden="true"><img src="/images/balcony-gardening-thumb.jpg" alt=""></span></a>, and <a class="hover-photo hover-photo--doujin" href="https://en.wikipedia.org/wiki/Doujin_music" target="_blank" rel="noopener noreferrer">doujin music<span class="hover-photo__card" aria-hidden="true"><img src="/images/04af8e6b10eb61f0e9b4a0264aae7ff9.jpeg" alt="" loading="lazy" decoding="async"></span></a>.
+
+<script id="gallery-hover-preview-data" type="application/json">[{% for item in site.data.gallery_captions %}{{ item[0] | jsonify }}{% unless forloop.last %},{% endunless %}{% endfor %}]</script>
 
 > 力強い竹の下には、さらに力強い根が張り巡らされている。<br>
 > Beneath the sturdy bamboo, even sturdier roots spread out.<br>
 > From:[『東方永夜抄 ～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4
-
-<!-- <div class='paper-box'><div class='paper-box-image'><div><img src='images/UIUCphoto/1.jpg' alt="sym" width="100%"></div></div>
-<div class='paper-box-text' markdown="1">
- - FUJICHROME Velvia 100, taken at my hometown.
-</div>
-</div> -->
 
 {% include music-player.html playlist="homepage" %}
 

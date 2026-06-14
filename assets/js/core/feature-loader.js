@@ -1,4 +1,8 @@
 (function () {
+  var homeProfilePanelScrollBound = false;
+  var homeProfilePanelFrame = null;
+  var homeProfilePanelMotionFrame = null;
+
   function normaliseBaseUrl(raw) {
     var value = String(raw || "/").trim();
     if (!value) value = "/";
@@ -79,8 +83,69 @@
       });
   }
 
+  function syncHomeProfilePanelState() {
+    if (!document.body) return;
+
+    var isHomePage = document.body.classList.contains("home-page");
+    var shouldLift =
+      isHomePage &&
+      window.pageYOffset > 24;
+
+    document.body.classList.toggle("profile-panel-is-scrolled", shouldLift);
+
+    if (!isHomePage) {
+      document.body.classList.remove("profile-panel-motion-ready");
+    }
+  }
+
+  function enableHomeProfilePanelMotion() {
+    if (!document.body || !document.body.classList.contains("home-page")) return;
+    if (document.body.classList.contains("profile-panel-motion-ready")) return;
+    if (homeProfilePanelMotionFrame) return;
+
+    var markReady = function () {
+      homeProfilePanelMotionFrame = null;
+      if (!document.body || !document.body.classList.contains("home-page")) return;
+      document.body.classList.add("profile-panel-motion-ready");
+    };
+
+    if (typeof window.requestAnimationFrame === "function") {
+      homeProfilePanelMotionFrame = window.requestAnimationFrame(function () {
+        homeProfilePanelMotionFrame = window.requestAnimationFrame(markReady);
+      });
+    } else {
+      homeProfilePanelMotionFrame = window.setTimeout(markReady, 0);
+    }
+  }
+
+  function requestHomeProfilePanelState() {
+    if (homeProfilePanelFrame) return;
+
+    if (typeof window.requestAnimationFrame !== "function") {
+      syncHomeProfilePanelState();
+      return;
+    }
+
+    homeProfilePanelFrame = window.requestAnimationFrame(function () {
+      homeProfilePanelFrame = null;
+      syncHomeProfilePanelState();
+    });
+  }
+
+  function initHomeProfilePanelTransition() {
+    syncHomeProfilePanelState();
+    enableHomeProfilePanelMotion();
+
+    if (homeProfilePanelScrollBound) return;
+    homeProfilePanelScrollBound = true;
+
+    window.addEventListener("scroll", requestHomeProfilePanelState, { passive: true });
+    window.addEventListener("resize", requestHomeProfilePanelState);
+  }
+
   function bootOptionalFeatures() {
     initMusicPlayerFeature();
+    initHomeProfilePanelTransition();
   }
 
   document.addEventListener("site:content-updated", bootOptionalFeatures);
