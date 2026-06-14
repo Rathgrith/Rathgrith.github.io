@@ -10,7 +10,10 @@ main:
     url: "/#publications"
 
   - title: "Awards"
-    url: "/#awards-services"
+    url: "/#awards"
+
+  - title: "Services"
+    url: "/#services"
 
   - title: "Misc"
     url: "/#miscellaneous"

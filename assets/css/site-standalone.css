@@ -49,9 +49,40 @@ body.standalone-page .page__content {
   padding: 40px 0 30px;
 }
 
-.page-header h1::first-letter {
-  color: var(--header-initial-1);
-  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 82%, transparent);
+.page-header h1 {
+  --header-initial: var(--header-initial-1);
+}
+
+.page-header h1::before,
+body.notes-page h1::before {
+  content: none;
+  display: none;
+}
+
+.page-header h1::first-letter,
+body.notes-page :is(h1, h2, h3)::first-letter {
+  color: var(--header-initial, var(--header-initial-1));
+  font-size: 1.08em;
+  background: linear-gradient(
+    180deg,
+    transparent 58%,
+    color-mix(in srgb, var(--header-initial, var(--header-initial-1)) 20%, transparent) 58%
+  );
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--surface) 82%, transparent),
+    0 0 0.62em color-mix(in srgb, var(--header-initial, var(--header-initial-1)) 18%, transparent);
+}
+
+body.notes-page h1 {
+  --header-initial: var(--header-initial-1);
+}
+
+body.notes-page h2 {
+  --header-initial: var(--header-initial-2);
+}
+
+body.notes-page h3 {
+  --header-initial: var(--header-initial-3);
 }
 
 .page-subtitle {
@@ -71,6 +102,7 @@ body.standalone-page .page__content {
 
 /* Gallery page */
 body.gallery-page .gallery-container {
+  box-sizing: border-box;
   width: min(1200px, 90vw);
   margin: 24px auto 0;
   padding: 28px;
@@ -90,6 +122,8 @@ body.gallery-page .gallery {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 body.gallery-page .gallery-item {
@@ -97,6 +131,8 @@ body.gallery-page .gallery-item {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   opacity: 0;
   transform: translateY(20px);
@@ -109,18 +145,26 @@ body.gallery-page .gallery-item.is-visible {
 }
 
 body.gallery-page .gallery a {
+  box-sizing: border-box;
   display: block;
   position: relative;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 82%, var(--text) 18%);
   border-radius: 6px;
   width: 100%;
+  max-width: 100%;
   padding-top: 100%;
   margin: 0 auto;
   background: var(--surface);
   box-shadow:
     0 8px 16px rgba(45, 52, 45, 0.12),
     0 1px 0 color-mix(in srgb, #ffffff 70%, transparent) inset;
+  transform: translateY(0);
+  transition:
+    transform var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color var(--paper-transition-fast, 180ms ease),
+    box-shadow var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color var(--paper-transition-fast, 180ms ease);
 }
 
 body.gallery-page .gallery a::before {
@@ -144,7 +188,7 @@ body.gallery-page .gallery a::after {
     linear-gradient(180deg, transparent 62%, rgba(5, 8, 14, 0.18) 100%),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 9px);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--paper-transition-fast, 180ms ease);
   pointer-events: none;
 }
 
@@ -155,7 +199,22 @@ body.gallery-page .gallery img {
   height: calc(100% - 16px);
   object-fit: cover;
   object-position: center center;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+body.gallery-page .gallery a:hover,
+body.gallery-page .gallery a:focus-visible {
+  border-color: color-mix(in srgb, var(--link) 34%, var(--border) 66%);
+  background-color: color-mix(in srgb, var(--surface) 88%, var(--surface-alt) 12%);
+  box-shadow:
+    var(--paper-lift-shadow, 0 14px 28px rgba(45, 52, 45, 0.14)),
+    0 1px 0 color-mix(in srgb, #ffffff 72%, transparent) inset;
+  transform: translateY(-2px);
+}
+
+body.gallery-page .gallery a:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
 }
 
 body.gallery-page .gallery a:hover::after,
@@ -184,7 +243,10 @@ body.gallery-page .gallery-card__zoom {
   font-size: 0.9rem;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+  transition:
+    opacity var(--paper-transition-fast, 180ms ease),
+    transform var(--paper-transition-fast, 180ms ease),
+    background-color var(--paper-transition-fast, 180ms ease);
   pointer-events: none;
   z-index: 3;
 }
@@ -393,7 +455,11 @@ body.gallery-page .gallery-modal__thumb {
   cursor: pointer;
   opacity: 0.74;
   transform: translateY(0);
-  transition: opacity 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    opacity var(--paper-transition-fast, 180ms ease),
+    border-color var(--paper-transition-fast, 180ms ease),
+    transform var(--paper-transition-fast, 180ms ease),
+    box-shadow var(--paper-transition-fast, 180ms ease);
 }
 
 body.gallery-page .gallery-modal__thumb:hover {
@@ -431,7 +497,10 @@ body.gallery-page .gallery-modal__close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform var(--paper-transition-fast, 180ms ease),
+    border-color var(--paper-transition-fast, 180ms ease),
+    background-color var(--paper-transition-fast, 180ms ease);
 }
 
 body.gallery-page .gallery-modal__nav {
@@ -527,7 +596,11 @@ body.gallery-page .gallery-action.button {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.95rem;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    transform var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color var(--paper-transition-fast, 180ms ease),
+    box-shadow var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
+    background var(--paper-transition-fast, 180ms ease);
 }
 
 body.gallery-page .gallery-action[hidden] {
@@ -539,9 +612,9 @@ body.gallery-page .gallery-actions.is-complete {
 }
 
 body.gallery-page .gallery-action.button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  border-color: var(--link);
-  box-shadow: 0 11px 20px rgba(15, 25, 44, 0.16);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--link) 48%, var(--border) 52%);
+  box-shadow: var(--paper-lift-shadow, 0 14px 28px rgba(45, 52, 45, 0.14));
 }
 
 body.gallery-page .gallery-action__icon {
@@ -680,6 +753,7 @@ body.notes-page .project {
 
 @media (prefers-reduced-motion: reduce) {
   body.gallery-page .gallery-item,
+  body.gallery-page .gallery a,
   body.gallery-page .gallery img,
   body.gallery-page .gallery-action.button,
   body.gallery-page .gallery-action__icon,
@@ -689,6 +763,14 @@ body.notes-page .project {
   .site-button,
   .button {
     transition: none;
+  }
+
+  body.gallery-page .gallery a:hover,
+  body.gallery-page .gallery a:focus-visible,
+  body.gallery-page .gallery a:hover img,
+  body.gallery-page .gallery a:focus-visible img,
+  body.gallery-page .gallery-action.button:hover:not(:disabled) {
+    transform: none;
   }
 
   body.gallery-page .gallery-action.is-loading .gallery-action__spinner {
@@ -701,6 +783,58 @@ body.notes-page .project {
 }
 
 @media (max-width: 48em) {
+  .page-header {
+    padding: 28px 0 22px;
+  }
+
+  .header-inner {
+    width: calc(100% - 1.5rem);
+  }
+
+  body.gallery-page .gallery-container {
+    width: calc(100% - 0.75rem);
+    margin-top: 0.78rem;
+    padding: 0.72rem;
+  }
+
+  body.gallery-page .gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.82rem 0.62rem;
+  }
+
+  body.gallery-page .gallery a {
+    aspect-ratio: 4 / 3;
+    padding-top: 0;
+  }
+
+  body.gallery-page .gallery a::before {
+    border-width: 4px;
+  }
+
+  body.gallery-page .gallery img {
+    inset: 4px;
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
+    background: color-mix(in srgb, var(--surface-alt) 72%, transparent);
+    object-fit: cover;
+  }
+
+  body.gallery-page .gallery-card__zoom {
+    display: none;
+  }
+
+  body.gallery-page .caption {
+    width: 100%;
+    max-width: 14ch;
+    margin-top: 0.34rem;
+    padding: 0 0.08rem;
+    overflow: hidden;
+    font-size: 0.76rem;
+    line-height: 1.18;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   body.gallery-page .gallery-modal__dialog {
     width: calc(100vw - 0.9rem);
     min-height: calc(100vh - 0.9rem);
@@ -743,6 +877,16 @@ body.notes-page .project {
   body.gallery-page .gallery-modal__nav {
     width: 2.34rem;
     height: 2.34rem;
+  }
+}
+
+@media (max-width: 34em) {
+  body.gallery-page .gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.gallery-page .caption {
+    max-width: 12ch;
   }
 }
 
