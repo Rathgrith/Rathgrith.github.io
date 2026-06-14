@@ -5,8 +5,8 @@
   var EXIT_CLASS = "page-transition-out";
   var ENTER_CLASS = "page-transition-enter";
   var ENABLED_CLASS = "page-transition-enabled";
-  var EXIT_DURATION_MS = 180;
-  var ENTER_DURATION_MS = 260;
+  var EXIT_DURATION_MS = 260;
+  var ENTER_DURATION_MS = 360;
   var navigating = false;
   var boundNavigation = false;
   var lastEnterStartedAt = 0;
