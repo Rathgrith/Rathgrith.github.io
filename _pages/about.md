@@ -43,6 +43,15 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 <div class="publication-list">
   <div class="publication-item">
     <div class="publication-item-inner">
+      <div class="publication-thumb-wrap">
+        <span class="publication-tag conference">ECCV 2026</span>
+        <img src="images/peca_eccv2026.png" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
+      </div>
+      <p class="publication-line"><strong>PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</strong><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></p>
+    </div>
+  </div>
+  <div class="publication-item">
+    <div class="publication-item-inner">
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
         <span class="publication-tag conference">NeurIPS 2025</span>
         <img src="images/NIPS25_TTR_VAD.png" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
