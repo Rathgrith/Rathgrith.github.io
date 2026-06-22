@@ -18,9 +18,10 @@ redirect_from:
 
 <p>Thanks for stopping by.</p>
 
-I am a software engineer at [Allsee Technology](https://www.allsee-tech.com/), and a part-time research assistant at [the University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd) under the supervision of [Prof. Jianbo Jiao](https://jianbojiao.com/). I am also fortunate to be collaborating with [Prof. Yunchao Wei](https://weiyc.github.io/) on ongoing research projects.
+I am a PhD student in Computer Science at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd), supervised by [Prof. Jianbo Jiao](https://jianbojiao.com/). Alongside my PhD, I work as a software engineer at [Allsee Technology](https://www.allsee-tech.com/).
 
-Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). During my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en).
+
+Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). Pre-PhD entrance, I was lucky to had a RA-ship under supervision of [Prof. Yunchao Wei](https://weiyc.github.io/).  Earlier than that, during my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) on some research projects.
 
 
 
@@ -28,6 +29,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 # Education
 
+- *2026.01 - Present*, <img src="/images/universities/birmingham-shield.svg" alt="University of Birmingham icon" class="inline-school-icon"> PhD in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd)
 - *2023.08 - 2024.12*, <img src="/images/universities/uiuc.png" alt="UIUC icon" class="inline-school-icon"> MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
 <!-- GPA:3.94/4  -->
 <!-- [[Transcript]](https://rathgrith.github.io/assets/TE89ADTH.pdf) -->
@@ -43,11 +45,11 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 <div class="publication-list">
   <div class="publication-item">
     <div class="publication-item-inner">
-      <div class="publication-thumb-wrap">
+      <a class="publication-thumb-wrap" href="https://rathgrith.github.io/PeCA/" target="_blank" rel="noopener noreferrer">
         <span class="publication-tag conference">ECCV 2026</span>
         <img src="images/peca_eccv2026.png" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
-      </div>
-      <p class="publication-line"><strong>PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</strong><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></p>
+      </a>
+      <p class="publication-line"><a href="https://rathgrith.github.io/PeCA/">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></p>
     </div>
   </div>
   <div class="publication-item">
@@ -75,14 +77,19 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 # Awards
 
 - **[EPSRC Doctoral Landscape Award](https://www.ukri.org/publications/doctoral-landscape-awards/doctoral-landscape-award-investments/):** University Scholarship for PhD Study.
+
 - **[NeurIPS 2025 Scholar Award](https://neurips.cc/Conferences/2025/FinancialAssistance):** Financial assistance to present at [NeurIPS](https://neurips.cc/).
+
+- **[2022‑2023 XJTLU University Academic Excellence Award](https://www.xjtlu.edu.cn/assets/files/scholarships/Threshold_for_202223_AY_UG_Scholarship.pdf)**: 10k RMB scholarship for undergrad.
 
 <span class='anchor' id='services'></span>
 
 # Services
 
+- **Research Internship:** [IDAI](https://www.adzuna.co.uk/jobs/details/5769394456)
 - **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://www.ijcnn.org/), [NeurIPS](https://neurips.cc/).
 - **Software Engineer:** [Allsee Technologies Ltd](https://www.allsee-tech.com/).
+
 
 <span class='anchor' id='miscellaneous'></span>
 
