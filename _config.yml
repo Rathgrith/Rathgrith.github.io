@@ -8,6 +8,8 @@
 # Site Settings
 title                    : "Dongheng Lin"
 description              : ""
+url                      : "https://rathgrith.github.io"
+baseurl                  : ""
 repository               : "Rathgrith/Rathgrith.github.io"
 google_scholar_stats_use_cdn : true
 site_started_at          : "2023-10-28T12:31:48-05:00"
@@ -26,8 +28,8 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 # Site Author
 author:
   name             : "Dongheng Lin"
-  avatar           : "images/avatar_day.png" # Path to your avatar image.
-  avatar_dark      : "images/avatar_night.png"
+  avatar           : "images/avatar_square.png" # Path to your avatar image.
+  avatar_dark      : "images/avatar_square.png"
   bio              : 
   location         : "West Midlands, UK"
   employer         : 
