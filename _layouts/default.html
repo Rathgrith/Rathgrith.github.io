@@ -1,0 +1,47 @@
+---
+layout: compress
+---
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    {% include head.html %}
+    {% include head/custom.html %}
+  </head>
+
+  {% assign body_classes = page.body_class | default: "" %}
+  {% if page.body_class == "home-page" and page.disable_home_loading != true %}
+    {% assign body_classes = body_classes | append: " home-loading" %}
+  {% endif %}
+  <body{% if body_classes != "" %} class="{{ body_classes | strip }}"{% endif %}{% if page.disable_live2d %} data-disable-live2d="true"{% endif %}{% if page.disable_mouse_firework %} data-disable-mouse-firework="true"{% endif %}>
+
+    {% include browser-upgrade.html %}
+    {% if page.body_class == "home-page" and page.disable_home_loading != true %}
+      <div class="home-loading-screen" id="home-loading-screen" aria-live="polite" aria-label="Page loading">
+        <span class="home-loading-screen__label">Now Loading...</span>
+      </div>
+    {% endif %}
+    {% include masthead.html %}
+
+    <div id="main" role="main">
+      {% include sidebar.html %}
+    
+      <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+        {% if page.title %}<meta itemprop="headline" content="{{ page.title | markdownify | strip_html | strip_newlines | escape_once }}">{% endif %}
+        <div class="page__inner-wrap">
+          <section class="page__content" itemprop="text">
+            {{ content }}
+          </section>
+        </div>
+      </article>
+    </div>
+
+    {% include site-runtime-footer.html %}
+    <script>
+      window.__siteLive2DConfig = window.__siteLive2DConfig || {
+        modelPath: "{{ site.live2d_model_path | default: 'https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/kp31_310/model.json' }}"
+      };
+    </script>
+    {% include scripts.html %}
+  </body>
+
+</html>

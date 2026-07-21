@@ -1,0 +1,83 @@
+---
+layout: default
+title: "Gallery"
+permalink: /gallery/
+author_profile: false
+body_class: "standalone-page gallery-page"
+---
+<header class="page-header">
+        <div class="header-inner">
+            <h1>Gallery</h1>
+            <p class="page-subtitle">A selection of 2D images.</p>
+        </div>
+    </header>
+
+    <main
+      class="gallery-container"
+      role="main"
+      data-thumbnail-dir="{{ '/images/gallery/thumbnails/' | relative_url }}"
+      data-original-dir="https://raw.githubusercontent.com/Rathgrith/Rathgrith.github.io/main/images/gallery/originals/"
+    >
+        <div class="gallery" id="gallery">
+            <!-- JavaScript will populate this section -->
+        </div>
+        <div class="gallery-actions" role="group" aria-label="Gallery loading controls">
+            <button
+                type="button"
+                id="load-more"
+                class="button gallery-action"
+                data-default-label="Load more photos"
+                data-done-label="All photos loaded"
+                data-icon="fas fa-plus"
+                data-done-icon="fas fa-check"
+            >
+                <span class="gallery-action__icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
+                <span class="gallery-action__label">Load more photos</span>
+                <span class="gallery-action__spinner" aria-hidden="true"></span>
+            </button>
+            <button
+                type="button"
+                id="load-all"
+                class="button gallery-action"
+                data-default-label="Load all photos"
+                data-done-label="All photos loaded"
+                data-icon="fas fa-layer-group"
+                data-done-icon="fas fa-check"
+            >
+                <span class="gallery-action__icon" aria-hidden="true"><i class="fas fa-layer-group"></i></span>
+                <span class="gallery-action__label">Load all photos</span>
+                <span class="gallery-action__spinner" aria-hidden="true"></span>
+            </button>
+        </div>
+    </main>
+
+    <div class="gallery-modal" id="gallery-modal" aria-hidden="true" hidden>
+        <div class="gallery-modal__backdrop" data-gallery-close></div>
+        <div class="gallery-modal__dialog" role="dialog" aria-modal="true" aria-label="Image preview">
+            <button type="button" class="gallery-modal__close" data-gallery-close aria-label="Close preview">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="gallery-modal__nav gallery-modal__nav--prev" data-gallery-prev aria-label="Previous image">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <figure class="gallery-modal__figure">
+                <div class="gallery-modal__image-stage">
+                    <img id="gallery-modal-image" class="gallery-modal__image" src="" alt="">
+                </div>
+                <figcaption class="gallery-modal__meta">
+                    <div class="gallery-modal__meta-text">
+                        <span id="gallery-modal-caption" class="gallery-modal__caption"></span>
+                        <span id="gallery-modal-gear" class="gallery-modal__gear" hidden></span>
+                    </div>
+                    <span id="gallery-modal-counter" class="gallery-modal__counter"></span>
+                </figcaption>
+                <div id="gallery-modal-strip" class="gallery-modal__strip" role="listbox" aria-label="Thumbnail carousel"></div>
+            </figure>
+            <button type="button" class="gallery-modal__nav gallery-modal__nav--next" data-gallery-next aria-label="Next image">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+
+    <script id="gallery-captions-data" type="application/json">{{ site.data.gallery_captions | jsonify }}</script>
+    <script src="{{ '/assets/js/pages/gallery-page.js' | relative_url }}"></script>

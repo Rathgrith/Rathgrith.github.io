@@ -1,0 +1,17 @@
+<script src="{{ '/assets/js/main.min.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/theme-toggle.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/link-target-policy.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/nav-accessibility.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/page-transition.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/site-runtime-timer.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/pages/site-visits-widget.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/paper-click-effect.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/hover-photo-preview.js' | relative_url }}"></script>
+{% if page.body_class == "home-page" and page.disable_home_loading != true %}<script src="{{ '/assets/js/core/home-loading.js' | relative_url }}"></script>{% endif %}
+<script src="{{ '/assets/js/core/feature-loader.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/live2d-toggle.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/core/live2d-loader.js' | relative_url }}"></script>
+{% unless page.disable_mouse_firework %}<script src="{{ '/assets/js/core/mouse-firework-loader.js' | relative_url }}"></script>{% endunless %}
+
+{% include analytics.html %}
+{% include fetch_google_scholar_stats.html %}

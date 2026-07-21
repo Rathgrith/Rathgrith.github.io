@@ -1,0 +1,37 @@
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        <button
+          type="button"
+          aria-label="Open navigation menu"
+          aria-expanded="false"
+          aria-controls="site-nav-hidden-links"
+        >
+          <div class="navicon"></div>
+        </button>
+        <ul class="visible-links">
+          <li class="masthead__menu-item masthead__menu-item--lg masthead__menu-home-item">
+            <a class="masthead__home-link" href="{{ '/#about-me' | relative_url }}" aria-label="Homepage">
+              <img class="masthead__home-logo" src="{{ '/images/apple-touch-icon.png' | relative_url }}" alt="">
+              <span class="masthead__home-label">HOME</span>
+            </a>
+          </li>
+          {% for link in site.data.navigation.main %}
+            {% assign show_link = true %}
+            {% if link.required_collection %}
+              {% assign required_items = site[link.required_collection] %}
+              {% if required_items == nil or required_items.size == 0 %}
+                {% assign show_link = false %}
+              {% endif %}
+            {% endif %}
+            {% if show_link %}
+              <li class="masthead__menu-item"><a href="{{ domain }}{{ link.url }}">{{ link.title }}</a></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+        <ul class="hidden-links hidden" id="site-nav-hidden-links" aria-label="Collapsed navigation links"></ul>
+      </nav>
+    </div>
+  </div>
+</div>

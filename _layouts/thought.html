@@ -1,0 +1,27 @@
+---
+layout: default
+---
+
+<div class="thought-detail">
+  <p class="thought-detail__meta">
+    <a href="{{ '/thoughts/' | relative_url }}">Thoughts</a>
+    {% if page.date %}
+      <span aria-hidden="true">/</span>
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y.%m.%d" }}</time>
+    {% endif %}
+  </p>
+
+  <h1 class="thought-detail__title">{{ page.title | escape }}</h1>
+
+  {% if page.tags and page.tags.size > 0 %}
+    <p class="thought-tags" aria-label="Tags">
+      {% for tag in page.tags %}
+        <span>{{ tag }}</span>
+      {% endfor %}
+    </p>
+  {% endif %}
+
+  <div class="thought-detail__content">
+    {{ content }}
+  </div>
+</div>

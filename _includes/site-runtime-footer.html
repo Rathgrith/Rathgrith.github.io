@@ -1,0 +1,28 @@
+<footer
+  class="site-runtime"
+  data-site-runtime
+  data-site-start="{{ site.site_started_at | default: '2023-10-28T12:31:48-05:00' }}"
+  data-site-commit="{{ site.site_started_commit | default: '' }}"
+  aria-live="off"
+>
+  <div class="site-runtime__inner">
+    <span class="site-runtime__label">Site Runtime</span>
+    <time class="site-runtime__elapsed" data-site-runtime-elapsed datetime="PT0S">0d 00h 00m 00s</time>
+    <span class="site-runtime__since">since <time data-site-runtime-since datetime="">--</time></span>
+    <span class="site-runtime__divider" aria-hidden="true">·</span>
+    <span class="site-runtime__views" aria-label="Page view counter">
+      <span class="site-runtime__views-label">SITE VIEWS</span>
+      <span
+        class="site-runtime__views-value"
+        id="site-visit-counter"
+        data-site-visit-baseline="{{ site.site_visit_baseline | default: 0 }}"
+      >{{ site.site_visit_baseline | default: 0 }}+</span>
+      <span
+        id="site-visit-widget"
+        data-mapmyvisitors-src="{{ site.site_visit_counter_src | default: '' | escape }}"
+        data-site-visit-baseline="{{ site.site_visit_baseline | default: 0 }}"
+        aria-hidden="true"
+      ></span>
+    </span>
+  </div>
+</footer>
