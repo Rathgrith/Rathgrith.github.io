@@ -29,7 +29,7 @@ baidu_site_verification  :  # get baidu_site_verification from https://ziyuan.ba
 author:
   name             : "Dongheng Lin"
   avatar           : "images/avatar_square.png" # Path to your avatar image.
-  avatar_dark      : "images/avatar_square.png"
+  avatar_dark      : "images/avatar_square_night.png"
   bio              : 
   location         : "West Midlands, UK"
   employer         : 
