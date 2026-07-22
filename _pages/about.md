@@ -23,7 +23,7 @@ I am a PhD student (part-time) in Computer Science at [University of Birmingham]
 
 Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). Pre-PhD entrance, I was lucky to had a RA-ship under supervision of [Prof. Yunchao Wei](https://weiyc.github.io/).  Earlier than that, during my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) on some research projects.
 
-
+Research Interests: Correspondences, Vision for Animation and Open Problems.
 
 <span class='anchor' id='education'></span>
 
