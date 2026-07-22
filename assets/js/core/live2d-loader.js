@@ -41,8 +41,11 @@
 
   function getDisplayConfig() {
     var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1280;
+    var isPhone = viewportWidth < 600;
     var isSmallScreen = viewportWidth < 980;
-    var width = Math.round(Math.max(180, Math.min(360, viewportWidth * 0.24)));
+    var width = isPhone
+      ? Math.round(Math.max(144, Math.min(176, viewportWidth * 0.38)))
+      : Math.round(Math.max(180, Math.min(360, viewportWidth * 0.24)));
     var height = Math.round(width * WIDGET_RATIO);
     var hOffsetRatio = isSmallScreen ? 0.14 : 0.19;
     var vOffsetRatio = isSmallScreen ? 0.55 : 0.6;

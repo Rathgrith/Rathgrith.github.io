@@ -9,12 +9,21 @@
 <div itemscope itemtype="http://schema.org/Person" class="profile_box">
 
   <div class="author__avatar">
-    <img src="{{ avatar_light_url }}" class="author__avatar-image author__avatar-image--light" alt="{{ author.name }}">
-    <img src="{{ avatar_dark_url }}" class="author__avatar-image author__avatar-image--dark" alt="{{ author.name }}">
+    <div class="author__avatar-frame" data-profile-tilt>
+      <span class="author__avatar-aura" aria-hidden="true"></span>
+      <span class="author__avatar-shine" aria-hidden="true"></span>
+      <div class="author__avatar-media">
+        <img src="{{ avatar_light_url }}" class="author__avatar-image author__avatar-image--light" alt="{{ author.name }}">
+        <img src="{{ avatar_dark_url }}" class="author__avatar-image author__avatar-image--dark" alt="">
+      </div>
+      <span class="author__avatar-corner author__avatar-corner--top" aria-hidden="true"></span>
+      <span class="author__avatar-corner author__avatar-corner--bottom" aria-hidden="true"></span>
+    </div>
   </div>
 
   <div class="author__content">
     <h3 class="author__name">{{ author.name }}</h3>
+    <p class="author__role">Research · Engineering</p>
     {% if author.bio %}<p class="author__bio">{{ author.bio }}</p>{% endif %}
   </div>
 
