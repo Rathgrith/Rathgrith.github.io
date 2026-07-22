@@ -49,6 +49,15 @@ body.standalone-page .page__content {
   padding: 40px 0 30px;
 }
 
+html[data-theme="dark"] .page-header {
+  background:
+    radial-gradient(circle at 50% -20%, rgba(75, 139, 178, 0.12), transparent 34rem),
+    linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--surface-alt) 58%, var(--bg) 42%));
+  box-shadow:
+    inset 0 -1px 0 color-mix(in srgb, var(--link) 12%, var(--border) 88%),
+    0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
 .page-header h1 {
   --header-initial: var(--header-initial-1);
 }
@@ -136,7 +145,12 @@ body.gallery-page .gallery-item {
   min-width: 0;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
+  content-visibility: auto;
+  contain: layout paint style;
+  contain-intrinsic-size: auto 250px;
+  transition:
+    opacity 0.45s ease var(--gallery-reveal-delay, 0ms),
+    transform 0.45s ease var(--gallery-reveal-delay, 0ms);
 }
 
 body.gallery-page .gallery-item.is-visible {
@@ -262,6 +276,31 @@ body.gallery-page .caption {
   color: var(--text-muted);
   margin-top: 8px;
   font-style: italic;
+}
+
+html[data-theme="dark"] body.gallery-page .gallery-container {
+  border-color: color-mix(in srgb, var(--link) 12%, var(--border) 88%);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(75, 139, 178, 0.08), transparent 34rem),
+    color-mix(in srgb, var(--surface) 96%, #080d14 4%);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+html[data-theme="dark"] body.gallery-page .gallery a {
+  border-color: color-mix(in srgb, var(--link) 12%, var(--border) 88%);
+  background: #101823;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+html[data-theme="dark"] body.gallery-page .gallery a::before {
+  border-color: color-mix(in srgb, var(--surface-alt) 90%, var(--link) 10%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--border) 84%, transparent),
+    inset 0 12px 20px rgba(0, 0, 0, 0.12);
 }
 
 body.gallery-page.gallery-modal-open {

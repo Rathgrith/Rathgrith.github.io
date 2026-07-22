@@ -7,176 +7,92 @@
   }
   window.__siteGalleryPageScriptBound = true;
 
+  var INITIAL_BATCH_SIZE = 10;
+  var LOAD_BATCH_SIZE = 10;
+  var LOAD_ALL_CHUNK_SIZE = 20;
+  var MODAL_STRIP_RADIUS = 6;
+
+  var state = {
+    gallery: null,
+    captions: {},
+    filenames: [],
+    items: [],
+    thumbnailDir: "",
+    originalDir: "",
+    currentIndex: -1,
+    isOpen: false,
+    triggerElement: null,
+    modalRefs: null,
+    preloaded: {},
+    rendering: false
+  };
+
   function parseCaptions() {
     var dataNode = document.getElementById("gallery-captions-data");
     if (!dataNode) return {};
+
     try {
       var parsed = JSON.parse(dataNode.textContent || "{}");
       return parsed && typeof parsed === "object" ? parsed : {};
-    } catch (e) {
+    } catch (error) {
       return {};
     }
   }
 
-  function getCaptionEntry(filename) {
-    var entry = galleryModalState.captions[filename];
+  function normaliseCaption(filename) {
+    var entry = state.captions[filename];
     if (typeof entry === "string") {
-      return { caption: entry, camera: "", lens: "", gear: "" };
+      return { caption: entry, camera: "", lens: "" };
     }
     if (!entry || typeof entry !== "object") {
-      return { caption: "", camera: "", lens: "", gear: "" };
+      return { caption: "", camera: "", lens: "" };
     }
+
     var camera = entry.camera || "";
     var lens = entry.lens || "";
     var gear = entry.gear || "";
 
-    if ((!camera && !lens) && gear) {
-      if (gear.indexOf(" + ") !== -1) {
-        var parts = gear.split(" + ", 2);
-        camera = parts[0] || "";
-        lens = parts[1] || "";
-      } else {
-        camera = gear;
-      }
+    if (!camera && !lens && gear) {
+      var parts = gear.split(" + ", 2);
+      camera = parts[0] || "";
+      lens = parts[1] || "";
     }
 
     return {
       caption: entry.caption || "",
       camera: camera,
-      lens: lens,
-      gear: gear
+      lens: lens
     };
   }
 
-  function createGearLine(type, value) {
-    if (!value) return null;
-
-    var line = document.createElement("span");
-    line.className = "gallery-gear__item";
-
-    var text = document.createElement("span");
-    text.className = "gallery-gear__value";
-    text.textContent = value;
-
-    line.appendChild(text);
-    return line;
+  function hashString(value) {
+    var hash = 2166136261;
+    for (var i = 0; i < value.length; i += 1) {
+      hash ^= value.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
   }
 
-  function renderGear(ref, entry) {
-    if (!ref) return;
-
-    ref.textContent = "";
-
-    var parts = [];
-
-    if (entry.camera) {
-      parts.push(entry.camera);
-    }
-    if (entry.lens) {
-      parts.push(entry.lens);
-    }
-
-    if (!parts.length) {
-      ref.hidden = true;
-      return;
-    }
-
-    var line = createGearLine("gear", parts.join("  ·  "));
-    if (line) {
-      ref.appendChild(line);
-    }
-
-    ref.hidden = false;
-  }
-
-  function disableLegacyPopupForAnchor(anchor) {
-    if (!anchor) return;
-
-    anchor.classList.remove("image-popup");
-    anchor.removeAttribute("data-mfp-src");
-
-    if (!window.jQuery || !window.jQuery.fn) return;
-    var $anchor = window.jQuery(anchor);
-    if (typeof $anchor.off === "function") {
-      $anchor.off("click.magnificPopup");
-    }
-    if (typeof $anchor.removeData === "function") {
-      $anchor.removeData("magnificPopup");
-    }
-  }
-
-  function disableLegacyPopupInGallery(gallery) {
-    if (!gallery) return;
-    var anchors = gallery.querySelectorAll("a[data-gallery-filename], a.image-popup");
-    Array.prototype.forEach.call(anchors, disableLegacyPopupForAnchor);
-  }
-
-  function scheduleLegacyPopupCleanup(gallery) {
-    if (!gallery) return;
-
-    function cleanup() {
-      disableLegacyPopupInGallery(gallery);
-    }
-
-    [0, 120, 300, 700, 1300, 2600, 5000].forEach(function (delay) {
-      window.setTimeout(cleanup, delay);
+  function stableGalleryOrder(filenames) {
+    return filenames.slice().sort(function (left, right) {
+      return hashString(left) - hashString(right) || left.localeCompare(right);
     });
   }
 
-  function shuffleInPlace(list) {
-    for (var i = list.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var temp = list[i];
-      list[i] = list[j];
-      list[j] = temp;
-    }
-    return list;
-  }
-
-  var galleryModalState = {
-    isOpen: false,
-    currentIndex: -1,
-    filenames: [],
-    captions: {},
-    thumbnailDir: "",
-    originalDir: "",
-    triggerElement: null,
-    galleryElement: null,
-    stripSignature: "",
-    stripButtons: []
-  };
-
-  function collectRenderedModalItems() {
-    var gallery = galleryModalState.galleryElement;
-    if (!gallery) return { filenames: [], anchors: [] };
-
-    var anchors = Array.prototype.slice.call(
-      gallery.querySelectorAll("a[data-gallery-filename]")
-    );
-    var filenames = [];
-
-    anchors = anchors.filter(function (anchor) {
-      var filename = anchor.getAttribute("data-gallery-filename");
-      if (!filename) return false;
-      filenames.push(filename);
-      return true;
-    });
-
-    var nextSignature = filenames.join("\n");
-    if (nextSignature !== galleryModalState.stripSignature) {
-      galleryModalState.stripSignature = "";
-      galleryModalState.stripButtons = [];
-    }
-
-    galleryModalState.filenames = filenames;
-    return { filenames: filenames, anchors: anchors };
+  function createElement(tagName, className, text) {
+    var element = document.createElement(tagName);
+    if (className) element.className = className;
+    if (typeof text === "string") element.textContent = text;
+    return element;
   }
 
   function getModalRefs() {
     var root = document.getElementById("gallery-modal");
     if (!root) return null;
+    if (state.modalRefs && state.modalRefs.root === root) return state.modalRefs;
 
-    return {
+    state.modalRefs = {
       root: root,
       image: document.getElementById("gallery-modal-image"),
       caption: document.getElementById("gallery-modal-caption"),
@@ -185,500 +101,414 @@
       strip: document.getElementById("gallery-modal-strip"),
       closeButton: root.querySelector(".gallery-modal__close")
     };
+    return state.modalRefs;
+  }
+
+  function renderGear(element, entry) {
+    if (!element) return;
+    var parts = [];
+    if (entry.camera) parts.push(entry.camera);
+    if (entry.lens) parts.push(entry.lens);
+
+    element.textContent = parts.join("  ·  ");
+    element.hidden = !parts.length;
+  }
+
+  function renderedFilenames() {
+    return state.items.map(function (item) {
+      return item.filename;
+    });
+  }
+
+  function wrapIndex(index, total) {
+    return total ? (index % total + total) % total : -1;
   }
 
   function preloadModalImage(index) {
-    if (!galleryModalState.filenames.length) return;
+    var total = state.items.length;
+    var normalized = wrapIndex(index, total);
+    if (normalized < 0) return;
 
-    var total = galleryModalState.filenames.length;
-    var normalized = (index + total) % total;
-    var filename = galleryModalState.filenames[normalized];
-    if (!filename) return;
+    var filename = state.items[normalized].filename;
+    if (!filename || state.preloaded[filename]) return;
+    state.preloaded[filename] = true;
 
-    var img = new Image();
-    img.src = galleryModalState.originalDir + filename;
+    var image = new Image();
+    image.decoding = "async";
+    image.src = state.originalDir + filename;
   }
 
-  function buildModalStrip(refs) {
-    if (!refs || !refs.strip) return [];
-
-    var signature = galleryModalState.filenames.join("\n");
-    if (signature !== galleryModalState.stripSignature) {
-      refs.strip.innerHTML = "";
-      galleryModalState.stripButtons = [];
-      galleryModalState.stripSignature = signature;
-
-      var fragment = document.createDocumentFragment();
-      var baseThumbnailDir = galleryModalState.thumbnailDir || galleryModalState.originalDir;
-
-      galleryModalState.filenames.forEach(function (filename, index) {
-        var button = document.createElement("button");
-        button.type = "button";
-        button.className = "gallery-modal__thumb";
-        button.id = "gallery-modal-thumb-" + index;
-        button.setAttribute("data-gallery-thumb-index", String(index));
-        button.setAttribute("role", "option");
-
-        var entry = getCaptionEntry(filename);
-        var caption = entry.caption;
-        var label = caption ? caption + " (" + (index + 1) + ")" : "Image " + (index + 1);
-        button.setAttribute("aria-label", label);
-        if (caption) {
-          button.setAttribute("title", caption);
-        }
-
-        var image = document.createElement("img");
-        image.className = "gallery-modal__thumb-image";
-        image.src = baseThumbnailDir + filename;
-        image.alt = caption || "Thumbnail " + (index + 1);
-        image.loading = "lazy";
-        image.decoding = "async";
-
-        button.appendChild(image);
-        fragment.appendChild(button);
-        galleryModalState.stripButtons.push(button);
-      });
-
-      refs.strip.appendChild(fragment);
+  function modalStripIndices(total, current) {
+    if (total <= MODAL_STRIP_RADIUS * 2 + 1) {
+      return Array.from({ length: total }, function (_, index) { return index; });
     }
 
-    return galleryModalState.stripButtons;
+    var indices = [];
+    for (var offset = -MODAL_STRIP_RADIUS; offset <= MODAL_STRIP_RADIUS; offset += 1) {
+      indices.push(wrapIndex(current + offset, total));
+    }
+    return indices;
   }
 
-  function syncModalStripActive(refs, index) {
+  function renderModalStrip(refs, current) {
     if (!refs || !refs.strip) return;
+    var total = state.items.length;
+    var indices = modalStripIndices(total, current);
+    var fragment = document.createDocumentFragment();
+    var activeId = "";
 
-    var buttons = buildModalStrip(refs);
-    if (!buttons.length) return;
+    indices.forEach(function (index) {
+      var item = state.items[index];
+      var entry = normaliseCaption(item.filename);
+      var button = createElement("button", "gallery-modal__thumb");
+      var buttonId = "gallery-modal-thumb-" + index;
 
-    var activeButton = null;
-    buttons.forEach(function (button, buttonIndex) {
-      var isActive = buttonIndex === index;
-      button.classList.toggle("is-active", isActive);
-      button.setAttribute("aria-selected", isActive ? "true" : "false");
-      if (isActive) {
-        activeButton = button;
-      }
+      button.type = "button";
+      button.id = buttonId;
+      button.setAttribute("data-gallery-thumb-index", String(index));
+      button.setAttribute("role", "option");
+      button.setAttribute("aria-selected", index === current ? "true" : "false");
+      button.setAttribute(
+        "aria-label",
+        entry.caption ? entry.caption + " (" + (index + 1) + ")" : "Image " + (index + 1)
+      );
+      button.classList.toggle("is-active", index === current);
+      if (entry.caption) button.title = entry.caption;
+
+      var image = createElement("img", "gallery-modal__thumb-image");
+      image.src = state.thumbnailDir + item.filename;
+      image.alt = "";
+      image.loading = "lazy";
+      image.decoding = "async";
+      button.appendChild(image);
+      fragment.appendChild(button);
+
+      if (index === current) activeId = buttonId;
     });
 
-    if (!activeButton) return;
-
-    refs.strip.setAttribute("aria-activedescendant", activeButton.id);
-    if (typeof activeButton.scrollIntoView === "function") {
-      var smoothAllowed =
-        !window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      activeButton.scrollIntoView({
-        behavior: smoothAllowed ? "smooth" : "auto",
-        block: "nearest",
-        inline: "center"
-      });
-    }
+    refs.strip.replaceChildren(fragment);
+    if (activeId) refs.strip.setAttribute("aria-activedescendant", activeId);
   }
 
   function updateModalContent() {
     var refs = getModalRefs();
-    if (!refs || !refs.image || !refs.caption || !refs.counter) return;
-    if (!galleryModalState.filenames.length) return;
+    var total = state.items.length;
+    if (!refs || !refs.image || !refs.caption || !refs.counter || !total) return;
 
-    var total = galleryModalState.filenames.length;
-    var index = (galleryModalState.currentIndex + total) % total;
-    var filename = galleryModalState.filenames[index];
-    var entry = getCaptionEntry(filename);
-    var captionText = entry.caption;
+    state.currentIndex = wrapIndex(state.currentIndex, total);
+    var item = state.items[state.currentIndex];
+    var entry = normaliseCaption(item.filename);
 
-    refs.image.src = galleryModalState.originalDir + filename;
-    refs.image.alt = captionText || "Gallery image";
-    refs.caption.textContent = captionText;
-    if (refs.gear) {
-      renderGear(refs.gear, entry);
-    }
-    refs.counter.textContent = index + 1 + " / " + total;
-    syncModalStripActive(refs, index);
+    refs.image.src = state.originalDir + item.filename;
+    refs.image.alt = entry.caption || "Gallery image";
+    refs.caption.textContent = entry.caption;
+    refs.counter.textContent = state.currentIndex + 1 + " / " + total;
+    renderGear(refs.gear, entry);
+    renderModalStrip(refs, state.currentIndex);
 
-    preloadModalImage(index - 1);
-    preloadModalImage(index + 1);
+    preloadModalImage(state.currentIndex - 1);
+    preloadModalImage(state.currentIndex + 1);
   }
 
   function openModal(index, triggerElement) {
     var refs = getModalRefs();
-    if (!refs || !refs.root) return;
-    collectRenderedModalItems();
-    if (!galleryModalState.filenames.length) return;
-    if (index < 0 || index >= galleryModalState.filenames.length) return;
+    if (!refs || !state.items.length || index < 0 || index >= state.items.length) return;
 
-    disableLegacyPopupInGallery(galleryModalState.galleryElement);
-    if (window.jQuery && window.jQuery.magnificPopup && typeof window.jQuery.magnificPopup.close === "function") {
-      window.jQuery.magnificPopup.close();
-    }
-
-    galleryModalState.isOpen = true;
-    galleryModalState.currentIndex = index;
-    galleryModalState.triggerElement = triggerElement || null;
-
+    state.isOpen = true;
+    state.currentIndex = index;
+    state.triggerElement = triggerElement || null;
     refs.root.hidden = false;
     refs.root.setAttribute("aria-hidden", "false");
     document.body.classList.add("gallery-modal-open");
     updateModalContent();
 
-    window.setTimeout(function () {
-      if (refs.closeButton) {
-        refs.closeButton.focus();
-      }
-    }, 0);
+    window.requestAnimationFrame(function () {
+      if (refs.closeButton) refs.closeButton.focus();
+    });
   }
 
   function closeModal() {
     var refs = getModalRefs();
-    if (!refs || !refs.root) return;
-    if (!galleryModalState.isOpen) return;
+    if (!refs || !state.isOpen) return;
 
-    galleryModalState.isOpen = false;
+    state.isOpen = false;
     refs.root.hidden = true;
     refs.root.setAttribute("aria-hidden", "true");
     document.body.classList.remove("gallery-modal-open");
 
-    if (galleryModalState.triggerElement && typeof galleryModalState.triggerElement.focus === "function") {
-      galleryModalState.triggerElement.focus();
+    if (state.triggerElement && document.contains(state.triggerElement)) {
+      state.triggerElement.focus();
     }
+    state.triggerElement = null;
   }
 
   function stepModal(offset) {
-    if (!galleryModalState.isOpen || !galleryModalState.filenames.length) return;
-    var total = galleryModalState.filenames.length;
-    galleryModalState.currentIndex = (galleryModalState.currentIndex + offset + total) % total;
+    if (!state.isOpen || !state.items.length) return;
+    state.currentIndex = wrapIndex(state.currentIndex + offset, state.items.length);
     updateModalContent();
   }
 
   function bindModalEvents() {
     var refs = getModalRefs();
-    if (!refs || !refs.root) return;
-    if (refs.root.getAttribute("data-gallery-modal-bound") === "true") return;
+    if (!refs || refs.root.getAttribute("data-gallery-modal-bound") === "true") return;
     refs.root.setAttribute("data-gallery-modal-bound", "true");
 
     refs.root.addEventListener("click", function (event) {
-      if (event.target.closest("[data-gallery-close]")) {
-        event.preventDefault();
-        closeModal();
-        return;
-      }
-
-      if (event.target.closest("[data-gallery-prev]")) {
-        event.preventDefault();
-        stepModal(-1);
-        return;
-      }
-
-      if (event.target.closest("[data-gallery-next]")) {
-        event.preventDefault();
-        stepModal(1);
-        return;
-      }
-
+      var closeTarget = event.target.closest("[data-gallery-close]");
+      var previousTarget = event.target.closest("[data-gallery-prev]");
+      var nextTarget = event.target.closest("[data-gallery-next]");
       var thumb = event.target.closest("[data-gallery-thumb-index]");
-      if (thumb) {
-        event.preventDefault();
-        var thumbIndex = Number(thumb.getAttribute("data-gallery-thumb-index"));
-        if (!isNaN(thumbIndex)) {
-          galleryModalState.currentIndex = thumbIndex;
+
+      if (closeTarget) closeModal();
+      else if (previousTarget) stepModal(-1);
+      else if (nextTarget) stepModal(1);
+      else if (thumb) {
+        var index = Number(thumb.getAttribute("data-gallery-thumb-index"));
+        if (!isNaN(index)) {
+          state.currentIndex = index;
           updateModalContent();
         }
+      } else {
+        return;
       }
+      event.preventDefault();
     });
+  }
 
+  function bindGlobalKeyboardEvents() {
     if (window.__siteGalleryModalKeyBound) return;
     window.__siteGalleryModalKeyBound = true;
 
     document.addEventListener("keydown", function (event) {
-      if (!galleryModalState.isOpen) return;
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeModal();
-        return;
-      }
-
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        stepModal(-1);
-        return;
-      }
-
-      if (event.key === "ArrowRight") {
-        event.preventDefault();
-        stepModal(1);
-      }
+      if (!state.isOpen) return;
+      if (event.key === "Escape") closeModal();
+      else if (event.key === "ArrowLeft") stepModal(-1);
+      else if (event.key === "ArrowRight") stepModal(1);
+      else return;
+      event.preventDefault();
     });
   }
 
-  function initGalleryPage() {
-    var gallery = document.getElementById("gallery");
-    if (!gallery) {
-      galleryModalState.isOpen = false;
-      galleryModalState.galleryElement = null;
-      document.body.classList.remove("gallery-modal-open");
-      return;
+  function createGalleryItem(filename, indexInBatch) {
+    var entry = normaliseCaption(filename);
+    var anchor = createElement("a");
+    var image = createElement("img");
+    var zoom = createElement("span", "gallery-card__zoom");
+    var icon = createElement("i", "fas fa-search-plus");
+    var caption = createElement("div", "caption", entry.caption);
+    var item = createElement("div", "gallery-item");
+
+    anchor.href = state.originalDir + filename;
+    anchor.setAttribute("data-gallery-filename", filename);
+    anchor.setAttribute("aria-label", entry.caption ? "Open " + entry.caption : "Open image preview");
+
+    image.src = state.thumbnailDir + filename;
+    image.alt = entry.caption || "Gallery image";
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.fetchPriority = indexInBatch < 4 && !state.items.length ? "high" : "low";
+
+    zoom.setAttribute("aria-hidden", "true");
+    zoom.appendChild(icon);
+    anchor.appendChild(image);
+    anchor.appendChild(zoom);
+
+    if (entry.caption) caption.title = entry.caption;
+    item.style.setProperty("--gallery-reveal-delay", Math.min(indexInBatch, 8) * 45 + "ms");
+    item.appendChild(anchor);
+    item.appendChild(caption);
+
+    return { filename: filename, anchor: anchor, element: item };
+  }
+
+  function revealItems(items) {
+    window.requestAnimationFrame(function () {
+      items.forEach(function (item) {
+        item.element.classList.add("is-visible");
+      });
+    });
+  }
+
+  function appendBatch(count) {
+    if (!state.gallery || count <= 0) return 0;
+    var start = state.items.length;
+    var end = Math.min(start + count, state.filenames.length);
+    var fragment = document.createDocumentFragment();
+    var additions = [];
+
+    for (var index = start; index < end; index += 1) {
+      var item = createGalleryItem(state.filenames[index], index - start);
+      state.items.push(item);
+      additions.push(item);
+      fragment.appendChild(item.element);
     }
 
-    var container = gallery.closest(".gallery-container");
-    if (!container) return;
-    if (gallery.getAttribute("data-gallery-bound") === "true") return;
-    gallery.setAttribute("data-gallery-bound", "true");
+    state.gallery.appendChild(fragment);
+    revealItems(additions);
+    return additions.length;
+  }
 
-    var captions = parseCaptions();
-    var thumbnailDir = (container.getAttribute("data-thumbnail-dir") || "").trim();
-    var originalDir = (container.getAttribute("data-original-dir") || "").trim();
+  function setButtonState(button, options) {
+    if (!button) return;
+    var label = button.querySelector(".gallery-action__label");
+    var icon = button.querySelector(".gallery-action__icon i");
 
-    var galleryActions = document.querySelector(".gallery-actions");
-    var loadMoreButton = document.getElementById("load-more");
-    var loadAllButton = document.getElementById("load-all");
+    button.disabled = Boolean(options.disabled);
+    button.classList.toggle("is-loading", Boolean(options.loading));
+    button.setAttribute("aria-busy", options.loading ? "true" : "false");
+    if (label && options.label) label.textContent = options.label;
+    if (icon && options.icon) icon.className = options.icon;
+  }
 
-    var INITIAL_BATCH_SIZE = 10;
-    var LOAD_BATCH_SIZE = 5;
-    var MIN_LOADING_MS = 260;
+  function updateControls(refs) {
+    var complete = state.items.length >= state.filenames.length;
+    if (refs.actions) refs.actions.classList.toggle("is-complete", complete);
 
-    var filenames = shuffleInPlace(Object.keys(captions));
-    var renderedFilenames = [];
-    var currentIndex = 0;
-    var isRenderingBatch = false;
+    if (refs.more) {
+      setButtonState(refs.more, {
+        disabled: complete || state.rendering,
+        loading: false,
+        label: complete ? refs.more.dataset.doneLabel : refs.more.dataset.defaultLabel,
+        icon: complete ? refs.more.dataset.doneIcon : refs.more.dataset.icon
+      });
+    }
 
-    galleryModalState.filenames = renderedFilenames;
-    galleryModalState.captions = captions;
-    galleryModalState.thumbnailDir = thumbnailDir;
-    galleryModalState.originalDir = originalDir;
-    galleryModalState.galleryElement = gallery;
-    galleryModalState.currentIndex = 0;
-    bindModalEvents();
-    scheduleLegacyPopupCleanup(gallery);
+    if (refs.all) {
+      refs.all.hidden = complete;
+      refs.all.setAttribute("aria-hidden", complete ? "true" : "false");
+      refs.all.tabIndex = complete ? -1 : 0;
+      setButtonState(refs.all, {
+        disabled: complete || state.rendering,
+        loading: false,
+        label: complete ? refs.all.dataset.doneLabel : refs.all.dataset.defaultLabel,
+        icon: complete ? refs.all.dataset.doneIcon : refs.all.dataset.icon
+      });
+    }
+  }
 
-    function setButtonLabel(button, text) {
+  function setControlsLoading(refs, activeButton) {
+    [refs.more, refs.all].forEach(function (button) {
       if (!button) return;
-      var label = button.querySelector(".gallery-action__label");
-      if (label) {
-        label.textContent = text;
+      setButtonState(button, {
+        disabled: true,
+        loading: button === activeButton
+      });
+    });
+  }
+
+  function loadAllInChunks(refs, galleryAtStart) {
+    function nextChunk() {
+      if (state.gallery !== galleryAtStart || !document.contains(galleryAtStart)) {
+        state.rendering = false;
         return;
       }
-      button.textContent = text;
-    }
 
-    function setButtonIcon(button, iconClass) {
-      if (!button || !iconClass) return;
-      var icon = button.querySelector(".gallery-action__icon i");
-      if (!icon) return;
-      icon.className = iconClass;
-    }
-
-    function setButtonLoading(button, loading) {
-      if (!button) return;
-      button.classList.toggle("is-loading", loading);
-      button.setAttribute("aria-busy", loading ? "true" : "false");
-    }
-
-    function setCompletedLayout(completed) {
-      if (galleryActions) {
-        galleryActions.classList.toggle("is-complete", completed);
+      appendBatch(LOAD_ALL_CHUNK_SIZE);
+      if (state.items.length < state.filenames.length) {
+        window.requestAnimationFrame(nextChunk);
+        return;
       }
 
-      if (loadAllButton) {
-        loadAllButton.hidden = completed;
-        loadAllButton.style.display = completed ? "none" : "";
-        loadAllButton.setAttribute("aria-hidden", completed ? "true" : "false");
-        if (completed) {
-          loadAllButton.setAttribute("tabindex", "-1");
-        } else {
-          loadAllButton.removeAttribute("tabindex");
-        }
-      }
+      state.rendering = false;
+      updateControls(refs);
     }
+    window.requestAnimationFrame(nextChunk);
+  }
 
-    function createGalleryItem(filename, indexInBatch) {
-      var entry = getCaptionEntry(filename);
-      var thumbnail = document.createElement("a");
-      thumbnail.href = originalDir + filename;
-      thumbnail.setAttribute("data-gallery-filename", filename);
-      thumbnail.setAttribute("aria-label", "Open image preview");
-      disableLegacyPopupForAnchor(thumbnail);
-
-      var img = document.createElement("img");
-      img.src = thumbnailDir + filename;
-      img.alt = entry.caption || "Gallery image";
-      img.loading = "lazy";
-      img.decoding = "async";
-      thumbnail.appendChild(img);
-
-      var zoomIcon = document.createElement("span");
-      zoomIcon.className = "gallery-card__zoom";
-      zoomIcon.setAttribute("aria-hidden", "true");
-      zoomIcon.innerHTML = '<i class="fas fa-search-plus"></i>';
-      thumbnail.appendChild(zoomIcon);
-
-      var caption = document.createElement("div");
-      caption.className = "caption";
-      caption.textContent = entry.caption;
-      if (entry.caption) {
-        caption.title = entry.caption;
-      }
-
-      var item = document.createElement("div");
-      item.className = "gallery-item";
-      item.style.transitionDelay = indexInBatch * 60 + "ms";
-      item.appendChild(thumbnail);
-      item.appendChild(caption);
-
-      return item;
-    }
-
-    function revealItems(items) {
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          items.forEach(function (item) {
-            item.classList.add("is-visible");
-          });
-        });
-      });
-    }
-
-    function updateButtonState() {
-      var remaining = filenames.length - currentIndex;
-      var completed = remaining <= 0;
-      setCompletedLayout(completed);
-
-      if (loadMoreButton) {
-        if (completed) {
-          loadMoreButton.dataset.state = "done";
-          loadMoreButton.disabled = true;
-          setButtonLabel(loadMoreButton, loadMoreButton.dataset.doneLabel || "All photos loaded");
-          setButtonIcon(loadMoreButton, loadMoreButton.dataset.doneIcon || "fas fa-check");
-        } else {
-          loadMoreButton.dataset.state = "ready";
-          loadMoreButton.disabled = false;
-          setButtonLabel(loadMoreButton, loadMoreButton.dataset.defaultLabel || "Load more photos");
-          setButtonIcon(loadMoreButton, loadMoreButton.dataset.icon || "fas fa-plus");
-        }
-      }
-
-      if (loadAllButton) {
-        if (completed) {
-          loadAllButton.dataset.state = "done";
-          loadAllButton.disabled = true;
-          setButtonLabel(loadAllButton, loadAllButton.dataset.doneLabel || "All photos loaded");
-          setButtonIcon(loadAllButton, loadAllButton.dataset.doneIcon || "fas fa-check");
-        } else {
-          loadAllButton.dataset.state = "ready";
-          loadAllButton.disabled = false;
-          setButtonLabel(loadAllButton, loadAllButton.dataset.defaultLabel || "Load all photos");
-          setButtonIcon(loadAllButton, loadAllButton.dataset.icon || "fas fa-layer-group");
-        }
-      }
-    }
-
-    function renderNextBatch(batchSize) {
-      if (currentIndex >= filenames.length || batchSize <= 0) return;
-
-      var nextFiles = filenames.slice(currentIndex, currentIndex + batchSize);
-      var fragment = document.createDocumentFragment();
-      var newItems = [];
-
-      nextFiles.forEach(function (filename, indexInBatch) {
-        var item = createGalleryItem(filename, indexInBatch);
-        fragment.appendChild(item);
-        newItems.push(item);
-        renderedFilenames.push(filename);
-      });
-
-      gallery.appendChild(fragment);
-      scheduleLegacyPopupCleanup(gallery);
-      revealItems(newItems);
-      currentIndex += nextFiles.length;
-    }
-
-    function setLoadingControls(activeButton, loading) {
-      [loadMoreButton, loadAllButton].forEach(function (button) {
-        if (!button) return;
-
-        if (loading) {
-          button.disabled = true;
-          setButtonLoading(button, button === activeButton);
-          return;
-        }
-
-        setButtonLoading(button, false);
-      });
-    }
-
-    function runBatchAction(button, batchSizeGetter) {
-      if (!button || isRenderingBatch || button.disabled) return;
-
-      isRenderingBatch = true;
-      setLoadingControls(button, true);
-      var start = Date.now();
-      var batchSize = batchSizeGetter();
-
-      requestAnimationFrame(function () {
-        renderNextBatch(batchSize);
-
-        var elapsed = Date.now() - start;
-        var wait = Math.max(0, MIN_LOADING_MS - elapsed);
-
-        window.setTimeout(function () {
-          isRenderingBatch = false;
-          updateButtonState();
-          setLoadingControls(null, false);
-        }, wait);
-      });
-    }
-
-    if (loadMoreButton) {
-      loadMoreButton.addEventListener("click", function () {
-        runBatchAction(loadMoreButton, function () {
-          return LOAD_BATCH_SIZE;
-        });
-      });
-    }
-
-    if (loadAllButton) {
-      loadAllButton.addEventListener("click", function () {
-        runBatchAction(loadAllButton, function () {
-          return filenames.length - currentIndex;
-        });
-      });
-    }
-
-    gallery.addEventListener("click", function (event) {
-      var target = event.target;
-      if (!target) return;
-
-      var link = target.closest("a[data-gallery-filename]");
-      if (!link || !gallery.contains(link)) return;
-
+  function bindGalleryEvents(refs) {
+    state.gallery.addEventListener("click", function (event) {
+      var anchor = event.target.closest("a[data-gallery-filename]");
+      if (!anchor || !state.gallery.contains(anchor)) return;
       event.preventDefault();
       event.stopPropagation();
       if (typeof event.stopImmediatePropagation === "function") {
         event.stopImmediatePropagation();
       }
 
-      var filename = link.getAttribute("data-gallery-filename");
-      if (!filename) return;
-
-      var rendered = collectRenderedModalItems();
-      var index = rendered.anchors.indexOf(link);
-      if (index < 0) {
-        index = rendered.filenames.indexOf(filename);
-      }
-      if (index < 0) return;
-
-      openModal(index, link);
+      var index = state.items.findIndex(function (item) {
+        return item.anchor === anchor;
+      });
+      if (index >= 0) openModal(index, anchor);
     }, true);
 
-    renderNextBatch(INITIAL_BATCH_SIZE);
-    updateButtonState();
+    if (refs.more) {
+      refs.more.addEventListener("click", function () {
+        if (state.rendering) return;
+        state.rendering = true;
+        setControlsLoading(refs, refs.more);
+        window.requestAnimationFrame(function () {
+          appendBatch(LOAD_BATCH_SIZE);
+          state.rendering = false;
+          updateControls(refs);
+        });
+      });
+    }
+
+    if (refs.all) {
+      refs.all.addEventListener("click", function () {
+        if (state.rendering) return;
+        state.rendering = true;
+        setControlsLoading(refs, refs.all);
+        loadAllInChunks(refs, state.gallery);
+      });
+    }
+  }
+
+  function resetState() {
+    state.gallery = null;
+    state.items = [];
+    state.currentIndex = -1;
+    state.isOpen = false;
+    state.triggerElement = null;
+    state.modalRefs = null;
+    state.preloaded = {};
+    state.rendering = false;
+    document.body.classList.remove("gallery-modal-open");
+  }
+
+  function initGalleryPage() {
+    var gallery = document.getElementById("gallery");
+    if (!gallery) {
+      resetState();
+      return;
+    }
+    if (gallery.getAttribute("data-gallery-bound") === "true") return;
+
+    var container = gallery.closest(".gallery-container");
+    if (!container) return;
+    gallery.setAttribute("data-gallery-bound", "true");
+
+    state.gallery = gallery;
+    state.captions = parseCaptions();
+    state.filenames = stableGalleryOrder(Object.keys(state.captions));
+    state.items = [];
+    state.thumbnailDir = (container.getAttribute("data-thumbnail-dir") || "").trim();
+    state.originalDir = (container.getAttribute("data-original-dir") || "").trim();
+    state.currentIndex = -1;
+    state.isOpen = false;
+    state.modalRefs = null;
+    state.preloaded = {};
+    state.rendering = false;
+
+    var refs = {
+      actions: container.querySelector(".gallery-actions"),
+      more: container.querySelector("#load-more"),
+      all: container.querySelector("#load-all")
+    };
+
+    bindModalEvents();
+    bindGlobalKeyboardEvents();
+    bindGalleryEvents(refs);
+    appendBatch(INITIAL_BATCH_SIZE);
+    updateControls(refs);
   }
 
   window.__siteInitGalleryPage = initGalleryPage;
+  document.addEventListener("site:content-updated", initGalleryPage);
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initGalleryPage);
   } else {
     initGalleryPage();
   }
-  document.addEventListener("site:content-updated", initGalleryPage);
 })();

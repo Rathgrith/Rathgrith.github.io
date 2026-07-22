@@ -193,6 +193,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  transition: filter 240ms ease, transform 240ms ease;
 }
 
 .publication-line {
@@ -377,7 +378,7 @@ html[data-theme="dark"] .paper-box .paper-box-image img {
 }
 
 html[data-theme="dark"] .paper-box .paper-box-image img.paper-preview {
-  filter: brightness(0.97) saturate(0.88) contrast(0.98);
+  filter: invert(0.88) hue-rotate(178deg) brightness(0.9) contrast(0.96) saturate(0.76);
 }
 
 .publication-thumb.paper-preview {
@@ -386,12 +387,17 @@ html[data-theme="dark"] .paper-box .paper-box-image img.paper-preview {
 
 html[data-theme="dark"] .publication-thumb {
   border-radius: 7px;
-  background: #111720;
+  background: #0d1520;
   box-shadow: none;
 }
 
 html[data-theme="dark"] .publication-thumb.paper-preview {
-  filter: brightness(0.88) saturate(0.78) contrast(0.96);
+  filter: invert(0.88) hue-rotate(178deg) brightness(0.9) contrast(0.96) saturate(0.76);
+}
+
+html[data-theme="dark"] .publication-thumb-wrap:hover .publication-thumb.paper-preview,
+html[data-theme="dark"] .publication-thumb-wrap:focus-visible .publication-thumb.paper-preview {
+  filter: invert(0.88) hue-rotate(178deg) brightness(0.96) contrast(0.98) saturate(0.84);
 }
 
 html[data-theme="dark"] .publication-item {
@@ -407,12 +413,14 @@ html[data-theme="dark"] .publication-item {
 }
 
 html[data-theme="dark"] .publication-thumb-wrap {
-  border-color: var(--border);
+  border-color: color-mix(in srgb, var(--link) 18%, var(--border) 82%);
   background:
-    repeating-linear-gradient(0deg, rgba(245, 244, 232, 0.025) 0, rgba(245, 244, 232, 0.025) 1px, transparent 1px, transparent 5px),
-    #242820;
+    radial-gradient(circle at 50% 0%, rgba(139, 197, 209, 0.09), transparent 70%),
+    #0d1520;
   padding: 0.24rem;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
+  box-shadow:
+    0 9px 22px rgba(0, 0, 0, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025);
 }
 
 html[data-theme="dark"] .publication-thumb-wrap::after {
@@ -420,11 +428,9 @@ html[data-theme="dark"] .publication-thumb-wrap::after {
   position: absolute;
   inset: 0.24rem;
   border-radius: 7px;
-  background: linear-gradient(
-    180deg,
-    rgba(8, 11, 16, 0.08) 0%,
-    rgba(8, 11, 16, 0.22) 100%
-  );
+  background:
+    linear-gradient(180deg, rgba(139, 197, 209, 0.035), transparent 36%),
+    radial-gradient(circle at 50% 50%, transparent 58%, rgba(4, 8, 14, 0.2) 100%);
   pointer-events: none;
   z-index: 2;
 }
