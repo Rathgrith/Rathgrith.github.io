@@ -1,42 +1,4 @@
 ---
-- id: figures
-  title: Figures & Characters
-  description: Portrait studies, figurines, and familiar characters.
-  items:
-    - RATH3037.jpg
-    - RATH3602.jpg
-    - RATH3135-2.jpg
-    - RATH4513.jpg
-    - saber.jpg
-    - shinobu.jpg
-    - flan.jpg
-    - pathouli.jpg
-    - youmu.png
-    - sanae.jpg
-    - altina.jpg
-    - marisa.png
-    - RATH2214.jpg
-    - RATH3317.jpg
-    - RATH4226.jpg
-    - RATH3081.jpg
-    - RATH6253.jpg
-    - alice.jpg
-    - mayoi.jpg
-    - meiling.jpg
-    - reimu.jpg
-    - sora.jpg
-    - sakura_kimono.jpg
-    - nekomata.jpg
-    - nekopara.jpg
-    - miyako.jpg
-    - moukou.jpg
-    - foreigner.jpg
-    - marine.jpg
-    - shimakaze.jpg
-    - 1751695639015.jpeg
-    - RATH8162-enhanced-denoise.jpg
-    - RATH8183-enhanced-denoise.jpg
-
 - id: nature
   title: Nature & Seasons
   description: Weather, wildlife, changing light, and seasonal colour.
@@ -123,3 +85,41 @@
     - window.jpg
     - docker.jpg
     - tea.jpg
+
+- id: figures
+  title: Figures & Characters
+  description: Portrait studies, figurines, and familiar characters.
+  items:
+    - RATH3037.jpg
+    - RATH3602.jpg
+    - RATH3135-2.jpg
+    - RATH4513.jpg
+    - saber.jpg
+    - shinobu.jpg
+    - flan.jpg
+    - pathouli.jpg
+    - youmu.png
+    - sanae.jpg
+    - altina.jpg
+    - marisa.png
+    - RATH2214.jpg
+    - RATH3317.jpg
+    - RATH4226.jpg
+    - RATH3081.jpg
+    - RATH6253.jpg
+    - alice.jpg
+    - mayoi.jpg
+    - meiling.jpg
+    - reimu.jpg
+    - sora.jpg
+    - sakura_kimono.jpg
+    - nekomata.jpg
+    - nekopara.jpg
+    - miyako.jpg
+    - moukou.jpg
+    - foreigner.jpg
+    - marine.jpg
+    - shimakaze.jpg
+    - 1751695639015.jpeg
+    - RATH8162-enhanced-denoise.jpg
+    - RATH8183-enhanced-denoise.jpg
