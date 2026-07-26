@@ -1,0 +1,184 @@
+/*
+ * Local layout additions for publication filtering, Miscellaneous cards,
+ * and themed Gallery groups. Global presentation remains in liquid-glass.css.
+ */
+
+.publication-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.65rem 0 0.8rem;
+}
+
+.publication-filter__label {
+  margin-right: 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.publication-filter__button {
+  appearance: none;
+  padding: 0.38rem 0.72rem;
+  border: 1px solid var(--glass-stroke);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, var(--glass-highlight), transparent 46%),
+    var(--glass-fill-soft);
+  color: var(--text-muted);
+  box-shadow: var(--glass-inset);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.publication-filter__button:hover,
+.publication-filter__button:focus-visible {
+  border-color: color-mix(in srgb, var(--liquid-cyan) 54%, var(--glass-stroke));
+  color: var(--link);
+  transform: translateY(-1px);
+}
+
+.publication-filter__button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--liquid-cyan) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.publication-filter__button.is-active {
+  border-color: color-mix(in srgb, var(--liquid-cyan) 64%, var(--glass-stroke));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--glass-highlight) 82%, transparent), transparent 46%),
+    color-mix(in srgb, var(--glass-fill-strong) 78%, var(--liquid-cyan) 22%);
+  color: var(--text);
+  box-shadow: var(--glass-inset), 0 7px 18px color-mix(in srgb, var(--liquid-cyan) 20%, transparent);
+}
+
+.publication-filter__count {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.publication-item[hidden] {
+  display: none;
+}
+
+.misc-showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 0.85rem;
+  margin: 0.8rem 0 1.25rem;
+}
+
+.misc-showcase__panel {
+  position: relative;
+  padding: 1rem 1.05rem 0.9rem;
+  overflow: visible;
+  border: 1px solid var(--glass-stroke);
+  border-radius: var(--glass-radius-small);
+  background:
+    linear-gradient(135deg, var(--glass-highlight) 0%, transparent 32%),
+    linear-gradient(160deg, var(--glass-fill-strong), var(--glass-fill));
+  box-shadow: var(--glass-inset), 0 12px 28px rgba(31, 82, 106, 0.1);
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+  backdrop-filter: blur(16px) saturate(145%);
+}
+
+.misc-showcase__panel::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 1rem;
+  width: 2.5rem;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--liquid-cyan), var(--liquid-violet));
+}
+
+.misc-showcase__panel p {
+  margin: 0 0 0.72rem;
+}
+
+.misc-showcase__panel p:last-child {
+  margin-bottom: 0;
+}
+
+body.gallery-page .gallery-groups {
+  display: grid;
+  gap: clamp(2.25rem, 5vw, 4rem);
+}
+
+body.gallery-page .gallery-group {
+  position: relative;
+}
+
+body.gallery-page .gallery-group + .gallery-group {
+  padding-top: clamp(1.8rem, 4vw, 3rem);
+  border-top: 1px solid var(--glass-stroke-soft);
+}
+
+body.gallery-page .gallery-group__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.52fr);
+  align-items: end;
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+body.gallery-page .gallery-group__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  letter-spacing: -0.035em;
+}
+
+body.gallery-page .gallery-group__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.7rem;
+  height: 1.7rem;
+  padding: 0 0.38rem;
+  border: 1px solid var(--glass-stroke);
+  border-radius: 999px;
+  background: var(--glass-fill-soft);
+  color: var(--text-muted);
+  box-shadow: var(--glass-inset);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+body.gallery-page .gallery-group__description {
+  justify-self: end;
+  max-width: 30rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  text-align: right;
+}
+
+@media (max-width: 48em) {
+  .misc-showcase {
+    grid-template-columns: 1fr;
+  }
+
+  body.gallery-page .gallery-group__header {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+
+  body.gallery-page .gallery-group__description {
+    justify-self: start;
+    text-align: left;
+  }
+}

@@ -45,7 +45,7 @@ Research Interests: Correspondences, Vision for Animation and Open Problems.
 <div class="publication-filter" role="group" aria-label="Choose which publications to show">
   <span class="publication-filter__label">Show</span>
   <button class="publication-filter__button is-active" type="button" data-publication-filter="selected" aria-pressed="true">Selected</button>
-  <button class="publication-filter__button" type="button" data-publication-filter="all" aria-pressed="false">All</button>
+  <button class="publication-filter__button" type="button" data-publication-filter="all" aria-pressed="false">More</button>
   <span class="publication-filter__count" aria-live="polite"><span data-publication-count>3</span> papers</span>
 </div>
 
