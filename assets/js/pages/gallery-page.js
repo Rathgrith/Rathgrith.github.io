@@ -7,15 +7,16 @@
   }
   window.__siteGalleryPageScriptBound = true;
 
-  var INITIAL_BATCH_SIZE = 10;
-  var LOAD_BATCH_SIZE = 10;
-  var LOAD_ALL_CHUNK_SIZE = 20;
+  var INITIAL_ITEMS_PER_GROUP = 6;
+  var LOAD_ITEMS_PER_GROUP = 4;
+  var LOAD_ALL_CHUNK_PER_GROUP = 10;
   var MODAL_STRIP_RADIUS = 6;
 
   var state = {
     gallery: null,
     captions: {},
     filenames: [],
+    groups: [],
     items: [],
     thumbnailDir: "",
     originalDir: "",
@@ -36,6 +37,18 @@
       return parsed && typeof parsed === "object" ? parsed : {};
     } catch (error) {
       return {};
+    }
+  }
+
+  function parseGroupConfig() {
+    var dataNode = document.getElementById("gallery-groups-data");
+    if (!dataNode) return [];
+
+    try {
+      var parsed = JSON.parse(dataNode.textContent || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
     }
   }
 
@@ -65,19 +78,44 @@
     };
   }
 
-  function hashString(value) {
-    var hash = 2166136261;
-    for (var i = 0; i < value.length; i += 1) {
-      hash ^= value.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-  }
+  function buildGroups(config) {
+    var known = new Set(Object.keys(state.captions));
+    var assigned = new Set();
+    var groups = [];
 
-  function stableGalleryOrder(filenames) {
-    return filenames.slice().sort(function (left, right) {
-      return hashString(left) - hashString(right) || left.localeCompare(right);
+    config.forEach(function (entry, index) {
+      if (!entry || !Array.isArray(entry.items)) return;
+      var filenames = entry.items.filter(function (filename) {
+        if (!known.has(filename) || assigned.has(filename)) return false;
+        assigned.add(filename);
+        return true;
+      });
+      if (!filenames.length) return;
+
+      groups.push({
+        id: String(entry.id || "group-" + index),
+        title: String(entry.title || "Collection"),
+        description: String(entry.description || ""),
+        filenames: filenames,
+        rendered: [],
+        grid: null
+      });
     });
+
+    var ungrouped = Array.from(known).filter(function (filename) {
+      return !assigned.has(filename);
+    });
+    if (ungrouped.length) {
+      groups.push({
+        id: "other",
+        title: "Other",
+        description: "",
+        filenames: ungrouped,
+        rendered: [],
+        grid: null
+      });
+    }
+    return groups;
   }
 
   function createElement(tagName, className, text) {
@@ -85,6 +123,33 @@
     if (className) element.className = className;
     if (typeof text === "string") element.textContent = text;
     return element;
+  }
+
+  function createGroupSections() {
+    var fragment = document.createDocumentFragment();
+
+    state.groups.forEach(function (group, groupIndex) {
+      var section = createElement("section", "gallery-group");
+      var header = createElement("header", "gallery-group__header");
+      var heading = createElement("h2", "gallery-group__title", group.title);
+      var count = createElement("span", "gallery-group__count", String(group.filenames.length));
+      var description = createElement("p", "gallery-group__description", group.description);
+      var grid = createElement("div", "gallery");
+
+      heading.id = "gallery-group-" + group.id;
+      section.setAttribute("aria-labelledby", heading.id);
+      section.style.setProperty("--gallery-group-index", String(groupIndex));
+      grid.setAttribute("data-gallery-group", group.id);
+      heading.appendChild(count);
+      header.appendChild(heading);
+      if (group.description) header.appendChild(description);
+      section.appendChild(header);
+      section.appendChild(grid);
+      fragment.appendChild(section);
+      group.grid = grid;
+    });
+
+    state.gallery.replaceChildren(fragment);
   }
 
   function getModalRefs() {
@@ -289,7 +354,7 @@
     });
   }
 
-  function createGalleryItem(filename, indexInBatch) {
+  function createGalleryItem(filename, indexInBatch, isInitialGroup) {
     var entry = normaliseCaption(filename);
     var anchor = createElement("a");
     var image = createElement("img");
@@ -306,7 +371,7 @@
     image.alt = entry.caption || "Gallery image";
     image.loading = "lazy";
     image.decoding = "async";
-    image.fetchPriority = indexInBatch < 4 && !state.items.length ? "high" : "low";
+    image.fetchPriority = isInitialGroup && indexInBatch < 2 ? "high" : "low";
 
     zoom.setAttribute("aria-hidden", "true");
     zoom.appendChild(icon);
@@ -329,23 +394,38 @@
     });
   }
 
-  function appendBatch(count) {
-    if (!state.gallery || count <= 0) return 0;
-    var start = state.items.length;
-    var end = Math.min(start + count, state.filenames.length);
+  function rebuildItemOrder() {
+    state.items = state.groups.reduce(function (items, group) {
+      return items.concat(group.rendered);
+    }, []);
+  }
+
+  function appendGroupBatch(group, count, groupIndex) {
+    if (!group.grid || count <= 0) return 0;
+    var start = group.rendered.length;
+    var end = Math.min(start + count, group.filenames.length);
     var fragment = document.createDocumentFragment();
     var additions = [];
 
     for (var index = start; index < end; index += 1) {
-      var item = createGalleryItem(state.filenames[index], index - start);
-      state.items.push(item);
+      var item = createGalleryItem(group.filenames[index], index - start, groupIndex === 0 && start === 0);
+      group.rendered.push(item);
       additions.push(item);
       fragment.appendChild(item.element);
     }
 
-    state.gallery.appendChild(fragment);
+    group.grid.appendChild(fragment);
     revealItems(additions);
     return additions.length;
+  }
+
+  function appendBalancedBatch(countPerGroup) {
+    var added = 0;
+    state.groups.forEach(function (group, groupIndex) {
+      added += appendGroupBatch(group, countPerGroup, groupIndex);
+    });
+    rebuildItemOrder();
+    return added;
   }
 
   function setButtonState(button, options) {
@@ -403,7 +483,7 @@
         return;
       }
 
-      appendBatch(LOAD_ALL_CHUNK_SIZE);
+      appendBalancedBatch(LOAD_ALL_CHUNK_PER_GROUP);
       if (state.items.length < state.filenames.length) {
         window.requestAnimationFrame(nextChunk);
         return;
@@ -437,7 +517,7 @@
         state.rendering = true;
         setControlsLoading(refs, refs.more);
         window.requestAnimationFrame(function () {
-          appendBatch(LOAD_BATCH_SIZE);
+          appendBalancedBatch(LOAD_ITEMS_PER_GROUP);
           state.rendering = false;
           updateControls(refs);
         });
@@ -456,6 +536,7 @@
 
   function resetState() {
     state.gallery = null;
+    state.groups = [];
     state.items = [];
     state.currentIndex = -1;
     state.isOpen = false;
@@ -480,7 +561,10 @@
 
     state.gallery = gallery;
     state.captions = parseCaptions();
-    state.filenames = stableGalleryOrder(Object.keys(state.captions));
+    state.groups = buildGroups(parseGroupConfig());
+    state.filenames = state.groups.reduce(function (filenames, group) {
+      return filenames.concat(group.filenames);
+    }, []);
     state.items = [];
     state.thumbnailDir = (container.getAttribute("data-thumbnail-dir") || "").trim();
     state.originalDir = (container.getAttribute("data-original-dir") || "").trim();
@@ -489,6 +573,7 @@
     state.modalRefs = null;
     state.preloaded = {};
     state.rendering = false;
+    createGroupSections();
 
     var refs = {
       actions: container.querySelector(".gallery-actions"),
@@ -499,7 +584,7 @@
     bindModalEvents();
     bindGlobalKeyboardEvents();
     bindGalleryEvents(refs);
-    appendBatch(INITIAL_BATCH_SIZE);
+    appendBalancedBatch(INITIAL_ITEMS_PER_GROUP);
     updateControls(refs);
   }
 

@@ -40,10 +40,17 @@ Research Interests: Correspondences, Vision for Animation and Open Problems.
 <span class='anchor' id='publications'></span>
 
 <!-- blue conference, red transactions/journal, green preprints -->
-# Selected Publications
+# Publications
 
-<div class="publication-list">
-  <div class="publication-item">
+<div class="publication-filter" role="group" aria-label="Choose which publications to show">
+  <span class="publication-filter__label">Show</span>
+  <button class="publication-filter__button is-active" type="button" data-publication-filter="selected" aria-pressed="true">Selected</button>
+  <button class="publication-filter__button" type="button" data-publication-filter="all" aria-pressed="false">All</button>
+  <span class="publication-filter__count" aria-live="polite"><span data-publication-count>3</span> papers</span>
+</div>
+
+<div class="publication-list" data-publication-list data-publication-mode="selected">
+  <div class="publication-item" data-publication-selected="true">
     <div class="publication-item-inner">
       <a class="publication-thumb-wrap" href="/assets/peca_eccv2026.pdf" target="_blank" rel="noopener noreferrer">
         <span class="publication-tag conference">ECCV 2026</span>
@@ -52,7 +59,7 @@ Research Interests: Correspondences, Vision for Animation and Open Problems.
       <p class="publication-line"><a href="/assets/peca_eccv2026.pdf">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></p>
     </div>
   </div>
-  <div class="publication-item">
+  <div class="publication-item" data-publication-selected="true">
     <div class="publication-item-inner">
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
         <span class="publication-tag conference">NeurIPS 2025</span>
@@ -61,13 +68,22 @@ Research Interests: Correspondences, Vision for Animation and Open Problems.
       <p class="publication-line"><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></p>
     </div>
   </div>
-  <div class="publication-item">
+  <div class="publication-item" data-publication-selected="true">
     <div class="publication-item-inner">
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=f1MYOG4iDG" target="_blank" rel="noopener noreferrer">
         <span class="publication-tag journal">TMLR 2025</span>
         <img src="images/timerep3.png" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
       </a>
       <p class="publication-line"><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></p>
+    </div>
+  </div>
+  <div class="publication-item" data-publication-selected="false" hidden>
+    <div class="publication-item-inner">
+      <a class="publication-thumb-wrap" href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf" target="_blank" rel="noopener noreferrer">
+        <span class="publication-tag conference">BMVC 2025</span>
+        <img src="/images/papers/audio_visual_separation_bmvc2025.png" alt="BMVC 2025 audio-visual separation method preview" class="publication-thumb paper-preview">
+      </a>
+      <p class="publication-line"><a href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf">Audio-Visual Separation with Hierarchical Fusion and Representation Alignment</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao</span></p>
     </div>
   </div>
 </div>
@@ -96,22 +112,19 @@ Research Interests: Correspondences, Vision for Animation and Open Problems.
 # Miscellaneous
 
 
-Favorite manga chapter: <a class="hover-photo hover-photo--manga" href="https://www.pixiv.net/artworks/37362275" target="_blank" rel="noopener noreferrer">Nostalgic Ocean Landscape<span class="hover-photo__card" aria-hidden="true"><img src="/images/nol_preview.png" alt=""></span></a>.
-
-Favorite visual novel: <a class="hover-photo hover-photo--narcissu" href="https://en.wikipedia.org/wiki/Narcissu" target="_blank" rel="noopener noreferrer">Narcissu<span class="hover-photo__card" aria-hidden="true"><img src="/images/narcissu-logo.png" alt="Narcissu logo" loading="lazy" decoding="async"></span></a>.
-
-I used to make amateur <span class="hover-photo hover-photo--views" tabindex="0">3D animations<span class="hover-photo__card" aria-hidden="true"><img src="/images/views.png" alt="Creator stats showing 26.4万 plays."></span></span>, those skills are very rusty now...
-
-
-
-
-
-
+<div class="misc-showcase">
+  <div class="misc-showcase__panel">
+    <p>Favorite manga fanbook(s): <a class="hover-photo hover-photo--manga" href="https://www.pixiv.net/artworks/37362275" target="_blank" rel="noopener noreferrer">Nostalgic Ocean Landscape<span class="hover-photo__card" aria-hidden="true"><img src="/images/nol_preview.png" alt=""></span></a>.</p>
+    <p><a class="hover-photo hover-photo--manga" href="https://www.pixiv.net/artworks/37362275" target="_blank" rel="noopener noreferrer">Phantom Walk at Night<span class="hover-photo__card" aria-hidden="true"><img src="https://pbs.twimg.com/media/G7DFfZzbgAAZ8DN?format=jpg&name=4096x4096" alt=""></span></a>.</p>
+    <p>Favorite visual novel: <a class="hover-photo hover-photo--narcissu" href="https://en.wikipedia.org/wiki/Narcissu" target="_blank" rel="noopener noreferrer">Narcissu<span class="hover-photo__card" aria-hidden="true"><img src="/images/narcissu-logo.png" alt="Narcissu logo" loading="lazy" decoding="async"></span></a>.</p>
+  </div>
+  <div class="misc-showcase__panel">
+    <p>I used to make amateur <span class="hover-photo hover-photo--views" tabindex="0">3D animations<span class="hover-photo__card" aria-hidden="true"><img src="/images/views.png" alt="Creator stats showing 26.4万 plays."></span></span>, those skills are very rusty now...</p>
+    <p>I also enjoy <a class="hover-photo hover-photo--gallery" href="/gallery/" data-gallery-hover-preview data-gallery-preview="RATH6538.jpg" data-gallery-thumbnail-dir="/images/gallery/thumbnails/">photography<span class="hover-photo__card" aria-hidden="true"><img src="" alt="" loading="lazy" decoding="async"></span></a>, <a class="hover-photo hover-photo--balcony" href="/images/IMG20260419144241.jpg" target="_blank" rel="noopener noreferrer">balcony gardening<span class="hover-photo__card" aria-hidden="true"><img src="/images/balcony-gardening-thumb.jpg" alt=""></span></a>, and <a class="hover-photo hover-photo--doujin" href="https://en.wikipedia.org/wiki/Doujin_music" target="_blank" rel="noopener noreferrer">doujin music<span class="hover-photo__card" aria-hidden="true"><img src="/images/04af8e6b10eb61f0e9b4a0264aae7ff9.jpeg" alt="" loading="lazy" decoding="async"></span></a>.</p>
+  </div>
+</div>
 
 <!-- Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (single volume): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E). -->
-
-
-I also enjoy <a class="hover-photo hover-photo--gallery" href="/gallery/" data-gallery-hover-preview data-gallery-thumbnail-dir="/images/gallery/thumbnails/">photography<span class="hover-photo__card" aria-hidden="true"><img src="" alt="" loading="lazy" decoding="async"></span></a>, <a class="hover-photo hover-photo--balcony" href="/images/IMG20260419144241.jpg" target="_blank" rel="noopener noreferrer">balcony gardening<span class="hover-photo__card" aria-hidden="true"><img src="/images/balcony-gardening-thumb.jpg" alt=""></span></a>, and <a class="hover-photo hover-photo--doujin" href="https://en.wikipedia.org/wiki/Doujin_music" target="_blank" rel="noopener noreferrer">doujin music<span class="hover-photo__card" aria-hidden="true"><img src="/images/04af8e6b10eb61f0e9b4a0264aae7ff9.jpeg" alt="" loading="lazy" decoding="async"></span></a>.
 
 <script id="gallery-hover-preview-data" type="application/json">[{% for item in site.data.gallery_captions %}{{ item[0] | jsonify }}{% unless forloop.last %},{% endunless %}{% endfor %}]</script>
 
