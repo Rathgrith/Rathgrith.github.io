@@ -7,8 +7,8 @@
   }
   window.__siteGalleryPageScriptBound = true;
 
-  var INITIAL_ITEMS_PER_GROUP = 6;
-  var LOAD_ITEMS_PER_GROUP = 4;
+  var INITIAL_ROWS_PER_GROUP = 2;
+  var LOAD_ROWS_PER_GROUP = 1;
   var LOAD_ALL_CHUNK_PER_GROUP = 10;
   var MODAL_STRIP_RADIUS = 6;
 
@@ -150,6 +150,17 @@
     });
 
     state.gallery.replaceChildren(fragment);
+  }
+
+  function itemsForRows(rowCount) {
+    var firstGrid = state.groups.length ? state.groups[0].grid : null;
+    if (!firstGrid) return rowCount;
+
+    var template = window.getComputedStyle(firstGrid).gridTemplateColumns;
+    var columnCount = template && template !== "none"
+      ? template.trim().split(/\s+/).filter(Boolean).length
+      : 1;
+    return Math.max(1, columnCount) * Math.max(1, rowCount);
   }
 
   function getModalRefs() {
@@ -517,7 +528,7 @@
         state.rendering = true;
         setControlsLoading(refs, refs.more);
         window.requestAnimationFrame(function () {
-          appendBalancedBatch(LOAD_ITEMS_PER_GROUP);
+          appendBalancedBatch(itemsForRows(LOAD_ROWS_PER_GROUP));
           state.rendering = false;
           updateControls(refs);
         });
@@ -584,7 +595,7 @@
     bindModalEvents();
     bindGlobalKeyboardEvents();
     bindGalleryEvents(refs);
-    appendBalancedBatch(INITIAL_ITEMS_PER_GROUP);
+    appendBalancedBatch(itemsForRows(INITIAL_ROWS_PER_GROUP));
     updateControls(refs);
   }
 
