@@ -462,6 +462,8 @@ a:hover {
   justify-content: center;
   box-sizing: border-box;
   overflow: hidden;
+  z-index: 101;
+  touch-action: manipulation;
 }
 
 .greedy-nav button .navicon {
@@ -1097,7 +1099,7 @@ html[data-theme="dark"] .thought-card {
 
   .greedy-nav {
     min-height: 0;
-    padding-right: 2.12rem;
+    padding-right: 3.05rem;
   }
 
   .greedy-nav .visible-links {
@@ -1127,14 +1129,39 @@ html[data-theme="dark"] .thought-card {
   }
 
   .greedy-nav button {
-    height: 1.92rem;
-    width: 1.96rem;
-    min-width: 1.96rem;
+    height: 44px;
+    width: 44px;
+    min-width: 44px;
   }
 
   .greedy-nav .hidden-links {
     right: 0;
     min-width: min(78vw, 16rem);
+  }
+
+  .greedy-nav .hidden-links a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .hover-photo__card {
+    position: fixed;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    display: none;
+    width: min(21rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 4rem);
+    transform: translate(-50%, -50%) scale(0.985);
+  }
+
+  .hover-photo:hover .hover-photo__card,
+  .hover-photo:focus .hover-photo__card,
+  .hover-photo:focus-visible .hover-photo__card {
+    display: block;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -1145,9 +1172,9 @@ html[data-theme="dark"] .thought-card {
   }
 
   .greedy-nav button {
-    height: 1.84rem;
-    width: 1.88rem;
-    min-width: 1.88rem;
+    height: 44px;
+    width: 44px;
+    min-width: 44px;
   }
 }
 
@@ -1788,6 +1815,9 @@ html[data-theme="dark"] .page__comments + .pagination {
   font-size: 1.02rem;
   line-height: 1;
   cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
   box-shadow: var(--shadow);
   transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1844,6 +1874,8 @@ html[data-theme="dark"] .page__comments + .pagination {
   line-height: 1.2;
   text-align: left;
   cursor: pointer;
+  min-height: 44px;
+  touch-action: manipulation;
   transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
 
@@ -2010,6 +2042,7 @@ html[data-theme="dark"] .author__avatar img.author__avatar--gif {
 .live2d-widget-container {
   transform-origin: right bottom;
   transition: filter 0.2s ease, opacity 0.28s ease, transform 0.28s ease;
+  pointer-events: none !important;
 }
 
 body.live2d-is-hidden #live2d-widget,

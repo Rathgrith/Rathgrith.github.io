@@ -5,6 +5,7 @@
 
 .publication-filter {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
   margin: 0.65rem 0 0.8rem;
@@ -34,6 +35,8 @@
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
+  min-height: 44px;
+  touch-action: manipulation;
   transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
 }
 
@@ -63,6 +66,17 @@
   color: var(--text-muted);
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 36em) {
+  .publication-filter {
+    gap: 0.45rem;
+  }
+
+  .publication-filter__count {
+    flex: 1 0 100%;
+    margin-left: 0;
+  }
 }
 
 .publication-item[hidden] {

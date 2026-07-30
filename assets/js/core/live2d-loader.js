@@ -54,7 +54,7 @@
       position: "right",
       width: width,
       height: height,
-      hOffset: -Math.round(width * hOffsetRatio),
+      hOffset: isSmallScreen ? 0 : -Math.round(width * hOffsetRatio),
       vOffset: -Math.round(height * vOffsetRatio)
     };
   }
