@@ -1220,6 +1220,11 @@ body.home-page .author__urls li a:focus-visible {
   outline-offset: 2px;
 }
 
+/* Offset section anchors must never cover controls in the stacked mobile layout. */
+body.home-page .page__content .anchor {
+  pointer-events: none;
+}
+
 /* Keep left sidebar profile card inside bounds when viewport narrows (e.g., browser zoom). */
 @media (min-width: 57.8125em) {
   body.home-page .sidebar,
@@ -1552,8 +1557,20 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
 }
 
 @media (max-width: 48em) {
+  body.home-page .page__content #about-me {
+    display: block;
+    height: 0;
+    margin-top: 0;
+    scroll-margin-top: 4rem;
+  }
+
+  body.home-page .page__content #about-me::before {
+    content: none;
+    display: none;
+  }
+
   body.home-page .profile_box {
-    --profile-mobile-chip-gap: 0.42rem;
+    --profile-mobile-chip-gap: 0.25rem;
     --profile-mobile-row-width: min(100%, 16.68rem);
     padding: 0.82rem 0.84rem 0.72rem;
     display: grid;
@@ -1605,7 +1622,9 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
   body.home-page .profile_box .author__urls-wrapper {
     grid-column: 1 / -1;
     grid-row: 2;
+    width: 100%;
     min-width: 0;
+    margin-left: 0;
   }
 
   body.home-page .profile_box .author__urls {
@@ -1622,9 +1641,9 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
 
   body.home-page .profile_box .author__urls_sm a {
     width: 100%;
-    min-width: 0;
+    min-width: 44px;
     aspect-ratio: 1 / 1;
-    min-height: 0;
+    min-height: 44px;
     border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
     border-radius: 0.8rem;
     background: color-mix(in srgb, var(--surface) 88%, var(--surface-alt) 12%);
@@ -1635,6 +1654,7 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
     line-height: 1;
     text-align: center;
     box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 72%, transparent);
+    touch-action: manipulation;
   }
 
   body.home-page .profile_box .author__urls_sm a i,
@@ -1674,6 +1694,7 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
     align-items: center;
     justify-content: center;
     border-radius: 10px;
+    touch-action: manipulation;
   }
 
   body.home-page .profile_box .author__affiliation img,
@@ -1715,7 +1736,14 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
   }
 
   body.home-page .profile_box .author__urls_sm {
-    gap: 0.32rem;
+    gap: var(--profile-mobile-chip-gap);
+  }
+}
+
+@media (max-width: 20em) {
+  body.home-page .profile_box .author__urls_sm {
+    width: min(100%, 11.5rem);
+    grid-template-columns: repeat(3, minmax(44px, 1fr));
   }
 }
 
