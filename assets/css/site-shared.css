@@ -1357,6 +1357,7 @@ html[data-theme="dark"] .author__affiliation:focus-visible {
   position: relative;
   width: min(100%, 160px);
   aspect-ratio: 1;
+  box-sizing: border-box;
   padding: 5px;
   border: 1px solid color-mix(in srgb, var(--profile-accent) 32%, var(--border));
   border-radius: 14px;
@@ -1583,6 +1584,8 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
   body.home-page .profile_box .author__avatar {
     grid-column: 1;
     grid-row: 1;
+    width: 104px;
+    min-width: 104px;
     align-self: center;
   }
 
