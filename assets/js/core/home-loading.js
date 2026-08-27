@@ -24,7 +24,10 @@
     }, 360);
   }
 
-  if (document.readyState === "interactive" || document.readyState === "complete") {
+  if (
+    document.readyState === "interactive" ||
+    document.readyState === "complete"
+  ) {
     hideOverlay();
   } else {
     document.addEventListener("DOMContentLoaded", hideOverlay, { once: true });

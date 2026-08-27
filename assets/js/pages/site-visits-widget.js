@@ -3,7 +3,7 @@
     observer: null,
     widget: null,
     output: null,
-    src: ""
+    src: "",
   };
   window.__siteVisitsWidgetState = globalState;
 
@@ -72,7 +72,7 @@
     globalState.observer.observe(widget, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: true,
     });
   }
 

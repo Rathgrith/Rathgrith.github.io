@@ -8,8 +8,10 @@
   var layer = null;
 
   function shouldReduceMotion() {
-    return window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return (
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
   }
 
   function ensureLayer() {
@@ -29,7 +31,8 @@
   function pruneMarks() {
     while (activeMarks.length > MAX_MARKS) {
       var oldMark = activeMarks.shift();
-      if (oldMark && oldMark.parentNode) oldMark.parentNode.removeChild(oldMark);
+      if (oldMark && oldMark.parentNode)
+        oldMark.parentNode.removeChild(oldMark);
     }
   }
 
@@ -40,9 +43,18 @@
   }
 
   function createMark(event) {
-    if (document.body && document.body.getAttribute("data-disable-paper-click-effect") === "true") return;
+    if (
+      document.body &&
+      document.body.getAttribute("data-disable-paper-click-effect") === "true"
+    )
+      return;
     if (shouldReduceMotion()) return;
-    if (!event || typeof event.clientX !== "number" || typeof event.clientY !== "number") return;
+    if (
+      !event ||
+      typeof event.clientX !== "number" ||
+      typeof event.clientY !== "number"
+    )
+      return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
 
     var root = ensureLayer();
@@ -50,7 +62,7 @@
 
     var mark = document.createElement("span");
     var variant = (activeMarks.length % 4) + 1;
-    var rotation = Math.round((Math.random() * 34) - 17);
+    var rotation = Math.round(Math.random() * 34 - 17);
 
     mark.className = MARK_CLASS + " " + MARK_CLASS + "--" + variant;
     mark.style.setProperty("--click-x", event.clientX + "px");
@@ -61,9 +73,13 @@
     activeMarks.push(mark);
     pruneMarks();
 
-    mark.addEventListener("animationend", function () {
-      removeMark(mark);
-    }, { once: true });
+    mark.addEventListener(
+      "animationend",
+      function () {
+        removeMark(mark);
+      },
+      { once: true }
+    );
 
     window.setTimeout(function () {
       removeMark(mark);
@@ -72,10 +88,16 @@
 
   function init() {
     if (bound || !document.body) return;
-    if (document.body.getAttribute("data-disable-paper-click-effect") === "true") return;
+    if (
+      document.body.getAttribute("data-disable-paper-click-effect") === "true"
+    )
+      return;
 
     bound = true;
-    document.addEventListener("pointerdown", createMark, { passive: true, capture: true });
+    document.addEventListener("pointerdown", createMark, {
+      passive: true,
+      capture: true,
+    });
   }
 
   document.addEventListener("site:content-updated", init);

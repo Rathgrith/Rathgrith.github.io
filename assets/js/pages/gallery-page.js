@@ -25,7 +25,7 @@
     triggerElement: null,
     modalRefs: null,
     preloaded: {},
-    rendering: false
+    rendering: false,
   };
 
   function parseCaptions() {
@@ -74,7 +74,7 @@
     return {
       caption: entry.caption || "",
       camera: camera,
-      lens: lens
+      lens: lens,
     };
   }
 
@@ -98,7 +98,7 @@
         description: String(entry.description || ""),
         filenames: filenames,
         rendered: [],
-        grid: null
+        grid: null,
       });
     });
 
@@ -112,7 +112,7 @@
         description: "",
         filenames: ungrouped,
         rendered: [],
-        grid: null
+        grid: null,
       });
     }
     return groups;
@@ -132,8 +132,16 @@
       var section = createElement("section", "gallery-group");
       var header = createElement("header", "gallery-group__header");
       var heading = createElement("h2", "gallery-group__title", group.title);
-      var count = createElement("span", "gallery-group__count", String(group.filenames.length));
-      var description = createElement("p", "gallery-group__description", group.description);
+      var count = createElement(
+        "span",
+        "gallery-group__count",
+        String(group.filenames.length)
+      );
+      var description = createElement(
+        "p",
+        "gallery-group__description",
+        group.description
+      );
       var grid = createElement("div", "gallery");
 
       heading.id = "gallery-group-" + group.id;
@@ -157,16 +165,18 @@
     if (!firstGrid) return rowCount;
 
     var template = window.getComputedStyle(firstGrid).gridTemplateColumns;
-    var columnCount = template && template !== "none"
-      ? template.trim().split(/\s+/).filter(Boolean).length
-      : 1;
+    var columnCount =
+      template && template !== "none"
+        ? template.trim().split(/\s+/).filter(Boolean).length
+        : 1;
     return Math.max(1, columnCount) * Math.max(1, rowCount);
   }
 
   function getModalRefs() {
     var root = document.getElementById("gallery-modal");
     if (!root) return null;
-    if (state.modalRefs && state.modalRefs.root === root) return state.modalRefs;
+    if (state.modalRefs && state.modalRefs.root === root)
+      return state.modalRefs;
 
     state.modalRefs = {
       root: root,
@@ -175,7 +185,7 @@
       gear: document.getElementById("gallery-modal-gear"),
       counter: document.getElementById("gallery-modal-counter"),
       strip: document.getElementById("gallery-modal-strip"),
-      closeButton: root.querySelector(".gallery-modal__close")
+      closeButton: root.querySelector(".gallery-modal__close"),
     };
     return state.modalRefs;
   }
@@ -197,7 +207,7 @@
   }
 
   function wrapIndex(index, total) {
-    return total ? (index % total + total) % total : -1;
+    return total ? ((index % total) + total) % total : -1;
   }
 
   function preloadModalImage(index) {
@@ -216,11 +226,17 @@
 
   function modalStripIndices(total, current) {
     if (total <= MODAL_STRIP_RADIUS * 2 + 1) {
-      return Array.from({ length: total }, function (_, index) { return index; });
+      return Array.from({ length: total }, function (_, index) {
+        return index;
+      });
     }
 
     var indices = [];
-    for (var offset = -MODAL_STRIP_RADIUS; offset <= MODAL_STRIP_RADIUS; offset += 1) {
+    for (
+      var offset = -MODAL_STRIP_RADIUS;
+      offset <= MODAL_STRIP_RADIUS;
+      offset += 1
+    ) {
       indices.push(wrapIndex(current + offset, total));
     }
     return indices;
@@ -243,10 +259,15 @@
       button.id = buttonId;
       button.setAttribute("data-gallery-thumb-index", String(index));
       button.setAttribute("role", "option");
-      button.setAttribute("aria-selected", index === current ? "true" : "false");
+      button.setAttribute(
+        "aria-selected",
+        index === current ? "true" : "false"
+      );
       button.setAttribute(
         "aria-label",
-        entry.caption ? entry.caption + " (" + (index + 1) + ")" : "Image " + (index + 1)
+        entry.caption
+          ? entry.caption + " (" + (index + 1) + ")"
+          : "Image " + (index + 1)
       );
       button.classList.toggle("is-active", index === current);
       if (entry.caption) button.title = entry.caption;
@@ -269,7 +290,8 @@
   function updateModalContent() {
     var refs = getModalRefs();
     var total = state.items.length;
-    if (!refs || !refs.image || !refs.caption || !refs.counter || !total) return;
+    if (!refs || !refs.image || !refs.caption || !refs.counter || !total)
+      return;
 
     state.currentIndex = wrapIndex(state.currentIndex, total);
     var item = state.items[state.currentIndex];
@@ -288,7 +310,13 @@
 
   function openModal(index, triggerElement) {
     var refs = getModalRefs();
-    if (!refs || !state.items.length || index < 0 || index >= state.items.length) return;
+    if (
+      !refs ||
+      !state.items.length ||
+      index < 0 ||
+      index >= state.items.length
+    )
+      return;
 
     state.isOpen = true;
     state.currentIndex = index;
@@ -320,13 +348,17 @@
 
   function stepModal(offset) {
     if (!state.isOpen || !state.items.length) return;
-    state.currentIndex = wrapIndex(state.currentIndex + offset, state.items.length);
+    state.currentIndex = wrapIndex(
+      state.currentIndex + offset,
+      state.items.length
+    );
     updateModalContent();
   }
 
   function bindModalEvents() {
     var refs = getModalRefs();
-    if (!refs || refs.root.getAttribute("data-gallery-modal-bound") === "true") return;
+    if (!refs || refs.root.getAttribute("data-gallery-modal-bound") === "true")
+      return;
     refs.root.setAttribute("data-gallery-modal-bound", "true");
 
     refs.root.addEventListener("click", function (event) {
@@ -376,7 +408,10 @@
 
     anchor.href = state.originalDir + filename;
     anchor.setAttribute("data-gallery-filename", filename);
-    anchor.setAttribute("aria-label", entry.caption ? "Open " + entry.caption : "Open image preview");
+    anchor.setAttribute(
+      "aria-label",
+      entry.caption ? "Open " + entry.caption : "Open image preview"
+    );
 
     image.src = state.thumbnailDir + filename;
     image.alt = entry.caption || "Gallery image";
@@ -390,7 +425,10 @@
     anchor.appendChild(zoom);
 
     if (entry.caption) caption.title = entry.caption;
-    item.style.setProperty("--gallery-reveal-delay", Math.min(indexInBatch, 8) * 45 + "ms");
+    item.style.setProperty(
+      "--gallery-reveal-delay",
+      Math.min(indexInBatch, 8) * 45 + "ms"
+    );
     item.appendChild(anchor);
     item.appendChild(caption);
 
@@ -419,7 +457,11 @@
     var additions = [];
 
     for (var index = start; index < end; index += 1) {
-      var item = createGalleryItem(group.filenames[index], index - start, groupIndex === 0 && start === 0);
+      var item = createGalleryItem(
+        group.filenames[index],
+        index - start,
+        groupIndex === 0 && start === 0
+      );
       group.rendered.push(item);
       additions.push(item);
       fragment.appendChild(item.element);
@@ -459,8 +501,10 @@
       setButtonState(refs.more, {
         disabled: complete || state.rendering,
         loading: false,
-        label: complete ? refs.more.dataset.doneLabel : refs.more.dataset.defaultLabel,
-        icon: complete ? refs.more.dataset.doneIcon : refs.more.dataset.icon
+        label: complete
+          ? refs.more.dataset.doneLabel
+          : refs.more.dataset.defaultLabel,
+        icon: complete ? refs.more.dataset.doneIcon : refs.more.dataset.icon,
       });
     }
 
@@ -471,8 +515,10 @@
       setButtonState(refs.all, {
         disabled: complete || state.rendering,
         loading: false,
-        label: complete ? refs.all.dataset.doneLabel : refs.all.dataset.defaultLabel,
-        icon: complete ? refs.all.dataset.doneIcon : refs.all.dataset.icon
+        label: complete
+          ? refs.all.dataset.doneLabel
+          : refs.all.dataset.defaultLabel,
+        icon: complete ? refs.all.dataset.doneIcon : refs.all.dataset.icon,
       });
     }
   }
@@ -482,14 +528,17 @@
       if (!button) return;
       setButtonState(button, {
         disabled: true,
-        loading: button === activeButton
+        loading: button === activeButton,
       });
     });
   }
 
   function loadAllInChunks(refs, galleryAtStart) {
     function nextChunk() {
-      if (state.gallery !== galleryAtStart || !document.contains(galleryAtStart)) {
+      if (
+        state.gallery !== galleryAtStart ||
+        !document.contains(galleryAtStart)
+      ) {
         state.rendering = false;
         return;
       }
@@ -507,20 +556,24 @@
   }
 
   function bindGalleryEvents(refs) {
-    state.gallery.addEventListener("click", function (event) {
-      var anchor = event.target.closest("a[data-gallery-filename]");
-      if (!anchor || !state.gallery.contains(anchor)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      if (typeof event.stopImmediatePropagation === "function") {
-        event.stopImmediatePropagation();
-      }
+    state.gallery.addEventListener(
+      "click",
+      function (event) {
+        var anchor = event.target.closest("a[data-gallery-filename]");
+        if (!anchor || !state.gallery.contains(anchor)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") {
+          event.stopImmediatePropagation();
+        }
 
-      var index = state.items.findIndex(function (item) {
-        return item.anchor === anchor;
-      });
-      if (index >= 0) openModal(index, anchor);
-    }, true);
+        var index = state.items.findIndex(function (item) {
+          return item.anchor === anchor;
+        });
+        if (index >= 0) openModal(index, anchor);
+      },
+      true
+    );
 
     if (refs.more) {
       refs.more.addEventListener("click", function () {
@@ -577,8 +630,12 @@
       return filenames.concat(group.filenames);
     }, []);
     state.items = [];
-    state.thumbnailDir = (container.getAttribute("data-thumbnail-dir") || "").trim();
-    state.originalDir = (container.getAttribute("data-original-dir") || "").trim();
+    state.thumbnailDir = (
+      container.getAttribute("data-thumbnail-dir") || ""
+    ).trim();
+    state.originalDir = (
+      container.getAttribute("data-original-dir") || ""
+    ).trim();
     state.currentIndex = -1;
     state.isOpen = false;
     state.modalRefs = null;
@@ -589,7 +646,7 @@
     var refs = {
       actions: container.querySelector(".gallery-actions"),
       more: container.querySelector("#load-more"),
-      all: container.querySelector("#load-all")
+      all: container.querySelector("#load-all"),
     };
 
     bindModalEvents();

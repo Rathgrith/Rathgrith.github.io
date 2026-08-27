@@ -37,7 +37,11 @@
   cursor: pointer;
   min-height: 44px;
   touch-action: manipulation;
-  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
 }
 
 .publication-filter__button:hover,
@@ -55,10 +59,16 @@
 .publication-filter__button.is-active {
   border-color: color-mix(in srgb, var(--liquid-cyan) 64%, var(--glass-stroke));
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--glass-highlight) 82%, transparent), transparent 46%),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--glass-highlight) 82%, transparent),
+      transparent 46%
+    ),
     color-mix(in srgb, var(--glass-fill-strong) 78%, var(--liquid-cyan) 22%);
   color: var(--text);
-  box-shadow: var(--glass-inset), 0 7px 18px color-mix(in srgb, var(--liquid-cyan) 20%, transparent);
+  box-shadow:
+    var(--glass-inset),
+    0 7px 18px color-mix(in srgb, var(--liquid-cyan) 20%, transparent);
 }
 
 .publication-filter__count {

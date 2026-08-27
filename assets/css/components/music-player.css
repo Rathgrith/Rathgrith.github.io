@@ -11,20 +11,42 @@
   --player-btn-border: var(--border);
   --player-btn-bg: color-mix(in srgb, var(--surface-alt) 58%, transparent);
   --player-btn-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
-  --player-btn-hover-bg: color-mix(in srgb, var(--surface-alt) 86%, transparent);
+  --player-btn-hover-bg: color-mix(
+    in srgb,
+    var(--surface-alt) 86%,
+    transparent
+  );
   --player-link-border: var(--border);
-  --player-link-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
+  --player-link-hover-border: color-mix(
+    in srgb,
+    var(--link) 42%,
+    var(--border)
+  );
   --player-cover-bg: var(--surface-alt);
   --player-cover-border: var(--border);
   --player-cover-empty-start: var(--surface);
   --player-cover-empty-end: var(--surface-alt);
-  --player-wave-wrap-bg: linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 58%, transparent), transparent);
-  --player-wave-wrap-bg-hover: linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 78%, transparent), transparent);
+  --player-wave-wrap-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-alt) 58%, transparent),
+    transparent
+  );
+  --player-wave-wrap-bg-hover: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-alt) 78%, transparent),
+    transparent
+  );
   --player-shadow: 0 6px 14px rgba(45, 52, 45, 0.08);
   border: 1px solid var(--player-border);
   border-radius: 8px;
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain, rgba(65, 75, 65, 0.035)) 0, var(--paper-grain, rgba(65, 75, 65, 0.035)) 1px, transparent 1px, transparent 5px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain, rgba(65, 75, 65, 0.035)) 0,
+      var(--paper-grain, rgba(65, 75, 65, 0.035)) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
     var(--player-bg);
   box-shadow: var(--player-shadow);
   padding: 0.58rem 0.62rem 0.54rem;
@@ -46,15 +68,31 @@ html[data-theme="dark"] .music-player {
   --player-btn-border: var(--border);
   --player-btn-bg: color-mix(in srgb, var(--surface-alt) 62%, transparent);
   --player-btn-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
-  --player-btn-hover-bg: color-mix(in srgb, var(--surface-alt) 90%, transparent);
+  --player-btn-hover-bg: color-mix(
+    in srgb,
+    var(--surface-alt) 90%,
+    transparent
+  );
   --player-link-border: var(--border);
-  --player-link-hover-border: color-mix(in srgb, var(--link) 42%, var(--border));
+  --player-link-hover-border: color-mix(
+    in srgb,
+    var(--link) 42%,
+    var(--border)
+  );
   --player-cover-bg: var(--surface-alt);
   --player-cover-border: var(--border);
   --player-cover-empty-start: #30342e;
   --player-cover-empty-end: #1d211c;
-  --player-wave-wrap-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
-  --player-wave-wrap-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent);
+  --player-wave-wrap-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04),
+    transparent
+  );
+  --player-wave-wrap-bg-hover: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.07),
+    transparent
+  );
   --player-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
 }
 
@@ -81,7 +119,11 @@ html[data-theme="dark"] .music-player {
 }
 
 .music-player__cover[data-empty="true"] {
-  background: radial-gradient(circle at 30% 30%, var(--player-cover-empty-start) 0%, var(--player-cover-empty-end) 68%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    var(--player-cover-empty-start) 0%,
+    var(--player-cover-empty-end) 68%
+  );
 }
 
 .music-player__body {
@@ -256,7 +298,9 @@ html[data-theme="dark"] .music-player {
   border-radius: 999px;
   background: var(--player-wave-base);
   opacity: 0.8;
-  transition: background-color 0.14s ease, opacity 0.14s ease;
+  transition:
+    background-color 0.14s ease,
+    opacity 0.14s ease;
 }
 
 .music-player__wave-bar.is-played {

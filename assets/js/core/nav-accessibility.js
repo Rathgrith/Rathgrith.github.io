@@ -27,7 +27,10 @@
     function sync() {
       var isOpen = !hiddenLinks.classList.contains("hidden");
       button.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      button.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
+      button.setAttribute(
+        "aria-label",
+        isOpen ? "Close navigation menu" : "Open navigation menu"
+      );
       hiddenLinks.setAttribute("aria-hidden", isOpen ? "false" : "true");
     }
 
@@ -47,7 +50,7 @@
       var observer = new MutationObserver(sync);
       observer.observe(hiddenLinks, {
         attributes: true,
-        attributeFilter: ["class"]
+        attributeFilter: ["class"],
       });
     }
 

@@ -13,7 +13,8 @@
   function applyTheme(theme) {
     var resolved = theme === "dark" ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", resolved);
-    document.documentElement.style.colorScheme = resolved === "dark" ? "dark" : "light";
+    document.documentElement.style.colorScheme =
+      resolved === "dark" ? "dark" : "light";
   }
 
   function nextTheme() {
@@ -53,7 +54,7 @@
       '<div class="site-options-fab__menu" data-site-options-menu role="menu" hidden>',
       '<button type="button" class="site-options-fab__action" data-theme-toggle data-theme-toggle-style="menu" aria-pressed="false" role="menuitem"></button>',
       '<button type="button" class="site-options-fab__action" data-live2d-toggle data-live2d-toggle-style="menu" aria-pressed="true" role="menuitem"></button>',
-      "</div>"
+      "</div>",
     ].join("");
 
     document.body.appendChild(root);
@@ -117,7 +118,7 @@
         '"></i></span>',
         '<span class="site-options-fab__action-label">',
         label,
-        "</span>"
+        "</span>",
       ].join("");
       return;
     }
@@ -128,7 +129,7 @@
       '" aria-hidden="true"></i>',
       '<span class="visually-hidden">',
       label,
-      "</span>"
+      "</span>",
     ].join("");
   }
 

@@ -109,11 +109,27 @@ body {
 
 body {
   background-image:
-    radial-gradient(circle at 8% -8%, var(--ambient-glow-primary), transparent 34rem),
-    radial-gradient(circle at 92% 10%, var(--ambient-glow-secondary), transparent 30rem),
-    linear-gradient(125deg, transparent 0%, transparent 36%, var(--ambient-fiber) 52%, transparent 69%);
+    radial-gradient(
+      circle at 8% -8%,
+      var(--ambient-glow-primary),
+      transparent 34rem
+    ),
+    radial-gradient(
+      circle at 92% 10%,
+      var(--ambient-glow-secondary),
+      transparent 30rem
+    ),
+    linear-gradient(
+      125deg,
+      transparent 0%,
+      transparent 36%,
+      var(--ambient-fiber) 52%,
+      transparent 69%
+    );
   background-attachment: fixed;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .paper-click-layer {
@@ -134,14 +150,28 @@ body {
   border-radius: 52% 48% 56% 44%;
   border: 1px solid color-mix(in srgb, var(--paper-click-ink) 64%, transparent);
   background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--paper-click-ink) 22%, transparent) 0 10%, transparent 11%),
-    radial-gradient(circle at 50% 50%, transparent 0 44%, var(--paper-click-wash) 45% 47%, transparent 48%),
-    repeating-linear-gradient(32deg, color-mix(in srgb, var(--paper-click-ink) 12%, transparent) 0 1px, transparent 1px 5px);
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--paper-click-ink) 22%, transparent) 0 10%,
+      transparent 11%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 0 44%,
+      var(--paper-click-wash) 45% 47%,
+      transparent 48%
+    ),
+    repeating-linear-gradient(
+      32deg,
+      color-mix(in srgb, var(--paper-click-ink) 12%, transparent) 0 1px,
+      transparent 1px 5px
+    );
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--surface) 58%, transparent),
     inset 0 0 0 1px color-mix(in srgb, #ffffff 34%, transparent);
   opacity: 0;
-  transform: translate(calc(var(--click-x) - 50%), calc(var(--click-y) - 50%)) scale(0.42) rotate(var(--click-rotate));
+  transform: translate(calc(var(--click-x) - 50%), calc(var(--click-y) - 50%))
+    scale(0.42) rotate(var(--click-rotate));
   transform-origin: center;
   mix-blend-mode: multiply;
   animation: paper-click-bloom 680ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -153,7 +183,8 @@ body {
   position: absolute;
   inset: 22%;
   border-radius: inherit;
-  border: 1px solid color-mix(in srgb, var(--paper-click-ink-alt) 46%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--paper-click-ink-alt) 46%, transparent);
 }
 
 .paper-click-mark::after {
@@ -185,7 +216,8 @@ html[data-theme="dark"] .paper-click-mark {
 @keyframes paper-click-bloom {
   0% {
     opacity: 0;
-    transform: translate(calc(var(--click-x) - 50%), calc(var(--click-y) - 50%)) scale(0.42) rotate(var(--click-rotate));
+    transform: translate(calc(var(--click-x) - 50%), calc(var(--click-y) - 50%))
+      scale(0.42) rotate(var(--click-rotate));
     filter: blur(0.2px);
   }
 
@@ -195,7 +227,8 @@ html[data-theme="dark"] .paper-click-mark {
 
   100% {
     opacity: 0;
-    transform: translate(calc(var(--click-x) - 50%), calc(var(--click-y) - 50%)) scale(1.72) rotate(calc(var(--click-rotate) + 8deg));
+    transform: translate(calc(var(--click-x) - 50%), calc(var(--click-y) - 50%))
+      scale(1.72) rotate(calc(var(--click-rotate) + 8deg));
     filter: blur(1.1px);
   }
 }
@@ -217,11 +250,21 @@ body.home-page {
   justify-content: center;
   padding: 2rem;
   background:
-    radial-gradient(circle at top, color-mix(in srgb, var(--surface-alt) 72%, transparent) 0%, transparent 46%),
-    linear-gradient(180deg, color-mix(in srgb, var(--bg) 96%, black 4%) 0%, var(--bg) 100%);
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--surface-alt) 72%, transparent) 0%,
+      transparent 46%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg) 96%, black 4%) 0%,
+      var(--bg) 100%
+    );
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
 }
 
 .home-loading-screen.is-hidden {
@@ -240,7 +283,9 @@ body.home-page {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
-  animation: home-loading-type 0.72s steps(14, end) infinite alternate, home-loading-caret 0.72s steps(1, end) infinite;
+  animation:
+    home-loading-type 0.72s steps(14, end) infinite alternate,
+    home-loading-caret 0.72s steps(1, end) infinite;
 }
 
 @keyframes home-loading-type {
@@ -273,8 +318,18 @@ body.home-page {
   padding: 0.55rem 0 0.78rem;
   border-top: 1px solid var(--divider);
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 52%, transparent), transparent);
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-alt) 52%, transparent),
+      transparent
+    );
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 78%, transparent);
 }
 
@@ -374,7 +429,9 @@ a:hover {
 .masthead {
   background: var(--nav-bg);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.62), 0 4px 12px rgba(45, 52, 45, 0.04);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.62),
+    0 4px 12px rgba(45, 52, 45, 0.04);
 }
 
 .masthead__inner-wrap {
@@ -399,7 +456,10 @@ a:hover {
   border-radius: 4px;
   font-size: 1.08rem;
   line-height: 1.2;
-  transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease;
 }
 
 .masthead__menu-home-item .masthead__home-link {
@@ -527,15 +587,29 @@ a:hover {
 }
 
 body.home-page .profile_box {
-  --profile-accent: color-mix(in srgb, var(--link) 72%, var(--header-initial-2) 28%);
+  --profile-accent: color-mix(
+    in srgb,
+    var(--link) 72%,
+    var(--header-initial-2) 28%
+  );
   position: relative;
   isolation: isolate;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 0.72rem;
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 5px),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 98%, #ffffff 2%), var(--surface)),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 98%, #ffffff 2%),
+      var(--surface)
+    ),
     var(--surface);
   background-blend-mode: multiply, normal, normal;
   box-shadow:
@@ -551,8 +625,16 @@ body.home-page .profile_box::before {
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--profile-accent) 11%, transparent), transparent 38%),
-    linear-gradient(115deg, transparent 0 68%, color-mix(in srgb, var(--profile-accent) 6%, transparent) 100%);
+    radial-gradient(
+      circle at 18% 0%,
+      color-mix(in srgb, var(--profile-accent) 11%, transparent),
+      transparent 38%
+    ),
+    linear-gradient(
+      115deg,
+      transparent 0 68%,
+      color-mix(in srgb, var(--profile-accent) 6%, transparent) 100%
+    );
 }
 
 body.home-page .profile_box::after {
@@ -564,7 +646,12 @@ body.home-page .profile_box::after {
   height: 2px;
   border-radius: 999px;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, var(--profile-accent), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--profile-accent),
+    transparent
+  );
   opacity: 0.72;
 }
 
@@ -685,7 +772,13 @@ body.home-page .page__content blockquote {
   border: 1px solid color-mix(in srgb, var(--border) 84%, var(--paper-edge) 16%);
   border-radius: 6px;
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
     var(--surface);
   box-shadow:
     0 16px 30px rgba(45, 52, 45, 0.16),
@@ -708,7 +801,13 @@ body.home-page .page__content blockquote {
   border-radius: 4px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 38%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 8px);
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 8px
+    );
   pointer-events: none;
 }
 
@@ -719,7 +818,13 @@ body.home-page .page__content blockquote {
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: 4px;
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
     var(--surface-alt);
   object-fit: cover;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 34%, transparent);
@@ -851,7 +956,13 @@ html[data-theme="dark"] .hover-photo--narcissu .hover-photo__card img {
   border: 1px solid color-mix(in srgb, var(--border) 84%, var(--paper-edge) 16%);
   border-radius: 7px;
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
     color-mix(in srgb, var(--surface) 92%, var(--surface-alt) 8%);
   box-shadow: var(--shadow);
   transition:
@@ -956,7 +1067,13 @@ html[data-theme="dark"] .hover-photo--narcissu .hover-photo__card img {
 
 html[data-theme="dark"] .thought-card {
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
     color-mix(in srgb, var(--surface) 88%, var(--surface-alt) 12%);
 }
 
@@ -1003,11 +1120,15 @@ html[data-theme="dark"] .thought-card {
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--text-muted) 42%, transparent) transparent;
+    scrollbar-color: color-mix(in srgb, var(--text-muted) 42%, transparent)
+      transparent;
     will-change: box-shadow;
   }
 
-  html.js body.home-page:not(.profile-panel-motion-ready) .sidebar.sticky .profile_box {
+  html.js
+    body.home-page:not(.profile-panel-motion-ready)
+    .sidebar.sticky
+    .profile_box {
     opacity: 0;
     filter: saturate(0.94) brightness(0.98);
     transform: translateX(-0.42rem) scale(0.992);
@@ -1034,7 +1155,10 @@ html[data-theme="dark"] .thought-card {
       inset 0 1px 0 color-mix(in srgb, #ffffff 66%, transparent);
   }
 
-  html[data-theme="dark"] body.home-page.profile-panel-is-scrolled .sidebar.sticky .profile_box {
+  html[data-theme="dark"]
+    body.home-page.profile-panel-is-scrolled
+    .sidebar.sticky
+    .profile_box {
     border-color: color-mix(in srgb, var(--link) 36%, var(--border) 64%);
     box-shadow:
       var(--paper-lift-shadow-strong),
@@ -1052,13 +1176,17 @@ html[data-theme="dark"] .thought-card {
       inset 0 1px 0 color-mix(in srgb, #ffffff 56%, transparent);
     transition:
       opacity var(--page-transition-exit-duration, 300ms) ease,
-      transform var(--page-transition-exit-duration, 300ms) cubic-bezier(0.4, 0, 1, 1),
+      transform var(--page-transition-exit-duration, 300ms)
+        cubic-bezier(0.4, 0, 1, 1),
       filter var(--page-transition-exit-duration, 300ms) ease,
       border-color var(--paper-transition-fast),
       box-shadow var(--page-transition-exit-duration, 300ms) ease;
   }
 
-  html[data-theme="dark"] body.home-page.page-transition-out .sidebar.sticky .profile_box {
+  html[data-theme="dark"]
+    body.home-page.page-transition-out
+    .sidebar.sticky
+    .profile_box {
     box-shadow:
       var(--shadow),
       inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -1071,7 +1199,10 @@ html[data-theme="dark"] .thought-card {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.js body.home-page:not(.profile-panel-motion-ready) .sidebar.sticky .profile_box {
+  html.js
+    body.home-page:not(.profile-panel-motion-ready)
+    .sidebar.sticky
+    .profile_box {
     opacity: 1;
     filter: none;
     transform: none;
@@ -1295,7 +1426,10 @@ body.home-page .page__content .anchor {
   padding: 0.32rem;
   text-decoration: none;
   box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 72%, transparent);
-  transition: border-color 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .author__affiliation:hover,
@@ -1364,12 +1498,13 @@ html[data-theme="dark"] .author__affiliation:focus-visible {
   background:
     linear-gradient(var(--surface), var(--surface)) padding-box,
     conic-gradient(
-      from 210deg,
-      color-mix(in srgb, var(--profile-accent) 28%, var(--surface)),
-      color-mix(in srgb, var(--header-initial-2) 28%, var(--surface)),
-      color-mix(in srgb, var(--header-initial-3) 22%, var(--surface)),
-      color-mix(in srgb, var(--profile-accent) 28%, var(--surface))
-    ) border-box;
+        from 210deg,
+        color-mix(in srgb, var(--profile-accent) 28%, var(--surface)),
+        color-mix(in srgb, var(--header-initial-2) 28%, var(--surface)),
+        color-mix(in srgb, var(--header-initial-3) 22%, var(--surface)),
+        color-mix(in srgb, var(--profile-accent) 28%, var(--surface))
+      )
+      border-box;
   box-shadow:
     0 12px 26px color-mix(in srgb, var(--profile-accent) 13%, transparent),
     0 3px 8px rgba(24, 32, 27, 0.12),
@@ -1433,7 +1568,11 @@ body.home-page .profile_box .author__avatar-frame:hover .author__avatar-image {
   inset: -12%;
   border-radius: 20px;
   pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--profile-accent) 24%, transparent), transparent 68%);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--profile-accent) 24%, transparent),
+    transparent 68%
+  );
   filter: blur(13px);
   opacity: 0.46;
   animation: avatar-aura-breathe 5.6s ease-in-out infinite;
@@ -1499,7 +1638,8 @@ body.home-page .profile_box .author__avatar-frame:hover .author__avatar-image {
 }
 
 @keyframes avatar-aura-breathe {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.34;
     transform: scale(0.96);
   }
@@ -1530,7 +1670,11 @@ body.home-page.reveal-motion-ready .motion-reveal.is-visible {
 }
 
 body.home-page .page__content > h1.motion-reveal {
-  background-image: linear-gradient(90deg, color-mix(in srgb, var(--header-initial) 8%, transparent), transparent 44%);
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--header-initial) 8%, transparent),
+    transparent 44%
+  );
   background-repeat: no-repeat;
   background-size: 0 100%;
 }
@@ -1541,7 +1685,8 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
     opacity 540ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
     transform 580ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
     filter 540ms ease var(--reveal-delay, 0ms),
-    background-size 760ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--reveal-delay, 0ms) + 100ms);
+    background-size 760ms cubic-bezier(0.22, 1, 0.36, 1)
+      calc(var(--reveal-delay, 0ms) + 100ms);
 }
 
 @media (max-width: 72em) {
@@ -1701,7 +1846,10 @@ body.home-page .page__content > h1.motion-reveal.is-visible {
   }
 
   body.home-page .profile_box .author__affiliation img,
-  body.home-page .profile_box .author__affiliation img.author__affiliation-logo--round {
+  body.home-page
+    .profile_box
+    .author__affiliation
+    img.author__affiliation-logo--round {
     margin: auto;
   }
 }
@@ -1820,7 +1968,6 @@ html[data-theme="dark"] .page__comments + .pagination {
   border-top-color: var(--divider);
 }
 
-
 .site-options-fab {
   position: fixed;
   left: 18px;
@@ -1850,7 +1997,11 @@ html[data-theme="dark"] .page__comments + .pagination {
   min-height: 44px;
   touch-action: manipulation;
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .site-options-fab.is-open .site-options-fab__trigger,
@@ -1877,7 +2028,9 @@ html[data-theme="dark"] .page__comments + .pagination {
   transform-origin: left bottom;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .site-options-fab__menu[hidden] {
@@ -1907,7 +2060,10 @@ html[data-theme="dark"] .page__comments + .pagination {
   cursor: pointer;
   min-height: 44px;
   touch-action: manipulation;
-  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
 }
 
 .site-options-fab__action:hover {
@@ -1956,7 +2112,11 @@ html[data-theme="dark"] .page__comments + .pagination {
   line-height: 1;
   cursor: pointer;
   box-shadow: var(--shadow);
-  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .theme-toggle--floating {
@@ -2041,18 +2201,28 @@ body.home-page .profile_box .author__avatar-frame .author__avatar-image--dark {
   opacity: 0;
 }
 
-html[data-theme="dark"] body.home-page .profile_box .author__avatar-frame .author__avatar-image--light {
+html[data-theme="dark"]
+  body.home-page
+  .profile_box
+  .author__avatar-frame
+  .author__avatar-image--light {
   display: block;
   opacity: 0;
 }
 
-html[data-theme="dark"] body.home-page .profile_box .author__avatar-frame .author__avatar-image--dark {
+html[data-theme="dark"]
+  body.home-page
+  .profile_box
+  .author__avatar-frame
+  .author__avatar-image--dark {
   display: block;
   opacity: 1;
 }
 
 .author__avatar img {
-  transition: filter 0.2s ease, opacity 0.2s ease;
+  transition:
+    filter 0.2s ease,
+    opacity 0.2s ease;
 }
 
 html[data-theme="dark"] .author__avatar img {
@@ -2072,7 +2242,10 @@ html[data-theme="dark"] .author__avatar img.author__avatar--gif {
 #live2dcanvas,
 .live2d-widget-container {
   transform-origin: right bottom;
-  transition: filter 0.2s ease, opacity 0.28s ease, transform 0.28s ease;
+  transition:
+    filter 0.2s ease,
+    opacity 0.28s ease,
+    transform 0.28s ease;
   pointer-events: none !important;
 }
 

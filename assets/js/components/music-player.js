@@ -65,7 +65,8 @@
     var hash = 2166136261;
     for (var i = 0; i < value.length; i++) {
       hash ^= value.charCodeAt(i);
-      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+      hash +=
+        (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
     }
     return hash >>> 0;
   }
@@ -118,11 +119,12 @@
 
   function readUInt32BE(bytes, offset) {
     return (
-      (bytes[offset] << 24) |
-      (bytes[offset + 1] << 16) |
-      (bytes[offset + 2] << 8) |
-      bytes[offset + 3]
-    ) >>> 0;
+      ((bytes[offset] << 24) |
+        (bytes[offset + 1] << 16) |
+        (bytes[offset + 2] << 8) |
+        bytes[offset + 3]) >>>
+      0
+    );
   }
 
   function bytesToAscii(bytes, start, count) {
@@ -165,7 +167,12 @@
 
   function mimeFromImageHeader(bytes, offset) {
     var i = Number(offset) || 0;
-    if (i + 2 < bytes.length && bytes[i] === 0xff && bytes[i + 1] === 0xd8 && bytes[i + 2] === 0xff) {
+    if (
+      i + 2 < bytes.length &&
+      bytes[i] === 0xff &&
+      bytes[i + 1] === 0xd8 &&
+      bytes[i + 2] === 0xff
+    ) {
       return "image/jpeg";
     }
     if (
@@ -227,7 +234,10 @@
     var imageOffset = findImageHeaderOffset(frameBytes, payloadStart);
     if (imageOffset >= 0) {
       var detectedMime = mimeFromImageHeader(frameBytes, imageOffset);
-      return blobUrlFromImageBytes(frameBytes.subarray(imageOffset), detectedMime || mime);
+      return blobUrlFromImageBytes(
+        frameBytes.subarray(imageOffset),
+        detectedMime || mime
+      );
     }
 
     return "";
@@ -248,14 +258,20 @@
     if (descEnd >= 0) {
       cursor = encoding === 0 || encoding === 3 ? descEnd + 1 : descEnd + 2;
       if (cursor < frameBytes.length) {
-        return blobUrlFromImageBytes(frameBytes.subarray(cursor), formatToMime(format));
+        return blobUrlFromImageBytes(
+          frameBytes.subarray(cursor),
+          formatToMime(format)
+        );
       }
     }
 
     var imageOffset = findImageHeaderOffset(frameBytes, payloadStart);
     if (imageOffset >= 0) {
       var detectedMime = mimeFromImageHeader(frameBytes, imageOffset);
-      return blobUrlFromImageBytes(frameBytes.subarray(imageOffset), detectedMime || formatToMime(format));
+      return blobUrlFromImageBytes(
+        frameBytes.subarray(imageOffset),
+        detectedMime || formatToMime(format)
+      );
     }
 
     return "";
@@ -274,7 +290,10 @@
     if (version === 2) {
       while (offset + 6 <= end) {
         var frameIdV2 = bytesToAscii(bytes, offset, 3);
-        var frameSizeV2 = (bytes[offset + 3] << 16) | (bytes[offset + 4] << 8) | bytes[offset + 5];
+        var frameSizeV2 =
+          (bytes[offset + 3] << 16) |
+          (bytes[offset + 4] << 8) |
+          bytes[offset + 5];
         if (!frameIdV2.trim() || frameSizeV2 <= 0) break;
 
         var frameStartV2 = offset + 6;
@@ -292,7 +311,10 @@
 
     while (offset + 10 <= end) {
       var frameId = bytesToAscii(bytes, offset, 4);
-      var frameSize = version === 4 ? readSynchsafeInt(bytes, offset + 4) : readUInt32BE(bytes, offset + 4);
+      var frameSize =
+        version === 4
+          ? readSynchsafeInt(bytes, offset + 4)
+          : readUInt32BE(bytes, offset + 4);
       if (!frameId.trim() || frameSize <= 0) break;
 
       var frameStart = offset + 10;
@@ -313,17 +335,17 @@
     var key = track.streamUrl;
     if (!key) return Promise.reject(new Error("No stream URL"));
     if (Object.prototype.hasOwnProperty.call(embeddedCoverCache, key)) {
-      if (embeddedCoverCache[key]) return Promise.resolve(embeddedCoverCache[key]);
+      if (embeddedCoverCache[key])
+        return Promise.resolve(embeddedCoverCache[key]);
       return Promise.reject(new Error("No embedded cover"));
     }
 
-    return fetchAudioArrayBuffer(key)
-      .then(function (arrayBuffer) {
-        var coverUrl = extractEmbeddedCoverUrl(arrayBuffer);
-        embeddedCoverCache[key] = coverUrl || "";
-        if (!coverUrl) throw new Error("No embedded cover");
-        return coverUrl;
-      });
+    return fetchAudioArrayBuffer(key).then(function (arrayBuffer) {
+      var coverUrl = extractEmbeddedCoverUrl(arrayBuffer);
+      embeddedCoverCache[key] = coverUrl || "";
+      if (!coverUrl) throw new Error("No embedded cover");
+      return coverUrl;
+    });
   }
 
   function resamplePeaks(source, count) {
@@ -378,7 +400,9 @@
     for (var i = 0; i < count; i++) {
       level += (random() - 0.5) * 0.34;
       level = clamp(level, 0.08, 0.95);
-      var curveBase = Math.abs(Math.sin((i / Math.max(1, count - 1)) * Math.PI * (2 + random() * 2)));
+      var curveBase = Math.abs(
+        Math.sin((i / Math.max(1, count - 1)) * Math.PI * (2 + random() * 2))
+      );
       var curve = Math.pow(curveBase, 1.28);
       peaks.push(clamp(level * 0.42 + curve * 0.58, 0.04, 0.98));
     }
@@ -456,13 +480,41 @@
     var title = (track && track.title) || "Track " + (index + 1);
     var artist = (track && track.artist) || "Unknown artist";
     var album = (track && track.album) || "";
-    var cover = (track && (track.cover || track.cover_url || track.local_cover)) || "";
-    var streamUrl = (track && (track.stream_url || track.audio_url || track.local_audio || track.url || track.src)) || "";
-    var songUrl = (track && (track.song_url || track.source_url || track.link)) || "";
-    var vgmdbTrackUrl = (track && (track.vgmdb_track_url || track.vgmdb_track || track.vgmdbTrackUrl || track.track_vgmdb_url)) || "";
-    var vgmdbArtistUrl = (track && (track.vgmdb_artist_url || track.vgmdb_artist || track.vgmdbArtistUrl || track.artist_vgmdb_url)) || "";
-    var vgmdbAlbumUrl = (track && (track.vgmdb_album_url || track.vgmdb_album || track.vgmdbAlbumUrl || track.album_vgmdb_url)) || "";
-    var wavePeaks = track && (track.wave_peaks || track.wavePeaks || track.waveform_peaks);
+    var cover =
+      (track && (track.cover || track.cover_url || track.local_cover)) || "";
+    var streamUrl =
+      (track &&
+        (track.stream_url ||
+          track.audio_url ||
+          track.local_audio ||
+          track.url ||
+          track.src)) ||
+      "";
+    var songUrl =
+      (track && (track.song_url || track.source_url || track.link)) || "";
+    var vgmdbTrackUrl =
+      (track &&
+        (track.vgmdb_track_url ||
+          track.vgmdb_track ||
+          track.vgmdbTrackUrl ||
+          track.track_vgmdb_url)) ||
+      "";
+    var vgmdbArtistUrl =
+      (track &&
+        (track.vgmdb_artist_url ||
+          track.vgmdb_artist ||
+          track.vgmdbArtistUrl ||
+          track.artist_vgmdb_url)) ||
+      "";
+    var vgmdbAlbumUrl =
+      (track &&
+        (track.vgmdb_album_url ||
+          track.vgmdb_album ||
+          track.vgmdbAlbumUrl ||
+          track.album_vgmdb_url)) ||
+      "";
+    var wavePeaks =
+      track && (track.wave_peaks || track.wavePeaks || track.waveform_peaks);
 
     return {
       title: title,
@@ -474,7 +526,7 @@
       vgmdbTrackUrl: resolveAssetUrl(vgmdbTrackUrl, baseUrl),
       vgmdbArtistUrl: resolveAssetUrl(vgmdbArtistUrl, baseUrl),
       vgmdbAlbumUrl: resolveAssetUrl(vgmdbAlbumUrl, baseUrl),
-      wavePeaks: normaliseWavePeaks(wavePeaks)
+      wavePeaks: normaliseWavePeaks(wavePeaks),
     };
   }
 
@@ -503,10 +555,10 @@
     var currentTime = root.querySelector("[data-music-time-current]");
     var totalTime = root.querySelector("[data-music-time-total]");
     var volume = root.querySelector("[data-music-volume]");
-    var toggle = root.querySelector("[data-music-action=\"toggle\"]");
+    var toggle = root.querySelector('[data-music-action="toggle"]');
     var toggleIcon = root.querySelector("[data-music-toggle-icon]");
     var toggleText = root.querySelector("[data-music-toggle-text]");
-    var randomButton = root.querySelector("[data-music-action=\"random\"]");
+    var randomButton = root.querySelector('[data-music-action="random"]');
     var songLink = root.querySelector("[data-music-song-link]");
 
     var state = {
@@ -516,7 +568,7 @@
       waveBars: [],
       waveRenderJob: 0,
       coverRenderJob: 0,
-      coverSizeFrame: 0
+      coverSizeFrame: 0,
     };
 
     function setStatus(message, level) {
@@ -553,8 +605,14 @@
     }
 
     function updateScrubA11y(ratio) {
-      scrub.setAttribute("aria-valuenow", String(Math.round(clamp(ratio, 0, 1) * 100)));
-      scrub.setAttribute("aria-valuetext", currentTime.textContent + " / " + totalTime.textContent);
+      scrub.setAttribute(
+        "aria-valuenow",
+        String(Math.round(clamp(ratio, 0, 1) * 100))
+      );
+      scrub.setAttribute(
+        "aria-valuetext",
+        currentTime.textContent + " / " + totalTime.textContent
+      );
     }
 
     function waveBarCount() {
@@ -578,7 +636,8 @@
       for (var i = 0; i < heights.length; i++) {
         var bar = document.createElement("span");
         bar.className = "music-player__wave-bar";
-        bar.style.height = String(Math.round(clamp(heights[i], 0.04, 0.98) * 100)) + "%";
+        bar.style.height =
+          String(Math.round(clamp(heights[i], 0.04, 0.98) * 100)) + "%";
         fragment.appendChild(bar);
         bars.push(bar);
       }
@@ -595,7 +654,12 @@
         return;
       }
 
-      var baseKey = [track.streamUrl, track.title, track.artist, track.album].join("|");
+      var baseKey = [
+        track.streamUrl,
+        track.title,
+        track.artist,
+        track.album,
+      ].join("|");
       var fallback = fallbackPeaks(baseKey, count);
       renderWaveBars(fallback);
 
@@ -645,7 +709,8 @@
       }
 
       var link = document.createElement("a");
-      link.className = "music-player__meta-link music-player__meta-link--clickable";
+      link.className =
+        "music-player__meta-link music-player__meta-link--clickable";
       link.href = hrefValue;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
@@ -708,7 +773,8 @@
     }
 
     function loadTrack(index, autoplay) {
-      var bounded = ((index % playlist.length) + playlist.length) % playlist.length;
+      var bounded =
+        ((index % playlist.length) + playlist.length) % playlist.length;
       state.index = bounded;
       var track = playlist[bounded];
 
@@ -845,7 +911,10 @@
     });
 
     audio.addEventListener("error", function () {
-      setStatus("Track failed to load. Check local path or source URL.", "error");
+      setStatus(
+        "Track failed to load. Check local path or source URL.",
+        "error"
+      );
     });
 
     volume.addEventListener("input", function () {

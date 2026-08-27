@@ -46,8 +46,20 @@ body.page-transition-enabled #main::before {
   z-index: 30;
   border-radius: 8px;
   background:
-    linear-gradient(90deg, var(--page-transition-paper-sheen), transparent 28%, transparent 72%, var(--page-transition-paper-crease)),
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px);
+    linear-gradient(
+      90deg,
+      var(--page-transition-paper-sheen),
+      transparent 28%,
+      transparent 72%,
+      var(--page-transition-paper-crease)
+    ),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    );
 }
 
 body.page-transition-enabled #main::after {
@@ -59,8 +71,19 @@ body.page-transition-enabled #main::after {
   border-right: 1px solid var(--page-transition-paper-edge);
   border-radius: 0 8px 8px 0;
   background:
-    linear-gradient(90deg, transparent, var(--page-transition-paper-sheen) 58%, var(--page-transition-paper-edge)),
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 7px);
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--page-transition-paper-sheen) 58%,
+      var(--page-transition-paper-edge)
+    ),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 7px
+    );
   box-shadow: 12px 0 22px -18px var(--page-transition-paper-shadow);
   transform-origin: right center;
 }
@@ -95,8 +118,20 @@ body.home-page.page-transition-enabled .page::before {
   z-index: 30;
   border-radius: 8px;
   background:
-    linear-gradient(90deg, var(--page-transition-paper-sheen), transparent 28%, transparent 72%, var(--page-transition-paper-crease)),
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px);
+    linear-gradient(
+      90deg,
+      var(--page-transition-paper-sheen),
+      transparent 28%,
+      transparent 72%,
+      var(--page-transition-paper-crease)
+    ),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    );
 }
 
 body.home-page.page-transition-enabled .page::after {
@@ -108,8 +143,19 @@ body.home-page.page-transition-enabled .page::after {
   border-right: 1px solid var(--page-transition-paper-edge);
   border-radius: 0 8px 8px 0;
   background:
-    linear-gradient(90deg, transparent, var(--page-transition-paper-sheen) 58%, var(--page-transition-paper-edge)),
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 7px);
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--page-transition-paper-sheen) 58%,
+      var(--page-transition-paper-edge)
+    ),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 7px
+    );
   box-shadow: 12px 0 22px -18px var(--page-transition-paper-shadow);
   transform-origin: right center;
 }
@@ -117,7 +163,8 @@ body.home-page.page-transition-enabled .page::after {
 @keyframes page-paper-in {
   from {
     opacity: 0;
-    transform: perspective(1400px) rotateY(4.8deg) translateX(18px) translateY(7px);
+    transform: perspective(1400px) rotateY(4.8deg) translateX(18px)
+      translateY(7px);
     filter: saturate(0.92) brightness(0.98);
   }
 
@@ -141,7 +188,8 @@ body.home-page.page-transition-enabled .page::after {
 
   to {
     opacity: 0;
-    transform: perspective(1400px) rotateY(-5deg) translateX(-18px) translateY(5px);
+    transform: perspective(1400px) rotateY(-5deg) translateX(-18px)
+      translateY(5px);
     filter: saturate(0.88) brightness(0.96);
   }
 }
@@ -191,8 +239,10 @@ body.home-page.page-transition-enabled .page::after {
 }
 
 body.page-transition-enter #main {
-  -webkit-animation: page-paper-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
-  animation: page-paper-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
+  -webkit-animation: page-paper-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
+  animation: page-paper-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
   will-change: opacity, transform, filter;
 }
 
@@ -202,13 +252,16 @@ body.home-page.page-transition-enter #main {
 }
 
 body.home-page.page-transition-enter .page {
-  -webkit-animation: page-paper-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
-  animation: page-paper-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
+  -webkit-animation: page-paper-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
+  animation: page-paper-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
   will-change: opacity, transform, filter;
 }
 
 body.page-transition-enter #main::before {
-  -webkit-animation: page-paper-veil-in var(--page-transition-enter-duration) ease both;
+  -webkit-animation: page-paper-veil-in var(--page-transition-enter-duration)
+    ease both;
   animation: page-paper-veil-in var(--page-transition-enter-duration) ease both;
 }
 
@@ -219,23 +272,29 @@ body.home-page.page-transition-enter #main::after {
 }
 
 body.home-page.page-transition-enter .page::before {
-  -webkit-animation: page-paper-veil-in var(--page-transition-enter-duration) ease both;
+  -webkit-animation: page-paper-veil-in var(--page-transition-enter-duration)
+    ease both;
   animation: page-paper-veil-in var(--page-transition-enter-duration) ease both;
 }
 
 body.page-transition-enter #main::after {
-  -webkit-animation: page-paper-edge-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
-  animation: page-paper-edge-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
+  -webkit-animation: page-paper-edge-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
+  animation: page-paper-edge-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
 }
 
 body.home-page.page-transition-enter .page::after {
-  -webkit-animation: page-paper-edge-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
-  animation: page-paper-edge-in var(--page-transition-enter-duration) var(--page-transition-ease) both;
+  -webkit-animation: page-paper-edge-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
+  animation: page-paper-edge-in var(--page-transition-enter-duration)
+    var(--page-transition-ease) both;
 }
 
 body.page-transition-out #main {
   pointer-events: none;
-  -webkit-animation: page-paper-out var(--page-transition-exit-duration) ease both;
+  -webkit-animation: page-paper-out var(--page-transition-exit-duration) ease
+    both;
   animation: page-paper-out var(--page-transition-exit-duration) ease both;
   will-change: opacity, transform, filter;
 }
@@ -247,13 +306,15 @@ body.home-page.page-transition-out #main {
 
 body.home-page.page-transition-out .page {
   pointer-events: none;
-  -webkit-animation: page-paper-out var(--page-transition-exit-duration) ease both;
+  -webkit-animation: page-paper-out var(--page-transition-exit-duration) ease
+    both;
   animation: page-paper-out var(--page-transition-exit-duration) ease both;
   will-change: opacity, transform, filter;
 }
 
 body.page-transition-out #main::before {
-  -webkit-animation: page-paper-veil-out var(--page-transition-exit-duration) ease both;
+  -webkit-animation: page-paper-veil-out var(--page-transition-exit-duration)
+    ease both;
   animation: page-paper-veil-out var(--page-transition-exit-duration) ease both;
 }
 
@@ -264,17 +325,20 @@ body.home-page.page-transition-out #main::after {
 }
 
 body.home-page.page-transition-out .page::before {
-  -webkit-animation: page-paper-veil-out var(--page-transition-exit-duration) ease both;
+  -webkit-animation: page-paper-veil-out var(--page-transition-exit-duration)
+    ease both;
   animation: page-paper-veil-out var(--page-transition-exit-duration) ease both;
 }
 
 body.page-transition-out #main::after {
-  -webkit-animation: page-paper-edge-out var(--page-transition-exit-duration) ease both;
+  -webkit-animation: page-paper-edge-out var(--page-transition-exit-duration)
+    ease both;
   animation: page-paper-edge-out var(--page-transition-exit-duration) ease both;
 }
 
 body.home-page.page-transition-out .page::after {
-  -webkit-animation: page-paper-edge-out var(--page-transition-exit-duration) ease both;
+  -webkit-animation: page-paper-edge-out var(--page-transition-exit-duration)
+    ease both;
   animation: page-paper-edge-out var(--page-transition-exit-duration) ease both;
 }
 

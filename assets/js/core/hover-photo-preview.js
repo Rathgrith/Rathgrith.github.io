@@ -12,9 +12,14 @@
 
     try {
       var parsed = JSON.parse(dataNode.textContent || "[]");
-      var filenames = Array.isArray(parsed) ? parsed : Object.keys(parsed || {});
+      var filenames = Array.isArray(parsed)
+        ? parsed
+        : Object.keys(parsed || {});
       cachedPool = filenames.filter(function (filename) {
-        return typeof filename === "string" && /\.(jpe?g|png|webp|gif)$/i.test(filename);
+        return (
+          typeof filename === "string" &&
+          /\.(jpe?g|png|webp|gif)$/i.test(filename)
+        );
       });
     } catch (error) {
       cachedPool = [];
@@ -47,28 +52,34 @@
     var identity = [
       window.location.pathname,
       trigger.textContent.replace(/\s+/g, " ").trim(),
-      String(pool.length)
+      String(pool.length),
     ].join("|");
     return pool[hashString(identity) % pool.length];
   }
 
   function initialisePreview(trigger, pool) {
-    if (!trigger || trigger.getAttribute("data-gallery-hover-ready") === "true") return;
+    if (!trigger || trigger.getAttribute("data-gallery-hover-ready") === "true")
+      return;
 
     var image = trigger.querySelector(".hover-photo__card img");
     var filename = selectStableFilename(trigger, pool);
     if (!image || !filename) return;
 
-    image.src = normaliseDir(trigger.getAttribute("data-gallery-thumbnail-dir")) + filename;
+    image.src =
+      normaliseDir(trigger.getAttribute("data-gallery-thumbnail-dir")) +
+      filename;
     image.alt = "Photography gallery preview";
     trigger.setAttribute("data-gallery-hover-ready", "true");
   }
 
   function init() {
     var pool = parseGalleryPool();
-    Array.prototype.forEach.call(document.querySelectorAll(TRIGGER_SELECTOR), function (trigger) {
-      initialisePreview(trigger, pool);
-    });
+    Array.prototype.forEach.call(
+      document.querySelectorAll(TRIGGER_SELECTOR),
+      function (trigger) {
+        initialisePreview(trigger, pool);
+      }
+    );
   }
 
   document.addEventListener("site:content-updated", init);

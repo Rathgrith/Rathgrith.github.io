@@ -1,5 +1,6 @@
 (function () {
-  var LIB_URL = "https://cdn.jsdelivr.net/npm/live2d-widget@3.1.4/lib/L2Dwidget.min.js";
+  var LIB_URL =
+    "https://cdn.jsdelivr.net/npm/live2d-widget@3.1.4/lib/L2Dwidget.min.js";
   var WIDGET_RATIO = 1.52;
   var resizeTimer = 0;
   var preferenceStorageKey = "site-live2d-enabled";
@@ -22,7 +23,8 @@
 
   function shouldDisableLive2D() {
     return (
-      (document.body && document.body.getAttribute("data-disable-live2d") === "true") ||
+      (document.body &&
+        document.body.getAttribute("data-disable-live2d") === "true") ||
       !isPreferenceEnabled()
     );
   }
@@ -40,7 +42,8 @@
   }
 
   function getDisplayConfig() {
-    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 1280;
+    var viewportWidth =
+      window.innerWidth || document.documentElement.clientWidth || 1280;
     var isPhone = viewportWidth < 600;
     var isSmallScreen = viewportWidth < 980;
     var width = isPhone
@@ -55,7 +58,7 @@
       width: width,
       height: height,
       hOffset: isSmallScreen ? 0 : -Math.round(width * hOffsetRatio),
-      vOffset: -Math.round(height * vOffsetRatio)
+      vOffset: -Math.round(height * vOffsetRatio),
     };
   }
 
@@ -107,7 +110,8 @@
 
   function loadLibrary() {
     if (window.L2Dwidget) return Promise.resolve();
-    if (window.__siteLive2DLibraryPromise) return window.__siteLive2DLibraryPromise;
+    if (window.__siteLive2DLibraryPromise)
+      return window.__siteLive2DLibraryPromise;
 
     window.__siteLive2DLibraryPromise = new Promise(function (resolve, reject) {
       var existing = document.querySelector('script[src="' + LIB_URL + '"]');
@@ -135,20 +139,21 @@
 
     loadLibrary()
       .then(function () {
-        if (!window.L2Dwidget || typeof window.L2Dwidget.init !== "function") return;
+        if (!window.L2Dwidget || typeof window.L2Dwidget.init !== "function")
+          return;
 
         if (!window.__siteLive2DInitialized) {
           window.__siteLive2DInitialized = true;
           window.L2Dwidget.init({
             model: {
-              jsonPath: getModelPath()
+              jsonPath: getModelPath(),
             },
             display: getDisplayConfig(),
             mobile: {
               show: false,
               scale: 0.25,
-              motion: false
-            }
+              motion: false,
+            },
           });
           syncAfterInit();
           return;

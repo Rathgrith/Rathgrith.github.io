@@ -1,0 +1,13 @@
+_site/
+_sass/vendor/
+_includes/
+_layouts/
+assets/gallery.html
+assets/pdf_list.html
+assets/js/main.min.js
+assets/js/plugins/
+assets/css/academicons.css
+assets/css/academicons.min.css
+*.sh
+Gemfile
+Gemfile.lock

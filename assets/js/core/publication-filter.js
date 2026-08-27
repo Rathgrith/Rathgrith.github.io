@@ -1,12 +1,17 @@
 (function () {
   function initialiseFilter(list) {
-    if (!list || list.getAttribute("data-publication-filter-bound") === "true") return;
+    if (!list || list.getAttribute("data-publication-filter-bound") === "true")
+      return;
 
     var filter = list.previousElementSibling;
     if (!filter || !filter.classList.contains("publication-filter")) return;
 
-    var items = Array.prototype.slice.call(list.querySelectorAll("[data-publication-selected]"));
-    var buttons = Array.prototype.slice.call(filter.querySelectorAll("[data-publication-filter]"));
+    var items = Array.prototype.slice.call(
+      list.querySelectorAll("[data-publication-selected]")
+    );
+    var buttons = Array.prototype.slice.call(
+      filter.querySelectorAll("[data-publication-filter]")
+    );
     var count = filter.querySelector("[data-publication-count]");
 
     function applyMode(mode) {
@@ -14,7 +19,8 @@
       var visibleCount = 0;
 
       items.forEach(function (item) {
-        var visible = showAll || item.getAttribute("data-publication-selected") === "true";
+        var visible =
+          showAll || item.getAttribute("data-publication-selected") === "true";
         item.hidden = !visible;
         if (visible) visibleCount += 1;
       });
@@ -32,11 +38,17 @@
     filter.addEventListener("click", function (event) {
       var button = event.target.closest("[data-publication-filter]");
       if (!button || !filter.contains(button)) return;
-      applyMode(button.getAttribute("data-publication-filter") === "all" ? "all" : "selected");
+      applyMode(
+        button.getAttribute("data-publication-filter") === "all"
+          ? "all"
+          : "selected"
+      );
     });
 
     list.setAttribute("data-publication-filter-bound", "true");
-    applyMode(list.getAttribute("data-publication-mode") === "all" ? "all" : "selected");
+    applyMode(
+      list.getAttribute("data-publication-mode") === "all" ? "all" : "selected"
+    );
   }
 
   function init() {

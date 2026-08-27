@@ -42,7 +42,13 @@ body.standalone-page .page__content {
 
 .page-header {
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 5px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
     linear-gradient(180deg, var(--surface), var(--surface-alt));
   border-bottom: 1px solid var(--border);
   box-shadow: inset 0 -1px 0 var(--paper-edge);
@@ -51,8 +57,16 @@ body.standalone-page .page__content {
 
 html[data-theme="dark"] .page-header {
   background:
-    radial-gradient(circle at 50% -20%, rgba(75, 139, 178, 0.12), transparent 34rem),
-    linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--surface-alt) 58%, var(--bg) 42%));
+    radial-gradient(
+      circle at 50% -20%,
+      rgba(75, 139, 178, 0.12),
+      transparent 34rem
+    ),
+    linear-gradient(
+      180deg,
+      var(--surface),
+      color-mix(in srgb, var(--surface-alt) 58%, var(--bg) 42%)
+    );
   box-shadow:
     inset 0 -1px 0 color-mix(in srgb, var(--link) 12%, var(--border) 88%),
     0 10px 28px rgba(0, 0, 0, 0.12);
@@ -75,11 +89,21 @@ body.notes-page :is(h1, h2, h3)::first-letter {
   background: linear-gradient(
     180deg,
     transparent 58%,
-    color-mix(in srgb, var(--header-initial, var(--header-initial-1)) 20%, transparent) 58%
+    color-mix(
+        in srgb,
+        var(--header-initial, var(--header-initial-1)) 20%,
+        transparent
+      )
+      58%
   );
   text-shadow:
     0 1px 0 color-mix(in srgb, var(--surface) 82%, transparent),
-    0 0 0.62em color-mix(in srgb, var(--header-initial, var(--header-initial-1)) 18%, transparent);
+    0 0 0.62em
+      color-mix(
+        in srgb,
+        var(--header-initial, var(--header-initial-1)) 18%,
+        transparent
+      );
 }
 
 body.notes-page h1 {
@@ -118,8 +142,18 @@ body.gallery-page .gallery-container {
   flex: 1 0 auto;
   text-align: center;
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #ffffff 4%), var(--surface));
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 96%, #ffffff 4%),
+      var(--surface)
+    );
   border: 1px solid color-mix(in srgb, var(--border) 88%, var(--paper-edge) 12%);
   border-radius: 8px;
   box-shadow:
@@ -177,7 +211,8 @@ body.gallery-page .gallery a {
   transition:
     transform var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
     border-color var(--paper-transition-fast, 180ms ease),
-    box-shadow var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow
+      var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
     background-color var(--paper-transition-fast, 180ms ease);
 }
 
@@ -200,7 +235,13 @@ body.gallery-page .gallery a::after {
   z-index: 2;
   background:
     linear-gradient(180deg, transparent 62%, rgba(5, 8, 14, 0.18) 100%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 1px, transparent 1px, transparent 9px);
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 0,
+      rgba(255, 255, 255, 0.06) 1px,
+      transparent 1px,
+      transparent 9px
+    );
   opacity: 0;
   transition: opacity var(--paper-transition-fast, 180ms ease);
   pointer-events: none;
@@ -213,13 +254,18 @@ body.gallery-page .gallery img {
   height: calc(100% - 16px);
   object-fit: cover;
   object-position: center center;
-  transition: transform var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1));
+  transition: transform
+    var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 body.gallery-page .gallery a:hover,
 body.gallery-page .gallery a:focus-visible {
   border-color: color-mix(in srgb, var(--link) 34%, var(--border) 66%);
-  background-color: color-mix(in srgb, var(--surface) 88%, var(--surface-alt) 12%);
+  background-color: color-mix(
+    in srgb,
+    var(--surface) 88%,
+    var(--surface-alt) 12%
+  );
   box-shadow:
     var(--paper-lift-shadow, 0 14px 28px rgba(45, 52, 45, 0.14)),
     0 1px 0 color-mix(in srgb, #ffffff 72%, transparent) inset;
@@ -281,7 +327,11 @@ body.gallery-page .caption {
 html[data-theme="dark"] body.gallery-page .gallery-container {
   border-color: color-mix(in srgb, var(--link) 12%, var(--border) 88%);
   background:
-    radial-gradient(circle at 50% 0%, rgba(75, 139, 178, 0.08), transparent 34rem),
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(75, 139, 178, 0.08),
+      transparent 34rem
+    ),
     color-mix(in srgb, var(--surface) 96%, #080d14 4%);
   box-shadow:
     0 18px 42px rgba(0, 0, 0, 0.32),
@@ -338,7 +388,13 @@ body.gallery-page .gallery-modal__dialog {
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--border) 82%, #ffffff 18%);
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
     var(--surface);
   box-shadow:
     0 18px 36px rgba(0, 0, 0, 0.28),
@@ -381,9 +437,16 @@ body.gallery-page .gallery-modal__image-stage {
   place-items: center;
   overflow: hidden;
   background:
-    repeating-linear-gradient(90deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 7px),
+    repeating-linear-gradient(
+      90deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 7px
+    ),
     color-mix(in srgb, var(--surface-alt) 86%, #000 14%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface) 68%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--surface) 68%, transparent);
 }
 
 body.gallery-page .gallery-modal__image {
@@ -529,8 +592,11 @@ body.gallery-page .gallery-modal__thumb-image {
 body.gallery-page .gallery-modal__nav,
 body.gallery-page .gallery-modal__close {
   border: 1px solid color-mix(in srgb, var(--border) 76%, #ffffff 24%);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, #ffffff 6%), var(--surface-alt));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 94%, #ffffff 6%),
+    var(--surface-alt)
+  );
   color: var(--text);
   cursor: pointer;
   display: inline-flex;
@@ -585,7 +651,13 @@ body.gallery-page .gallery-modal__close:focus-visible {
 html[data-theme="dark"] body.gallery-page .gallery-modal__dialog {
   border-color: color-mix(in srgb, var(--border) 86%, var(--link) 14%);
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
     color-mix(in srgb, var(--surface) 94%, #050604 6%);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.56);
 }
@@ -600,7 +672,13 @@ html[data-theme="dark"] body.gallery-page .gallery-modal__image {
 
 html[data-theme="dark"] body.gallery-page .gallery-modal__image-stage {
   background:
-    repeating-linear-gradient(90deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 7px),
+    repeating-linear-gradient(
+      90deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 7px
+    ),
     color-mix(in srgb, var(--surface-alt) 84%, #000 16%);
 }
 
@@ -625,7 +703,13 @@ body.gallery-page .gallery-action.button {
   border-radius: 6px;
   border-color: color-mix(in srgb, var(--border) 88%, var(--link) 12%);
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
     linear-gradient(180deg, var(--surface), var(--surface-alt));
   box-shadow:
     0 7px 14px rgba(45, 52, 45, 0.12),
@@ -638,7 +722,8 @@ body.gallery-page .gallery-action.button {
   transition:
     transform var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
     border-color var(--paper-transition-fast, 180ms ease),
-    box-shadow var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow
+      var(--paper-transition-lift, 260ms cubic-bezier(0.22, 1, 0.36, 1)),
     background var(--paper-transition-fast, 180ms ease);
 }
 
@@ -665,7 +750,9 @@ body.gallery-page .gallery-action__icon {
   justify-content: center;
   background: color-mix(in srgb, var(--link) 14%, transparent);
   color: var(--link);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 body.gallery-page .gallery-action__label {
@@ -699,8 +786,18 @@ body.gallery-page .gallery-action.button:disabled:not(.is-loading) {
 
 html[data-theme="dark"] body.gallery-page .gallery-action.button {
   background:
-    repeating-linear-gradient(0deg, var(--paper-grain) 0, var(--paper-grain) 1px, transparent 1px, transparent 6px),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-alt) 88%, #0d0f13 12%), var(--surface));
+    repeating-linear-gradient(
+      0deg,
+      var(--paper-grain) 0,
+      var(--paper-grain) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-alt) 88%, #0d0f13 12%),
+      var(--surface)
+    );
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.34);
 }
 

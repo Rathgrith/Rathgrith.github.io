@@ -26,7 +26,10 @@
   }
 
   function isPageDisabled() {
-    return document.body && document.body.getAttribute("data-disable-live2d") === "true";
+    return (
+      document.body &&
+      document.body.getAttribute("data-disable-live2d") === "true"
+    );
   }
 
   function labelFor(enabled) {
@@ -72,7 +75,9 @@
   function ensureFallbackButton() {
     if (!document.body) return null;
 
-    var fallback = document.querySelector('[data-live2d-toggle-generated="true"]');
+    var fallback = document.querySelector(
+      '[data-live2d-toggle-generated="true"]'
+    );
     if (fallback) return fallback;
 
     fallback = document.createElement("button");
@@ -86,7 +91,9 @@
   }
 
   function removeFallbackButton() {
-    var fallback = document.querySelector('[data-live2d-toggle-generated="true"]');
+    var fallback = document.querySelector(
+      '[data-live2d-toggle-generated="true"]'
+    );
     if (fallback && fallback.parentNode) {
       fallback.parentNode.removeChild(fallback);
     }
@@ -94,7 +101,9 @@
 
   function resolveButtons() {
     var explicitButtons = toArray(
-      document.querySelectorAll('[data-live2d-toggle]:not([data-live2d-toggle-generated="true"])')
+      document.querySelectorAll(
+        '[data-live2d-toggle]:not([data-live2d-toggle-generated="true"])'
+      )
     );
 
     if (explicitButtons.length > 0) {
@@ -108,7 +117,8 @@
 
   function renderButton(button, enabled) {
     var label = labelFor(enabled);
-    var isMenuStyle = button.getAttribute("data-live2d-toggle-style") === "menu";
+    var isMenuStyle =
+      button.getAttribute("data-live2d-toggle-style") === "menu";
 
     button.setAttribute("aria-label", label);
     button.setAttribute("title", label);
@@ -121,7 +131,7 @@
         '"></i></span>',
         '<span class="site-options-fab__action-label">',
         label,
-        "</span>"
+        "</span>",
       ].join("");
       return;
     }
@@ -132,13 +142,16 @@
       '" aria-hidden="true"></i>',
       '<span class="visually-hidden">',
       label,
-      "</span>"
+      "</span>",
     ].join("");
   }
 
   function applyPreference(enabled, options) {
     var config = options || {};
-    document.documentElement.setAttribute("data-live2d-enabled", enabled ? "true" : "false");
+    document.documentElement.setAttribute(
+      "data-live2d-enabled",
+      enabled ? "true" : "false"
+    );
     if (config.persist !== false) {
       persistPreference(enabled);
     }
@@ -198,7 +211,7 @@
         applyPreference(nextEnabled, {
           persist: true,
           dispatch: true,
-          animate: true
+          animate: true,
         });
       });
     }
@@ -212,7 +225,7 @@
     applyPreference(enabled, {
       persist: false,
       dispatch: false,
-      animate: false
+      animate: false,
     });
     syncButtonVisibility();
   }

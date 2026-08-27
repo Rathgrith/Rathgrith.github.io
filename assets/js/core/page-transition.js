@@ -91,7 +91,9 @@
   }
 
   function canSoftNavigate() {
-    return Boolean(window.fetch && window.DOMParser && document.getElementById("main"));
+    return Boolean(
+      window.fetch && window.DOMParser && document.getElementById("main")
+    );
   }
 
   function playEnterAnimation() {
@@ -171,9 +173,12 @@
     if (!document.body || !nextBody) return;
 
     var preserved = {};
-    if (document.body.classList.contains(ENABLED_CLASS)) preserved[ENABLED_CLASS] = true;
-    if (document.body.classList.contains(ENTER_CLASS)) preserved[ENTER_CLASS] = true;
-    if (document.body.classList.contains(EXIT_CLASS)) preserved[EXIT_CLASS] = true;
+    if (document.body.classList.contains(ENABLED_CLASS))
+      preserved[ENABLED_CLASS] = true;
+    if (document.body.classList.contains(ENTER_CLASS))
+      preserved[ENTER_CLASS] = true;
+    if (document.body.classList.contains(EXIT_CLASS))
+      preserved[EXIT_CLASS] = true;
     var nextClasses = (nextBody.getAttribute("class") || "")
       .trim()
       .split(/\s+/)
@@ -231,7 +236,9 @@
       });
 
       if (!oldScript.src) {
-        var typeValue = (oldScript.getAttribute("type") || "").trim().toLowerCase();
+        var typeValue = (oldScript.getAttribute("type") || "")
+          .trim()
+          .toLowerCase();
         var source = oldScript.textContent || "";
         script.textContent =
           typeValue === "module"
@@ -280,8 +287,8 @@
     return fetch(url.href, {
       credentials: "same-origin",
       headers: {
-        "X-Requested-With": "site-page-transition"
-      }
+        "X-Requested-With": "site-page-transition",
+      },
     })
       .then(function (response) {
         if (!response.ok) {
@@ -304,7 +311,10 @@
         executeScripts(insertedMain);
 
         if (!options || !options.skipHistory) {
-          if (window.history && typeof window.history.pushState === "function") {
+          if (
+            window.history &&
+            typeof window.history.pushState === "function"
+          ) {
             window.history.pushState(
               { __siteSoftNav: true, url: url.href },
               "",

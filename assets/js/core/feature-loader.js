@@ -61,9 +61,17 @@
     var player = document.querySelector("[data-music-player]");
     if (!player) return;
 
-    var baseUrl = normaliseBaseUrl(player.getAttribute("data-music-baseurl") || "/");
-    var cssHref = resolveAssetUrl(baseUrl, "assets/css/components/music-player.css");
-    var jsSrc = resolveAssetUrl(baseUrl, "assets/js/components/music-player.js");
+    var baseUrl = normaliseBaseUrl(
+      player.getAttribute("data-music-baseurl") || "/"
+    );
+    var cssHref = resolveAssetUrl(
+      baseUrl,
+      "assets/css/components/music-player.css"
+    );
+    var jsSrc = resolveAssetUrl(
+      baseUrl,
+      "assets/js/components/music-player.js"
+    );
 
     ensureStylesheet("site-music-player-styles", cssHref);
 
@@ -87,9 +95,7 @@
     if (!document.body) return;
 
     var isHomePage = document.body.classList.contains("home-page");
-    var shouldLift =
-      isHomePage &&
-      window.pageYOffset > 24;
+    var shouldLift = isHomePage && window.pageYOffset > 24;
 
     document.body.classList.toggle("profile-panel-is-scrolled", shouldLift);
 
@@ -99,13 +105,15 @@
   }
 
   function enableHomeProfilePanelMotion() {
-    if (!document.body || !document.body.classList.contains("home-page")) return;
+    if (!document.body || !document.body.classList.contains("home-page"))
+      return;
     if (document.body.classList.contains("profile-panel-motion-ready")) return;
     if (homeProfilePanelMotionFrame) return;
 
     var markReady = function () {
       homeProfilePanelMotionFrame = null;
-      if (!document.body || !document.body.classList.contains("home-page")) return;
+      if (!document.body || !document.body.classList.contains("home-page"))
+        return;
       document.body.classList.add("profile-panel-motion-ready");
     };
 
@@ -139,7 +147,9 @@
     if (homeProfilePanelScrollBound) return;
     homeProfilePanelScrollBound = true;
 
-    window.addEventListener("scroll", requestHomeProfilePanelState, { passive: true });
+    window.addEventListener("scroll", requestHomeProfilePanelState, {
+      passive: true,
+    });
     window.addEventListener("resize", requestHomeProfilePanelState);
   }
 

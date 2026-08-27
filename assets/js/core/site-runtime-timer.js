@@ -14,8 +14,16 @@
     var secs = seconds % 60;
 
     return {
-      text: days + "d " + pad2(hours) + "h " + pad2(minutes) + "m " + pad2(secs) + "s",
-      iso: "P" + days + "DT" + hours + "H" + minutes + "M" + secs + "S"
+      text:
+        days +
+        "d " +
+        pad2(hours) +
+        "h " +
+        pad2(minutes) +
+        "m " +
+        pad2(secs) +
+        "s",
+      iso: "P" + days + "DT" + hours + "H" + minutes + "M" + secs + "S",
     };
   }
 
@@ -32,7 +40,19 @@
         timezone = timezone.slice(0, 3) + ":" + timezone.slice(3);
       }
 
-      return fixedMatch[1] + "-" + fixedMatch[2] + "-" + fixedMatch[3] + " " + fixedMatch[4] + ":" + fixedMatch[5] + " UTC" + timezone;
+      return (
+        fixedMatch[1] +
+        "-" +
+        fixedMatch[2] +
+        "-" +
+        fixedMatch[3] +
+        " " +
+        fixedMatch[4] +
+        ":" +
+        fixedMatch[5] +
+        " UTC" +
+        timezone
+      );
     }
 
     return [
@@ -46,7 +66,7 @@
       ":",
       pad2(date.getMinutes()),
       " UTC",
-      formatTimezoneOffset(date)
+      formatTimezoneOffset(date),
     ].join("");
   }
 
@@ -79,7 +99,9 @@
     sinceNode.setAttribute("datetime", startedAt.toISOString());
 
     function update() {
-      var elapsedSeconds = Math.floor((Date.now() - startedAt.getTime()) / 1000);
+      var elapsedSeconds = Math.floor(
+        (Date.now() - startedAt.getTime()) / 1000
+      );
       var formatted = formatDuration(elapsedSeconds);
       elapsedNode.textContent = formatted.text;
       elapsedNode.setAttribute("datetime", formatted.iso);
