@@ -8,7 +8,6 @@
   window.__siteGalleryPageScriptBound = true;
 
   var INITIAL_ROWS_PER_GROUP = 2;
-  var LOAD_ROWS_PER_GROUP = 1;
   var LOAD_ALL_CHUNK_PER_GROUP = 10;
   var MODAL_STRIP_RADIUS = 6;
 
@@ -497,21 +496,10 @@
     var complete = state.items.length >= state.filenames.length;
     if (refs.actions) refs.actions.classList.toggle("is-complete", complete);
 
-    if (refs.more) {
-      setButtonState(refs.more, {
-        disabled: complete || state.rendering,
-        loading: false,
-        label: complete
-          ? refs.more.dataset.doneLabel
-          : refs.more.dataset.defaultLabel,
-        icon: complete ? refs.more.dataset.doneIcon : refs.more.dataset.icon,
-      });
-    }
-
     if (refs.all) {
-      refs.all.hidden = complete;
-      refs.all.setAttribute("aria-hidden", complete ? "true" : "false");
-      refs.all.tabIndex = complete ? -1 : 0;
+      refs.all.hidden = false;
+      refs.all.removeAttribute("aria-hidden");
+      refs.all.removeAttribute("tabindex");
       setButtonState(refs.all, {
         disabled: complete || state.rendering,
         loading: false,
@@ -523,13 +511,11 @@
     }
   }
 
-  function setControlsLoading(refs, activeButton) {
-    [refs.more, refs.all].forEach(function (button) {
-      if (!button) return;
-      setButtonState(button, {
-        disabled: true,
-        loading: button === activeButton,
-      });
+  function setControlsLoading(refs) {
+    if (!refs.all) return;
+    setButtonState(refs.all, {
+      disabled: true,
+      loading: true,
     });
   }
 
@@ -575,24 +561,11 @@
       true
     );
 
-    if (refs.more) {
-      refs.more.addEventListener("click", function () {
-        if (state.rendering) return;
-        state.rendering = true;
-        setControlsLoading(refs, refs.more);
-        window.requestAnimationFrame(function () {
-          appendBalancedBatch(itemsForRows(LOAD_ROWS_PER_GROUP));
-          state.rendering = false;
-          updateControls(refs);
-        });
-      });
-    }
-
     if (refs.all) {
       refs.all.addEventListener("click", function () {
         if (state.rendering) return;
         state.rendering = true;
-        setControlsLoading(refs, refs.all);
+        setControlsLoading(refs);
         loadAllInChunks(refs, state.gallery);
       });
     }
@@ -645,7 +618,6 @@
 
     var refs = {
       actions: container.querySelector(".gallery-actions"),
-      more: container.querySelector("#load-more"),
       all: container.querySelector("#load-all"),
     };
 
