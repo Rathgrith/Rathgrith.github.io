@@ -1889,28 +1889,31 @@ body.gallery-page :is(.gallery-modal__nav, .gallery-modal__close):hover {
 }
 
 @media (max-width: 36em) {
-  body.home-page .profile_box {
-    grid-template-columns: 106px minmax(0, 1fr);
-    justify-items: stretch;
-    text-align: left;
+  body.home-page .profile_box,
+  body.thoughts-page .profile_box {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
   }
 
-  body.home-page .profile_box .author__avatar {
+  body.home-page .profile_box .author__avatar,
+  body.thoughts-page .profile_box .author__avatar {
     grid-column: 1;
     grid-row: 1;
     justify-self: center;
   }
 
-  body.home-page .profile_box .author__content {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: center;
-    width: auto;
+  body.home-page .profile_box .author__content,
+  body.thoughts-page .profile_box .author__content {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
   }
 
-  body.home-page .profile_box .author__urls-wrapper {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  body.home-page .profile_box .author__urls-wrapper,
+  body.thoughts-page .profile_box .author__urls-wrapper {
+    grid-column: 1;
+    grid-row: 3;
   }
 
   body.home-page .profile_box .author__urls_sm,
@@ -1928,26 +1931,6 @@ body.gallery-page :is(.gallery-modal__nav, .gallery-modal__close):hover {
 }
 
 @media (max-width: 21.5em) {
-  body.home-page .profile_box {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-  }
-
-  body.home-page .profile_box .author__avatar,
-  body.home-page .profile_box .author__content,
-  body.home-page .profile_box .author__urls-wrapper {
-    grid-column: 1;
-  }
-
-  body.home-page .profile_box .author__content {
-    grid-row: 2;
-  }
-
-  body.home-page .profile_box .author__urls-wrapper {
-    grid-row: 3;
-  }
-
   .publication-item-inner {
     grid-template-columns: 1fr;
     row-gap: 0.72rem;
