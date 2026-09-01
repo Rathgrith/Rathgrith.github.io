@@ -38,7 +38,28 @@ layout: compress
     {% include site-runtime-footer.html %}
     <script>
       window.__siteLive2DConfig = window.__siteLive2DConfig || {
-        modelPath: "{{ site.live2d_model_path | default: 'https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/kp31_310/model.json' }}"
+        defaultCharacter: "marisa",
+        sourceRepository: "https://github.com/n0099/TouhouCannonBall-Live2d-Models",
+        characters: [
+          {
+            id: "marisa",
+            name: "Marisa",
+            expressionMotionIds: ["01", "02", "07"],
+            modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Marisa/object_live2d_002_101.asset.model3.json"
+          },
+          {
+            id: "alice",
+            name: "Alice",
+            expressionMotionIds: ["01", "02", "07"],
+            modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Alice/object_live2d_014_101.asset.model3.json"
+          },
+          {
+            id: "patchouli",
+            name: "Patchouli",
+            expressionMotionIds: ["01", "02", "07"],
+            modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Patchouli/object_live2d_008_101.asset.model3.json"
+          }
+        ]
       };
     </script>
     {% include scripts.html %}

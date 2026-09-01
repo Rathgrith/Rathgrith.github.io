@@ -12,15 +12,26 @@
 
 <script>
   (function () {
+    var saved = "light";
+    var character = "marisa";
+
     try {
       var key = "site-theme";
-      var saved = localStorage.getItem(key);
+      saved = localStorage.getItem(key);
       if (saved !== "dark" && saved !== "light") {
         saved = "light";
       }
-      document.documentElement.setAttribute("data-theme", saved);
-      document.documentElement.style.colorScheme = saved === "dark" ? "dark" : "light";
+
+      character = localStorage.getItem("site-live2d-character");
+      if (["marisa", "alice", "patchouli"].indexOf(character) === -1) {
+        character = "marisa";
+      }
     } catch (e) {}
+
+    document.documentElement.setAttribute("data-theme", saved);
+    document.documentElement.style.colorScheme =
+      saved === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-live2d-character", character);
   })();
 </script>
 

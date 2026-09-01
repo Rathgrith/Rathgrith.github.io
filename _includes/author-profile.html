@@ -1,20 +1,19 @@
 {% if page.author and site.data.authors[page.author] %}
   {% assign author = site.data.authors[page.author] %}{% else %}{% assign author = site.author %}
 {% endif %}
-{% assign avatar_light_path = author.avatar | default: 'images/avatar.png' %}
-{% assign avatar_dark_path = author.avatar_dark | default: avatar_light_path %}
-{% assign avatar_light_url = avatar_light_path | relative_url %}
-{% assign avatar_dark_url = avatar_dark_path | relative_url %}
-
 <div itemscope itemtype="http://schema.org/Person" class="profile_box">
 
   <div class="author__avatar">
     <div class="author__avatar-frame" data-profile-tilt>
       <span class="author__avatar-aura" aria-hidden="true"></span>
       <span class="author__avatar-shine" aria-hidden="true"></span>
-      <div class="author__avatar-media">
-        <img src="{{ avatar_light_url }}" class="author__avatar-image author__avatar-image--light" alt="{{ author.name }}">
-        <img src="{{ avatar_dark_url }}" class="author__avatar-image author__avatar-image--dark" alt="">
+      <div class="author__avatar-media" role="img" aria-label="{{ author.name }}">
+        <img src="{{ '/images/avatars/marisa-day.jpg' | relative_url }}" class="author__avatar-image" data-avatar-character="marisa" data-avatar-theme="light" alt="" decoding="async">
+        <img src="{{ '/images/avatars/marisa-night.jpg' | relative_url }}" class="author__avatar-image" data-avatar-character="marisa" data-avatar-theme="dark" alt="" decoding="async">
+        <img src="{{ '/images/avatars/alice-day.jpg' | relative_url }}" class="author__avatar-image" data-avatar-character="alice" data-avatar-theme="light" alt="" decoding="async">
+        <img src="{{ '/images/avatars/alice-night.jpg' | relative_url }}" class="author__avatar-image" data-avatar-character="alice" data-avatar-theme="dark" alt="" decoding="async">
+        <img src="{{ '/images/avatars/patchouli-day.jpg' | relative_url }}" class="author__avatar-image" data-avatar-character="patchouli" data-avatar-theme="light" alt="" decoding="async">
+        <img src="{{ '/images/avatars/patchouli-night.jpg' | relative_url }}" class="author__avatar-image" data-avatar-character="patchouli" data-avatar-theme="dark" alt="" decoding="async">
       </div>
       <span class="author__avatar-corner author__avatar-corner--top" aria-hidden="true"></span>
       <span class="author__avatar-corner author__avatar-corner--bottom" aria-hidden="true"></span>
