@@ -122,6 +122,7 @@
       window.__siteLive2DConfig &&
       window.__siteLive2DConfig.defaultCharacter;
     if (configured && getCharacter(configured)) return configured;
+    if (getCharacter("alice")) return "alice";
     return getCharacters()[0].id;
   }
 
@@ -628,9 +629,11 @@
   function renderCharacterButton(button) {
     if (!button) return;
 
-    var selected = getCharacter(getSelectedCharacterId()) || getCharacters()[0];
-    var label = "Character: " + selected.name;
-    var accessibleLabel = "Switch Live2D character. Current: " + selected.name;
+    var selected =
+      getCharacter(getSelectedCharacterId()) ||
+      getCharacter(getDefaultCharacterId());
+    var label = "Theme: " + selected.name;
+    var accessibleLabel = "Switch visual theme. Current: " + selected.name;
 
     button.hidden = isPageDisabled();
     button.setAttribute("aria-label", accessibleLabel);

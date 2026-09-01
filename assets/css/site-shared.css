@@ -2212,9 +2212,9 @@ html[data-theme="dark"][data-live2d-character="patchouli"]
 }
 
 html:not([data-live2d-character]):not([data-theme="dark"])
-  .author__avatar-image[data-avatar-character="marisa"][data-avatar-theme="light"],
+  .author__avatar-image[data-avatar-character="alice"][data-avatar-theme="light"],
 html:not([data-live2d-character])[data-theme="dark"]
-  .author__avatar-image[data-avatar-character="marisa"][data-avatar-theme="dark"] {
+  .author__avatar-image[data-avatar-character="alice"][data-avatar-theme="dark"] {
   opacity: 1;
 }
 

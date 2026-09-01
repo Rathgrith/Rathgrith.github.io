@@ -13,7 +13,7 @@
 <script>
   (function () {
     var saved = "light";
-    var character = "marisa";
+    var character = "alice";
 
     try {
       var key = "site-theme";
@@ -24,7 +24,7 @@
 
       character = localStorage.getItem("site-live2d-character");
       if (["marisa", "alice", "patchouli"].indexOf(character) === -1) {
-        character = "marisa";
+        character = "alice";
       }
     } catch (e) {}
 
