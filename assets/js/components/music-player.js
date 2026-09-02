@@ -546,6 +546,7 @@
 
     var audio = root.querySelector("[data-music-audio]");
     var cover = root.querySelector("[data-music-cover]");
+    var coverWell = root.querySelector(".music-player__cover-well");
     var body = root.querySelector(".music-player__body");
     var title = root.querySelector("[data-music-title]");
     var artist = root.querySelector("[data-music-artist]");
@@ -578,8 +579,18 @@
       scheduleCoverSizeSync();
     }
 
+    function syncVolumeStyle() {
+      var level = clamp(Number(volume.value) || 0, 0, 1);
+      volume.style.setProperty("--music-volume-level", level * 100 + "%");
+    }
+
     function syncCoverSize() {
       if (!cover) return;
+      if (coverWell) {
+        cover.style.removeProperty("width");
+        cover.style.removeProperty("height");
+        return;
+      }
       var basisHeight = (body && body.clientHeight) || root.clientHeight || 0;
       if (!basisHeight) return;
 
@@ -617,7 +628,7 @@
 
     function waveBarCount() {
       var width = wave.clientWidth || scrub.clientWidth || 320;
-      return Math.max(48, Math.min(140, Math.floor(width / 4)));
+      return Math.max(32, Math.min(112, Math.floor(width / 5)));
     }
 
     function setWaveProgress(ratio) {
@@ -919,6 +930,7 @@
 
     volume.addEventListener("input", function () {
       audio.volume = Number(volume.value);
+      syncVolumeStyle();
     });
 
     window.addEventListener("resize", function () {
@@ -929,6 +941,7 @@
     });
 
     audio.volume = Number(volume.value);
+    syncVolumeStyle();
     state.index = randomIndex(playlist.length, -1);
     loadTrack(state.index, false);
   }

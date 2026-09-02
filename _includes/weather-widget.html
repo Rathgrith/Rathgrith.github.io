@@ -1,0 +1,168 @@
+<section
+  class="weather-dial"
+  data-weather-widget
+  data-weather-baseurl="{{ '/' | relative_url }}"
+  data-weather-default-latitude="52.4862"
+  data-weather-default-longitude="-1.8904"
+  data-weather-default-location="West Midlands"
+  aria-labelledby="weather-dial-title"
+  aria-busy="true"
+>
+  <svg class="weather-dial__symbols" aria-hidden="true" focusable="false">
+    <symbol id="weather-icon-observe" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3.2"></circle>
+      <path d="M4.2 12c2.1-4.7 5-7.1 7.8-7.1s5.7 2.4 7.8 7.1c-2.1 4.7-5 7.1-7.8 7.1S6.3 16.7 4.2 12Z"></path>
+      <path d="M12 2.8v2.1M12 19.1v2.1M2.8 12h2.1M19.1 12h2.1"></path>
+    </symbol>
+    <symbol id="weather-icon-clear" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4.1"></circle>
+      <path d="M12 2.2v2.3M12 19.5v2.3M2.2 12h2.3M19.5 12h2.3M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"></path>
+    </symbol>
+    <symbol id="weather-icon-drizzle" viewBox="0 0 24 24">
+      <path d="M7.1 15.1h9.7a3.2 3.2 0 0 0 .3-6.4 5.2 5.2 0 0 0-9.8-1.4 3.9 3.9 0 0 0-.2 7.8Z"></path>
+      <path d="m8.2 17.5-.8 1.7M12.4 17.5l-.8 1.7M16.6 17.5l-.8 1.7"></path>
+    </symbol>
+    <symbol id="weather-icon-cloud" viewBox="0 0 24 24">
+      <path d="M5.7 16.7h11.8a3.6 3.6 0 0 0 .3-7.2 5.8 5.8 0 0 0-10.9-1.6 4.5 4.5 0 0 0-1.2 8.8Z"></path>
+      <path d="M6.8 10.2a4.1 4.1 0 0 1 6.7-3"></path>
+    </symbol>
+    <symbol id="weather-icon-blue-sky" viewBox="0 0 24 24">
+      <path d="M4 16.8h16M6 19.7h12"></path>
+      <path d="M7.4 15.9a4.7 4.7 0 0 1 9.2 0M12 4.1v3M5.9 7.1l2.2 2M18.1 7.1l-2.2 2"></path>
+    </symbol>
+    <symbol id="weather-icon-hail" viewBox="0 0 24 24">
+      <path d="M6.2 13.9h11.1a3.4 3.4 0 0 0 .3-6.8A5.5 5.5 0 0 0 7.2 5.7a4.2 4.2 0 0 0-1 8.2Z"></path>
+      <path d="m7.5 17 1.3-1.3 1.3 1.3-1.3 1.3L7.5 17Zm5 1.7 1.3-1.3 1.3 1.3-1.3 1.3-1.3-1.3Zm4.2-2.2 1.1-1.1 1.1 1.1-1.1 1.1-1.1-1.1Z"></path>
+    </symbol>
+    <symbol id="weather-icon-flower-cloud" viewBox="0 0 24 24">
+      <path d="M5.2 15.4h7.1a4.8 4.8 0 0 1-.2-1.2 4.7 4.7 0 0 1 4.7-4.7h.3a3.3 3.3 0 0 0-3.8-2.8A5.1 5.1 0 0 0 4 8.6a3.5 3.5 0 0 0 1.2 6.8Z"></path>
+      <path d="M17.1 13.5c-2.4-2.2-4.6 1.2-1.8 2-2.9.8-1.1 4.4 1.6 2.5.2 3.1 4.1 2.5 3.4-.5 2.9 1.1 4.1-2.7 1-3.3 2.2-2.3-.6-4.6-2.1-2Z"></path>
+      <circle cx="18.1" cy="16.1" r="1.1"></circle>
+    </symbol>
+    <symbol id="weather-icon-fog" viewBox="0 0 24 24">
+      <path d="M5.9 11.8h11.6a3.5 3.5 0 0 0 .3-7 5.6 5.6 0 0 0-10.5-1.5 4.3 4.3 0 0 0-1.4 8.5Z"></path>
+      <path d="M3.5 15h14M6.5 18h14M4 21h12"></path>
+    </symbol>
+    <symbol id="weather-icon-snow" viewBox="0 0 24 24">
+      <path d="M12 2.5v19M3.8 7.3l16.4 9.4M3.8 16.7l16.4-9.4"></path>
+      <path d="m9.5 4.8 2.5 1.5 2.5-1.5M9.5 19.2l2.5-1.5 2.5 1.5M5.1 10.2l2.7-.1.1-2.7M18.9 13.8l-2.7.1-.1 2.7M5.1 13.8l2.7.1.1 2.7M18.9 10.2l-2.7-.1-.1-2.7"></path>
+    </symbol>
+    <symbol id="weather-icon-sun-rain" viewBox="0 0 24 24">
+      <circle cx="7.1" cy="7.2" r="3"></circle>
+      <path d="M7.1 2.2v1.3M2.1 7.2h1.3M3.5 3.6l1 1M10.7 3.6l-1 1"></path>
+      <path d="M7.2 15.1h10.1a3.3 3.3 0 0 0 .3-6.6 5.3 5.3 0 0 0-9.9 1.2 3.8 3.8 0 0 0-.5 5.4Z"></path>
+      <path d="m10 17.5-.9 2M14 17.5l-.9 2M18 17.5l-.9 2"></path>
+    </symbol>
+    <symbol id="weather-icon-shower" viewBox="0 0 24 24">
+      <path d="M6 13.5h11.4a3.5 3.5 0 0 0 .3-7A5.6 5.6 0 0 0 7.2 5 4.3 4.3 0 0 0 6 13.5Z"></path>
+      <path d="M8 16.3c-.8 1.1-1.1 1.7-1.1 2.2a1.2 1.2 0 0 0 2.4 0c0-.5-.4-1.1-1.3-2.2ZM13 16.3c-.8 1.1-1.1 1.7-1.1 2.2a1.2 1.2 0 0 0 2.4 0c0-.5-.4-1.1-1.3-2.2ZM18 16.3c-.8 1.1-1.1 1.7-1.1 2.2a1.2 1.2 0 0 0 2.4 0c0-.5-.4-1.1-1.3-2.2Z"></path>
+    </symbol>
+    <symbol id="weather-icon-wind-rain" viewBox="0 0 24 24">
+      <path d="M3 7.3h10.2c2.7 0 2.7-3.7.3-3.7-1.2 0-1.8.7-2 1.4M3 11h15.6c3.3 0 3.3-4.3.5-4.3-1.3 0-2 .7-2.2 1.5M3 14.7h10.8"></path>
+      <path d="m7 17.2-.9 2M12 17.2l-.9 2M17 17.2l-.9 2"></path>
+    </symbol>
+    <symbol id="weather-icon-squall" viewBox="0 0 24 24">
+      <path d="M6.1 12.2h11.3a3.4 3.4 0 0 0 .3-6.8A5.5 5.5 0 0 0 7.4 4a4.2 4.2 0 0 0-1.3 8.2Z"></path>
+      <path d="m12.8 12.7-3.1 4.6h2.9l-1.3 4.2 5-6h-3.1l1.6-2.8"></path>
+    </symbol>
+    <symbol id="weather-icon-river-fog" viewBox="0 0 24 24">
+      <path d="M3.2 7.2h17.6M5.3 10.5h13.4M3.2 13.8h17.6"></path>
+      <path d="M3.2 18c2.1-1.7 4.1-1.7 6.2 0s4.1 1.7 6.2 0 4.1-1.7 5.2-.8"></path>
+    </symbol>
+    <symbol id="weather-icon-typhoon" viewBox="0 0 24 24">
+      <path d="M12.2 11.8c3.8-4.8 8.8-1.8 8.3 2.3-.5 4.1-5.7 7.1-10.3 4.8-4.7-2.2-5.8-8.4-2.3-12.4 3.5-4 9.9-3.6 12.6.3"></path>
+      <path d="M11.8 12.2c-3.8 4.8-8.8 1.8-8.3-2.3.5-4.1 5.7-7.1 10.3-4.8"></path>
+      <circle cx="12" cy="12" r="1.4"></circle>
+    </symbol>
+    <symbol id="weather-icon-aurora" viewBox="0 0 24 24">
+      <path d="M3 17.8c3.4-7 5.8-8.5 8.2-3.8 2.3 4.5 4.8 2.7 9.8-6.6M3 12.8c3-5.6 5.2-6.6 7.3-2.8 2.4 4.3 5.1 1.7 9.1-5.6"></path>
+      <path d="m5.1 5.1.5 1.2 1.2.5-1.2.5-.5 1.2-.5-1.2-1.2-.5 1.2-.5.5-1.2ZM18.8 16.1l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z"></path>
+    </symbol>
+    <symbol id="weather-icon-calm" viewBox="0 0 24 24">
+      <path d="M3 10.5h18M5 14h14M7 17.5h10"></path>
+      <path d="M8.2 7.2a4 4 0 0 1 7.6 0"></path>
+    </symbol>
+    <symbol id="weather-icon-diamond" viewBox="0 0 24 24">
+      <path d="m12 3 6.7 6.7L12 21 5.3 9.7 12 3Z"></path>
+      <path d="m5.3 9.7 4.1.2L12 3l2.6 6.9 4.1-.2M9.4 9.9 12 21l2.6-11.1"></path>
+      <path d="M3.1 4.2v3M1.6 5.7h3M19.6 17.2v3M18.1 18.7h3"></path>
+    </symbol>
+    <symbol id="weather-icon-sand" viewBox="0 0 24 24">
+      <path d="M3 8.2h10.1c2.7 0 2.7-3.7.3-3.7-1.2 0-1.8.7-2 1.4M3 12h15.4c3.3 0 3.3-4.3.5-4.3-1.3 0-2 .7-2.2 1.5M3 15.8h11"></path>
+      <path d="M6 19h.1M10 17.8h.1M14 19h.1M18 17.8h.1"></path>
+    </symbol>
+    <symbol id="weather-icon-blaze" viewBox="0 0 24 24">
+      <path d="M12.2 21c4.4 0 7.1-2.8 7.1-6.8 0-3.2-1.9-6.4-5.5-10.8.2 3-1.1 4.6-2.3 5.7-.1-2.4-1.4-4-3-5.2.2 3.4-3.8 5.9-3.8 10.4 0 4 3 6.7 7.5 6.7Z"></path>
+      <path d="M12.1 18.7c2 0 3.4-1.3 3.4-3.2 0-1.6-.9-3-2.4-4.8-.1 1.7-.8 2.6-1.6 3.3-.2-1.1-.7-1.9-1.5-2.6-.1 1.9-1.5 2.8-1.5 4.3 0 1.7 1.5 3 3.6 3Z"></path>
+    </symbol>
+    <symbol id="weather-icon-plum-rain" viewBox="0 0 24 24">
+      <path d="M4 11.2a8 8 0 0 1 16 0H4Z"></path>
+      <path d="M12 11.2v6.6c0 2.7 3.8 2.7 3.8.2M7 14.3l-.7 1.6M18 14.3l-.7 1.6M5 18l-.7 1.6M19.5 18l-.7 1.6"></path>
+      <path d="M12 3.2v-1"></path>
+    </symbol>
+  </svg>
+
+  <div class="weather-dial__bezel">
+    <header class="weather-dial__header">
+      <div>
+        <p class="weather-dial__eyebrow">幻想天候</p>
+        <h2 class="weather-dial__title" id="weather-dial-title">Local Weather Dial</h2>
+      </div>
+
+      <div class="weather-dial__actions" aria-label="Weather controls">
+        <button class="weather-dial__button" type="button" data-weather-action="refresh" aria-label="Refresh local weather">
+          <i class="fas fa-redo-alt" aria-hidden="true"></i>
+        </button>
+        <button class="weather-dial__button" type="button" data-weather-action="locate" aria-label="Use my current location">
+          <i class="fas fa-crosshairs" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="weather-dial__instrument">
+      <div class="weather-dial__ring" aria-hidden="true">
+        <span class="weather-dial__needle"></span>
+      </div>
+
+      <div class="weather-dial__reading">
+        <svg class="weather-dial__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <use data-weather-icon-use href="#weather-icon-observe"></use>
+        </svg>
+        <span class="weather-dial__name" data-weather-name>観測待ち</span>
+        <span class="weather-dial__time" data-weather-time>--:--</span>
+      </div>
+
+      <div class="weather-dial__condition">
+        <div class="weather-dial__condition-summary">
+          <span class="weather-dial__temperature" data-weather-temperature>--°</span>
+          <span class="weather-dial__description" data-weather-description>空模様を観測しています</span>
+        </div>
+      </div>
+    </div>
+
+    <dl class="weather-dial__metrics">
+      <div>
+        <dt>湿度</dt>
+        <dd data-weather-humidity>--%</dd>
+      </div>
+      <div>
+        <dt>風速</dt>
+        <dd data-weather-wind>--</dd>
+      </div>
+      <div>
+        <dt>最高 / 最低</dt>
+        <dd data-weather-range>-- / --</dd>
+      </div>
+    </dl>
+
+    <footer class="weather-dial__footer">
+      <span class="weather-dial__location">
+        <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+        <span data-weather-location>West Midlands</span>
+      </span>
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
+    </footer>
+
+    <p class="weather-dial__status" data-weather-status aria-live="polite" hidden></p>
+  </div>
+</section>

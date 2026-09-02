@@ -14,6 +14,7 @@
   (function () {
     var saved = "light";
     var character = "alice";
+    var weatherVisibility = null;
 
     try {
       var key = "site-theme";
@@ -26,12 +27,30 @@
       if (["marisa", "alice", "patchouli"].indexOf(character) === -1) {
         character = "alice";
       }
+
+      weatherVisibility = localStorage.getItem("site-weather-visible");
+      if (weatherVisibility !== "true" && weatherVisibility !== "false") {
+        weatherVisibility = null;
+      }
     } catch (e) {}
+
+    var isMobileWeatherViewport =
+      window.matchMedia && window.matchMedia("(max-width: 36em)").matches;
+
+    if (isMobileWeatherViewport) {
+      weatherVisibility = "false";
+    } else if (weatherVisibility === null) {
+      weatherVisibility = "true";
+    }
 
     document.documentElement.setAttribute("data-theme", saved);
     document.documentElement.style.colorScheme =
       saved === "dark" ? "dark" : "light";
     document.documentElement.setAttribute("data-live2d-character", character);
+    document.documentElement.setAttribute(
+      "data-weather-visible",
+      weatherVisibility
+    );
   })();
 </script>
 
@@ -45,5 +64,6 @@
 <link rel="stylesheet" href="{{ '/assets/css/core/page-transitions.css' | relative_url }}?v={{ asset_version | url_encode }}">
 <link rel="stylesheet" href="{{ '/assets/css/content-enhancements.css' | relative_url }}?v={{ asset_version | url_encode }}">
 <link rel="stylesheet" href="{{ '/assets/css/site-redesign.css' | relative_url }}?v={{ asset_version | url_encode }}">
+<link rel="stylesheet" href="{{ '/assets/css/site-instrument.css' | relative_url }}?v={{ asset_version | url_encode }}">
 
 <meta http-equiv="cleartype" content="on">

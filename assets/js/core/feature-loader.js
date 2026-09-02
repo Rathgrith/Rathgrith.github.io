@@ -2,6 +2,18 @@
   var homeProfilePanelScrollBound = false;
   var homeProfilePanelFrame = null;
   var homeProfilePanelMotionFrame = null;
+  var featureAssetVersion = "";
+
+  try {
+    var loaderScript = document.currentScript;
+    if (loaderScript && loaderScript.src) {
+      featureAssetVersion =
+        new URL(loaderScript.src, window.location.href).searchParams.get("v") ||
+        "";
+    }
+  } catch (error) {
+    featureAssetVersion = "";
+  }
 
   function normaliseBaseUrl(raw) {
     var value = String(raw || "/").trim();
@@ -14,7 +26,14 @@
   function resolveAssetUrl(baseUrl, assetPath) {
     var base = normaliseBaseUrl(baseUrl);
     var cleaned = String(assetPath || "").replace(/^\/+/, "");
-    return base + cleaned;
+    var resolved = base + cleaned;
+    if (!featureAssetVersion) return resolved;
+    return (
+      resolved +
+      (resolved.indexOf("?") === -1 ? "?" : "&") +
+      "v=" +
+      encodeURIComponent(featureAssetVersion)
+    );
   }
 
   function ensureStylesheet(id, href) {
@@ -91,6 +110,40 @@
       });
   }
 
+  function initWeatherWidgetFeature() {
+    var widget = document.querySelector("[data-weather-widget]");
+    if (!widget) return;
+
+    var baseUrl = normaliseBaseUrl(
+      widget.getAttribute("data-weather-baseurl") || "/"
+    );
+    var cssHref = resolveAssetUrl(
+      baseUrl,
+      "assets/css/components/weather-widget.css"
+    );
+    var jsSrc = resolveAssetUrl(
+      baseUrl,
+      "assets/js/components/weather-widget.js"
+    );
+
+    ensureStylesheet("site-weather-widget-styles", cssHref);
+
+    if (typeof window.__siteInitWeatherWidgets === "function") {
+      window.__siteInitWeatherWidgets();
+      return;
+    }
+
+    loadScriptOnce("__siteWeatherWidgetScriptPromise", jsSrc)
+      .then(function () {
+        if (typeof window.__siteInitWeatherWidgets === "function") {
+          window.__siteInitWeatherWidgets();
+        }
+      })
+      .catch(function () {
+        // The default sidebar remains usable when weather data is unavailable.
+      });
+  }
+
   function syncHomeProfilePanelState() {
     if (!document.body) return;
 
@@ -155,6 +208,7 @@
 
   function bootOptionalFeatures() {
     initMusicPlayerFeature();
+    initWeatherWidgetFeature();
     initHomeProfilePanelTransition();
   }
 

@@ -1,0 +1,1569 @@
+/*
+ * Gensokyo field-instrument skin.
+ * Functional components keep their existing markup and order; this layer only
+ * establishes a shared material language for the surrounding interface.
+ */
+
+:root {
+  --instrument-metal-highlight: color-mix(
+    in srgb,
+    #ffffff 78%,
+    var(--surface) 22%
+  );
+  --instrument-metal-light: color-mix(in srgb, var(--surface) 78%, #e8decc 22%);
+  --instrument-metal-mid: color-mix(
+    in srgb,
+    var(--surface-alt) 72%,
+    #b9aa91 28%
+  );
+  --instrument-metal-low: color-mix(in srgb, var(--border) 68%, #776a55 32%);
+  --instrument-edge: color-mix(in srgb, var(--border) 58%, #5c503f 42%);
+  --instrument-edge-soft: color-mix(in srgb, var(--border) 78%, #95866f 22%);
+  --instrument-paper: color-mix(in srgb, var(--surface) 96%, #eee3d0 4%);
+  --instrument-paper-soft: color-mix(
+    in srgb,
+    var(--surface-alt) 94%,
+    #e6dbc8 6%
+  );
+  --instrument-recess: color-mix(in srgb, var(--surface-alt) 80%, #c5b79f 20%);
+  --instrument-shadow: rgba(45, 35, 23, 0.15);
+  --instrument-shadow-deep: rgba(39, 29, 18, 0.28);
+  --instrument-glow: color-mix(in srgb, var(--accent) 22%, transparent);
+  --instrument-screw-core: #5e5140;
+  --instrument-screw-ring: #d8ccb8;
+  --instrument-display: #18201b;
+  --instrument-display-deep: #0b0f0c;
+  --instrument-display-ink: color-mix(
+    in srgb,
+    var(--accent-strong) 44%,
+    #e9dfb7 56%
+  );
+  --instrument-ridge: linear-gradient(
+    180deg,
+    var(--instrument-metal-highlight),
+    var(--instrument-metal-mid) 54%,
+    var(--instrument-metal-low)
+  );
+  --instrument-paper-texture:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 5px,
+      rgba(87, 69, 46, 0.018) 5px 6px
+    ),
+    var(--instrument-paper);
+  --instrument-case-shadow:
+    0 11px 25px var(--instrument-shadow), 0 2px 4px rgba(48, 36, 22, 0.12),
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -2px 3px rgba(65, 50, 31, 0.14);
+  --instrument-control-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -1px 0 rgba(68, 52, 32, 0.16), 0 2px 3px var(--instrument-shadow);
+}
+
+html[data-theme="dark"] {
+  --instrument-metal-highlight: color-mix(
+    in srgb,
+    var(--accent-strong) 14%,
+    transparent
+  );
+  --instrument-metal-light: color-mix(
+    in srgb,
+    var(--surface-raised) 82%,
+    #50442c 18%
+  );
+  --instrument-metal-mid: color-mix(in srgb, var(--surface) 91%, #2c261a 9%);
+  --instrument-metal-low: color-mix(in srgb, var(--bg) 84%, #211b11 16%);
+  --instrument-edge: color-mix(in srgb, var(--border) 68%, #090a08 32%);
+  --instrument-edge-soft: color-mix(in srgb, var(--border) 82%, #675632 18%);
+  --instrument-paper: color-mix(in srgb, var(--surface) 96%, #090a09 4%);
+  --instrument-paper-soft: color-mix(
+    in srgb,
+    var(--surface-alt) 93%,
+    #090a09 7%
+  );
+  --instrument-recess: color-mix(in srgb, var(--surface-alt) 82%, #080908 18%);
+  --instrument-shadow: rgba(0, 0, 0, 0.32);
+  --instrument-shadow-deep: rgba(0, 0, 0, 0.56);
+  --instrument-screw-core: #090a08;
+  --instrument-screw-ring: color-mix(in srgb, var(--accent) 58%, #59482a 42%);
+  --instrument-display: #0d120f;
+  --instrument-display-deep: #050806;
+  --instrument-display-ink: color-mix(
+    in srgb,
+    var(--accent-strong) 82%,
+    #efd99f 18%
+  );
+  --instrument-case-shadow:
+    0 13px 28px var(--instrument-shadow),
+    0 2px 5px var(--instrument-shadow-deep),
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.55);
+  --instrument-control-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.48), 0 2px 3px var(--instrument-shadow-deep);
+}
+
+html,
+body {
+  background-color: var(--bg);
+}
+
+body {
+  background-image:
+    radial-gradient(
+      circle at 12% 4%,
+      color-mix(in srgb, var(--accent) 5%, transparent),
+      transparent 25rem
+    ),
+    radial-gradient(
+      circle at 86% 34%,
+      color-mix(in srgb, var(--accent-warm) 3.5%, transparent),
+      transparent 32rem
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 7px,
+      color-mix(in srgb, var(--text) 1.25%, transparent) 7px 8px
+    );
+  background-attachment: fixed;
+}
+
+html[data-theme="dark"] body {
+  background-image:
+    radial-gradient(
+      circle at 14% 3%,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 27rem
+    ),
+    radial-gradient(
+      circle at 88% 42%,
+      color-mix(in srgb, var(--accent-warm) 4%, transparent),
+      transparent 34rem
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 8px,
+      rgba(255, 255, 255, 0.008) 8px 9px
+    );
+}
+
+/* Keep character artwork restrained: no floating viewport watermark or gallery
+   sticker; the homepage retains one quiet background emblem. */
+body::after,
+body:not(.standalone-page):not(.home-page) .page__inner-wrap::after,
+body.gallery-page .gallery-container::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Let the active character emblem sit within the paper rather than above it. */
+body.home-page .page__inner-wrap {
+  overflow: hidden;
+}
+
+body.home-page .page__inner-wrap::after {
+  content: "" !important;
+  position: absolute;
+  z-index: 0;
+  top: auto;
+  right: 0.85rem;
+  bottom: 0.5rem;
+  left: auto;
+  display: block !important;
+  width: clamp(96px, 10vw, 138px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--character-ornament-image) center / contain no-repeat;
+  box-shadow: none;
+  opacity: 0.12;
+  pointer-events: none;
+  filter: saturate(0.78);
+  transform: rotate(-5deg);
+}
+
+html[data-theme="dark"] body.home-page .page__inner-wrap::after {
+  opacity: 0.13;
+  filter: brightness(1.2) saturate(0.7);
+}
+
+body.standalone-page .page-header::before {
+  top: 50%;
+  right: clamp(1rem, 7vw, 6.5rem);
+  width: clamp(54px, 6vw, 72px);
+  padding: 5px;
+  border: 1px solid var(--instrument-edge);
+  border-radius: 50%;
+  background:
+    var(--character-ornament-image) center / 76% no-repeat,
+    radial-gradient(
+      circle at 36% 30%,
+      var(--instrument-metal-highlight),
+      var(--instrument-metal-mid) 62%,
+      var(--instrument-metal-low)
+    );
+  box-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    0 3px 8px var(--instrument-shadow);
+  opacity: 0.68;
+  filter: saturate(0.82);
+  transform: translateY(-50%);
+}
+
+html[data-theme="dark"] body.standalone-page .page-header::before {
+  opacity: 0.56;
+  filter: brightness(1.06) saturate(0.78);
+}
+
+/* Gallery keeps the character mark as flat artwork within the header paper. */
+body.gallery-page .page-header::before {
+  right: clamp(1rem, 6vw, 5rem);
+  width: clamp(78px, 8vw, 112px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--character-ornament-image) center / contain no-repeat;
+  box-shadow: none;
+  opacity: 0.13;
+  filter: saturate(0.8);
+  transform: translateY(-50%) rotate(-6deg);
+}
+
+html[data-theme="dark"] body.gallery-page .page-header::before {
+  opacity: 0.2;
+  filter: brightness(1.24) saturate(0.76);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+
+/* Navigation: a thin control rail rather than a second large instrument. */
+.masthead {
+  border-bottom: 1px solid var(--instrument-edge);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 24px,
+      rgba(72, 55, 34, 0.018) 24px 25px
+    ),
+    linear-gradient(
+      180deg,
+      var(--instrument-metal-highlight),
+      color-mix(in srgb, var(--nav-bg) 94%, var(--instrument-metal-mid)) 36%,
+      color-mix(in srgb, var(--nav-bg) 86%, var(--instrument-metal-low))
+    );
+  box-shadow:
+    0 4px 12px var(--instrument-shadow),
+    inset 0 -1px 0 color-mix(in srgb, var(--instrument-edge) 48%, transparent);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html[data-theme="dark"] .masthead {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 26px,
+      rgba(255, 224, 150, 0.012) 26px 27px
+    ),
+    linear-gradient(
+      180deg,
+      var(--instrument-metal-light),
+      var(--nav-bg) 46%,
+      var(--instrument-metal-low)
+    );
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.38),
+    inset 0 -1px 0 color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.masthead__inner-wrap {
+  position: relative;
+  border-right: 1px solid
+    color-mix(in srgb, var(--instrument-edge) 34%, transparent);
+  border-left: 1px solid
+    color-mix(in srgb, var(--instrument-edge) 34%, transparent);
+  background:
+    radial-gradient(
+      circle at 8px 50%,
+      var(--instrument-screw-core) 0 1px,
+      var(--instrument-screw-ring) 1.3px 2.5px,
+      transparent 2.7px
+    ),
+    radial-gradient(
+      circle at calc(100% - 8px) 50%,
+      var(--instrument-screw-core) 0 1px,
+      var(--instrument-screw-ring) 1.3px 2.5px,
+      transparent 2.7px
+    );
+}
+
+.greedy-nav .visible-links a {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--nav-link-muted);
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+html[data-theme="dark"] .greedy-nav .visible-links a {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
+}
+
+.greedy-nav .visible-links a:hover,
+.greedy-nav .visible-links a:focus-visible {
+  border-color: var(--instrument-edge-soft);
+  background: linear-gradient(
+    180deg,
+    var(--instrument-metal-light),
+    var(--instrument-metal-mid)
+  );
+  box-shadow: var(--instrument-control-shadow);
+  color: var(--nav-link-hover);
+}
+
+.masthead__menu-home-item .masthead__home-logo {
+  border-color: var(--instrument-edge);
+  background: radial-gradient(
+    circle at 38% 32%,
+    var(--instrument-metal-highlight),
+    var(--instrument-metal-mid) 62%,
+    var(--instrument-metal-low)
+  );
+  box-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    0 2px 3px var(--instrument-shadow);
+}
+
+.greedy-nav button {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-ridge);
+  box-shadow: var(--instrument-control-shadow);
+  color: var(--accent-strong);
+}
+
+.greedy-nav button:hover,
+.greedy-nav button.close {
+  border-color: var(--accent-strong);
+  background: var(--instrument-ridge);
+  color: var(--accent-strong);
+  box-shadow:
+    inset 0 2px 4px var(--instrument-shadow-deep),
+    0 1px 0 var(--instrument-metal-highlight);
+}
+
+.greedy-nav .hidden-links {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-paper-texture);
+  box-shadow: var(--instrument-case-shadow);
+}
+
+.greedy-nav .hidden-links li {
+  border-bottom-color: var(--instrument-edge-soft);
+}
+
+/* Reading surfaces: thin archival housings with no paragraph-level boxes. */
+body.home-page .page__inner-wrap,
+body.thoughts-page .page__inner-wrap {
+  border-color: color-mix(
+    in srgb,
+    var(--instrument-edge-soft) 72%,
+    transparent
+  );
+  border-radius: 10px;
+  background: var(--instrument-paper-texture);
+  box-shadow:
+    0 7px 18px color-mix(in srgb, var(--instrument-shadow) 72%, transparent),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+}
+
+body.home-page .page__inner-wrap::before,
+body.thoughts-page .page__inner-wrap::before {
+  display: none;
+}
+
+body.home-page .page__content > :is(h1, h2, h3),
+body.thoughts-page .page__content > :is(h1, h2, h3) {
+  border-bottom-color: var(--instrument-edge-soft);
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+html[data-theme="dark"] body.home-page .page__content > :is(h1, h2, h3),
+html[data-theme="dark"] body.thoughts-page .page__content > :is(h1, h2, h3) {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
+}
+
+body.home-page .page__content > :is(h1, h2, h3)::before,
+body.thoughts-page .page__content > :is(h1, h2, h3)::before {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-strong),
+    var(--accent-warm) 58%,
+    color-mix(in srgb, var(--accent-warm) 8%, transparent)
+  );
+  box-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+body.home-page .page__content > :is(h1, h2, h3)::after,
+body.thoughts-page .page__content > :is(h1, h2, h3)::after {
+  content: none;
+}
+
+body.home-page .page__content blockquote,
+.misc-note,
+body.notes-page .highlight-quote {
+  border-color: var(--instrument-edge-soft);
+  border-left-color: var(--accent-strong);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent) 7%, transparent),
+      transparent 34%
+    ),
+    var(--instrument-paper-soft);
+  box-shadow:
+    inset 0 1px 2px
+      color-mix(in srgb, var(--instrument-shadow) 42%, transparent),
+    0 1px 0 var(--instrument-metal-highlight);
+}
+
+/* Hide the optional weather unit before its lazy component CSS arrives. */
+html[data-weather-visible="false"] [data-weather-widget] {
+  display: none !important;
+}
+
+.site-options-fab__action[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 36em) {
+  [data-weather-widget],
+  [data-weather-toggle] {
+    display: none !important;
+  }
+}
+
+/* The profile becomes the field unit's identity plate. */
+body.home-page .profile_box,
+body.thoughts-page .profile_box {
+  overflow: hidden;
+  border-color: var(--instrument-edge);
+  border-radius: 13px;
+  background:
+    radial-gradient(
+      circle at 8px 8px,
+      var(--instrument-screw-core) 0 1.1px,
+      var(--instrument-screw-ring) 1.3px 2.4px,
+      transparent 2.6px
+    ),
+    radial-gradient(
+      circle at calc(100% - 8px) calc(100% - 8px),
+      var(--instrument-screw-core) 0 1.1px,
+      var(--instrument-screw-ring) 1.3px 2.4px,
+      transparent 2.6px
+    ),
+    var(--instrument-paper-texture);
+  box-shadow: var(--instrument-case-shadow);
+}
+
+body.home-page .profile_box::before,
+body.thoughts-page .profile_box::before {
+  z-index: 2;
+  right: 18px;
+  left: 18px;
+  height: 4px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-strong),
+    var(--accent-warm) 54%,
+    var(--accent) 100%
+  );
+  box-shadow:
+    0 1px 0 var(--instrument-metal-highlight),
+    0 2px 4px var(--instrument-shadow);
+}
+
+body.home-page .profile_box::after,
+body.thoughts-page .profile_box::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 5px;
+  display: block;
+  border: 1px solid
+    color-mix(in srgb, var(--instrument-edge-soft) 64%, transparent);
+  border-radius: 8px;
+  background: none;
+  opacity: 1;
+  pointer-events: none;
+}
+
+body.home-page .profile_box > *,
+body.thoughts-page .profile_box > * {
+  position: relative;
+  z-index: 1;
+}
+
+.author__avatar-frame {
+  border-color: var(--instrument-edge);
+  background:
+    linear-gradient(var(--instrument-paper), var(--instrument-paper))
+      padding-box,
+    linear-gradient(
+        145deg,
+        var(--instrument-metal-highlight),
+        var(--instrument-metal-mid) 58%,
+        var(--instrument-metal-low)
+      )
+      border-box;
+  box-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -1px 2px
+      color-mix(in srgb, var(--instrument-shadow) 48%, transparent),
+    0 4px 9px var(--instrument-shadow);
+}
+
+.author__avatar-frame:hover,
+.author__avatar-frame:focus-within {
+  border-color: var(--accent-strong);
+  box-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -1px 2px
+      color-mix(in srgb, var(--instrument-shadow) 48%, transparent),
+    0 6px 12px var(--instrument-shadow);
+}
+
+.author__avatar-media {
+  border: 1px solid var(--instrument-edge-soft);
+  box-shadow:
+    inset 0 2px 4px
+      color-mix(in srgb, var(--instrument-shadow) 62%, transparent),
+    0 1px 0 var(--instrument-metal-highlight);
+}
+
+.author__avatar-corner {
+  z-index: 4;
+  display: block;
+  width: 21px;
+  height: 21px;
+  opacity: 0.9;
+  filter: drop-shadow(0 1px 0 var(--instrument-metal-highlight));
+  transform: translateZ(18px);
+}
+
+.author__avatar-corner--top {
+  top: 8px;
+  left: 8px;
+  border-top: 2px solid var(--accent-warm);
+  border-left: 2px solid var(--accent-warm);
+  border-radius: 5px 0 0;
+}
+
+.author__avatar-corner--bottom {
+  right: 8px;
+  bottom: 8px;
+  border-right: 2px solid var(--accent-cool);
+  border-bottom: 2px solid var(--accent-cool);
+  border-radius: 0 0 5px;
+}
+
+@media (min-width: 57.8125em) {
+  body.home-page .profile_box {
+    padding-right: 0.78rem;
+    padding-left: 0.78rem;
+  }
+
+  body.home-page .profile_box .author__avatar {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  body.home-page .profile_box .author__avatar-frame {
+    justify-self: stretch;
+    width: 100%;
+    max-width: none;
+  }
+
+  body.home-page
+    .profile_box
+    .author__avatar-frame
+    .author__avatar-image {
+    width: 100%;
+    height: 100%;
+  }
+
+  body.home-page .profile_box .author__name {
+    font-size: 1.52rem;
+  }
+
+  body.home-page .profile_box .author__role {
+    font-size: 0.76rem;
+  }
+
+  body.home-page .author__urls > li:not(:has(a)),
+  body.home-page .author__urls li a {
+    font-size: 0.88rem;
+  }
+
+  body.home-page .author__urls > li > i,
+  body.home-page .author__urls li a > i {
+    flex-basis: 0.98rem;
+    width: 0.98rem;
+    font-size: 0.94rem;
+  }
+
+  body.home-page .author__affiliations-grid {
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.32rem;
+  }
+
+  body.home-page .author__affiliation {
+    width: 100%;
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 48em) {
+  body.home-page .profile_box .author__affiliations-grid {
+    width: 100%;
+  }
+
+  body.home-page .profile_box .author__affiliation {
+    aspect-ratio: auto;
+    min-height: 3.15rem;
+  }
+}
+
+@media (max-width: 36em) {
+  body.home-page .profile_box .author__avatar {
+    width: min(100%, 13.5rem);
+    min-width: 0;
+  }
+
+  body.home-page .profile_box .author__avatar-frame {
+    width: 100%;
+    min-width: 0;
+  }
+
+  body.home-page
+    .profile_box
+    .author__avatar-frame
+    .author__avatar-image {
+    width: 100%;
+    height: 100%;
+  }
+
+  body.home-page .profile_box .author__name {
+    font-size: 1.82rem;
+  }
+}
+
+body.home-page .profile_box .author__name,
+body.thoughts-page .profile_box .author__name {
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+html[data-theme="dark"] body.home-page .profile_box .author__name,
+html[data-theme="dark"] body.thoughts-page .profile_box .author__name {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.75);
+}
+
+body.home-page .author__urls li a,
+body.thoughts-page .author__urls li a {
+  border: 1px solid transparent;
+}
+
+body.home-page .author__urls li a:hover,
+body.home-page .author__urls li a:focus-visible,
+body.thoughts-page .author__urls li a:hover,
+body.thoughts-page .author__urls li a:focus-visible {
+  border-color: var(--instrument-edge-soft);
+  background: linear-gradient(
+    180deg,
+    var(--instrument-metal-light),
+    var(--instrument-metal-mid)
+  );
+  box-shadow: var(--instrument-control-shadow);
+  transform: translateX(1px);
+}
+
+.author__affiliations {
+  border-top-color: var(--instrument-edge-soft);
+}
+
+.author__affiliation {
+  border-color: var(--instrument-edge);
+  background: linear-gradient(
+    145deg,
+    var(--instrument-metal-light),
+    var(--instrument-metal-mid)
+  );
+  box-shadow: var(--instrument-control-shadow);
+}
+
+.author__affiliation:hover,
+.author__affiliation:focus-visible {
+  border-color: var(--accent-strong);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent-soft) 38%, var(--instrument-metal-light)),
+    var(--instrument-metal-mid)
+  );
+  box-shadow:
+    var(--instrument-control-shadow),
+    0 0 0 2px var(--instrument-glow);
+  transform: translateY(-2px);
+}
+
+body.home-page.profile-panel-is-scrolled .sidebar.sticky .profile_box {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--instrument-edge));
+  box-shadow:
+    0 15px 30px var(--instrument-shadow),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+}
+
+/* Shared controls: raised at rest, recessed while active. */
+.publication-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.34rem;
+  padding: 0.34rem;
+  border: 1px solid var(--instrument-edge);
+  border-radius: 9px;
+  background: linear-gradient(
+    180deg,
+    var(--instrument-recess),
+    color-mix(
+      in srgb,
+      var(--instrument-metal-low) 34%,
+      var(--instrument-recess)
+    )
+  );
+  box-shadow:
+    inset 0 2px 4px var(--instrument-shadow),
+    0 1px 0 var(--instrument-metal-highlight);
+}
+
+.publication-filter__label {
+  padding-left: 0.34rem;
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+.publication-filter__button,
+.thoughts-action,
+.button {
+  border-color: var(--instrument-edge);
+  border-radius: 6px;
+  background: var(--instrument-ridge);
+  box-shadow: var(--instrument-control-shadow);
+  color: var(--text);
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease,
+    transform 90ms ease;
+}
+
+html[data-theme="dark"]
+  :is(.publication-filter__button, .thoughts-action, .button) {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
+}
+
+.publication-filter__button:hover,
+.publication-filter__button:focus-visible,
+.thoughts-action:hover,
+.thoughts-action:focus-visible,
+.button:hover:not(:disabled),
+.button:focus-visible:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: var(--instrument-ridge);
+  box-shadow:
+    var(--instrument-control-shadow),
+    0 0 0 2px var(--instrument-glow);
+  color: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.publication-filter__button.is-active,
+.publication-filter__button:active,
+.thoughts-action:active,
+.button:active:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 64%, var(--instrument-edge));
+  background: color-mix(
+    in srgb,
+    var(--accent-soft) 42%,
+    var(--instrument-recess)
+  );
+  box-shadow:
+    inset 0 2px 4px var(--instrument-shadow-deep),
+    0 1px 0 var(--instrument-metal-highlight);
+  color: var(--accent-strong);
+  text-shadow: none;
+  transform: translateY(1px);
+}
+
+.publication-filter__count {
+  margin-left: auto;
+  padding-right: 0.34rem;
+}
+
+/* Publication records use an inset logbook and slide mounts. */
+.publication-list {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.publication-item {
+  --publication-active-bg: color-mix(
+    in srgb,
+    var(--accent) 6%,
+    var(--instrument-paper)
+  );
+  --publication-active-shadow:
+    inset 4px 0 0 var(--accent-warm),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--instrument-edge-soft);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.publication-item + .publication-item {
+  margin-top: 0;
+}
+
+.publication-item:first-child {
+  border-top: 1px solid var(--instrument-edge-soft);
+}
+
+.publication-item:last-child {
+  border-bottom: 1px solid var(--instrument-edge-soft);
+}
+
+.publication-item:hover,
+.publication-item:has(:focus-visible) {
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 42%,
+    var(--instrument-edge-soft)
+  );
+  background: var(--publication-active-bg);
+  box-shadow: var(--publication-active-shadow);
+}
+
+.publication-thumb-wrap,
+.paper-box .paper-box-image > div {
+  border: 5px solid var(--instrument-metal-light);
+  border-radius: 7px;
+  background: var(--instrument-display);
+  box-shadow:
+    0 0 0 1px var(--instrument-edge),
+    inset 0 2px 4px var(--instrument-shadow-deep),
+    0 2px 4px var(--instrument-shadow);
+}
+
+.publication-thumb-wrap::before {
+  border-color: color-mix(
+    in srgb,
+    var(--instrument-metal-highlight) 72%,
+    transparent
+  );
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16);
+}
+
+.publication-item:hover .publication-thumb-wrap,
+.publication-item:has(:focus-visible) .publication-thumb-wrap {
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 24%,
+    var(--instrument-metal-light)
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 52%, var(--instrument-edge)),
+    inset 0 2px 4px var(--instrument-shadow-deep),
+    0 4px 8px var(--instrument-shadow);
+  transform: translateY(-1px);
+}
+
+.publication-tag,
+.publication-tag.conference,
+.publication-tag.journal,
+.publication-tag.preprint {
+  border-color: var(--instrument-edge);
+  border-radius: 4px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 80%, #ffffff 20%),
+    var(--accent-strong)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 42%, transparent),
+    0 2px 3px rgba(0, 0, 0, 0.3);
+  color: var(--on-accent-strong);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.34);
+}
+
+.publication-tag.journal {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-warm) 82%, #ffffff 18%),
+    color-mix(in srgb, var(--accent-warm) 76%, #33231e 24%)
+  );
+}
+
+.publication-tag.preprint {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--text-muted) 72%, #ffffff 28%),
+    color-mix(in srgb, var(--text-muted) 76%, #27272a 24%)
+  );
+}
+
+html[data-theme="dark"]
+  :is(
+    .publication-tag,
+    .publication-tag.conference,
+    .publication-tag.journal,
+    .publication-tag.preprint
+  ) {
+  border-color: var(--instrument-edge);
+  color: #fff8e9;
+}
+
+/* Notes, thought cards and hover previews share the record-card material. */
+.thought-card,
+body.notes-page .project {
+  position: relative;
+  border-color: var(--instrument-edge-soft);
+  border-radius: 8px;
+  background: var(--instrument-paper-texture);
+  box-shadow:
+    0 5px 12px var(--instrument-shadow),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+}
+
+.hover-photo__card {
+  border-color: var(--instrument-edge-soft);
+  background: var(--instrument-paper-texture);
+  box-shadow:
+    0 9px 20px var(--instrument-shadow),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+}
+
+.thought-card::before,
+body.notes-page .project::before {
+  content: "";
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--instrument-edge);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    var(--instrument-metal-highlight),
+    var(--instrument-metal-mid) 62%,
+    var(--instrument-metal-low)
+  );
+  box-shadow: 0 1px 1px var(--instrument-shadow);
+  pointer-events: none;
+}
+
+.thought-card:hover,
+.thought-card:has(:focus-visible),
+body.notes-page .project:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--accent) 42%,
+    var(--instrument-edge-soft)
+  );
+  box-shadow:
+    0 9px 18px var(--instrument-shadow),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+  transform: translateY(-2px);
+}
+
+.thought-card__tags span,
+.thought-tags span {
+  border-color: var(--instrument-edge-soft);
+  border-radius: 4px;
+  background: var(--instrument-recess);
+  box-shadow: inset 0 1px 2px var(--instrument-shadow);
+}
+
+/* Standalone headers are wide observation-console nameplates. */
+.page-header {
+  border-top: 1px solid
+    color-mix(in srgb, var(--instrument-edge) 38%, transparent);
+  border-bottom-color: var(--instrument-edge);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 26px,
+      rgba(77, 59, 37, 0.018) 26px 27px
+    ),
+    linear-gradient(
+      180deg,
+      var(--instrument-metal-light),
+      var(--instrument-paper) 24% 76%,
+      var(--instrument-metal-mid)
+    );
+  box-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -2px 4px var(--instrument-shadow),
+    0 5px 13px var(--instrument-shadow);
+}
+
+.page-header h1 {
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+html[data-theme="dark"] .page-header h1 {
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.72);
+}
+
+.page-header h1::after {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-strong) 20% 80%,
+    transparent
+  );
+  box-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+/* Gallery: contact sheets mounted in a lightweight inspection table. */
+body.gallery-page .gallery-container {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] body.gallery-page .gallery-container {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.gallery-page .gallery-container::before {
+  display: none;
+}
+
+body.gallery-page .gallery-group + .gallery-group {
+  border-top-color: var(--instrument-edge-soft);
+}
+
+body.gallery-page .gallery-group__header {
+  padding: 0.28rem 0.1rem 0.55rem;
+  border: 0;
+  border-bottom: 1px solid var(--instrument-edge-soft);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.gallery-page .gallery-group__title {
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+html[data-theme="dark"] body.gallery-page .gallery-group__title {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
+}
+
+body.gallery-page .gallery-group__count {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-recess);
+  box-shadow:
+    inset 0 2px 3px var(--instrument-shadow),
+    0 1px 0 var(--instrument-metal-highlight);
+}
+
+body.gallery-page .gallery a {
+  border-color: var(--instrument-edge);
+  border-radius: 7px;
+  background: var(--instrument-metal-light);
+  box-shadow:
+    0 4px 9px var(--instrument-shadow),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+}
+
+body.gallery-page .gallery a::before {
+  border-color: var(--instrument-metal-light);
+  box-shadow:
+    inset 0 0 0 1px var(--instrument-edge-soft),
+    inset 0 2px 4px var(--instrument-shadow);
+}
+
+body.gallery-page .gallery a:hover,
+body.gallery-page .gallery a:focus-visible {
+  border-color: var(--accent-strong);
+  background: var(--instrument-metal-light);
+  box-shadow:
+    0 8px 16px var(--instrument-shadow),
+    0 0 0 2px var(--instrument-glow),
+    inset 0 1px 0 var(--instrument-metal-highlight);
+  transform: translateY(-2px);
+}
+
+body.gallery-page .caption {
+  color: var(--text-muted);
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+html[data-theme="dark"] body.gallery-page .caption {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+body.gallery-page .gallery-card__zoom,
+body.gallery-page :is(.gallery-modal__nav, .gallery-modal__close) {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-ridge);
+  box-shadow: var(--instrument-control-shadow);
+  color: var(--accent-strong);
+}
+
+body.gallery-page .gallery-modal__dialog {
+  border-color: var(--instrument-edge);
+  border-radius: 13px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 22px,
+      rgba(79, 60, 37, 0.022) 22px 23px
+    ),
+    linear-gradient(
+      145deg,
+      var(--instrument-metal-light),
+      var(--instrument-metal-mid)
+    );
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    inset 0 -2px 3px var(--instrument-shadow-deep);
+}
+
+body.gallery-page .gallery-modal__image-stage {
+  border-color: var(--instrument-edge);
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0 18%,
+      color-mix(in srgb, var(--instrument-display-ink) 7%, transparent) 18.2%
+        18.45%,
+      transparent 18.7% 35%,
+      color-mix(in srgb, var(--instrument-display-ink) 5%, transparent) 35.2%
+        35.4%,
+      transparent 35.7%
+    ),
+    linear-gradient(
+      color-mix(in srgb, var(--instrument-display-ink) 4%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--instrument-display-ink) 4%, transparent) 1px,
+      transparent 1px
+    ),
+    var(--instrument-display-deep);
+  background-size:
+    auto,
+    32px 32px,
+    32px 32px,
+    auto;
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.72),
+    0 1px 0 var(--instrument-metal-highlight);
+}
+
+body.gallery-page .gallery-modal__strip,
+body.gallery-page .gallery-modal__thumb {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-recess);
+  box-shadow: inset 0 2px 4px var(--instrument-shadow);
+}
+
+body.gallery-page .gallery-modal__thumb.is-active {
+  border-color: var(--accent-strong);
+  box-shadow:
+    0 0 0 2px var(--instrument-glow),
+    inset 0 2px 4px var(--instrument-shadow);
+}
+
+/* Notes archive uses one index plate; project summaries stay separate records. */
+body.notes-page .page-subtitle {
+  text-align: center;
+}
+
+body.notes-page .notes-index {
+  position: relative;
+  margin: 0 0 2.35rem;
+  padding: 0.95rem 1.2rem 1.15rem;
+  border: 1px solid var(--instrument-edge);
+  border-radius: 11px;
+  background:
+    radial-gradient(
+      circle at 8px 8px,
+      var(--instrument-screw-core) 0 1.1px,
+      var(--instrument-screw-ring) 1.3px 2.4px,
+      transparent 2.6px
+    ),
+    radial-gradient(
+      circle at calc(100% - 8px) calc(100% - 8px),
+      var(--instrument-screw-core) 0 1.1px,
+      var(--instrument-screw-ring) 1.3px 2.4px,
+      transparent 2.6px
+    ),
+    var(--instrument-paper-texture);
+  box-shadow: var(--instrument-case-shadow);
+}
+
+body.notes-page .notes-index > h1 {
+  margin-top: 0.2rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--instrument-edge-soft);
+}
+
+body.notes-page .notes-index > ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body.notes-page .notes-index > ul > li {
+  min-width: 0;
+  padding: 0.48rem 0.68rem 0.62rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.notes-page .notes-index > ul > li:nth-child(even) {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--instrument-edge-soft);
+}
+
+body.notes-page .notes-index > ul > li:nth-child(n + 3) {
+  padding-top: 0.82rem;
+  border-top: 1px solid var(--instrument-edge-soft);
+}
+
+body.notes-page .notes-index h3 {
+  margin: 0 0 0.35rem;
+  color: var(--text);
+}
+
+body.notes-page .notes-index li li {
+  margin: 0.2rem 0;
+}
+
+body.notes-page h1,
+body.notes-page h2,
+body.notes-page h3 {
+  text-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+html[data-theme="dark"] body.notes-page :is(h1, h2, h3) {
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
+}
+
+body.notes-page .project {
+  padding: 1rem 1.1rem;
+  transition:
+    border-color 150ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+/* Floating controls and runtime read like a dial and counter strip. */
+.site-options-fab__trigger {
+  border-color: var(--instrument-edge);
+  background: radial-gradient(
+    circle at 38% 32%,
+    var(--instrument-metal-highlight),
+    var(--accent) 34%,
+    var(--accent-strong) 72%,
+    var(--instrument-metal-low)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 46%, transparent),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.22),
+    0 5px 12px var(--instrument-shadow-deep);
+  color: var(--on-accent-strong);
+}
+
+.site-options-fab.is-open .site-options-fab__trigger,
+.site-options-fab__trigger:hover {
+  border-color: var(--accent-strong);
+  background: radial-gradient(
+    circle at 45% 40%,
+    var(--accent),
+    var(--accent-strong) 68%,
+    var(--instrument-metal-low)
+  );
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.28),
+    0 0 0 3px var(--instrument-glow),
+    0 5px 12px var(--instrument-shadow-deep);
+  transform: translateY(1px) rotate(8deg);
+}
+
+.site-options-fab__menu {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-paper-texture);
+  box-shadow: var(--instrument-case-shadow);
+}
+
+.site-options-fab__action {
+  border: 1px solid transparent;
+}
+
+.site-options-fab__action:hover,
+.site-options-fab__action:focus-visible {
+  border-color: var(--instrument-edge-soft);
+  background: linear-gradient(
+    180deg,
+    var(--instrument-metal-light),
+    var(--instrument-metal-mid)
+  );
+  box-shadow: var(--instrument-control-shadow);
+}
+
+.site-runtime {
+  border-top-color: var(--instrument-edge);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 26px,
+      rgba(76, 58, 36, 0.018) 26px 27px
+    ),
+    linear-gradient(
+      180deg,
+      var(--instrument-metal-light),
+      var(--footer-bg) 48%,
+      var(--instrument-metal-mid)
+    );
+  box-shadow:
+    inset 0 1px 0 var(--instrument-metal-highlight),
+    0 -3px 10px var(--instrument-shadow);
+}
+
+.site-runtime__elapsed {
+  border-color: var(--instrument-edge-soft);
+  border-radius: 5px;
+  background: linear-gradient(
+    180deg,
+    var(--instrument-paper),
+    var(--instrument-recess)
+  );
+  box-shadow:
+    inset 0 1px 3px
+      color-mix(in srgb, var(--instrument-shadow) 52%, transparent),
+    0 1px 0 var(--instrument-metal-highlight);
+  color: var(--text);
+  text-shadow: none;
+}
+
+html[data-theme="dark"] .site-runtime__elapsed {
+  border-color: var(--instrument-edge);
+  background: linear-gradient(
+    180deg,
+    var(--instrument-display-deep),
+    var(--instrument-display)
+  );
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.68),
+    0 1px 0 var(--instrument-metal-highlight);
+  color: var(--instrument-display-ink);
+  text-shadow: 0 0 5px var(--instrument-glow);
+}
+
+/* Live2D speech and interaction controls join the same instrument family. */
+.live2d-interact {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-ridge);
+  box-shadow: var(--instrument-control-shadow);
+  color: var(--accent-strong);
+}
+
+.live2d-interact:hover,
+.live2d-interact[aria-expanded="true"] {
+  border-color: var(--accent-strong);
+  background: var(--instrument-ridge);
+  box-shadow:
+    inset 0 2px 4px var(--instrument-shadow-deep),
+    0 0 0 3px var(--instrument-glow),
+    0 5px 12px var(--instrument-shadow);
+  color: var(--accent-strong);
+  transform: translateY(1px);
+}
+
+.live2d-dialogue {
+  border-color: var(--instrument-edge);
+  border-radius: 9px;
+  background:
+    radial-gradient(
+      circle at 7px 7px,
+      var(--instrument-screw-core) 0 1px,
+      var(--instrument-screw-ring) 1.2px 2.2px,
+      transparent 2.4px
+    ),
+    linear-gradient(
+      105deg,
+      color-mix(in srgb, var(--accent) 6%, transparent),
+      transparent 42%
+    ),
+    var(--instrument-paper-texture);
+  box-shadow: var(--instrument-case-shadow);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.live2d-dialogue::before {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-strong),
+    var(--accent-warm),
+    transparent
+  );
+  box-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+.live2d-dialogue::after {
+  height: 2px;
+  background: var(--instrument-edge);
+  box-shadow: 0 1px 0 var(--instrument-metal-highlight);
+}
+
+.live2d-dialogue__meta {
+  border-bottom-color: var(--instrument-edge-soft);
+}
+
+.live2d-dialogue__close {
+  border-color: var(--instrument-edge);
+  background: var(--instrument-ridge);
+  box-shadow: var(--instrument-control-shadow);
+}
+
+.live2d-dialogue__close:hover {
+  border-color: var(--accent-strong);
+  background: var(--instrument-ridge);
+  color: var(--accent-strong);
+  box-shadow:
+    inset 0 2px 3px var(--instrument-shadow-deep),
+    0 1px 0 var(--instrument-metal-highlight);
+  transform: translateY(1px);
+}
+
+@media (max-width: 57.75em) {
+  .masthead__inner-wrap {
+    border-right: 0;
+    border-left: 0;
+  }
+
+  body.notes-page .notes-index > ul {
+    grid-template-columns: 1fr;
+  }
+
+  body.notes-page .notes-index > ul > li:nth-child(even) {
+    padding-left: 0.68rem;
+    border-left: 0;
+  }
+
+  body.notes-page .notes-index > ul > li:nth-child(n + 2) {
+    padding-top: 0.82rem;
+    border-top: 1px solid var(--instrument-edge-soft);
+  }
+}
+
+@media (max-width: 47.5em) {
+  .publication-filter {
+    flex-wrap: wrap;
+  }
+
+  .publication-filter__count {
+    width: 100%;
+    margin-left: 0;
+    padding: 0.08rem 0.34rem 0;
+  }
+
+  .page-header {
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 22px,
+        rgba(77, 59, 37, 0.018) 22px 23px
+      ),
+      linear-gradient(
+        180deg,
+        var(--instrument-metal-light),
+        var(--instrument-paper) 24% 76%,
+        var(--instrument-metal-mid)
+      );
+  }
+}
+
+@media (max-width: 36em) {
+  body.home-page .page__inner-wrap,
+  body.thoughts-page .page__inner-wrap {
+    border-radius: 10px;
+  }
+
+  body.gallery-page .gallery-container {
+    border-radius: 0;
+  }
+
+  body.home-page .page__inner-wrap::before,
+  body.thoughts-page .page__inner-wrap::before,
+  body.gallery-page .gallery-container::before {
+    inset: 4px;
+    border-radius: 6px;
+  }
+
+  body.home-page .profile_box,
+  body.thoughts-page .profile_box {
+    border-radius: 11px;
+  }
+
+  body.gallery-page .gallery-group__header {
+    padding: 0.42rem 0.48rem;
+  }
+
+  body.notes-page .notes-index {
+    padding: 0.78rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .publication-filter__button,
+  .thoughts-action,
+  .button,
+  .site-options-fab__trigger,
+  .site-options-fab__action,
+  .live2d-interact,
+  .live2d-dialogue__close,
+  .thought-card,
+  body.notes-page .project {
+    transition-duration: 0.01ms !important;
+  }
+}

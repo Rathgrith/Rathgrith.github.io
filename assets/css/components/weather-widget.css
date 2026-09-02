@@ -1,0 +1,708 @@
+.weather-dial {
+  --weather-metal-light: color-mix(in srgb, var(--surface) 74%, #eadfcd 26%);
+  --weather-metal-mid: color-mix(in srgb, var(--surface-alt) 72%, #b9a98e 28%);
+  --weather-metal-dark: color-mix(in srgb, var(--border) 66%, #776953 34%);
+  --weather-edge: color-mix(in srgb, var(--border) 60%, #5d503e 40%);
+  --weather-panel: color-mix(in srgb, var(--surface-raised) 88%, #e9dfcf 12%);
+  --weather-display: color-mix(in srgb, var(--surface-alt) 82%, #c7d0c6 18%);
+  --weather-display-deep: color-mix(in srgb, var(--border) 74%, #9ca89d 26%);
+  --weather-ink: color-mix(in srgb, var(--text) 84%, var(--weather-phase) 16%);
+  --weather-muted: color-mix(in srgb, var(--text-muted) 85%, #746447 15%);
+  --weather-phase: var(--accent);
+  --weather-needle-angle: 18deg;
+  width: 100%;
+  margin: 0.72rem 0 1.1rem;
+  color: var(--text);
+  font-family: var(--font-body, Georgia, serif);
+}
+
+html[data-weather-visible="false"] .weather-dial,
+.weather-dial[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 36em) {
+  .weather-dial {
+    display: none !important;
+  }
+}
+
+.weather-dial[data-weather-phase="cloud"] {
+  --weather-phase: color-mix(in srgb, #84758f 72%, var(--accent) 28%);
+}
+
+.weather-dial[data-weather-phase="rain"] {
+  --weather-phase: color-mix(in srgb, #4e7598 74%, var(--accent) 26%);
+}
+
+.weather-dial[data-weather-phase="storm"] {
+  --weather-phase: color-mix(in srgb, #a05b4d 76%, var(--accent) 24%);
+}
+
+.weather-dial[data-weather-phase="snow"] {
+  --weather-phase: color-mix(in srgb, #7295a4 72%, var(--accent) 28%);
+}
+
+.weather-dial[data-weather-phase="mist"] {
+  --weather-phase: color-mix(in srgb, #73847e 72%, var(--accent) 28%);
+}
+
+.weather-dial[data-weather-phase="heat"] {
+  --weather-phase: color-mix(in srgb, #b66542 76%, var(--accent) 24%);
+}
+
+.weather-dial[data-weather-phase="calm"] {
+  --weather-phase: color-mix(in srgb, #72855f 72%, var(--accent) 28%);
+}
+
+.weather-dial[data-weather-phase="aurora"] {
+  --weather-phase: color-mix(in srgb, #766294 72%, var(--accent) 28%);
+}
+
+.weather-dial__bezel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 0.58rem;
+  border: 1px solid var(--weather-edge);
+  border-radius: 13px;
+  background:
+    radial-gradient(
+      circle at 7px 7px,
+      #554936 0 1.2px,
+      #e0d4bf 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    radial-gradient(
+      circle at calc(100% - 7px) 7px,
+      #554936 0 1.2px,
+      #e0d4bf 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    radial-gradient(
+      circle at 7px calc(100% - 7px),
+      #554936 0 1.2px,
+      #e0d4bf 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    radial-gradient(
+      circle at calc(100% - 7px) calc(100% - 7px),
+      #554936 0 1.2px,
+      #e0d4bf 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    repeating-linear-gradient(
+      91deg,
+      transparent 0 13px,
+      rgba(77, 60, 39, 0.025) 13px 14px
+    ),
+    linear-gradient(
+      150deg,
+      var(--weather-metal-light),
+      var(--weather-metal-mid) 58%,
+      var(--weather-metal-dark)
+    );
+  box-shadow:
+    0 10px 22px rgba(42, 33, 22, 0.16),
+    0 2px 4px rgba(42, 33, 22, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    inset 0 -2px 3px rgba(63, 49, 32, 0.2);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.weather-dial__bezel::after {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.16),
+    transparent 25% 76%,
+    rgba(50, 39, 25, 0.08)
+  );
+  pointer-events: none;
+}
+
+.weather-dial__header,
+.weather-dial__instrument,
+.weather-dial__metrics,
+.weather-dial__footer,
+.weather-dial__status {
+  position: relative;
+  z-index: 1;
+}
+
+.weather-dial__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding: 0 0.08rem 0.4rem;
+}
+
+.weather-dial__eyebrow,
+.weather-dial__title,
+.weather-dial__temperature,
+.weather-dial__status {
+  margin: 0;
+}
+
+.weather-dial__eyebrow {
+  color: var(--accent-strong);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.05;
+}
+
+.weather-dial__title {
+  margin-top: 0.14rem;
+  color: var(--weather-muted);
+  font-size: 0.57rem;
+  font-weight: 650;
+  letter-spacing: 0.055em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.weather-dial__actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 0.24rem;
+}
+
+.weather-dial__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.62rem;
+  height: 1.52rem;
+  padding: 0;
+  border: 1px solid var(--weather-edge);
+  border-radius: 5px;
+  background: linear-gradient(
+    180deg,
+    var(--weather-metal-light),
+    var(--weather-metal-mid)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 2px 2px rgba(56, 43, 27, 0.17);
+  color: var(--weather-muted);
+  font-size: 0.58rem;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    transform 90ms ease,
+    box-shadow 90ms ease;
+}
+
+.weather-dial__button:hover {
+  color: var(--accent-strong);
+}
+
+.weather-dial__button:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 3px rgba(48, 37, 23, 0.27);
+}
+
+.weather-dial__button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.weather-dial__button:disabled {
+  opacity: 0.58;
+  cursor: wait;
+}
+
+.weather-dial[aria-busy="true"]
+  .weather-dial__button[data-weather-action="refresh"]
+  i {
+  animation: weather-dial-spin 900ms linear infinite;
+}
+
+.weather-dial__instrument {
+  position: relative;
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  align-items: center;
+  min-height: 82px;
+  padding: 0.38rem 0.48rem;
+  overflow: hidden;
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--weather-display-deep) 72%,
+      var(--weather-phase) 28%
+    );
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 15px,
+      color-mix(in srgb, var(--text) 4.5%, transparent) 15px 16px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 82%, var(--weather-phase) 18%),
+      var(--weather-display) 48%,
+      var(--weather-display-deep)
+    );
+  box-shadow:
+    inset 0 2px 5px rgba(55, 45, 31, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.weather-dial__symbols {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.weather-dial__instrument::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    170deg,
+    rgba(255, 255, 255, 0.1),
+    transparent 33% 72%,
+    rgba(0, 0, 0, 0.2)
+  );
+  pointer-events: none;
+}
+
+.weather-dial__ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 70px;
+  height: 70px;
+  border: 1px solid color-mix(in srgb, var(--weather-phase) 58%, #6c644e 42%);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      transparent 0 49%,
+      color-mix(in srgb, var(--text) 15%, transparent) 50% 54%,
+      transparent 55%
+    ),
+    repeating-conic-gradient(
+      from -4deg,
+      color-mix(in srgb, var(--weather-ink) 58%, transparent) 0 1.5deg,
+      transparent 1.5deg 18deg
+    ),
+    radial-gradient(
+      circle at 42% 36%,
+      color-mix(in srgb, var(--weather-phase) 16%, var(--surface)),
+      var(--weather-display) 66%
+    );
+  box-shadow:
+    0 0 10px color-mix(in srgb, var(--weather-phase) 15%, transparent),
+    inset 0 0 9px rgba(55, 45, 31, 0.18);
+}
+
+.weather-dial__ring::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #3d3423;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f4d993, #8f6b29 64%, #3b2e18);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  transform: translate(-50%, -50%);
+}
+
+.weather-dial__needle {
+  position: absolute;
+  z-index: 1;
+  bottom: 50%;
+  left: calc(50% - 1px);
+  width: 2px;
+  height: 25px;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(90deg, #b43d35, #f0a078 50%, #7f251f);
+  box-shadow: 0 0 4px rgba(193, 70, 51, 0.42);
+  transform: rotate(var(--weather-needle-angle));
+  transform-origin: 50% 100%;
+  transition: transform 700ms cubic-bezier(0.2, 0.72, 0.24, 1);
+}
+
+.weather-dial__reading {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 0.48rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.03rem;
+  width: 70px;
+  color: var(--weather-ink);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.weather-dial__icon {
+  width: 1.42rem;
+  height: 1.42rem;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+  filter: drop-shadow(
+    0 0 4px color-mix(in srgb, var(--weather-phase) 24%, transparent)
+  );
+}
+
+.weather-dial__condition {
+  grid-column: 2;
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding-left: 0.32rem;
+}
+
+.weather-dial__name {
+  max-width: 4rem;
+  min-width: 0;
+  font-family:
+    "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro",
+    "Noto Serif CJK JP", "Noto Serif JP", "MS PMincho", serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  font-feature-settings: "palt" 1;
+  letter-spacing: 0.055em;
+  line-height: 1.04;
+  text-align: center;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0 8px color-mix(in srgb, var(--weather-phase) 20%, transparent);
+}
+
+.weather-dial__time {
+  color: color-mix(in srgb, var(--weather-ink) 70%, transparent);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.39rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.weather-dial__condition-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.weather-dial__temperature {
+  color: var(--weather-ink);
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.68rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  text-align: left;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72),
+    0 0 10px color-mix(in srgb, var(--weather-phase) 18%, transparent);
+}
+
+.weather-dial__description {
+  min-width: 0;
+  margin-bottom: 0.05rem;
+  color: color-mix(in srgb, var(--weather-ink) 76%, transparent);
+  font-family:
+    "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro",
+    "Noto Serif CJK JP", "Noto Serif JP", "MS PMincho", serif;
+  font-size: 0.48rem;
+  font-weight: 600;
+  letter-spacing: 0.018em;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.weather-dial__metrics {
+  display: grid;
+  grid-template-columns: 0.85fr 0.85fr 1.3fr;
+  margin: 0.42rem 0 0;
+  overflow: hidden;
+  border: 1px solid var(--weather-edge);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--weather-panel) 86%, transparent);
+  box-shadow:
+    inset 0 1px 2px rgba(62, 47, 29, 0.14),
+    0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.weather-dial__metrics > div {
+  min-width: 0;
+  padding: 0.27rem 0.22rem 0.25rem;
+  text-align: center;
+}
+
+.weather-dial__metrics > div + div {
+  border-left: 1px solid
+    color-mix(in srgb, var(--weather-edge) 48%, transparent);
+}
+
+.weather-dial__metrics dt {
+  color: var(--weather-muted);
+  font-size: 0.46rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  line-height: 1.1;
+}
+
+.weather-dial__metrics dd {
+  overflow: hidden;
+  margin: 0.14rem 0 0;
+  color: var(--text);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-dial__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  padding: 0 0.08rem;
+  color: var(--weather-muted);
+  font-size: 0.49rem;
+  letter-spacing: 0.035em;
+  line-height: 1.2;
+}
+
+.weather-dial__location {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.24rem;
+}
+
+.weather-dial__location span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-dial__footer a {
+  flex-shrink: 0;
+  color: var(--weather-muted);
+  text-decoration: none;
+}
+
+.weather-dial__footer a:hover,
+.weather-dial__footer a:focus-visible {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+.weather-dial__status {
+  margin-top: 0.36rem;
+  padding: 0.28rem 0.38rem;
+  border: 1px solid
+    color-mix(in srgb, var(--accent-warm) 42%, var(--weather-edge));
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--surface) 84%, var(--accent-soft) 16%);
+  color: var(--text-muted);
+  font-size: 0.53rem;
+  line-height: 1.35;
+}
+
+body.home-page.profile-panel-is-scrolled .weather-dial__bezel {
+  border-color: color-mix(in srgb, var(--accent-warm) 45%, var(--weather-edge));
+  box-shadow:
+    0 13px 25px rgba(42, 33, 22, 0.2),
+    0 2px 4px rgba(42, 33, 22, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+
+html[data-theme="dark"] .weather-dial {
+  --weather-metal-light: color-mix(
+    in srgb,
+    var(--surface-raised) 82%,
+    #55472c 18%
+  );
+  --weather-metal-mid: color-mix(in srgb, var(--surface) 90%, #2e281b 10%);
+  --weather-metal-dark: color-mix(in srgb, var(--bg) 84%, #211b11 16%);
+  --weather-edge: color-mix(in srgb, var(--border) 66%, #0c0b08 34%);
+  --weather-panel: color-mix(in srgb, var(--surface) 90%, #090a09 10%);
+  --weather-display: #0e120f;
+  --weather-display-deep: #050806;
+  --weather-ink: color-mix(in srgb, var(--accent-strong) 80%, #f2dda7 20%);
+  --weather-muted: color-mix(in srgb, var(--text-muted) 84%, var(--accent) 16%);
+  --weather-phase: var(--accent);
+}
+
+html[data-theme="dark"] .weather-dial__bezel {
+  background:
+    radial-gradient(
+      circle at 7px 7px,
+      #080907 0 1.2px,
+      #8a7442 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    radial-gradient(
+      circle at calc(100% - 7px) 7px,
+      #080907 0 1.2px,
+      #8a7442 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    radial-gradient(
+      circle at 7px calc(100% - 7px),
+      #080907 0 1.2px,
+      #8a7442 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    radial-gradient(
+      circle at calc(100% - 7px) calc(100% - 7px),
+      #080907 0 1.2px,
+      #8a7442 1.4px 2.5px,
+      transparent 2.7px
+    ),
+    repeating-linear-gradient(
+      91deg,
+      transparent 0 14px,
+      rgba(255, 225, 153, 0.018) 14px 15px
+    ),
+    linear-gradient(
+      150deg,
+      var(--weather-metal-light),
+      var(--weather-metal-mid) 58%,
+      var(--weather-metal-dark)
+    );
+  box-shadow:
+    0 12px 25px rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 color-mix(in srgb, var(--accent-strong) 15%, transparent),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.58);
+}
+
+html[data-theme="dark"] .weather-dial[data-weather-phase] {
+  --weather-phase: var(--accent);
+}
+
+html[data-theme="dark"] .weather-dial__button {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--accent-strong) 13%, transparent),
+    0 2px 2px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .weather-dial__instrument {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 15px,
+      rgba(239, 230, 190, 0.035) 15px 16px
+    ),
+    linear-gradient(
+      180deg,
+      #0a0d0b,
+      var(--weather-display) 48%,
+      var(--weather-display-deep)
+    );
+  box-shadow:
+    inset 0 3px 7px rgba(0, 0, 0, 0.72),
+    0 1px 0 color-mix(in srgb, var(--accent-strong) 9%, transparent);
+}
+
+html[data-theme="dark"] .weather-dial__ring {
+  background:
+    radial-gradient(
+      circle,
+      transparent 0 49%,
+      rgba(0, 0, 0, 0.42) 50% 54%,
+      transparent 55%
+    ),
+    repeating-conic-gradient(
+      from -4deg,
+      color-mix(in srgb, var(--weather-ink) 58%, transparent) 0 1.5deg,
+      transparent 1.5deg 18deg
+    ),
+    radial-gradient(
+      circle at 42% 36%,
+      color-mix(in srgb, var(--weather-phase) 24%, #31372f),
+      #111612 66%
+    );
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--weather-phase) 24%, transparent),
+    inset 0 0 12px rgba(0, 0, 0, 0.68);
+}
+
+html[data-theme="dark"] .weather-dial__name,
+html[data-theme="dark"] .weather-dial__temperature {
+  text-shadow:
+    0 1px 2px #000,
+    0 0 10px color-mix(in srgb, var(--weather-phase) 36%, transparent);
+}
+
+html[data-theme="dark"] .weather-dial__icon {
+  filter: drop-shadow(
+    0 0 5px color-mix(in srgb, var(--weather-phase) 42%, transparent)
+  );
+}
+
+html[data-theme="dark"] .weather-dial__metrics {
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.5),
+    0 1px 0 color-mix(in srgb, var(--accent-strong) 9%, transparent);
+}
+
+@media (max-width: 57.75em) {
+  .weather-dial {
+    width: min(100%, 23rem);
+    margin-right: auto;
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 36em) {
+  .weather-dial {
+    margin-top: 0.62rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-dial__button,
+  .weather-dial__needle,
+  .weather-dial__bezel {
+    transition-duration: 0.01ms !important;
+  }
+
+  .weather-dial[aria-busy="true"]
+    .weather-dial__button[data-weather-action="refresh"]
+    i {
+    animation: none;
+  }
+}
+
+@keyframes weather-dial-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

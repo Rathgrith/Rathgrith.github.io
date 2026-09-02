@@ -231,7 +231,6 @@ body.gallery-page .gallery-modal__dialog,
 .author__affiliation,
 .thoughts-action,
 .button,
-body.gallery-page .gallery-action.button,
 body.gallery-page .gallery-modal__nav,
 body.gallery-page .gallery-modal__close {
   border: 1px solid var(--glass-stroke-soft);
@@ -260,7 +259,6 @@ body.gallery-page .gallery-modal__close {
 .author__affiliation:hover,
 .thoughts-action:hover,
 .button:hover,
-body.gallery-page .gallery-action.button:hover:not(:disabled),
 body.gallery-page .gallery-modal__nav:hover,
 body.gallery-page .gallery-modal__close:hover {
   border-color: color-mix(

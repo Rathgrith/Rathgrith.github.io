@@ -21,28 +21,6 @@ body_class: "standalone-page gallery-page"
   <div class="gallery-groups" id="gallery">
     <!-- JavaScript will populate themed sections -->
   </div>
-  <div
-    class="gallery-actions"
-    role="group"
-    aria-label="Gallery loading controls"
-    aria-live="polite"
-  >
-    <button
-      type="button"
-      id="load-all"
-      class="button gallery-action"
-      data-default-label="Load all photos"
-      data-done-label="All photos loaded"
-      data-icon="fas fa-layer-group"
-      data-done-icon="fas fa-check"
-    >
-      <span class="gallery-action__icon" aria-hidden="true">
-        <i class="fas fa-layer-group"></i>
-      </span>
-      <span class="gallery-action__label">Load all photos</span>
-      <span class="gallery-action__spinner" aria-hidden="true"></span>
-    </button>
-  </div>
 </main>
 
 <div class="gallery-modal" id="gallery-modal" aria-hidden="true" hidden>
@@ -71,7 +49,7 @@ body_class: "standalone-page gallery-page"
     </button>
     <figure class="gallery-modal__figure">
       <div class="gallery-modal__image-stage">
-        <img id="gallery-modal-image" class="gallery-modal__image" src="" alt="">
+        <img id="gallery-modal-image" class="gallery-modal__image" alt="">
       </div>
       <figcaption class="gallery-modal__meta">
         <div class="gallery-modal__meta-text">

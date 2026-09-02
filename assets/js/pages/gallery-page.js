@@ -7,8 +7,6 @@
   }
   window.__siteGalleryPageScriptBound = true;
 
-  var INITIAL_ROWS_PER_GROUP = 2;
-  var LOAD_ALL_CHUNK_PER_GROUP = 10;
   var MODAL_STRIP_RADIUS = 6;
 
   var state = {
@@ -24,7 +22,6 @@
     triggerElement: null,
     modalRefs: null,
     preloaded: {},
-    rendering: false,
   };
 
   function parseCaptions() {
@@ -157,18 +154,6 @@
     });
 
     state.gallery.replaceChildren(fragment);
-  }
-
-  function itemsForRows(rowCount) {
-    var firstGrid = state.groups.length ? state.groups[0].grid : null;
-    if (!firstGrid) return rowCount;
-
-    var template = window.getComputedStyle(firstGrid).gridTemplateColumns;
-    var columnCount =
-      template && template !== "none"
-        ? template.trim().split(/\s+/).filter(Boolean).length
-        : 1;
-    return Math.max(1, columnCount) * Math.max(1, rowCount);
   }
 
   function getModalRefs() {
@@ -471,77 +456,7 @@
     return additions.length;
   }
 
-  function appendBalancedBatch(countPerGroup) {
-    var added = 0;
-    state.groups.forEach(function (group, groupIndex) {
-      added += appendGroupBatch(group, countPerGroup, groupIndex);
-    });
-    rebuildItemOrder();
-    return added;
-  }
-
-  function setButtonState(button, options) {
-    if (!button) return;
-    var label = button.querySelector(".gallery-action__label");
-    var icon = button.querySelector(".gallery-action__icon i");
-
-    button.disabled = Boolean(options.disabled);
-    button.classList.toggle("is-loading", Boolean(options.loading));
-    button.setAttribute("aria-busy", options.loading ? "true" : "false");
-    if (label && options.label) label.textContent = options.label;
-    if (icon && options.icon) icon.className = options.icon;
-  }
-
-  function updateControls(refs) {
-    var complete = state.items.length >= state.filenames.length;
-    if (refs.actions) refs.actions.classList.toggle("is-complete", complete);
-
-    if (refs.all) {
-      refs.all.hidden = false;
-      refs.all.removeAttribute("aria-hidden");
-      refs.all.removeAttribute("tabindex");
-      setButtonState(refs.all, {
-        disabled: complete || state.rendering,
-        loading: false,
-        label: complete
-          ? refs.all.dataset.doneLabel
-          : refs.all.dataset.defaultLabel,
-        icon: complete ? refs.all.dataset.doneIcon : refs.all.dataset.icon,
-      });
-    }
-  }
-
-  function setControlsLoading(refs) {
-    if (!refs.all) return;
-    setButtonState(refs.all, {
-      disabled: true,
-      loading: true,
-    });
-  }
-
-  function loadAllInChunks(refs, galleryAtStart) {
-    function nextChunk() {
-      if (
-        state.gallery !== galleryAtStart ||
-        !document.contains(galleryAtStart)
-      ) {
-        state.rendering = false;
-        return;
-      }
-
-      appendBalancedBatch(LOAD_ALL_CHUNK_PER_GROUP);
-      if (state.items.length < state.filenames.length) {
-        window.requestAnimationFrame(nextChunk);
-        return;
-      }
-
-      state.rendering = false;
-      updateControls(refs);
-    }
-    window.requestAnimationFrame(nextChunk);
-  }
-
-  function bindGalleryEvents(refs) {
+  function bindGalleryEvents() {
     state.gallery.addEventListener(
       "click",
       function (event) {
@@ -560,15 +475,6 @@
       },
       true
     );
-
-    if (refs.all) {
-      refs.all.addEventListener("click", function () {
-        if (state.rendering) return;
-        state.rendering = true;
-        setControlsLoading(refs);
-        loadAllInChunks(refs, state.gallery);
-      });
-    }
   }
 
   function resetState() {
@@ -580,7 +486,6 @@
     state.triggerElement = null;
     state.modalRefs = null;
     state.preloaded = {};
-    state.rendering = false;
     document.body.classList.remove("gallery-modal-open");
   }
 
@@ -613,19 +518,15 @@
     state.isOpen = false;
     state.modalRefs = null;
     state.preloaded = {};
-    state.rendering = false;
     createGroupSections();
-
-    var refs = {
-      actions: container.querySelector(".gallery-actions"),
-      all: container.querySelector("#load-all"),
-    };
 
     bindModalEvents();
     bindGlobalKeyboardEvents();
-    bindGalleryEvents(refs);
-    appendBalancedBatch(itemsForRows(INITIAL_ROWS_PER_GROUP));
-    updateControls(refs);
+    bindGalleryEvents();
+    state.groups.forEach(function (group, groupIndex) {
+      appendGroupBatch(group, group.filenames.length, groupIndex);
+    });
+    rebuildItemOrder();
   }
 
   window.__siteInitGalleryPage = initGalleryPage;

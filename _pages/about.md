@@ -24,8 +24,6 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 Current Research Interests: Correspondences, Vision for Animation and Open Problems.
 
-<span class='anchor' id='education'></span>
-
 # Education
 
 - _2026.01 - Present_, <img src="/images/universities/birmingham-shield.svg" alt="University of Birmingham icon" class="inline-school-icon"> PhD in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd)
@@ -82,7 +80,7 @@ Current Research Interests: Correspondences, Vision for Animation and Open Probl
   </div>
 </div>
 
-<span class='anchor' id='awards'></span><span id='awards-services' aria-hidden='true'></span>
+<span id='awards-services' aria-hidden='true'></span>
 
 # Awards
 
@@ -92,15 +90,11 @@ Current Research Interests: Correspondences, Vision for Animation and Open Probl
 
 - **[2022‑2023 XJTLU University Academic Excellence Award](https://www.xjtlu.edu.cn/assets/files/scholarships/Threshold_for_202223_AY_UG_Scholarship.pdf)**: 10k RMB scholarship for undergrad.
 
-<span class='anchor' id='services'></span>
-
 # Services
 
 - **Research Internship:** [IDAI](https://www.adzuna.co.uk/jobs/details/5769394456)
 - **Invited Reviewer:** [CVPR](https://cvpr.thecvf.com/), [BMVC](https://www.bmva.org/bmvc), [IJCNN](https://www.ijcnn.org/), [NeurIPS](https://neurips.cc/).
 - **Software Engineer:** [Allsee Technologies Ltd](https://www.allsee-tech.com/).
-
-<span class='anchor' id='miscellaneous'></span>
 
 # Miscellaneous
 

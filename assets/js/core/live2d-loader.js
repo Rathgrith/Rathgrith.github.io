@@ -32,36 +32,42 @@
         source: "東方緋想天",
         poseId: "5",
         expressionMotionId: "02",
+        moods: ["confident", "cheerful"],
       },
       {
         text: "そろそろ、究極の人形が完成しそうよ。",
         source: "東方非想天則",
         poseId: "4",
         expressionMotionId: "07",
+        moods: ["reflective", "confident", "mysterious"],
       },
       {
         text: "人形が気になるの？ ふふっ、触ってみる？",
         source: "東方LostWord",
         poseId: "1",
         expressionMotionId: "02",
+        moods: ["cheerful", "curious"],
       },
       {
         text: "少し部屋の片付けでもしたらどう？ 地震が来たら埋もれても知らないわよ？",
         source: "東方緋想天",
         poseId: "3",
         expressionMotionId: "05",
+        moods: ["cautious", "irritable"],
       },
       {
         text: "何体まで同時に操っても大丈夫かしら？",
         source: "東方緋想天",
         poseId: "2",
         expressionMotionId: "01",
+        moods: ["curious", "reflective"],
       },
       {
         text: "人形の巨大化！ インパクトはありそうだから検討してみるかなぁ。",
         source: "東方緋想天",
         poseId: "5",
         expressionMotionId: "07",
+        moods: ["cheerful", "curious"],
       },
     ],
     marisa: [
@@ -70,36 +76,45 @@
         source: "東方緋想天",
         poseId: "4",
         expressionMotionId: "02",
+        moods: ["confident", "cheerful"],
       },
       {
         text: "今年は森にも陽の光が差して暑いな。",
         source: "東方非想天則",
         poseId: "5",
         expressionMotionId: "05",
+        moods: ["irritable", "quiet"],
+        weatherPhases: ["clear", "heat"],
       },
       {
         text: "帰ったぜー。疲れたー。寝るー。おやすみー。",
         source: "東方LostWord",
         poseId: "3",
         expressionMotionId: "08",
+        moods: ["sleepy", "quiet"],
       },
       {
         text: "じゃあな。神社が壊れて元気がないんじゃないか？",
         source: "東方緋想天",
         poseId: "2",
         expressionMotionId: "01",
+        moods: ["mischievous", "confident"],
       },
       {
         text: "人形の首を沢山吊そうぜ。そうしたら晴れるに違いない。",
         source: "東方緋想天",
         poseId: "4",
         expressionMotionId: "02",
+        moods: ["mischievous", "cheerful", "mysterious"],
+        weatherPhases: ["cloud", "rain", "storm"],
       },
       {
         text: "耐水性に優れた本もあるんだな。それなら風呂の中でも読めそうだぜ。",
         source: "東方緋想天",
         poseId: "5",
         expressionMotionId: "05",
+        moods: ["curious", "mischievous"],
+        weatherPhases: ["rain", "storm"],
       },
     ],
     patchouli: [
@@ -108,36 +123,43 @@
         source: "東方緋想天",
         poseId: "5",
         expressionMotionId: "01",
+        moods: ["quiet", "detached"],
       },
       {
         text: "魔法の本質は万物の根源を調べること。",
         source: "東方非想天則",
         poseId: "1",
         expressionMotionId: "03",
+        moods: ["curious", "reflective", "mysterious"],
       },
       {
         text: "また一つ、新たな知識を吸収することができたわ。",
         source: "東方LostWord",
         poseId: "4",
         expressionMotionId: "02",
+        moods: ["cheerful", "quiet"],
       },
       {
         text: "最近、また鼠の被害が増えているわ。",
         source: "東方非想天則",
         poseId: "1",
         expressionMotionId: "05",
+        moods: ["irritable", "cautious"],
       },
       {
         text: "人形を操っているのは魔法の糸だろうけど、沢山操るのは普通に器用よね。",
         source: "東方非想天則",
         poseId: "1",
         expressionMotionId: "01",
+        moods: ["curious", "reflective"],
       },
       {
         text: "雲一つ無い快晴は、時として生物に害を為す。日光は避けられない有害な物の一つね。",
         source: "東方緋想天",
         poseId: "1",
         expressionMotionId: "03",
+        moods: ["cautious", "reflective"],
+        weatherPhases: ["clear", "heat"],
       },
     ],
   };
@@ -184,6 +206,97 @@
   var interactionIdleTimer = 0;
   var interactionWelcomeTimer = 0;
   var interactionIndices = {};
+  var interactionTurnIndices = {};
+  var weatherInteractionIndices = {};
+  var WEATHER_MOOD_PREFERENCES = {
+    clear: [
+      "confident",
+      "cheerful",
+      "curious",
+      "mischievous",
+      "irritable",
+      "quiet",
+    ],
+    calm: ["reflective", "quiet", "cheerful", "mischievous"],
+    cloud: ["reflective", "quiet", "curious", "mischievous"],
+    mist: [
+      "mysterious",
+      "curious",
+      "cautious",
+      "mischievous",
+      "quiet",
+      "confident",
+    ],
+    rain: ["reflective", "quiet", "sleepy", "mischievous", "cautious"],
+    storm: [
+      "confident",
+      "cautious",
+      "irritable",
+      "mischievous",
+      "reflective",
+    ],
+    snow: ["reflective", "quiet", "cautious", "mischievous", "confident"],
+    heat: ["irritable", "sleepy", "quiet", "reflective", "confident"],
+    aurora: [
+      "mysterious",
+      "curious",
+      "cheerful",
+      "mischievous",
+      "confident",
+      "quiet",
+    ],
+  };
+
+  function eligibleInteractionsForWeather(interactions, phase) {
+    if (!phase) return interactions;
+
+    var eligible = interactions.filter(function (interaction) {
+      var phases = interaction.weatherPhases || [];
+      return !phases.length || phases.indexOf(phase) !== -1;
+    });
+
+    return eligible.length ? eligible : interactions;
+  }
+
+  function preferredInteractionsForWeather(interactions, phase) {
+    var preferences = WEATHER_MOOD_PREFERENCES[phase] || [];
+    var preferred = [];
+
+    for (var moodIndex = 0; moodIndex < preferences.length; moodIndex += 1) {
+      var mood = preferences[moodIndex];
+      for (
+        var interactionIndex = 0;
+        interactionIndex < interactions.length;
+        interactionIndex += 1
+      ) {
+        var interaction = interactions[interactionIndex];
+        var moods = interaction.moods || [];
+        if (
+          moods.indexOf(mood) !== -1 &&
+          preferred.indexOf(interaction) === -1
+        ) {
+          preferred.push(interaction);
+        }
+      }
+      if (preferred.length >= 3) break;
+    }
+
+    return preferred;
+  }
+
+  function selectWeatherInteraction(character, interactions, turn, phase) {
+    if (!character || !phase || turn % 4 === 3) {
+      return null;
+    }
+
+    var preferred = preferredInteractionsForWeather(interactions, phase);
+    if (!preferred.length) return null;
+
+    var key = character.id + ":" + phase;
+    var index = weatherInteractionIndices[key] || 0;
+    weatherInteractionIndices[key] = index + 1;
+    return preferred[index % preferred.length];
+  }
 
   var fallbackCharacters = [
     {
@@ -1549,9 +1662,33 @@
     var interactions = CHARACTER_INTERACTIONS[character.id] || [];
     if (!interactions.length) return;
 
-    var index = interactionIndices[character.id] || 0;
-    showInteraction(character, interactions[index % interactions.length]);
-    interactionIndices[character.id] = (index + 1) % interactions.length;
+    var turn = interactionTurnIndices[character.id] || 0;
+    var weather = window.__siteWeather;
+    var weatherPhase = weather && weather.phase ? weather.phase : "";
+    var availableInteractions = eligibleInteractionsForWeather(
+      interactions,
+      weatherPhase
+    );
+    var interactionKey = character.id + ":" + (weatherPhase || "default");
+    var index = interactionIndices[interactionKey] || 0;
+    var weatherInteraction = selectWeatherInteraction(
+      character,
+      availableInteractions,
+      turn,
+      weatherPhase
+    );
+
+    if (weatherInteraction) {
+      showInteraction(character, weatherInteraction);
+    } else {
+      showInteraction(
+        character,
+        availableInteractions[index % availableInteractions.length]
+      );
+      interactionIndices[interactionKey] =
+        (index + 1) % availableInteractions.length;
+    }
+    interactionTurnIndices[character.id] = turn + 1;
   }
 
   function scheduleIdleInteraction() {

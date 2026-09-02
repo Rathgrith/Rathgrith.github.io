@@ -6,8 +6,6 @@ author_profile: true
 body_class: thoughts-page
 ---
 
-<span class='anchor' id='thoughts'></span>
-
 # Thoughts
 
 <p class="thoughts-intro">Short notes, sketches, and fragments.</p>
