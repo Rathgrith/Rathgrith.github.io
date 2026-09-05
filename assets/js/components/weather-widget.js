@@ -68,7 +68,7 @@
   }
 
   function defaultVisibility() {
-    return !(visibilityMedia && visibilityMedia.matches);
+    return false;
   }
 
   function isMobileViewport() {

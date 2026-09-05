@@ -54,7 +54,7 @@
       '<div class="site-options-fab__menu" data-site-options-menu role="menu" hidden>',
       '<button type="button" class="site-options-fab__action" data-theme-toggle data-theme-toggle-style="menu" aria-pressed="false" role="menuitem"></button>',
       '<button type="button" class="site-options-fab__action" data-live2d-toggle data-live2d-toggle-style="menu" aria-pressed="true" role="menuitem"></button>',
-      '<button type="button" class="site-options-fab__action" data-weather-toggle aria-pressed="true" role="menuitem" hidden></button>',
+      '<button type="button" class="site-options-fab__action" data-weather-toggle aria-pressed="false" role="menuitem" hidden></button>',
       "</div>",
     ].join("");
 

@@ -144,6 +144,10 @@ html[data-weather-visible="false"] .weather-dial,
   padding: 0 0.08rem 0.4rem;
 }
 
+.weather-dial__header > :first-child {
+  min-width: 0;
+}
+
 .weather-dial__eyebrow,
 .weather-dial__title,
 .weather-dial__temperature,
@@ -153,7 +157,7 @@ html[data-weather-visible="false"] .weather-dial,
 
 .weather-dial__eyebrow {
   color: var(--accent-strong);
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   line-height: 1.05;
@@ -162,7 +166,7 @@ html[data-weather-visible="false"] .weather-dial,
 .weather-dial__title {
   margin-top: 0.14rem;
   color: var(--weather-muted);
-  font-size: 0.57rem;
+  font-size: 0.61rem;
   font-weight: 650;
   letter-spacing: 0.055em;
   line-height: 1.1;
@@ -193,7 +197,7 @@ html[data-weather-visible="false"] .weather-dial,
     inset 0 1px 0 rgba(255, 255, 255, 0.68),
     0 2px 2px rgba(56, 43, 27, 0.17);
   color: var(--weather-muted);
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   cursor: pointer;
   transition:
     color 120ms ease,
@@ -383,7 +387,7 @@ html[data-weather-visible="false"] .weather-dial,
   font-family:
     "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro",
     "Noto Serif CJK JP", "Noto Serif JP", "MS PMincho", serif;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 800;
   font-feature-settings: "palt" 1;
   letter-spacing: 0.055em;
@@ -397,7 +401,7 @@ html[data-weather-visible="false"] .weather-dial,
 .weather-dial__time {
   color: color-mix(in srgb, var(--weather-ink) 70%, transparent);
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 0.39rem;
+  font-size: 0.43rem;
   font-weight: 650;
   letter-spacing: 0.08em;
 }
@@ -413,7 +417,7 @@ html[data-weather-visible="false"] .weather-dial,
 .weather-dial__temperature {
   color: var(--weather-ink);
   font-family: var(--font-display, Georgia, serif);
-  font-size: 1.68rem;
+  font-size: 1.76rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.06em;
@@ -431,7 +435,7 @@ html[data-weather-visible="false"] .weather-dial,
   font-family:
     "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro",
     "Noto Serif CJK JP", "Noto Serif JP", "MS PMincho", serif;
-  font-size: 0.48rem;
+  font-size: 0.52rem;
   font-weight: 600;
   letter-spacing: 0.018em;
   line-height: 1.28;
@@ -465,7 +469,7 @@ html[data-weather-visible="false"] .weather-dial,
 
 .weather-dial__metrics dt {
   color: var(--weather-muted);
-  font-size: 0.46rem;
+  font-size: 0.5rem;
   font-weight: 750;
   letter-spacing: 0.07em;
   line-height: 1.1;
@@ -476,7 +480,7 @@ html[data-weather-visible="false"] .weather-dial,
   margin: 0.14rem 0 0;
   color: var(--text);
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1.1;
@@ -492,7 +496,7 @@ html[data-weather-visible="false"] .weather-dial,
   margin-top: 0.4rem;
   padding: 0 0.08rem;
   color: var(--weather-muted);
-  font-size: 0.49rem;
+  font-size: 0.53rem;
   letter-spacing: 0.035em;
   line-height: 1.2;
 }
@@ -530,7 +534,7 @@ html[data-weather-visible="false"] .weather-dial,
   border-radius: 5px;
   background: color-mix(in srgb, var(--surface) 84%, var(--accent-soft) 16%);
   color: var(--text-muted);
-  font-size: 0.53rem;
+  font-size: 0.56rem;
   line-height: 1.35;
 }
 
