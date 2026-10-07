@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" shape-rendering="crispEdges">
   <title>Subtle pixel books and moons</title>
-  <g fill="#705781" opacity="0.11">
+  <g fill="#cdb5e9" opacity="0.18">
     <path d="M17 20h5v1h2v-1h5v9h-5v1h-2v-1h-5zM18 22v6h4v-6zM24 22v6h4v-6z" fill-rule="evenodd"/>
     <path d="M88 82h4v1h-3v2h-1v4h1v2h3v1h3v1h-7v-1h-2v-2h-1v-5h1v-2h2z"/>
   </g>
-  <path fill="#705781" opacity="0.07" d="M87 25h2v2h-2zM21 89h2v2h-2zM54 57h2v2h-2zM118 119h2v2h-2z"/>
+  <path fill="#cdb5e9" opacity="0.10" d="M87 25h2v2h-2zM21 89h2v2h-2zM54 57h2v2h-2zM118 119h2v2h-2z"/>
 </svg>
