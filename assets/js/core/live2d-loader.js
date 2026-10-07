@@ -167,6 +167,7 @@
   var companionWidget = null;
   var companionFloating = false;
   var companionMinimized = false;
+  var companionVisibilityChosen = false;
   var companionPosition = null;
   var resizeTimer = 0;
   var focusFrame = 0;
@@ -436,11 +437,14 @@
 
   function getDisplayConfig() {
     var viewportHeight = window.innerHeight || 800;
+    var viewportWidth = window.innerWidth || 1280;
     var rail = !companionFloating && document.querySelector(".classic-profile-rail");
-    var width = rail ? Math.min(248, Math.max(160, Math.round(rail.clientWidth) - 10)) : 248;
+    var dockedWidth = companionWidget ? companionWidget.clientWidth - 8 : 248;
+    var width = rail ? Math.min(248, Math.max(1, dockedWidth)) : 248;
+    var stageHeight = rail && viewportWidth < 1000 ? 180 : 232;
     return {
       width: width,
-      height: Math.max(140, Math.min(232, viewportHeight - 208)),
+      height: Math.max(56, Math.min(stageHeight, viewportHeight - 202)),
     };
   }
 
@@ -467,20 +471,28 @@
     widget.style.bottom = "auto";
   }
 
+  function renderCompanionVisibility(widget) {
+    var state = companionMinimized ? "true" : "false";
+    if (widget.getAttribute("data-companion-minimized") === state) return;
+    widget.setAttribute("data-companion-minimized", state);
+    widget.classList.toggle("is-minimized", companionMinimized);
+    widget.querySelector("[data-companion-content]").hidden = companionMinimized;
+    var button = widget.querySelector("[data-companion-minimize]");
+    button.setAttribute("aria-expanded", companionMinimized ? "false" : "true");
+    button.setAttribute("aria-label", companionMinimized ? "Restore companion window" : "Minimize companion window");
+    button.setAttribute("title", companionMinimized ? "Restore" : "Minimize");
+    button.textContent = companionMinimized ? "□" : "_";
+  }
+
   function setCompanionMinimized(minimized) {
+    companionVisibilityChosen = true;
     companionMinimized = minimized;
     var elements = ensureWidget();
     if (!elements) return;
-    elements.widget.classList.toggle("is-minimized", minimized);
-    elements.widget.querySelector("[data-companion-content]").hidden = minimized;
-    var button = elements.widget.querySelector("[data-companion-minimize]");
-    button.setAttribute("aria-expanded", minimized ? "false" : "true");
-    button.setAttribute("aria-label", minimized ? "Restore companion window" : "Minimize companion window");
-    button.setAttribute("title", minimized ? "Restore" : "Minimize");
-    button.textContent = minimized ? "□" : "_";
+    renderCompanionVisibility(elements.widget);
     if (minimized) hideDialogue(true);
     else scheduleIdleInteraction();
-    constrainCompanionPosition(elements.widget);
+    applyResponsiveSize();
   }
 
   function ensureCompanionShell(widget) {
@@ -509,7 +521,7 @@
       var toggle = document.querySelector("[data-live2d-toggle]");
       if (toggle && isPreferenceEnabled()) toggle.click();
       var options = document.querySelector("[data-site-options-trigger]");
-      if (options) options.focus();
+      if (options) options.focus({ preventScroll: true });
     });
     var titlebar = widget.querySelector("[data-companion-titlebar]");
     var drag = null;
@@ -639,6 +651,10 @@
     widget.classList.toggle("is-docked", Boolean(rail));
     widget.removeAttribute("aria-hidden");
     ensureCompanionShell(widget);
+    if (!companionVisibilityChosen) {
+      companionMinimized = !document.querySelector(".classic-profile-rail");
+      renderCompanionVisibility(widget);
+    }
     var stage = widget.querySelector("[data-companion-stage]");
 
     var canvas = document.getElementById("live2dcanvas");
@@ -745,13 +761,11 @@
       return true;
     }
 
-    var display = getDisplayConfig();
     elements.widget.style.display = "block";
+    var display = getDisplayConfig();
     elements.widget.style.width = display.width + 10 + "px";
     elements.widget.style.height = "auto";
     elements.trigger.hidden = shouldDisableLive2D() || !currentModel;
-    constrainCompanionPosition(elements.widget);
-
     elements.canvas.style.width = display.width + "px";
     elements.canvas.style.height = display.height + "px";
 
@@ -759,6 +773,8 @@
       application.renderer.resize(display.width, display.height);
       fitCurrentModel();
     }
+    // Clamp after the stage has its new height, including after a rotation.
+    constrainCompanionPosition(elements.widget);
 
     return true;
   }
@@ -1707,6 +1723,7 @@
     elements.dialogue.setAttribute("aria-hidden", "false");
     elements.widget.classList.add("has-dialogue");
     elements.dialogue.classList.add("is-visible");
+    constrainCompanionPosition(elements.widget);
     elements.trigger.setAttribute("aria-expanded", "true");
     elements.trigger.disabled = true;
 

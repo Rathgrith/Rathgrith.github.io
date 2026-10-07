@@ -19,6 +19,7 @@
     isOpen: false,
     triggerElement: null,
     modalRefs: null,
+    modalMount: null,
     preloaded: {},
   };
 
@@ -133,6 +134,18 @@
     return indices;
   }
 
+  function centerModalActiveThumbnail(refs) {
+    if (!refs || !refs.strip) return;
+    // Center within the strip only; scrollIntoView can also move the page.
+    window.requestAnimationFrame(function () {
+      var active = refs.strip.querySelector(".is-active");
+      if (!active) return;
+      var stripRect = refs.strip.getBoundingClientRect();
+      var activeRect = active.getBoundingClientRect();
+      refs.strip.scrollLeft += activeRect.left - stripRect.left - (refs.strip.clientWidth - activeRect.width) / 2;
+    });
+  }
+
   function renderModalStrip(refs, current) {
     if (!refs || !refs.strip) return;
     var total = state.items.length;
@@ -161,6 +174,7 @@
           : "Image " + (index + 1)
       );
       button.classList.toggle("is-active", index === current);
+      button.tabIndex = index === current ? 0 : -1;
       if (entry.caption) button.title = entry.caption;
 
       var image = createElement("img", "gallery-modal__thumb-image");
@@ -179,6 +193,7 @@
     if (activeId) {
       refs.strip.setAttribute("aria-activedescendant", activeId);
       if (restoreStripFocus) document.getElementById(activeId).focus({ preventScroll: true });
+      centerModalActiveThumbnail(refs);
     }
   }
 
@@ -229,6 +244,20 @@
     preloadModalImage(state.currentIndex + 1);
   }
 
+  function restoreModalMount() {
+    var mount = state.modalMount;
+    var refs = state.modalRefs;
+    if (!mount || !refs) return;
+    if (mount.parent.isConnected) {
+      var next = mount.next && mount.next.parentNode === mount.parent ? mount.next : null;
+      mount.parent.insertBefore(refs.root, next);
+    } else {
+      // Soft navigation may have replaced the original page while open.
+      refs.root.remove();
+    }
+    state.modalMount = null;
+  }
+
   function openModal(index, triggerElement) {
     var refs = getModalRefs();
     if (
@@ -242,13 +271,19 @@
     state.isOpen = true;
     state.currentIndex = index;
     state.triggerElement = triggerElement || null;
+    // Page-enter filters establish a fixed containing block. Mount the viewer
+    // on body so it stays in the viewport even during navigation animations.
+    if (refs.root.parentNode !== document.body) {
+      state.modalMount = { parent: refs.root.parentNode, next: refs.root.nextSibling };
+      document.body.appendChild(refs.root);
+    }
     refs.root.hidden = false;
     refs.root.setAttribute("aria-hidden", "false");
     document.body.classList.add("gallery-modal-open");
     updateModalContent();
 
     window.requestAnimationFrame(function () {
-      if (refs.closeButton) refs.closeButton.focus();
+      if (refs.closeButton) refs.closeButton.focus({ preventScroll: true });
     });
   }
 
@@ -260,6 +295,7 @@
     refs.root.hidden = true;
     refs.root.setAttribute("aria-hidden", "true");
     document.body.classList.remove("gallery-modal-open");
+    restoreModalMount();
 
     if (state.triggerElement && document.contains(state.triggerElement)) {
       state.triggerElement.focus();
@@ -308,6 +344,10 @@
     if (window.__siteGalleryModalKeyBound) return;
     window.__siteGalleryModalKeyBound = true;
 
+    window.addEventListener("resize", function () {
+      if (state.isOpen) centerModalActiveThumbnail(getModalRefs());
+    });
+
     document.addEventListener("keydown", function (event) {
       if (!state.isOpen) return;
       if (event.key === "Tab") {
@@ -350,6 +390,7 @@
   }
 
   function resetState() {
+    restoreModalMount();
     state.gallery = null;
     state.items = [];
     state.currentIndex = -1;
@@ -370,6 +411,7 @@
 
     var container = gallery.closest(".gallery-container");
     if (!container) return;
+    restoreModalMount();
     gallery.setAttribute("data-gallery-bound", "true");
 
     state.gallery = gallery;

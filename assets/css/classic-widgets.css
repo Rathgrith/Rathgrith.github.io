@@ -6,129 +6,6 @@ body.classic-site {
   --classic-bevel-inset: inset 1px 1px #111;
 }
 
-/* Music player. Repeated component classes also outrank the asynchronously
-   loaded component stylesheet's theme selectors. */
-body.classic-site .music-player.music-player {
-  --player-text: var(--text, #161616);
-  --player-muted: var(--text-muted, #535353);
-  --player-panel: var(--classic-silver);
-  --player-panel-inset: var(--classic-document);
-  --player-edge: #808080;
-  --player-edge-dark: #111;
-  --player-highlight: #fff;
-  --player-accent: var(--classic-accent);
-  --player-accent-strong: var(--classic-link);
-  --player-display: var(--classic-document);
-  --player-display-ink: var(--classic-accent);
-  --player-wave-base: #808080;
-  --player-wave-active: var(--classic-link);
-  border: 2px solid;
-  border-color: #fff #111 #111 #fff;
-  border-radius: 0;
-  background: var(--classic-silver);
-  box-shadow: var(--classic-bevel-raised);
-  font-family: var(--classic-widget-font);
-}
-
-body.classic-site .music-player::before,
-body.classic-site .music-player::after,
-body.classic-site .music-player__cover-well::after,
-body.classic-site .music-player__seek-wrap::before {
-  content: none;
-}
-
-body.classic-site .music-player .music-player__cover-well,
-body.classic-site .music-player .music-player__seek-wrap {
-  border: 2px solid;
-  border-color: #808080 #fff #fff #808080;
-  border-radius: 0;
-  background: var(--classic-document);
-  box-shadow: var(--classic-bevel-inset);
-}
-
-body.classic-site .music-player .music-player__cover {
-  border-radius: 0;
-  box-shadow: none;
-}
-
-body.classic-site .music-player .music-player__title {
-  font-family: var(--classic-widget-font);
-  font-size: 1.1rem;
-  line-height: 1.25;
-  text-shadow: none;
-}
-
-body.classic-site .music-player .music-player__artist {
-  font-family: var(--classic-widget-font);
-  font-size: 0.875rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-body.classic-site .music-player .music-player__btn,
-body.classic-site .music-player .music-player__song-link {
-  border: 1px solid;
-  border-color: #fff #111 #111 #fff;
-  border-radius: 0;
-  background: var(--classic-silver);
-  box-shadow: var(--classic-bevel-raised);
-  color: var(--text, #161616);
-  text-decoration: none;
-  text-shadow: none;
-}
-
-body.classic-site .music-player .music-player__btn:active,
-body.classic-site .music-player .music-player__song-link:active,
-body.classic-site .music-player .music-player__btn[aria-pressed="true"] {
-  border-color: #111 #fff #fff #111;
-  box-shadow: inset 1px 1px #808080;
-  transform: none;
-}
-
-body.classic-site .music-player .music-player__wave-bar {
-  border-radius: 0;
-  box-shadow: none;
-}
-
-body.classic-site .music-player .music-player__time,
-body.classic-site .music-player .music-player__status {
-  font-family: var(--classic-widget-font);
-  font-size: 0.8125rem;
-  letter-spacing: 0;
-}
-
-body.classic-site .music-player .music-player__volume-label {
-  text-shadow: none;
-}
-
-body.classic-site .music-player .music-player__volume::-webkit-slider-runnable-track {
-  border-radius: 0;
-  box-shadow: inset 1px 1px #808080, 1px 1px #fff;
-}
-
-body.classic-site .music-player .music-player__volume::-moz-range-track,
-body.classic-site .music-player .music-player__volume::-moz-range-progress {
-  border-radius: 0;
-  box-shadow: inset 1px 1px #808080, 1px 1px #fff;
-}
-
-body.classic-site .music-player .music-player__volume::-webkit-slider-thumb {
-  border: 1px solid;
-  border-color: #fff #111 #111 #fff;
-  border-radius: 0;
-  background: var(--classic-silver);
-  box-shadow: var(--classic-bevel-raised);
-}
-
-body.classic-site .music-player .music-player__volume::-moz-range-thumb {
-  border: 1px solid;
-  border-color: #fff #111 #111 #fff;
-  border-radius: 0;
-  background: var(--classic-silver);
-  box-shadow: var(--classic-bevel-raised);
-}
-
 /* Local weather retains its live readings, dial needle and controls. */
 body.classic-site .weather-dial.weather-dial {
   --weather-panel: var(--classic-silver);
@@ -260,6 +137,23 @@ body.classic-site .weather-dial .weather-dial__status {
   background: var(--classic-document);
 }
 
+/* The dial can occupy a compact rail cell or a wider tablet row. */
+body.classic-site .weather-dial.weather-dial {
+  container-type: inline-size;
+  container-name: classic-weather;
+  min-width: 0;
+  max-width: 368px;
+}
+body.classic-site .weather-dial .weather-dial__header { min-width: 0; gap: 6px; }
+body.classic-site .weather-dial .weather-dial__actions { flex-shrink: 0; }
+body.classic-site .weather-dial .weather-dial__status { overflow-wrap: anywhere; }
+@container classic-weather (max-width: 260px) {
+  body.classic-site .weather-dial .weather-dial__condition-summary { grid-template-columns: minmax(0, 1fr); gap: 5px; align-items: start; }
+  body.classic-site .weather-dial .weather-dial__description { font-size: 11px; }
+  body.classic-site .weather-dial .weather-dial__metrics dd { white-space: normal; overflow-wrap: anywhere; }
+  body.classic-site .weather-dial .weather-dial__footer { flex-wrap: wrap; }
+}
+
 /* Desktop options menu. Visibility and keyboard handling remain in site-shared. */
 body.classic-site .site-options-fab__trigger,
 body.classic-site .site-options-fab__menu {
@@ -300,6 +194,47 @@ body.classic-site .site-options-fab__action-label {
   font-weight: 400;
   letter-spacing: 0;
 }
+
+body.classic-site .site-options-fab__action[hidden] { display: none !important; }
+
+/* Keep every menu action reachable in short landscape windows. */
+body.classic-site .site-options-fab { max-width: calc(100vw - 24px); }
+body.classic-site .site-options-fab__menu {
+  box-sizing: border-box;
+  min-width: 0;
+  width: min(218px, calc(100vw - 32px));
+  max-height: calc(100vh - 90px);
+  max-height: calc(100dvh - 90px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body.classic-site .site-options-fab__action-label { overflow-wrap: anywhere; }
+body.classic-site [data-classic-options-slot] .site-options-fab {
+  position: relative;
+  inset: auto;
+  display: block;
+  flex: none;
+  margin: 0;
+}
+body.classic-site [data-classic-options-slot] .site-options-fab__trigger {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-width: 1px;
+  box-shadow: var(--classic-bevel-raised);
+  font-size: 14px;
+}
+body.classic-site [data-classic-options-slot] .site-options-fab__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  bottom: auto;
+  left: auto;
+  max-width: min(22rem, calc(100vw - 32px));
+  transform-origin: right top;
+}
+
 
 /* Live2D dialogue becomes a compact native-looking message window. */
 body.classic-site .live2d-interact,
@@ -488,11 +423,45 @@ body.classic-site.gallery-page .gallery-modal__backdrop {
 }
 
 body.classic-site.gallery-page .gallery-modal__dialog {
+  --gallery-modal-content-width: 100%;
+  display: block;
+  width: min(1120px, calc(100vw - 24px));
+  height: min(900px, calc(100vh - 24px));
+  height: min(900px, calc(100dvh - 24px));
+  min-height: 0;
+  max-height: none;
+  padding: 56px 12px 12px;
   border: 2px solid;
   border-color: #fff #111 #111 #fff;
   border-radius: 0;
   background: var(--classic-silver);
   box-shadow: var(--classic-bevel-raised), 4px 4px 0 rgba(0, 0, 0, 0.4);
+}
+
+body.classic-site.gallery-page .gallery-modal__dialog::before {
+  content: "Image viewer";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  left: 4px;
+  height: 44px;
+  padding: 0 52px 0 106px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, var(--classic-accent), var(--classic-accent-end));
+  color: #fff;
+  font: 16px/1.2 var(--classic-widget-font);
+}
+
+body.classic-site.gallery-page .gallery-modal__figure {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto 68px;
+  align-content: stretch;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 body.classic-site.gallery-page .gallery-modal__image-stage,
@@ -502,6 +471,70 @@ body.classic-site.gallery-page .gallery-modal__strip {
   border-radius: 0;
   background: var(--classic-document);
   box-shadow: var(--classic-bevel-inset);
+}
+
+body.classic-site.gallery-page .gallery-modal__image-stage {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  padding: 4px;
+}
+
+body.classic-site.gallery-page .gallery-modal__meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+  max-height: min(120px, 24dvh);
+  overflow-y: auto;
+  gap: 3px 12px;
+  font-size: 15px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+body.classic-site.gallery-page .gallery-modal__meta-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body.classic-site.gallery-page .gallery-modal__counter {
+  grid-column: 2;
+  grid-row: 1;
+  padding-right: 2px;
+  font-size: 14px;
+}
+
+body.classic-site.gallery-page .gallery-modal__strip {
+  align-self: stretch;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 4px;
+  gap: 6px;
+  scroll-behavior: auto;
+}
+
+body.classic-site.gallery-page .gallery-modal__nav,
+body.classic-site.gallery-page .gallery-modal__close {
+  z-index: 2;
+  top: 7px;
+  width: 40px;
+  height: 38px;
+  transform: none;
+}
+
+body.classic-site.gallery-page .gallery-modal__nav--prev { left: 7px; }
+body.classic-site.gallery-page .gallery-modal__nav--next { left: 53px; right: auto; }
+body.classic-site.gallery-page .gallery-modal__close { right: 7px; }
+
+body.classic-site.gallery-page .gallery-modal__thumb {
+  width: 54px;
+  height: 50px;
 }
 
 body.classic-site.gallery-page .gallery-modal__image,
@@ -520,6 +553,30 @@ body.classic-site.gallery-page .gallery-modal__thumb.is-active {
 body.classic-site.gallery-page .gallery-modal__strip::-webkit-scrollbar-thumb {
   border-radius: 0;
   background: #808080;
+}
+
+@media (max-width: 600px), (max-height: 500px) {
+  body.classic-site.gallery-page .gallery-modal__dialog {
+    width: calc(100vw - 12px);
+    height: calc(100vh - 12px);
+    height: calc(100dvh - 12px);
+    padding: 56px 6px 6px;
+  }
+
+  body.classic-site.gallery-page .gallery-modal__figure {
+    grid-template-rows: minmax(0, 1fr) auto 58px;
+    gap: 6px;
+  }
+
+  body.classic-site.gallery-page .gallery-modal__thumb {
+    width: 48px;
+    height: 44px;
+  }
+
+  body.classic-site.gallery-page .gallery-modal__meta {
+    font-size: 14px;
+    column-gap: 8px;
+  }
 }
 
 /* Thoughts and notes use the same document, tag and command-button treatment. */
@@ -602,7 +659,6 @@ body.classic-site.notes-page .highlight-quote {
 }
 
 /* The native hidden attribute always wins, including lazily loaded controls. */
-body.classic-site .music-player [hidden],
 body.classic-site .weather-dial [hidden] {
   display: none !important;
 }

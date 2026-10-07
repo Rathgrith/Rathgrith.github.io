@@ -4,6 +4,9 @@ body.classic-site #live2d-widget.classic-companion {
   z-index: 1100;
   box-sizing: border-box;
   margin: 0;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
   padding: 4px;
   overflow: hidden;
   border: 1px solid #8f8f8b;
@@ -23,7 +26,9 @@ body.classic-site #live2d-widget.classic-companion.is-docked {
   position: relative;
   z-index: 1;
   width: 100% !important;
+  min-width: 0;
   max-width: 258px;
+  max-height: none;
   margin-top: 18px;
   box-shadow: inset 1px 1px #fff;
 }
@@ -62,6 +67,13 @@ body.classic-site #live2d-widget .companion-controls button {
   cursor: pointer;
 }
 body.classic-site #live2d-widget .companion-controls button:active { border-color: #777 #fff #fff #777; }
+body.classic-site #live2d-widget [data-companion-content] {
+  max-height: calc(100vh - 53px);
+  max-height: calc(100dvh - 53px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body.classic-site #live2d-widget.is-docked [data-companion-content] { max-height: none; }
 body.classic-site #live2d-widget [data-companion-content][hidden] { display: none; }
 body.classic-site #live2d-widget .companion-stage {
   position: relative;
@@ -139,6 +151,7 @@ body.classic-site #live2d-widget .live2d-dialogue__meta { display: none; }
 body.classic-site #live2d-widget .live2d-dialogue__text {
   margin: 0;
   padding: 9px 28px 9px 9px;
+  overflow-wrap: anywhere;
   font: 13px/1.55 Tahoma, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
   color: #333;
 }
@@ -179,6 +192,9 @@ body.classic-site #live2d-widget .live2d-interact[hidden] { display: none; }
 body.classic-site #live2d-widget .live2d-interact:disabled { color: #888; cursor: default; }
 body.classic-site #live2d-widget .live2d-interact i { font-size: 11px; }
 body.classic-site.live2d-is-hidden #live2d-widget.classic-companion { display: none !important; }
+@media (min-width: 600px) and (max-width: 999px) {
+  body.classic-site #live2d-widget.classic-companion.is-docked { margin-top: 0; }
+}
 @media (max-width: 599px) {
   body.classic-site #live2d-widget.classic-companion { display: none !important; }
 }

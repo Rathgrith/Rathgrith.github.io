@@ -19,7 +19,8 @@
       "</div>",
     ].join("");
 
-    document.body.appendChild(root);
+    var slot = document.querySelector("[data-classic-options-slot]");
+    (slot || document.body).appendChild(root);
     return root;
   }
 
@@ -45,7 +46,8 @@
     });
 
     document.addEventListener("click", function (event) {
-      if (!root.contains(event.target)) {
+      var inside = event.composedPath ? event.composedPath().indexOf(root) !== -1 : root.contains(event.target);
+      if (!inside) {
         setOpen(false);
       }
     });

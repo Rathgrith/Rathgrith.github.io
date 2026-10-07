@@ -2,6 +2,15 @@
   <img class="classic-masthead-icon" src="{{ '/assets/images/classic/icons/16/directory_open_file_mydocs_small-1.png' | relative_url }}" alt="" width="16" height="16">
   <a class="classic-site-name" href="{{ '/' | relative_url }}">{{ site.author.name | escape }}</a>
   <span class="classic-window-label">Personal homepage</span>
+  <div class="classic-utilities">
+    <div class="classic-themes" role="group" aria-label="Character color theme">
+      {% assign character_themes = 'alice,marisa,patchouli' | split: ',' %}
+      {% for character in character_themes %}
+      <button class="classic-theme-button" type="button" data-classic-character="{{ character }}" aria-pressed="{% if character == 'alice' %}true{% else %}false{% endif %}" aria-label="{{ character | capitalize }} theme" title="{{ character | capitalize }} theme"><img src="{{ '/assets/images/classic/characters/' | append: character | append: '.svg' | relative_url }}" alt="" width="32" height="32"></button>
+      {% endfor %}
+    </div>
+    <div class="classic-options-slot" data-classic-options-slot></div>
+  </div>
 </header>
 <div class="classic-toolbar">
   <nav class="classic-navigation" aria-label="Main navigation">
@@ -10,10 +19,4 @@
     <a class="classic-tab" href="{{ '/gallery/' | relative_url }}" data-classic-page="gallery">Gallery</a>
     <a class="classic-tab" href="{{ '/assets/resume.pdf' | relative_url }}">CV</a>
   </nav>
-  <div class="classic-themes" role="group" aria-label="Character color theme">
-    {% assign character_themes = 'alice,marisa,patchouli' | split: ',' %}
-    {% for character in character_themes %}
-    <button class="classic-theme-button" type="button" data-classic-character="{{ character }}" aria-pressed="{% if character == 'alice' %}true{% else %}false{% endif %}" aria-label="{{ character | capitalize }} theme" title="{{ character | capitalize }} theme"><img src="{{ '/assets/images/classic/characters/' | append: character | append: '.svg' | relative_url }}" alt="" width="24" height="24"></button>
-    {% endfor %}
-  </div>
 </div>

@@ -4,7 +4,6 @@ title: ""
 excerpt: ""
 author_profile: true
 body_class: home-page
-has_music_player: true
 disable_home_loading: true
 disable_mouse_firework: true
 redirect_from:
@@ -112,8 +111,6 @@ Current Research Interests: Correspondences, Vision for Animation and Open Probl
 > 力強い竹の下には、さらに力強い根が張り巡らされている。<br>
 > Beneath the sturdy bamboo, even sturdier roots spread out.<br>
 > From:[『東方永夜抄 ～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4
-
-{% include music-player.html playlist="homepage" %}
 
 My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is 4, calculated via:
 
