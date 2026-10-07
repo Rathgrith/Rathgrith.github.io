@@ -2,11 +2,13 @@
 
 This branch adapts [academic-homepage's Nostalgia 1990s variant](https://github.com/luost26/academic-homepage-nostalgia-1990s) to the existing personal site. Content, URLs, gallery data, publications, music, weather and Live2D interactions remain in their original Jekyll files.
 
-- Alice, Marisa and Patchouli palettes share the classic Windows 95/98 frame. Use **Options → Theme** to cycle them; the choice persists across pages and reloads.
+- Alice, Marisa and Patchouli palettes share the classic Windows 95/98 frame. Use the three pixel portraits in the header to select a theme, or **Options → Theme** to cycle them; the choice persists across pages and reloads.
 - Marisa and Patchouli use the supplied new portraits. Alice retains the original daytime portrait. Night mode is removed, including for visitors with a saved dark preference.
 - Gallery uses the template’s native showcase/archive organization. Notes and Thoughts retain their original source files. Jekyll renders gallery cards from the existing YAML, so images and original-image links also work without JavaScript. The viewer enhances these links with a thumbnail placeholder while full-size files decode, keyboard navigation and focus containment.
+- The desktop Live2D companion sits in a small system window, docked in the home sidebar. Use its title bar to drag it out, double-click the title bar (or press Home while it is focused) to dock again, and use its minimize/close controls. **Options → Show Live2D** reopens a closed window. The original Japanese dialogue stays inside the window.
+- The title bar and controls use W95FA; longer text uses Arial for readability. Original pixel character icons and low-contrast ribbon/star/moon wallpaper change with each palette. SVG source artwork is in `assets/images/classic/characters/` and `patterns/`.
 - The original feature scripts remain active: publication filtering, hover previews, full gallery viewer, music controls, weather, runtime, visits and Live2D dialogue.
-- Shared chrome is in `_layouts/default.html` and `_includes/masthead.html`. Upstream base styles are in `assets/css/classic-base.css`; site and widget adaptations are in `classic-site.css` and `classic-widgets.css`.
+- Shared chrome is in `_layouts/default.html` and `_includes/masthead.html`. Upstream base styles are in `assets/css/classic-base.css`; site and widget adaptations are in `classic-site.css`, `classic-widgets.css` and `classic-companion.css`.
 - Template licensing is retained in `docs/nostalgia-template-LICENSE`; font and icon provenance is alongside those assets and in the page credits.
 
 ## Local preview

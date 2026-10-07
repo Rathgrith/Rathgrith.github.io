@@ -5,7 +5,6 @@
     "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js";
   var LIVE2D_DISPLAY_URL =
     "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js";
-  var WIDGET_RATIO = 1.52;
   var DEFAULT_EXPRESSION_MOTION_IDS = [
     "01",
     "02",
@@ -165,6 +164,10 @@
   };
   var preferenceStorageKey = "site-live2d-enabled";
   var characterStorageKey = "site-live2d-character";
+  var companionWidget = null;
+  var companionFloating = false;
+  var companionMinimized = false;
+  var companionPosition = null;
   var resizeTimer = 0;
   var focusFrame = 0;
   var lastPointerPosition = null;
@@ -426,55 +429,159 @@
       "data-live2d-character",
       character.id
     );
+    Array.prototype.forEach.call(document.querySelectorAll("[data-classic-character]"), function (button) {
+      button.setAttribute("aria-pressed", button.getAttribute("data-classic-character") === character.id ? "true" : "false");
+    });
   }
 
   function getDisplayConfig() {
-    var viewportWidth =
-      window.innerWidth || document.documentElement.clientWidth || 1280;
-    var width;
-    var hOffsetRatio;
-    var vOffsetRatio;
-
-    if (viewportWidth < 980) {
-      width = Math.round(Math.max(170, Math.min(205, viewportWidth * 0.22)));
-      hOffsetRatio = 0.35;
-      vOffsetRatio = 0.45;
-    } else if (viewportWidth < 1450) {
-      width = Math.round(Math.max(210, Math.min(300, viewportWidth * 0.205)));
-      hOffsetRatio = 0.24;
-      vOffsetRatio = 0.45;
-    } else {
-      width = Math.round(Math.max(300, Math.min(360, viewportWidth * 0.24)));
-      hOffsetRatio = 0.06;
-      vOffsetRatio = 0.45;
-    }
-
-    var height = Math.round(width * WIDGET_RATIO);
-
+    var viewportHeight = window.innerHeight || 800;
+    var rail = !companionFloating && document.querySelector(".classic-profile-rail");
+    var width = rail ? Math.min(248, Math.max(160, Math.round(rail.clientWidth) - 10)) : 248;
     return {
       width: width,
-      height: height,
-      right: -Math.round(width * hOffsetRatio),
-      bottom: -Math.round(height * vOffsetRatio),
+      height: Math.max(140, Math.min(232, viewportHeight - 208)),
     };
   }
 
+  function constrainCompanionPosition(widget) {
+    if (widget.classList.contains("is-docked")) {
+      widget.style.left = widget.style.top = widget.style.right = widget.style.bottom = "auto";
+      return;
+    }
+    if (!companionPosition) {
+      widget.style.left = "auto";
+      widget.style.top = "auto";
+      widget.style.right = "16px";
+      widget.style.bottom = "16px";
+      return;
+    }
+    var bounds = widget.getBoundingClientRect();
+    companionPosition.x = Math.max(8, Math.min(companionPosition.x,
+      window.innerWidth - bounds.width - 8));
+    companionPosition.y = Math.max(8, Math.min(companionPosition.y,
+      window.innerHeight - bounds.height - 8));
+    widget.style.left = companionPosition.x + "px";
+    widget.style.top = companionPosition.y + "px";
+    widget.style.right = "auto";
+    widget.style.bottom = "auto";
+  }
+
+  function setCompanionMinimized(minimized) {
+    companionMinimized = minimized;
+    var elements = ensureWidget();
+    if (!elements) return;
+    elements.widget.classList.toggle("is-minimized", minimized);
+    elements.widget.querySelector("[data-companion-content]").hidden = minimized;
+    var button = elements.widget.querySelector("[data-companion-minimize]");
+    button.setAttribute("aria-expanded", minimized ? "false" : "true");
+    button.setAttribute("aria-label", minimized ? "Restore companion window" : "Minimize companion window");
+    button.setAttribute("title", minimized ? "Restore" : "Minimize");
+    button.textContent = minimized ? "□" : "_";
+    if (minimized) hideDialogue(true);
+    else scheduleIdleInteraction();
+    constrainCompanionPosition(elements.widget);
+  }
+
+  function ensureCompanionShell(widget) {
+    var content = widget.querySelector("[data-companion-content]");
+    if (content) return content;
+    widget.classList.add("classic-companion");
+    widget.setAttribute("role", "region");
+    widget.setAttribute("aria-labelledby", "companion-title");
+    widget.innerHTML = [
+      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="Drag to move; arrow keys move the window, Home resets its position">',
+      '<span id="companion-title" class="companion-title"><span data-companion-name>Companion</span></span>',
+      '<div class="companion-controls">',
+      '<button type="button" data-companion-minimize aria-label="Minimize companion window" aria-expanded="true" aria-controls="companion-content" title="Minimize">_</button>',
+      '<button type="button" data-companion-close aria-label="Close companion window" title="Close">×</button>',
+      '</div></div>',
+      '<div id="companion-content" data-companion-content>',
+      '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">Loading companion…</span></div>',
+      '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">Click Talk to start a conversation.</p></div>',
+      '<div class="companion-footer" data-companion-footer></div>',
+      '</div>',
+    ].join("");
+    widget.querySelector("[data-companion-minimize]").addEventListener("click", function () {
+      setCompanionMinimized(!companionMinimized);
+    });
+    widget.querySelector("[data-companion-close]").addEventListener("click", function () {
+      var toggle = document.querySelector("[data-live2d-toggle]");
+      if (toggle && isPreferenceEnabled()) toggle.click();
+      var options = document.querySelector("[data-site-options-trigger]");
+      if (options) options.focus();
+    });
+    var titlebar = widget.querySelector("[data-companion-titlebar]");
+    var drag = null;
+    titlebar.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0 || event.target.closest("button")) return;
+      var bounds = widget.getBoundingClientRect();
+      drag = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+      if (widget.classList.contains("is-docked")) {
+        companionFloating = true;
+        companionPosition = { x: bounds.left, y: bounds.top };
+        applyResponsiveSize();
+      }
+      titlebar.setPointerCapture(event.pointerId);
+      widget.classList.add("is-dragging");
+      event.preventDefault();
+    });
+    titlebar.addEventListener("pointermove", function (event) {
+      if (!drag) return;
+      companionPosition = { x: event.clientX - drag.x, y: event.clientY - drag.y };
+      constrainCompanionPosition(widget);
+    });
+    function endDrag() {
+      drag = null;
+      widget.classList.remove("is-dragging");
+    }
+    titlebar.addEventListener("pointerup", endDrag);
+    titlebar.addEventListener("pointercancel", endDrag);
+    titlebar.addEventListener("lostpointercapture", endDrag);
+    titlebar.addEventListener("dblclick", function (event) {
+      if (event.target.closest("button")) return;
+      companionFloating = false;
+      companionPosition = null;
+      applyResponsiveSize();
+    });
+    titlebar.addEventListener("keydown", function (event) {
+      if (event.target !== titlebar) return;
+      if (event.key === "Home") {
+        companionPosition = null;
+        companionFloating = false;
+      } else {
+        var directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+        var direction = directions[event.key];
+        if (!direction) return;
+        var bounds = widget.getBoundingClientRect();
+        var step = event.shiftKey ? 1 : 10;
+        companionFloating = true;
+        companionPosition = { x: bounds.left + direction[0] * step, y: bounds.top + direction[1] * step };
+      }
+      event.preventDefault();
+      applyResponsiveSize();
+    });
+    return widget.querySelector("[data-companion-content]");
+  }
+
   function ensureInteractionUI(widget) {
+    var footer = widget.querySelector("[data-companion-footer]");
+    var conversation = widget.querySelector("[data-companion-conversation]");
     var trigger = document.getElementById("live2d-interact");
     if (!trigger) {
       trigger = document.createElement("button");
       trigger.id = "live2d-interact";
       trigger.className = "live2d-interact";
       trigger.type = "button";
-      trigger.innerHTML = '<i class="fas fa-comment" aria-hidden="true"></i>';
+      trigger.innerHTML = '<i class="fas fa-comment" aria-hidden="true"></i><span>Talk</span>';
       trigger.addEventListener("click", function (event) {
         event.preventDefault();
         event.stopPropagation();
         showNextInteraction(true);
       });
-      widget.appendChild(trigger);
-    } else if (trigger.parentNode !== widget) {
-      widget.appendChild(trigger);
+      footer.appendChild(trigger);
+    } else if (trigger.parentNode !== footer) {
+      footer.appendChild(trigger);
     }
 
     var dialogue = document.getElementById("live2d-dialogue");
@@ -500,7 +607,9 @@
           hideDialogue(true);
           scheduleIdleInteraction();
         });
-      document.body.appendChild(dialogue);
+      conversation.appendChild(dialogue);
+    } else if (dialogue.parentNode !== conversation) {
+      conversation.appendChild(dialogue);
     }
 
     return {
@@ -509,33 +618,36 @@
     };
   }
 
-  function positionInteractionUI(elements, display) {
-    if (!elements || !elements.dialogue) return;
-    var visibleHeight = Math.max(1, display.height + display.bottom);
-    var dialogueRight = window.innerWidth < 980 ? 14 : 20;
-    var dialogueBottom = Math.max(128, visibleHeight * 0.88);
-
-    elements.dialogue.style.right = Math.round(dialogueRight) + "px";
-    elements.dialogue.style.bottom = Math.round(dialogueBottom) + "px";
-  }
-
   function ensureWidget() {
     if (!document.body) return null;
 
-    var widget = document.getElementById("live2d-widget");
+    var widget = document.getElementById("live2d-widget") || companionWidget;
     if (!widget) {
       widget = document.createElement("div");
       widget.id = "live2d-widget";
       widget.className = "live2d-widget-container";
       document.body.appendChild(widget);
     }
+    companionWidget = widget;
+    var rail = !companionFloating && document.querySelector(".classic-profile-rail");
+    var parent = rail || document.body;
+    if (widget.parentNode !== parent) {
+      var index = rail && rail.querySelector(".classic-page-index");
+      if (index) rail.insertBefore(widget, index);
+      else parent.appendChild(widget);
+    }
+    widget.classList.toggle("is-docked", Boolean(rail));
     widget.removeAttribute("aria-hidden");
+    ensureCompanionShell(widget);
+    var stage = widget.querySelector("[data-companion-stage]");
 
     var canvas = document.getElementById("live2dcanvas");
     if (!canvas) {
       canvas = document.createElement("canvas");
       canvas.id = "live2dcanvas";
-      widget.appendChild(canvas);
+      stage.appendChild(canvas);
+    } else if (canvas.parentNode !== stage) {
+      stage.appendChild(canvas);
     }
     canvas.setAttribute("aria-hidden", "true");
 
@@ -557,14 +669,14 @@
     var modelWidth = Math.max(currentModel.width || 1, 1);
     var modelHeight = Math.max(currentModel.height || 1, 1);
     var scale = Math.min(
-      (display.width * 1.08) / modelWidth,
-      (display.height * 1.04) / modelHeight
+      (display.width * 0.94) / modelWidth,
+      (display.height * 0.96) / modelHeight
     );
 
     currentModel.anchor.set(0.5, 1);
     currentModel.scale.set(scale);
-    currentModel.x = display.width * 0.51;
-    currentModel.y = display.height;
+    currentModel.x = display.width * 0.5;
+    currentModel.y = display.height * 0.98;
   }
 
   function applyPointerFocus() {
@@ -635,12 +747,10 @@
 
     var display = getDisplayConfig();
     elements.widget.style.display = "block";
-    elements.widget.style.width = display.width + "px";
-    elements.widget.style.height = display.height + "px";
-    elements.widget.style.right = display.right + "px";
-    elements.widget.style.bottom = display.bottom + "px";
+    elements.widget.style.width = display.width + 10 + "px";
+    elements.widget.style.height = "auto";
     elements.trigger.hidden = shouldDisableLive2D() || !currentModel;
-    positionInteractionUI(elements, display);
+    constrainCompanionPosition(elements.widget);
 
     elements.canvas.style.width = display.width + "px";
     elements.canvas.style.height = display.height + "px";
@@ -1528,6 +1638,7 @@
 
     var elements = ensureWidget();
     if (!elements) return;
+    elements.widget.classList.remove("has-dialogue");
     elements.dialogue.classList.remove("is-visible");
     elements.dialogue.setAttribute("aria-hidden", "true");
     elements.trigger.setAttribute("aria-expanded", "false");
@@ -1546,6 +1657,7 @@
     var elements = ensureWidget();
     if (!elements || !character) return;
 
+    elements.widget.querySelector("[data-companion-name]").textContent = character.name;
     var label = "Talk to " + character.name;
     elements.trigger.hidden = !shouldRenderLive2D() || !currentModel;
     elements.trigger.setAttribute("aria-label", label);
@@ -1561,6 +1673,7 @@
     if (
       !character ||
       !interaction ||
+      companionMinimized ||
       !currentModel ||
       currentCharacterId !== character.id ||
       !shouldRenderLive2D()
@@ -1592,6 +1705,7 @@
       idleOnly ? "static" : transitionMotionId
     );
     elements.dialogue.setAttribute("aria-hidden", "false");
+    elements.widget.classList.add("has-dialogue");
     elements.dialogue.classList.add("is-visible");
     elements.trigger.setAttribute("aria-expanded", "true");
     elements.trigger.disabled = true;
@@ -1693,7 +1807,7 @@
 
   function scheduleIdleInteraction() {
     if (interactionIdleTimer) window.clearTimeout(interactionIdleTimer);
-    if (prefersReducedMotion() || !shouldRenderLive2D() || document.hidden) {
+    if (companionMinimized || prefersReducedMotion() || !shouldRenderLive2D() || document.hidden) {
       interactionIdleTimer = 0;
       return;
     }
@@ -1708,7 +1822,7 @@
     if (interactionWelcomeTimer) {
       window.clearTimeout(interactionWelcomeTimer);
     }
-    if (prefersReducedMotion() || !shouldRenderLive2D()) return;
+    if (companionMinimized || prefersReducedMotion() || !shouldRenderLive2D()) return;
 
     interactionWelcomeTimer = window.setTimeout(function () {
       interactionWelcomeTimer = 0;
@@ -1740,7 +1854,10 @@
     var character =
       getCharacter(characterId) || getCharacter(getDefaultCharacterId());
     if (!character || !shouldRenderLive2D()) return Promise.resolve();
+    var generation = ++modelLoadGeneration;
+    var elements = ensureWidget();
     if (currentModel && currentCharacterId === character.id) {
+      elements.widget.classList.remove("is-loading", "has-live2d-error");
       fitCurrentModel();
       updateInteractionUI(character);
       scheduleIdleInteraction();
@@ -1749,10 +1866,10 @@
       });
     }
 
-    var generation = ++modelLoadGeneration;
-    var elements = ensureWidget();
     elements.widget.classList.add("is-loading");
     elements.widget.classList.remove("has-live2d-error");
+    elements.widget.querySelector(".companion-load-status").textContent = "Loading " + character.name + "…";
+    elements.widget.querySelector("[data-companion-name]").textContent = character.name;
 
     return window.PIXI.live2d.Live2DModel.from(character.modelPath, {
       autoInteract: false,
@@ -1785,7 +1902,7 @@
         elements.widget.setAttribute("data-live2d-character", character.id);
         updateInteractionUI(character);
         return Promise.all([restPoseReady, expressionReady]).then(function () {
-          if (model !== currentModel) return null;
+          if (model !== currentModel || generation !== modelLoadGeneration) return null;
           startEyeBlinkLoop(model);
           startLipSyncLoop(model);
           startBreathingLoop(model, character);
@@ -1798,10 +1915,14 @@
         if (generation === modelLoadGeneration) {
           elements.widget.classList.remove("is-loading");
           elements.widget.classList.add("has-live2d-error");
+          elements.widget.querySelector(".companion-load-status").textContent = "Companion unavailable. Please reopen to retry.";
           elements.trigger.hidden = true;
           hideDialogue(false);
         }
-        throw error;
+        // A stale request must never mark the currently selected model as failed.
+        // Current failures have already been rendered above; do not rethrow them
+        // into an earlier initLive2D promise chain.
+        return null;
       });
   }
 
@@ -1858,8 +1979,15 @@
     }
 
     var next = characters[(selectedIndex + 1) % characters.length];
-    persistSelectedCharacter(next.id);
-    syncCharacterTheme(next.id);
+    selectCharacter(next.id);
+  }
+
+  function selectCharacter(characterId) {
+    var character = getCharacter(characterId);
+    if (!character) return;
+    var selectionGeneration = ++modelLoadGeneration;
+    persistSelectedCharacter(character.id);
+    syncCharacterTheme(character.id);
     renderCharacterButton(ensureCharacterButton());
     clearInteractionTimers();
     hideDialogue(false);
@@ -1867,8 +1995,9 @@
     if (shouldRenderLive2D()) {
       loadLibraries()
         .then(function () {
+          if (selectionGeneration !== modelLoadGeneration) return null;
           ensureApplication();
-          return loadCharacter(next.id);
+          return loadCharacter(character.id);
         })
         .catch(function () {
           // Live2D is decorative; do not block the page if it fails.
@@ -1877,6 +2006,13 @@
   }
 
   function bindCharacterButton() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-classic-character]"), function (button) {
+      if (button.getAttribute("data-classic-character-bound") === "true") return;
+      button.setAttribute("data-classic-character-bound", "true");
+      button.addEventListener("click", function () {
+        selectCharacter(button.getAttribute("data-classic-character"));
+      });
+    });
     var button = ensureCharacterButton();
     if (!button) return;
     renderCharacterButton(button);
@@ -1902,21 +2038,30 @@
       return;
     }
 
+    var libraryGeneration = modelLoadGeneration;
     loadLibraries()
       .then(function () {
+        if (libraryGeneration !== modelLoadGeneration) return null;
         ensureApplication();
         applyResponsiveSize();
         return loadCharacter(getSelectedCharacterId());
       })
       .catch(function () {
+        if (libraryGeneration !== modelLoadGeneration) return;
         var elements = ensureWidget();
-        if (elements) elements.widget.classList.add("has-live2d-error");
+        if (elements) {
+          elements.widget.classList.add("has-live2d-error");
+          elements.widget.querySelector(".companion-load-status").textContent = "Companion unavailable. Please reload to retry.";
+        }
         // Live2D is decorative; do not block the page if it fails.
       });
   }
 
   document.addEventListener("site:content-updated", initLive2D);
-  document.addEventListener("site:live2d-toggle", initLive2D);
+  document.addEventListener("site:live2d-toggle", function (event) {
+    if (event.detail && event.detail.enabled) setCompanionMinimized(false);
+    initLive2D();
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initLive2D);
