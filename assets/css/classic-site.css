@@ -163,7 +163,7 @@ body.classic-site .inline-school-icon { display: inline-block; width: 16px; heig
 body.classic-site .sidebar .profile_box { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; width: 100%; min-width: 0; max-width: 100%; padding: 10px; border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; text-align: left; }
 body.classic-site .profile_box::before, body.classic-site .profile_box::after { content: none; }
 body.classic-site .profile_box .author__avatar { display: block; grid-column: 1; grid-row: auto; align-self: start; width: 100%; min-width: 0; max-width: none; margin: 0; padding: 0; perspective: none; }
-body.classic-site .profile_box .author__avatar-frame { width: 100%; padding: 3px; border: 1px solid var(--border); border-radius: 0; background: var(--classic-document); box-shadow: none; transform: none; }
+body.classic-site .profile_box .author__avatar-frame { width: 100%; padding: 3px; border: 1px solid var(--border); border-radius: 0; background: var(--classic-document); box-shadow: none; transform: none; transform-style: flat; will-change: auto; }
 body.classic-site .author__avatar-media { border-radius: 0; transform: none; }
 body.classic-site .author__avatar-aura, body.classic-site .author__avatar-shine, body.classic-site .author__avatar-corner { display: none; }
 body.classic-site .profile_box .author__avatar-frame .author__avatar-image { width: 100% !important; height: 100% !important; max-width: none !important; object-position: center 35%; transform: scale(1.24); transform-origin: 50% 35%; filter: none; transition: opacity 160ms linear; }
