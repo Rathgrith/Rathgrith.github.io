@@ -13,6 +13,8 @@ var $hlinks = $('#site-nav .hidden-links');
 var breaks = [];
 
 function updateNav() {
+  // Classic tabs do not use the legacy collapsible navigation.
+  if (!$nav.length || !$vlinks.length) return;
 
   var availableSpace = $btn.hasClass('hidden') ? $nav.width() : $nav.width() - $btn.width() - 30;
 

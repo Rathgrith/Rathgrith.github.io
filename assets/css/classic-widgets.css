@@ -1,0 +1,608 @@
+/* The existing component styles keep their behavior and responsive geometry.
+   This layer gives every interactive surface the 1990s template's window chrome. */
+body.classic-site {
+  --classic-widget-font: "W95FA", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans CJK JP", Arial, sans-serif;
+  --classic-bevel-raised: inset -1px -1px #808080, inset 1px 1px #dfdfdf;
+  --classic-bevel-inset: inset 1px 1px #111;
+}
+
+/* Music player. Repeated component classes also outrank the asynchronously
+   loaded component stylesheet's theme selectors. */
+body.classic-site .music-player.music-player {
+  --player-text: var(--text, #161616);
+  --player-muted: var(--text-muted, #535353);
+  --player-panel: var(--classic-silver);
+  --player-panel-inset: var(--classic-document);
+  --player-edge: #808080;
+  --player-edge-dark: #111;
+  --player-highlight: #fff;
+  --player-accent: var(--classic-accent);
+  --player-accent-strong: var(--classic-link);
+  --player-display: var(--classic-document);
+  --player-display-ink: var(--classic-accent);
+  --player-wave-base: #808080;
+  --player-wave-active: var(--classic-link);
+  border: 2px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  font-family: var(--classic-widget-font);
+}
+
+body.classic-site .music-player::before,
+body.classic-site .music-player::after,
+body.classic-site .music-player__cover-well::after,
+body.classic-site .music-player__seek-wrap::before {
+  content: none;
+}
+
+body.classic-site .music-player .music-player__cover-well,
+body.classic-site .music-player .music-player__seek-wrap {
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  border-radius: 0;
+  background: var(--classic-document);
+  box-shadow: var(--classic-bevel-inset);
+}
+
+body.classic-site .music-player .music-player__cover {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.classic-site .music-player .music-player__title {
+  font-family: var(--classic-widget-font);
+  font-size: 1.1rem;
+  line-height: 1.25;
+  text-shadow: none;
+}
+
+body.classic-site .music-player .music-player__artist {
+  font-family: var(--classic-widget-font);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body.classic-site .music-player .music-player__btn,
+body.classic-site .music-player .music-player__song-link {
+  border: 1px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  color: var(--text, #161616);
+  text-decoration: none;
+  text-shadow: none;
+}
+
+body.classic-site .music-player .music-player__btn:active,
+body.classic-site .music-player .music-player__song-link:active,
+body.classic-site .music-player .music-player__btn[aria-pressed="true"] {
+  border-color: #111 #fff #fff #111;
+  box-shadow: inset 1px 1px #808080;
+  transform: none;
+}
+
+body.classic-site .music-player .music-player__wave-bar {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.classic-site .music-player .music-player__time,
+body.classic-site .music-player .music-player__status {
+  font-family: var(--classic-widget-font);
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+}
+
+body.classic-site .music-player .music-player__volume-label {
+  text-shadow: none;
+}
+
+body.classic-site .music-player .music-player__volume::-webkit-slider-runnable-track {
+  border-radius: 0;
+  box-shadow: inset 1px 1px #808080, 1px 1px #fff;
+}
+
+body.classic-site .music-player .music-player__volume::-moz-range-track,
+body.classic-site .music-player .music-player__volume::-moz-range-progress {
+  border-radius: 0;
+  box-shadow: inset 1px 1px #808080, 1px 1px #fff;
+}
+
+body.classic-site .music-player .music-player__volume::-webkit-slider-thumb {
+  border: 1px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+}
+
+body.classic-site .music-player .music-player__volume::-moz-range-thumb {
+  border: 1px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+}
+
+/* Local weather retains its live readings, dial needle and controls. */
+body.classic-site .weather-dial.weather-dial {
+  --weather-panel: var(--classic-silver);
+  --weather-display: var(--classic-document);
+  --weather-display-deep: #808080;
+  --weather-ink: var(--text, #161616);
+  --weather-muted: var(--text-muted, #535353);
+  font-family: var(--classic-widget-font);
+}
+
+body.classic-site .weather-dial .weather-dial__bezel {
+  border: 2px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+}
+
+body.classic-site .weather-dial__bezel::after,
+body.classic-site .weather-dial__instrument::after {
+  content: none;
+}
+
+body.classic-site .weather-dial .weather-dial__header {
+  align-items: center;
+  margin-bottom: 0.45rem;
+  padding: 0.3rem 0.35rem;
+  background: linear-gradient(90deg, var(--classic-accent), var(--classic-accent-end));
+}
+
+body.classic-site .weather-dial .weather-dial__eyebrow,
+body.classic-site .weather-dial .weather-dial__title {
+  margin: 0;
+  color: #fff;
+  font-family: var(--classic-widget-font);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+body.classic-site .weather-dial .weather-dial__eyebrow {
+  font-weight: 700;
+}
+
+body.classic-site .weather-dial .weather-dial__button {
+  border: 1px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  color: var(--text, #161616);
+}
+
+body.classic-site .weather-dial .weather-dial__button:active {
+  border-color: #111 #fff #fff #111;
+  box-shadow: inset 1px 1px #808080;
+  transform: none;
+}
+
+body.classic-site .weather-dial .weather-dial__instrument,
+body.classic-site .weather-dial .weather-dial__metrics {
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  border-radius: 0;
+  background: var(--classic-document);
+  box-shadow: var(--classic-bevel-inset);
+}
+
+body.classic-site .weather-dial .weather-dial__ring {
+  border: 1px solid #808080;
+  border-radius: 0;
+  background:
+    radial-gradient(circle, var(--classic-document) 0 65%, transparent 66%),
+    repeating-conic-gradient(from -4deg, #808080 0 1deg, transparent 1deg 18deg);
+  box-shadow: none;
+}
+
+body.classic-site .weather-dial .weather-dial__ring::after,
+body.classic-site .weather-dial .weather-dial__needle {
+  border-radius: 0;
+  background: var(--classic-accent);
+  box-shadow: none;
+}
+
+body.classic-site .weather-dial .weather-dial__reading {
+  padding: 4px 0;
+  background: transparent;
+}
+
+body.classic-site .weather-dial .weather-dial__icon {
+  filter: none;
+}
+
+body.classic-site .weather-dial .weather-dial__name,
+body.classic-site .weather-dial .weather-dial__description,
+body.classic-site .weather-dial .weather-dial__temperature,
+body.classic-site .weather-dial .weather-dial__time,
+body.classic-site .weather-dial .weather-dial__metrics dd {
+  color: var(--text, #161616);
+  font-family: var(--classic-widget-font);
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+body.classic-site .weather-dial .weather-dial__name {
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+body.classic-site .weather-dial .weather-dial__time,
+body.classic-site .weather-dial .weather-dial__description,
+body.classic-site .weather-dial .weather-dial__metrics dt,
+body.classic-site .weather-dial .weather-dial__footer,
+body.classic-site .weather-dial .weather-dial__status {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+body.classic-site .weather-dial .weather-dial__metrics dd {
+  font-size: 0.8125rem;
+}
+
+body.classic-site .weather-dial .weather-dial__status {
+  border: 1px solid #808080;
+  border-radius: 0;
+  background: var(--classic-document);
+}
+
+/* Desktop options menu. Visibility and keyboard handling remain in site-shared. */
+body.classic-site .site-options-fab__trigger,
+body.classic-site .site-options-fab__menu {
+  border: 2px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised), 2px 2px 0 rgba(0, 0, 0, 0.3);
+  color: var(--text, #161616);
+  font-family: var(--classic-widget-font);
+}
+
+body.classic-site .site-options-fab__trigger:hover {
+  transform: none;
+}
+
+body.classic-site .site-options-fab.is-open .site-options-fab__trigger,
+body.classic-site .site-options-fab__trigger:active {
+  border-color: #111 #fff #fff #111;
+  box-shadow: inset 1px 1px #808080;
+  transform: none;
+}
+
+body.classic-site .site-options-fab__action {
+  border-radius: 0;
+  color: var(--text, #161616);
+  font-size: 1rem;
+}
+
+body.classic-site .site-options-fab__action:hover,
+body.classic-site .site-options-fab__action:focus-visible {
+  border-color: transparent;
+  background: var(--classic-accent);
+  color: #fff;
+}
+
+body.classic-site .site-options-fab__action-label {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Live2D dialogue becomes a compact native-looking message window. */
+body.classic-site .live2d-interact,
+body.classic-site .live2d-dialogue__close {
+  border: 2px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  color: var(--text, #161616);
+}
+
+body.classic-site .live2d-interact::before,
+body.classic-site .live2d-interact::after,
+body.classic-site .live2d-dialogue::before,
+body.classic-site .live2d-dialogue::after {
+  content: none;
+}
+
+body.classic-site .live2d-interact i {
+  filter: none;
+}
+
+body.classic-site .live2d-interact:hover,
+body.classic-site .live2d-interact[aria-expanded="true"],
+body.classic-site .live2d-dialogue__close:hover {
+  border-color: #fff #111 #111 #fff;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  color: var(--classic-link);
+  transform: none;
+}
+
+body.classic-site .live2d-interact:hover i,
+body.classic-site .live2d-interact[aria-expanded="true"] i {
+  transform: none;
+}
+
+body.classic-site .live2d-interact:active,
+body.classic-site .live2d-dialogue__close:active {
+  border-color: #111 #fff #fff #111;
+  box-shadow: inset 1px 1px #808080;
+}
+
+body.classic-site .live2d-dialogue {
+  padding: 3px;
+  border: 2px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised), 3px 3px 0 rgba(0, 0, 0, 0.3);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+body.classic-site .live2d-dialogue__meta {
+  margin: 0;
+  padding: 5px 2.75rem 5px 8px;
+  border: 0;
+  background: linear-gradient(90deg, var(--classic-accent), var(--classic-accent-end));
+  line-height: 1.5;
+}
+
+body.classic-site .live2d-dialogue__name {
+  color: #fff;
+  font-family: var(--classic-widget-font);
+  font-size: 0.875rem;
+  letter-spacing: 0;
+}
+
+body.classic-site .live2d-dialogue__text {
+  margin: 0;
+  padding: 12px 10px;
+  color: var(--text, #161616);
+  font-family: var(--classic-widget-font);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+body.classic-site .live2d-dialogue__close {
+  top: 6px;
+  right: 6px;
+}
+
+/* Standalone page titles sit in the same white document as their content. */
+body.classic-site.standalone-page .page-header {
+  margin: 0 0 24px;
+  padding: 0;
+  border: 0;
+  background: var(--classic-document);
+  box-shadow: none;
+  text-align: left;
+}
+
+body.classic-site.standalone-page .page-header .header-inner,
+body.classic-site.standalone-page .page-header .container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+body.classic-site.standalone-page .page-header h1,
+body.classic-site.standalone-page .page-header .page-subtitle {
+  text-align: left;
+}
+
+/* Photograph browser and its full-size image viewer. */
+body.classic-site.gallery-page .gallery-container {
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  border-radius: 0;
+  background: var(--classic-document);
+  box-shadow: var(--classic-bevel-inset);
+}
+
+body.classic-site.gallery-page .gallery-group + .gallery-group {
+  border-color: #808080;
+}
+
+body.classic-site.gallery-page .gallery-group__title {
+  color: var(--classic-accent);
+  font-size: 1.375rem;
+  letter-spacing: 0;
+}
+
+body.classic-site.gallery-page .gallery-group__count {
+  border: 1px solid #808080;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: none;
+  color: var(--text, #161616);
+  font-size: 0.875rem;
+}
+
+body.classic-site.gallery-page .gallery a {
+  border: 2px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+}
+
+body.classic-site.gallery-page .gallery a::before {
+  border-color: var(--classic-silver);
+  box-shadow: none;
+}
+
+body.classic-site.gallery-page .gallery a::after {
+  background: none;
+}
+
+body.classic-site.gallery-page .gallery a:hover,
+body.classic-site.gallery-page .gallery a:focus-visible {
+  border-color: var(--classic-accent);
+  box-shadow: 0 0 0 1px var(--classic-accent);
+  transform: none;
+}
+
+body.classic-site.gallery-page .gallery a:hover img,
+body.classic-site.gallery-page .gallery a:focus-visible img {
+  transform: none;
+}
+
+body.classic-site.gallery-page .gallery-card__zoom,
+body.classic-site.gallery-page .gallery-modal__nav,
+body.classic-site.gallery-page .gallery-modal__close,
+body.classic-site.gallery-page .gallery-modal__thumb {
+  border: 1px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  color: var(--text, #161616);
+}
+
+body.classic-site.gallery-page .caption {
+  color: var(--text, #161616);
+  font-style: normal;
+}
+
+body.classic-site.gallery-page .gallery-modal__backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+body.classic-site.gallery-page .gallery-modal__dialog {
+  border: 2px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised), 4px 4px 0 rgba(0, 0, 0, 0.4);
+}
+
+body.classic-site.gallery-page .gallery-modal__image-stage,
+body.classic-site.gallery-page .gallery-modal__strip {
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  border-radius: 0;
+  background: var(--classic-document);
+  box-shadow: var(--classic-bevel-inset);
+}
+
+body.classic-site.gallery-page .gallery-modal__image,
+body.classic-site.gallery-page .gallery-modal__thumb-image {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.classic-site.gallery-page .gallery-modal__thumb.is-active {
+  border-color: #111 #fff #fff #111;
+  background: var(--classic-accent);
+  box-shadow: inset 1px 1px #808080;
+  transform: none;
+}
+
+body.classic-site.gallery-page .gallery-modal__strip::-webkit-scrollbar-thumb {
+  border-radius: 0;
+  background: #808080;
+}
+
+/* Thoughts and notes use the same document, tag and command-button treatment. */
+body.classic-site .thoughts-action,
+body.classic-site .site-button,
+body.classic-site .button {
+  border: 1px solid;
+  border-color: #fff #111 #111 #fff;
+  border-radius: 0;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  color: var(--text, #161616);
+  font-family: var(--classic-widget-font);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+body.classic-site .thoughts-action:hover,
+body.classic-site .thoughts-action:focus-visible {
+  border-color: #fff #111 #111 #fff;
+  background: var(--classic-silver);
+  box-shadow: var(--classic-bevel-raised);
+  color: var(--classic-link);
+  transform: none;
+}
+
+body.classic-site .thought-card,
+body.classic-site.notes-page .project,
+body.classic-site.notes-page .highlight-quote {
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  border-radius: 0;
+  background: var(--classic-document);
+  box-shadow: var(--classic-bevel-inset);
+}
+
+body.classic-site .thought-card:hover,
+body.classic-site .thought-card:has(:focus-visible) {
+  border-color: var(--classic-accent);
+  box-shadow: none;
+  transform: none;
+}
+
+body.classic-site .thought-card__link,
+body.classic-site .thought-card__link:visited {
+  color: var(--text, #161616);
+  text-decoration: none;
+}
+
+body.classic-site .thought-card h2 {
+  color: var(--classic-link);
+  font-size: 1.375rem;
+  text-decoration: underline;
+}
+
+body.classic-site .thought-card__tags span,
+body.classic-site .thought-tags span {
+  border: 1px solid #808080;
+  border-radius: 0;
+  background: var(--classic-silver);
+  color: var(--text, #161616);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+body.classic-site .thought-detail__content img {
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.classic-site.notes-page .project h3 {
+  color: var(--classic-accent);
+}
+
+body.classic-site.notes-page .highlight-quote {
+  border-left: 4px solid var(--classic-accent);
+  font-style: normal;
+}
+
+/* The native hidden attribute always wins, including lazily loaded controls. */
+body.classic-site .music-player [hidden],
+body.classic-site .weather-dial [hidden] {
+  display: none !important;
+}

@@ -1,37 +1,11 @@
-<div class="masthead">
-  <div class="masthead__inner-wrap">
-    <div class="masthead__menu">
-      <nav id="site-nav" class="greedy-nav">
-        <button
-          type="button"
-          aria-label="Open navigation menu"
-          aria-expanded="false"
-          aria-controls="site-nav-hidden-links"
-        >
-          <div class="navicon"></div>
-        </button>
-        <ul class="visible-links">
-          <li class="masthead__menu-item masthead__menu-item--lg masthead__menu-home-item">
-            <a class="masthead__home-link" href="{{ '/#about-me' | relative_url }}" aria-label="Homepage">
-              <img class="masthead__home-logo" src="{{ '/images/apple-touch-icon.png' | relative_url }}" alt="">
-              <span class="masthead__home-label">HOME</span>
-            </a>
-          </li>
-          {% for link in site.data.navigation.main %}
-            {% assign show_link = true %}
-            {% if link.required_collection %}
-              {% assign required_items = site[link.required_collection] %}
-              {% if required_items == nil or required_items.size == 0 %}
-                {% assign show_link = false %}
-              {% endif %}
-            {% endif %}
-            {% if show_link %}
-              <li class="masthead__menu-item"><a href="{{ domain }}{{ link.url }}">{{ link.title }}</a></li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-        <ul class="hidden-links hidden" id="site-nav-hidden-links" aria-label="Collapsed navigation links"></ul>
-      </nav>
-    </div>
-  </div>
-</div>
+<header class="classic-masthead">
+  <p class="classic-eyebrow">Academic homepage</p>
+  <a class="classic-site-name" href="{{ '/' | relative_url }}">{{ site.author.name | escape }}</a>
+  <p class="classic-masthead-affiliation">PhD Student · University of Birmingham <span aria-hidden="true">|</span> Software Engineer · Allsee Technology</p>
+</header>
+<nav class="classic-navigation" aria-label="Main navigation">
+  <a class="classic-tab" href="{{ '/' | relative_url }}" data-classic-page="home"><img src="{{ '/assets/images/classic/icons/16/directory_open_file_mydocs_small-1.png' | relative_url }}" alt="" width="16" height="16"> Home</a>
+  <a class="classic-tab" href="{{ '/#publications' | relative_url }}">Publications</a>
+  <a class="classic-tab" href="{{ '/gallery/' | relative_url }}" data-classic-page="gallery">Gallery</a>
+  <a class="classic-tab" href="{{ '/assets/resume.pdf' | relative_url }}">CV</a>
+</nav>

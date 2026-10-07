@@ -12,8 +12,6 @@
   var state = {
     gallery: null,
     captions: {},
-    filenames: [],
-    groups: [],
     items: [],
     thumbnailDir: "",
     originalDir: "",
@@ -33,18 +31,6 @@
       return parsed && typeof parsed === "object" ? parsed : {};
     } catch (error) {
       return {};
-    }
-  }
-
-  function parseGroupConfig() {
-    var dataNode = document.getElementById("gallery-groups-data");
-    if (!dataNode) return [];
-
-    try {
-      var parsed = JSON.parse(dataNode.textContent || "[]");
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      return [];
     }
   }
 
@@ -74,86 +60,11 @@
     };
   }
 
-  function buildGroups(config) {
-    var known = new Set(Object.keys(state.captions));
-    var assigned = new Set();
-    var groups = [];
-
-    config.forEach(function (entry, index) {
-      if (!entry || !Array.isArray(entry.items)) return;
-      var filenames = entry.items.filter(function (filename) {
-        if (!known.has(filename) || assigned.has(filename)) return false;
-        assigned.add(filename);
-        return true;
-      });
-      if (!filenames.length) return;
-
-      groups.push({
-        id: String(entry.id || "group-" + index),
-        title: String(entry.title || "Collection"),
-        description: String(entry.description || ""),
-        filenames: filenames,
-        rendered: [],
-        grid: null,
-      });
-    });
-
-    var ungrouped = Array.from(known).filter(function (filename) {
-      return !assigned.has(filename);
-    });
-    if (ungrouped.length) {
-      groups.push({
-        id: "other",
-        title: "Other",
-        description: "",
-        filenames: ungrouped,
-        rendered: [],
-        grid: null,
-      });
-    }
-    return groups;
-  }
-
   function createElement(tagName, className, text) {
     var element = document.createElement(tagName);
     if (className) element.className = className;
     if (typeof text === "string") element.textContent = text;
     return element;
-  }
-
-  function createGroupSections() {
-    var fragment = document.createDocumentFragment();
-
-    state.groups.forEach(function (group, groupIndex) {
-      var section = createElement("section", "gallery-group");
-      var header = createElement("header", "gallery-group__header");
-      var heading = createElement("h2", "gallery-group__title", group.title);
-      var count = createElement(
-        "span",
-        "gallery-group__count",
-        String(group.filenames.length)
-      );
-      var description = createElement(
-        "p",
-        "gallery-group__description",
-        group.description
-      );
-      var grid = createElement("div", "gallery");
-
-      heading.id = "gallery-group-" + group.id;
-      section.setAttribute("aria-labelledby", heading.id);
-      section.style.setProperty("--gallery-group-index", String(groupIndex));
-      grid.setAttribute("data-gallery-group", group.id);
-      heading.appendChild(count);
-      header.appendChild(heading);
-      if (group.description) header.appendChild(description);
-      section.appendChild(header);
-      section.appendChild(grid);
-      fragment.appendChild(section);
-      group.grid = grid;
-    });
-
-    state.gallery.replaceChildren(fragment);
   }
 
   function getModalRefs() {
@@ -170,6 +81,8 @@
       counter: document.getElementById("gallery-modal-counter"),
       strip: document.getElementById("gallery-modal-strip"),
       closeButton: root.querySelector(".gallery-modal__close"),
+      placeholder: root.querySelector("[data-gallery-placeholder]"),
+      status: root.querySelector("[data-gallery-status]"),
     };
     return state.modalRefs;
   }
@@ -182,12 +95,6 @@
 
     element.textContent = parts.join("  ·  ");
     element.hidden = !parts.length;
-  }
-
-  function renderedFilenames() {
-    return state.items.map(function (item) {
-      return item.filename;
-    });
   }
 
   function wrapIndex(index, total) {
@@ -267,8 +174,12 @@
       if (index === current) activeId = buttonId;
     });
 
+    var restoreStripFocus = refs.strip.contains(document.activeElement);
     refs.strip.replaceChildren(fragment);
-    if (activeId) refs.strip.setAttribute("aria-activedescendant", activeId);
+    if (activeId) {
+      refs.strip.setAttribute("aria-activedescendant", activeId);
+      if (restoreStripFocus) document.getElementById(activeId).focus({ preventScroll: true });
+    }
   }
 
   function updateModalContent() {
@@ -281,7 +192,33 @@
     var item = state.items[state.currentIndex];
     var entry = normaliseCaption(item.filename);
 
-    refs.image.src = state.originalDir + item.filename;
+    // Show the local thumbnail until the large original has decoded.
+    // A request token prevents a slow previous photo replacing the next one.
+    var requestId = (state.imageRequestId || 0) + 1;
+    state.imageRequestId = requestId;
+    refs.image.style.opacity = "0";
+    refs.placeholder.src = state.thumbnailDir + item.filename;
+    refs.placeholder.hidden = false;
+    refs.status.textContent = "Loading full-size image…";
+    var fullImage = new Image();
+    fullImage.src = state.originalDir + item.filename;
+    var ready = fullImage.decode ? fullImage.decode() : new Promise(function (resolve, reject) {
+      fullImage.onload = resolve;
+      fullImage.onerror = reject;
+    });
+    ready.then(function () {
+      if (requestId !== state.imageRequestId || !state.isOpen) return;
+      refs.image.src = fullImage.src;
+      return refs.image.decode ? refs.image.decode() : Promise.resolve();
+    }).then(function () {
+      if (requestId !== state.imageRequestId || !state.isOpen) return;
+      refs.image.style.opacity = "1";
+      refs.placeholder.hidden = true;
+      refs.status.textContent = "";
+    }).catch(function () {
+      if (requestId !== state.imageRequestId || !state.isOpen) return;
+      refs.status.textContent = "Full-size image unavailable. Showing preview.";
+    });
     refs.image.alt = entry.caption || "Gallery image";
     refs.caption.textContent = entry.caption;
     refs.counter.textContent = state.currentIndex + 1 + " / " + total;
@@ -373,87 +310,22 @@
 
     document.addEventListener("keydown", function (event) {
       if (!state.isOpen) return;
+      if (event.key === "Tab") {
+        var refs = getModalRefs();
+        var controls = refs.root.querySelectorAll('button:not([disabled]), a[href], [tabindex="0"]');
+        var first = controls[0];
+        var last = controls[controls.length - 1];
+        if (!refs.root.contains(document.activeElement)) { (event.shiftKey ? last : first).focus(); event.preventDefault(); }
+        else if (event.shiftKey && document.activeElement === first) { last.focus(); event.preventDefault(); }
+        else if (!event.shiftKey && document.activeElement === last) { first.focus(); event.preventDefault(); }
+        return;
+      }
       if (event.key === "Escape") closeModal();
       else if (event.key === "ArrowLeft") stepModal(-1);
       else if (event.key === "ArrowRight") stepModal(1);
       else return;
       event.preventDefault();
     });
-  }
-
-  function createGalleryItem(filename, indexInBatch, isInitialGroup) {
-    var entry = normaliseCaption(filename);
-    var anchor = createElement("a");
-    var image = createElement("img");
-    var zoom = createElement("span", "gallery-card__zoom");
-    var icon = createElement("i", "fas fa-search-plus");
-    var caption = createElement("div", "caption", entry.caption);
-    var item = createElement("div", "gallery-item");
-
-    anchor.href = state.originalDir + filename;
-    anchor.setAttribute("data-gallery-filename", filename);
-    anchor.setAttribute(
-      "aria-label",
-      entry.caption ? "Open " + entry.caption : "Open image preview"
-    );
-
-    image.src = state.thumbnailDir + filename;
-    image.alt = entry.caption || "Gallery image";
-    image.loading = "lazy";
-    image.decoding = "async";
-    image.fetchPriority = isInitialGroup && indexInBatch < 2 ? "high" : "low";
-
-    zoom.setAttribute("aria-hidden", "true");
-    zoom.appendChild(icon);
-    anchor.appendChild(image);
-    anchor.appendChild(zoom);
-
-    if (entry.caption) caption.title = entry.caption;
-    item.style.setProperty(
-      "--gallery-reveal-delay",
-      Math.min(indexInBatch, 8) * 45 + "ms"
-    );
-    item.appendChild(anchor);
-    item.appendChild(caption);
-
-    return { filename: filename, anchor: anchor, element: item };
-  }
-
-  function revealItems(items) {
-    window.requestAnimationFrame(function () {
-      items.forEach(function (item) {
-        item.element.classList.add("is-visible");
-      });
-    });
-  }
-
-  function rebuildItemOrder() {
-    state.items = state.groups.reduce(function (items, group) {
-      return items.concat(group.rendered);
-    }, []);
-  }
-
-  function appendGroupBatch(group, count, groupIndex) {
-    if (!group.grid || count <= 0) return 0;
-    var start = group.rendered.length;
-    var end = Math.min(start + count, group.filenames.length);
-    var fragment = document.createDocumentFragment();
-    var additions = [];
-
-    for (var index = start; index < end; index += 1) {
-      var item = createGalleryItem(
-        group.filenames[index],
-        index - start,
-        groupIndex === 0 && start === 0
-      );
-      group.rendered.push(item);
-      additions.push(item);
-      fragment.appendChild(item.element);
-    }
-
-    group.grid.appendChild(fragment);
-    revealItems(additions);
-    return additions.length;
   }
 
   function bindGalleryEvents() {
@@ -479,7 +351,6 @@
 
   function resetState() {
     state.gallery = null;
-    state.groups = [];
     state.items = [];
     state.currentIndex = -1;
     state.isOpen = false;
@@ -503,11 +374,9 @@
 
     state.gallery = gallery;
     state.captions = parseCaptions();
-    state.groups = buildGroups(parseGroupConfig());
-    state.filenames = state.groups.reduce(function (filenames, group) {
-      return filenames.concat(group.filenames);
-    }, []);
-    state.items = [];
+    state.items = Array.prototype.map.call(gallery.querySelectorAll("a[data-gallery-filename]"), function (anchor) {
+      return { filename: anchor.getAttribute("data-gallery-filename"), anchor: anchor, element: anchor.closest("figure") };
+    });
     state.thumbnailDir = (
       container.getAttribute("data-thumbnail-dir") || ""
     ).trim();
@@ -518,15 +387,10 @@
     state.isOpen = false;
     state.modalRefs = null;
     state.preloaded = {};
-    createGroupSections();
 
     bindModalEvents();
     bindGlobalKeyboardEvents();
     bindGalleryEvents();
-    state.groups.forEach(function (group, groupIndex) {
-      appendGroupBatch(group, group.filenames.length, groupIndex);
-    });
-    rebuildItemOrder();
   }
 
   window.__siteInitGalleryPage = initGalleryPage;

@@ -1,14 +1,11 @@
----
-layout: compress
----
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="en" class="no-js classic-root">
   <head>
     {% include head.html %}
     {% include head/custom.html %}
   </head>
 
-  {% assign body_classes = page.body_class | default: "" %}
+  {% assign body_classes = page.body_class | default: "" | append: " classic-site" %}
   {% if page.body_class == "home-page" and page.disable_home_loading != true %}
     {% assign body_classes = body_classes | append: " home-loading" %}
   {% endif %}
@@ -20,12 +17,14 @@ layout: compress
         <span class="home-loading-screen__label">Now Loading...</span>
       </div>
     {% endif %}
+    <a class="classic-skip-link" href="#main">Skip to content</a>
+    <div class="classic-frame">
     {% include masthead.html %}
 
-    <div id="main" role="main">
+    <main id="main" class="classic-main{% if page.author_profile %} classic-home-grid{% endif %}" tabindex="-1">
       {% include sidebar.html %}
     
-      <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+      <article class="page{% if page.classic_unframed or layout.classic_unframed %} classic-page-unframed{% else %} classic-document{% endif %}" itemscope itemtype="http://schema.org/CreativeWork">
         {% if page.title %}<meta itemprop="headline" content="{{ page.title | markdownify | strip_html | strip_newlines | escape_once }}">{% endif %}
         <div class="page__inner-wrap">
           <section class="page__content" itemprop="text">
@@ -33,9 +32,11 @@ layout: compress
           </section>
         </div>
       </article>
-    </div>
+    </main>
 
     {% include site-runtime-footer.html %}
+    {% include classic-credits.html %}
+    </div>
     <script>
       window.__siteLive2DConfig = window.__siteLive2DConfig || {
         defaultCharacter: "alice",

@@ -71,6 +71,8 @@ include:
   - _pages
   - files
 exclude:
+  - assets/fonts/classic/NOTICE.md
+  - assets/images/classic/NOTICE.md
   - docs
   - google_scholar_crawler
   - "*.sublime-project"

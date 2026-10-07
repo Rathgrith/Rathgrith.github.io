@@ -3,25 +3,45 @@ layout: default
 title: "Gallery"
 permalink: /gallery/
 author_profile: false
-body_class: "standalone-page gallery-page"
+body_class: "gallery-page"
+classic_unframed: true
 ---
-<header class="page-header">
-  <div class="header-inner">
-    <h1>Gallery</h1>
-    <p class="page-subtitle">Photography, figures, and quiet observations.</p>
+{% assign grouped_files = "" | split: "" %}
+{% for group in site.data.gallery_groups %}{% assign grouped_files = grouped_files | concat: group.items %}{% endfor %}
+{% assign ungrouped_count = 0 %}
+{% for photo in site.data.gallery_captions %}{% unless grouped_files contains photo[0] %}{% assign ungrouped_count = ungrouped_count | plus: 1 %}{% endunless %}{% endfor %}
+<div class="classic-archive-grid">
+  <div class="classic-document classic-showcase gallery-container" data-thumbnail-dir="{{ '/images/gallery/thumbnails/' | relative_url }}" data-original-dir="https://raw.githubusercontent.com/Rathgrith/Rathgrith.github.io/main/images/gallery/originals/">
+    <h1 class="classic-section-heading">Gallery</h1>
+    <p>Photography, figures, and quiet observations.</p>
+    <p class="classic-gallery-help">Open a photograph to browse full-size images. Use ← / → to move and Esc to close.</p>
+    <div id="gallery" class="classic-showcase-groups">
+    {% for group in site.data.gallery_groups %}
+      <section class="classic-archive-year" aria-labelledby="gallery-group-{{ group.id }}">
+        <h2 id="gallery-group-{{ group.id }}">{{ group.title | escape }} <span class="classic-tag">{{ group.items.size }}</span></h2>
+        <p>{{ group.description | escape }}</p>
+        <div class="classic-showcase-grid">
+          {% for filename in group.items %}{% if site.data.gallery_captions[filename] %}{% include classic/gallery-card.html filename=filename %}{% endif %}{% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+    {% if ungrouped_count > 0 %}
+      <section class="classic-archive-year" aria-labelledby="gallery-group-other">
+        <h2 id="gallery-group-other">Other</h2>
+        <div class="classic-showcase-grid">
+        {% for photo in site.data.gallery_captions %}{% unless grouped_files contains photo[0] %}{% assign filename = photo[0] %}{% include classic/gallery-card.html filename=filename %}{% endunless %}{% endfor %}
+        </div>
+      </section>
+    {% endif %}
+    </div>
   </div>
-</header>
-
-<main
-  class="gallery-container"
-  role="main"
-  data-thumbnail-dir="{{ '/images/gallery/thumbnails/' | relative_url }}"
-  data-original-dir="https://raw.githubusercontent.com/Rathgrith/Rathgrith.github.io/main/images/gallery/originals/"
->
-  <div class="gallery-groups" id="gallery">
-    <!-- JavaScript will populate themed sections -->
-  </div>
-</main>
+  <nav class="classic-year-navigation" aria-label="Gallery collections">
+    <h2 class="classic-rail-heading">Collections</h2>
+    {% for group in site.data.gallery_groups %}<a class="classic-button" href="#gallery-group-{{ group.id }}">{{ group.title | escape }}</a>{% endfor %}
+    {% if ungrouped_count > 0 %}<a class="classic-button" href="#gallery-group-other">Other</a>{% endif %}
+    <span class="classic-small">{{ site.data.gallery_captions.size }} photographs</span>
+  </nav>
+</div>
 
 <div class="gallery-modal" id="gallery-modal" aria-hidden="true" hidden>
   <div class="gallery-modal__backdrop" data-gallery-close></div>
@@ -49,6 +69,7 @@ body_class: "standalone-page gallery-page"
     </button>
     <figure class="gallery-modal__figure">
       <div class="gallery-modal__image-stage">
+        <img class="classic-photo-placeholder" data-gallery-placeholder alt="" aria-hidden="true">
         <img id="gallery-modal-image" class="gallery-modal__image" alt="">
       </div>
       <figcaption class="gallery-modal__meta">
@@ -63,6 +84,7 @@ body_class: "standalone-page gallery-page"
             hidden
           ></span>
         </div>
+        <span class="classic-photo-status" data-gallery-status role="status"></span>
         <span id="gallery-modal-counter" class="gallery-modal__counter"></span>
       </figcaption>
       <div
@@ -85,9 +107,6 @@ body_class: "standalone-page gallery-page"
 
 <script id="gallery-captions-data" type="application/json">
   {{ site.data.gallery_captions | jsonify }}
-</script>
-<script id="gallery-groups-data" type="application/json">
-  {{ site.data.gallery_groups | jsonify }}
 </script>
 {% assign asset_version = site.github.build_revision | default: site.time %}
 <script src="{{ '/assets/js/pages/gallery-page.js' | relative_url }}?v={{ asset_version | url_encode }}"></script>
