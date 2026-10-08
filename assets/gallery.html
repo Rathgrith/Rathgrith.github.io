@@ -35,12 +35,15 @@ classic_unframed: true
     {% endif %}
     </div>
   </div>
-  <nav class="classic-year-navigation" aria-label="Gallery collections">
-    <h2 class="classic-rail-heading">Collections</h2>
-    {% for group in site.data.gallery_groups %}<a class="classic-button" href="#gallery-group-{{ group.id }}"><span>{{ group.title | escape }}</span><span class="classic-collection-count">{{ group.items.size }}</span></a>{% endfor %}
-    {% if ungrouped_count > 0 %}<a class="classic-button" href="#gallery-group-other">Other</a>{% endif %}
-    <span class="classic-small">{{ site.data.gallery_captions.size }} photographs</span>
-  </nav>
+  <aside class="classic-gallery-rail">
+    <nav class="classic-year-navigation" aria-label="Gallery collections">
+      <h2 class="classic-rail-heading">Collections</h2>
+      {% for group in site.data.gallery_groups %}<a class="classic-button" href="#gallery-group-{{ group.id }}"><span>{{ group.title | escape }}</span><span class="classic-collection-count">{{ group.items.size }}</span></a>{% endfor %}
+      {% if ungrouped_count > 0 %}<a class="classic-button" href="#gallery-group-other">Other</a>{% endif %}
+      <span class="classic-small">{{ site.data.gallery_captions.size }} photographs</span>
+    </nav>
+    <div class="classic-companion-dock" data-companion-dock></div>
+  </aside>
 </div>
 
 <div class="gallery-modal" id="gallery-modal" aria-hidden="true" hidden>

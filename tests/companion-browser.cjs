@@ -154,6 +154,13 @@ fs.mkdirSync(out, { recursive: true });
   await page.evaluate(() => {
     window.qaCanvas = document.querySelector("#live2dcanvas");
   });
+  // A manually moved window returns to the destination page's own dock.
+  await page.locator("[data-companion-titlebar]").focus();
+  await page.keyboard.press("ArrowRight");
+  assert.equal(
+    await page.locator("#live2d-widget").evaluate((e) => e.classList.contains("is-docked")),
+    false
+  );
   await page.locator('[data-classic-page="gallery"]').click();
   await page.waitForURL("**/gallery/");
   assert.equal(await page.locator("#live2d-widget").count(), 1);
@@ -164,10 +171,34 @@ fs.mkdirSync(out, { recursive: true });
   );
   assert.equal(await page.locator("[data-weather-widget]").count(), 1);
   assert.equal(await page.locator(".classic-photo").count(), 110);
+  for (const width of [1000, 1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.waitForTimeout(150);
+    const galleryDock = await page.locator("#live2d-widget").evaluate((e) => {
+      const r = e.getBoundingClientRect();
+      const dock = e.closest("[data-companion-dock]");
+      const rail = e.closest(".classic-gallery-rail");
+      const photos = document.querySelector(".gallery-container").getBoundingClientRect();
+      const nav = document.querySelector(".classic-year-navigation").getBoundingClientRect();
+      return {
+        docked: !!dock && !!rail,
+        besidePhotos: r.left >= photos.right,
+        belowIndex: r.top >= nav.bottom,
+        fits: !!dock && r.width <= dock.clientWidth && r.right <= innerWidth,
+        overflow: document.documentElement.scrollWidth > innerWidth,
+      };
+    });
+    assert(galleryDock.docked && galleryDock.besidePhotos && galleryDock.belowIndex && galleryDock.fits && !galleryDock.overflow,
+      JSON.stringify({ width, ...galleryDock }));
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator(".classic-photo a").first().click();
   await page.keyboard.press("Escape");
+  await page.locator("[data-companion-titlebar]").focus();
+  await page.keyboard.press("ArrowLeft");
   await page.locator('[data-classic-page="home"]').click();
   await page.waitForURL(process.env.PREVIEW_URL || "http://127.0.0.1:4100/");
+  assert(await page.locator("#live2d-widget").evaluate((e) => !!e.closest(".classic-profile-rail [data-companion-dock]")));
   // Minimize, restore, then keyboard/pointer dragging and reset stay on screen.
   await page.locator("[data-companion-minimize]").click();
   assert.equal(

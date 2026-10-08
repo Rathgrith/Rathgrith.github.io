@@ -737,6 +737,8 @@
     window.addEventListener("resize", scheduleResponsiveSync);
     window.addEventListener("orientationchange", scheduleResponsiveSync);
     document.addEventListener("site:before-content-replace", function () {
+      // Each page starts in its own dock, including after dragging on the previous page.
+      companionPosition = null;
       if (companionWidget) document.body.appendChild(companionWidget);
     });
   }

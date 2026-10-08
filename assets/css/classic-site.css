@@ -13,6 +13,7 @@ body {
   -webkit-font-smoothing: auto;
 }
 .classic-frame {
+  --classic-rail-width: clamp(270px, 21vw, 292px);
   width: 100%;
   max-width: 1760px;
   min-width: 0;
@@ -216,7 +217,7 @@ code {
   font-weight: 400;
 }
 
-/* Profile and document grow together with the desktop frame. */
+/* Keep the companion rail compact while the document uses the remaining width. */
 #main {
   display: block;
   width: 100%;
@@ -226,7 +227,7 @@ code {
 }
 #main.classic-home-grid {
   display: grid;
-  grid-template-columns: minmax(270px, 1fr) minmax(0, 3.2fr);
+  grid-template-columns: var(--classic-rail-width) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -1094,8 +1095,8 @@ body.live2d-is-hidden .classic-companion-dock {
 /* Keep the reading index available once the profile has scrolled away. */
 @media (min-width: 1000px) {
   .profile_box .author__avatar {
-    width: 90%;
-    max-width: 272px;
+    width: 100%;
+    max-width: 260px;
   }
   html[data-weather-visible="false"] .classic-profile-rail {
     align-self: stretch;

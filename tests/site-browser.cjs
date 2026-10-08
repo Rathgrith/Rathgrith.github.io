@@ -163,6 +163,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.goBack();
     await page.waitForURL("**/gallery/");
     await page.waitForSelector(".classic-photo");
+    await page.locator("#live2d-widget").waitFor({ state: "attached" });
     assert.equal(await page.locator("#live2d-widget").count(), 1);
     assert.deepEqual(errors, []);
     assert.deepEqual(bad, []);
