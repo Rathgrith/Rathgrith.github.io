@@ -401,6 +401,23 @@
     document.body.classList.remove("gallery-modal-open");
   }
 
+  function shuffleCollections(gallery) {
+    gallery.querySelectorAll(".classic-showcase-grid").forEach(function (grid) {
+      var cards = Array.prototype.slice.call(grid.children);
+      for (var i = cards.length - 1; i > 0; i -= 1) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var card = cards[i];
+        cards[i] = cards[j];
+        cards[j] = card;
+      }
+      var fragment = document.createDocumentFragment();
+      cards.forEach(function (card) {
+        fragment.appendChild(card);
+      });
+      grid.appendChild(fragment);
+    });
+  }
+
   function initGalleryPage() {
     var gallery = document.getElementById("gallery");
     if (!gallery) {
@@ -414,6 +431,8 @@
     restoreModalMount();
     gallery.setAttribute("data-gallery-bound", "true");
 
+    // Shuffle once per page load, before deriving the viewer's navigation order.
+    shuffleCollections(gallery);
     state.gallery = gallery;
     state.captions = parseCaptions();
     state.items = Array.prototype.map.call(gallery.querySelectorAll("a[data-gallery-filename]"), function (anchor) {

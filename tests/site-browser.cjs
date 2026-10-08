@@ -6,6 +6,18 @@ const out =
   process.env.QA_OUTPUT || require("node:os").tmpdir() + "/homepage-qa";
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 fs.mkdirSync(out, { recursive: true });
+async function galleryOrder(page, scripted = true) {
+  if (scripted)
+    await page.locator('#gallery[data-gallery-bound="true"]').waitFor();
+  return page.locator(".classic-showcase-grid").evaluateAll((grids) =>
+    grids.map((grid) =>
+      [...grid.querySelectorAll("a[data-gallery-filename]")].map(
+        (anchor) => anchor.dataset.galleryFilename
+      )
+    )
+  );
+}
+const galleryMembership = (groups) => groups.map((items) => [...items].sort());
 (async () => {
   const browser = await chromium.launch({
     channel: "chrome",
@@ -108,7 +120,8 @@ fs.mkdirSync(out, { recursive: true });
     await page.locator('[data-classic-page="gallery"]').click();
     await page.waitForURL("**/gallery/");
     assert.equal(await page.locator(".classic-photo").count(), 110);
-    for (const width of [320, 375, 600, 768, 1000, 1440, 1920]) {
+    const firstOrder = await galleryOrder(page);
+    for (const width of [320, 375, 600, 768, 1000, 1280, 1440, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       await page.waitForTimeout(100);
       assert.equal(
@@ -129,9 +142,18 @@ fs.mkdirSync(out, { recursive: true });
         assert(Math.abs(ratio - 4 / 3) < 0.015);
         assert.equal(fit, "cover");
       });
+      if (width >= 1280) {
+        const firstRow = await page.locator(".classic-showcase-grid").first()
+          .locator(".classic-photo").evaluateAll((cards) =>
+            cards.slice(0, 6).map((card) => card.getBoundingClientRect().top)
+          );
+        assert(firstRow.slice(0, 5).every((top) => Math.abs(top - firstRow[0]) < 1));
+        assert(firstRow[5] > firstRow[0], "Desktop Gallery should have five cards per row");
+      }
       if ([375, 768, 1440].includes(width))
         await page.screenshot({ path: out + `/gallery-${width}.png` });
     }
+    assert.deepEqual(await galleryOrder(page), firstOrder, "Resizing must preserve this visit's order");
     await page.setViewportSize({ width: 375, height: 812 });
     await page
       .locator('.classic-photo a[data-gallery-filename="mayoi.jpg"]')
@@ -145,6 +167,12 @@ fs.mkdirSync(out, { recursive: true });
     );
     const first = await page.locator(".gallery-modal__counter").textContent();
     await page.keyboard.press("ArrowRight");
+    const flattened = firstOrder.flat();
+    const nextFilename = flattened[(flattened.indexOf("mayoi.jpg") + 1) % flattened.length];
+    assert(
+      (await page.locator("[data-gallery-placeholder]").getAttribute("src")).endsWith("/" + nextFilename),
+      "Viewer should follow the displayed randomized order"
+    );
     assert.notEqual(
       await page.locator(".gallery-modal__counter").textContent(),
       first
@@ -165,6 +193,13 @@ fs.mkdirSync(out, { recursive: true });
     await page.waitForSelector(".classic-photo");
     await page.locator("#live2d-widget").waitFor({ state: "attached" });
     assert.equal(await page.locator("#live2d-widget").count(), 1);
+    const revisitOrder = await galleryOrder(page);
+    assert.notDeepEqual(revisitOrder, firstOrder, "Revisiting should reshuffle the collections");
+    assert.deepEqual(galleryMembership(revisitOrder), galleryMembership(firstOrder));
+    await page.reload();
+    const reloadedOrder = await galleryOrder(page);
+    assert.notDeepEqual(reloadedOrder, revisitOrder, "Reloading should reshuffle the collections");
+    assert.deepEqual(galleryMembership(reloadedOrder), galleryMembership(firstOrder));
     assert.deepEqual(errors, []);
     assert.deepEqual(bad, []);
     // The static gallery remains useful when scripting is disabled.
@@ -174,6 +209,9 @@ fs.mkdirSync(out, { recursive: true });
     });
     await plain.goto(base + "gallery/");
     assert.equal(await plain.locator(".classic-photo a[href]").count(), 110);
+    const originalOrder = await galleryOrder(plain, false);
+    assert.deepEqual(galleryMembership(firstOrder), galleryMembership(originalOrder),
+      "Shuffling must retain every photograph in its original collection");
     assert.equal(
       await plain.evaluate(
         () => document.documentElement.scrollWidth > innerWidth
@@ -181,7 +219,7 @@ fs.mkdirSync(out, { recursive: true });
       false
     );
     console.log(
-      `PASS: ${checks} theme/width combinations, 7 gallery widths, viewer keyboard/focus, publications, history navigation, and no-JS gallery`
+      `PASS: ${checks} theme/width combinations, 8 gallery widths, per-visit shuffle, viewer order/keyboard/focus, publications, history navigation, and no-JS gallery`
     );
   } finally {
     await browser.close();
