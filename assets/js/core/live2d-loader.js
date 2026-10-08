@@ -343,18 +343,48 @@
     );
   }
 
+  function getCompanionDock() {
+    if (companionPosition) return null;
+    return document.querySelector(
+      window.innerWidth >= 1000
+        ? "[data-companion-dock]"
+        : "[data-companion-mobile-dock]"
+    );
+  }
+
+  function placeCompanion(widget) {
+    var dock = getCompanionDock();
+    var parent = dock || document.body;
+    if (widget.parentNode !== parent) parent.appendChild(widget);
+    widget.classList.toggle("is-docked", Boolean(dock));
+  }
+
   function getDisplayConfig() {
-    var width = Math.min(342, Math.max(260, window.innerWidth - 26));
+    var dock = getCompanionDock();
+    var width = dock
+      ? Math.max(220, Math.floor(dock.getBoundingClientRect().width) - 12)
+      : Math.min(342, Math.max(260, window.innerWidth - 26));
     return {
       width: width,
-      height: Math.max(
-        170,
-        Math.min(260, Math.round(window.innerHeight * 0.31))
-      ),
+      height: dock
+        ? Math.round(Math.min(300, width * 0.78))
+        : Math.max(170, Math.min(260, Math.round(window.innerHeight * 0.31))),
     };
   }
 
   function constrainCompanionPosition(widget) {
+    placeCompanion(widget);
+    if (widget.classList.contains("is-docked")) {
+      widget.style.left =
+        widget.style.top =
+        widget.style.right =
+        widget.style.bottom =
+          "auto";
+      var dockHeight = Math.max(540, getDisplayConfig().height + 340);
+      widget.style.maxHeight = dockHeight + "px";
+      widget.style.setProperty("--vn-available-height", dockHeight + "px");
+      return;
+    }
     if (!companionPosition) {
       var top = Math.max(12, Math.min(160, window.innerHeight - 710));
       widget.style.left = "auto";
@@ -397,11 +427,9 @@
     button.setAttribute("aria-expanded", companionMinimized ? "false" : "true");
     button.setAttribute(
       "aria-label",
-      companionMinimized
-        ? "Restore companion window"
-        : "Minimize companion window"
+      companionMinimized ? "ウィンドウを開く" : "最小化"
     );
-    button.setAttribute("title", companionMinimized ? "Restore" : "Minimize");
+    button.setAttribute("title", companionMinimized ? "開く" : "最小化");
     button.textContent = companionMinimized ? "□" : "_";
   }
 
@@ -427,15 +455,15 @@
     widget.setAttribute("role", "region");
     widget.setAttribute("aria-labelledby", "companion-title");
     widget.innerHTML = [
-      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="拖动标题栏移动；方向键微调，Home 返回右侧">',
-      '<span id="companion-title" class="companion-title"><span data-companion-name>Companion</span></span>',
+      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="ドラッグで移動・ダブルクリックで元の位置へ">',
+      '<span id="companion-title" class="companion-title"><span data-companion-name>幻想通信</span></span>',
       '<div class="companion-controls">',
-      '<button type="button" data-companion-minimize aria-label="Minimize companion window" aria-expanded="true" aria-controls="companion-content" title="Minimize">_</button>',
-      '<button type="button" data-companion-close aria-label="Close companion window" title="Close">×</button>',
+      '<button type="button" data-companion-minimize aria-label="最小化" aria-expanded="true" aria-controls="companion-content" title="最小化">_</button>',
+      '<button type="button" data-companion-close aria-label="閉じる" title="閉じる">×</button>',
       "</div></div>",
       '<div id="companion-content" data-companion-content>',
-      '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">Loading companion…</span></div>',
-      '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">Click Talk to start a conversation.</p></div>',
+      '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">読み込み中…</span></div>',
+      '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">……</p></div>',
       '<div class="companion-footer" data-companion-footer></div>',
       "</div>",
     ].join("");
@@ -463,11 +491,15 @@
     });
     titlebar.addEventListener("pointermove", function (event) {
       if (!drag) return;
+      var wasDocked = widget.classList.contains("is-docked");
       companionPosition = {
         x: event.clientX - drag.x,
         y: event.clientY - drag.y,
       };
-      constrainCompanionPosition(widget);
+      if (wasDocked) {
+        applyResponsiveSize();
+        titlebar.setPointerCapture(event.pointerId);
+      } else constrainCompanionPosition(widget);
     });
     function endDrag() {
       drag = null;
@@ -544,12 +576,10 @@
       document.body.appendChild(widget);
     }
     companionWidget = widget;
-    if (widget.parentNode !== document.body) document.body.appendChild(widget);
-    widget.classList.remove("is-docked");
+    placeCompanion(widget);
     widget.removeAttribute("aria-hidden");
     ensureCompanionShell(widget);
-    if (!companionVisibilityChosen)
-      companionMinimized = window.innerWidth < 1280;
+    if (!companionVisibilityChosen) companionMinimized = false;
     renderCompanionVisibility(widget);
     var stage = widget.querySelector("[data-companion-stage]");
 
@@ -654,10 +684,6 @@
     elements.widget.style.setProperty("--vn-width", display.width + 10 + "px");
     elements.widget.style.height = "auto";
     elements.trigger.hidden = false;
-    document.body.classList.toggle(
-      "companion-is-expanded",
-      !companionMinimized && !shouldDisableLive2D()
-    );
     window.SiteCompanion.setVisible(
       !companionMinimized && !shouldDisableLive2D()
     );
@@ -692,6 +718,9 @@
     window.__siteLive2DResponsiveBound = true;
     window.addEventListener("resize", scheduleResponsiveSync);
     window.addEventListener("orientationchange", scheduleResponsiveSync);
+    document.addEventListener("site:before-content-replace", function () {
+      if (companionWidget) document.body.appendChild(companionWidget);
+    });
   }
 
   function loadScriptOnce(cacheKey, source, isReady) {
@@ -1641,8 +1670,9 @@
     var selected =
       getCharacter(getSelectedCharacterId()) ||
       getCharacter(getDefaultCharacterId());
-    var label = "Theme: " + selected.name;
-    var accessibleLabel = "Switch visual theme. Current: " + selected.name;
+    var name = window.CompanionStories.characters[selected.id].name;
+    var label = "テーマ：" + name;
+    var accessibleLabel = "テーマを切り替える：" + name;
 
     button.hidden = isPageDisabled();
     button.setAttribute("aria-label", accessibleLabel);
@@ -1755,8 +1785,21 @@
   document.addEventListener("visibilitychange", applyResponsiveSize);
   document.addEventListener("site:content-updated", initLive2D);
   document.addEventListener("site:live2d-toggle", function (event) {
-    if (event.detail && event.detail.enabled) setCompanionMinimized(false);
+    var detail = event.detail || {};
+    if (detail.layoutChanged) companionPosition = null;
+    if (detail.enabled) setCompanionMinimized(false);
     initLive2D();
+    if (detail.enabled && detail.userInitiated && window.innerWidth < 1000) {
+      requestAnimationFrame(function () {
+        companionWidget.scrollIntoView({
+          block: "center",
+          behavior: "instant",
+        });
+        companionWidget
+          .querySelector("[data-companion-titlebar]")
+          .focus({ preventScroll: true });
+      });
+    }
   });
 
   if (document.readyState === "loading") {

@@ -257,7 +257,8 @@
       -1.8904
     );
     var defaultLocation =
-      root.getAttribute("data-weather-default-location") || "West Midlands";
+      root.getAttribute("data-weather-default-location") ||
+      "ウェスト・ミッドランズ";
     var activeLocation = {
       latitude: defaultLatitude,
       longitude: defaultLongitude,
@@ -323,12 +324,7 @@
       );
       root.setAttribute(
         "aria-label",
-        locationLabel +
-          ": " +
-          weather.name +
-          ", " +
-          temperature +
-          " degrees Celsius"
+        locationLabel + ": " + weather.name + ", " + temperature + "度"
       );
       var weatherContext = {
         name: weather.name,
@@ -367,7 +363,7 @@
       }, REQUEST_TIMEOUT_MS);
 
       setBusy(true);
-      if (!settings.quiet) setStatus("Reading the local sky…");
+      if (!settings.quiet) setStatus("天気を観測中…");
 
       try {
         var response = await window.fetch(
@@ -387,9 +383,9 @@
       } catch (error) {
         if (controller !== requestController) return;
         if (error && error.name === "AbortError") {
-          setStatus("The weather reading timed out. Try again shortly.");
+          setStatus("接続がタイムアウトしました。");
         } else {
-          setStatus("The weather dial could not update. Try again shortly.");
+          setStatus("天気を更新できませんでした。");
         }
       } finally {
         window.clearTimeout(timeoutId);
@@ -402,25 +398,25 @@
 
     function locateVisitor() {
       if (!window.navigator.geolocation) {
-        setStatus("Location is unavailable in this browser.");
+        setStatus("現在地を取得できません。");
         return;
       }
 
       setBusy(true);
-      setStatus("Waiting for location permission…");
+      setStatus("位置情報の許可を待っています…");
       window.navigator.geolocation.getCurrentPosition(
         function (position) {
           activeLocation = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-            label: "Current position",
+            label: "現在地",
           };
           loadWeather({ force: true });
         },
         function () {
           setBusy(false);
           setStatus(
-            "Location was not changed. Showing " + defaultLocation + "."
+            "現在地を取得できません。" + defaultLocation + "を表示しています。"
           );
         },
         {

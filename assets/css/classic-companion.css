@@ -1,5 +1,15 @@
+@font-face {
+  font-family: "Fusion Pixel";
+  src: url("../fonts/fusion-pixel/fusion-pixel-12px-proportional-ja.ttf.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* A floating PC-98-inspired conversation window. Its contents outlive soft navigation. */
 #live2d-widget.classic-companion {
+  --vn-font: "Fusion Pixel", "W95FA", sans-serif;
   --vn-ink: #eee9df;
   --vn-muted: #bebbb8;
   --vn-panel: #111722;
@@ -24,7 +34,7 @@
     inset 0 0 0 1px var(--classic-edge-dark),
     4px 4px 0 #0007;
   color: var(--vn-ink);
-  font: 13px/1.5 var(--classic-font);
+  font: 12px/1.75 var(--vn-font);
   overflow: hidden;
   opacity: 1;
   transform: none;
@@ -62,7 +72,7 @@
   border-radius: 0;
   background: var(--vn-panel);
   color: var(--vn-ink);
-  font: 13px/1.5 var(--classic-font);
+  font: 12px/1.75 var(--vn-font);
   cursor: pointer;
   box-shadow: none;
   transform: none;
@@ -93,9 +103,7 @@
   border-bottom: 1px solid var(--vn-rule);
   color: var(--vn-ink);
   background: linear-gradient(90deg, var(--classic-title), var(--vn-panel));
-  font:
-    14px/1.2 "W95FA",
-    sans-serif;
+  font: 12px/1.5 var(--vn-font);
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -138,21 +146,30 @@
   scrollbar-width: thin;
   scrollbar-color: var(--vn-rule) var(--vn-panel);
 }
-#live2d-widget.is-minimized {
+#live2d-widget.is-docked {
+  position: relative;
+  z-index: auto;
+  width: 100%;
+  max-width: 100%;
+}
+#live2d-widget.is-minimized:not(.is-docked) {
   width: 244px;
 }
 #live2d-widget .vn-cast {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   gap: 4px;
   padding: 7px 3px;
 }
 #live2d-widget .vn-cast button {
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 4px;
-  padding: 2px 5px;
-  font-size: 11px;
+  padding: 2px;
+  font-size: 12px;
   border-color: transparent;
 }
 #live2d-widget .vn-cast button[aria-pressed="true"] {
@@ -164,24 +181,35 @@
   height: 22px;
   image-rendering: pixelated;
 }
-#live2d-widget .vn-mode {
-  margin-left: auto;
-  color: var(--vn-muted);
-  font:
-    11px "W95FA",
-    sans-serif;
-  letter-spacing: 1px;
-}
 #live2d-widget .companion-stage {
   position: relative;
   width: 100%;
   overflow: hidden;
   margin: 0;
-  background:
-    var(--vn-scene) center 45% / cover,
-    var(--vn-panel);
+  background: var(--vn-panel);
   border: 1px solid var(--vn-rule);
   isolation: isolate;
+}
+/* Defocus only the environment; the rig stays crisp in front of it. */
+#live2d-widget .companion-stage::before,
+#live2d-widget .companion-stage::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -5px;
+  pointer-events: none;
+}
+#live2d-widget .companion-stage::before {
+  background: var(--vn-scene) center 45% / cover;
+  filter: blur(1.25px);
+}
+#live2d-widget .companion-stage::after {
+  background:
+    radial-gradient(circle at 12% 28%, var(--vn-light) 0 5px, transparent 15px),
+    radial-gradient(circle at 84% 20%, #ffe3a5 0 4px, transparent 13px),
+    radial-gradient(circle at 90% 75%, var(--vn-light) 0 7px, transparent 19px);
+  opacity: 0.3;
+  filter: blur(3px);
 }
 #live2d-widget #live2dcanvas {
   position: relative;
@@ -229,10 +257,7 @@
   background: #0c101bc9;
   color: #e4dfd9;
   border-left: 2px solid var(--classic-accent);
-  font:
-    10px/1.6 "Hiragino Kaku Gothic ProN",
-    Meiryo,
-    sans-serif;
+  font: 12px/1.5 var(--vn-font);
   pointer-events: none;
 }
 #live2d-widget .companion-load-status {
@@ -252,10 +277,6 @@
 #live2d-widget.is-loading .companion-load-status,
 #live2d-widget.has-live2d-error .companion-load-status {
   display: flex;
-}
-#live2d-widget .companion-load-status small {
-  font: 11px/1.5 var(--classic-font);
-  color: var(--vn-muted);
 }
 #live2d-widget .vn-loading-icon {
   display: grid;
@@ -304,17 +325,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px;
   margin: -20px 0 8px;
 }
 #live2d-widget .vn-nameplate strong {
   padding: 0 6px;
   background: var(--vn-panel);
   color: var(--classic-accent);
-  font:
-    14px/1.4 "Hiragino Kaku Gothic ProN",
-    Meiryo,
-    sans-serif;
+  font: 12px/1.5 var(--vn-font);
 }
 #live2d-widget .vn-affinity {
   display: flex;
@@ -323,7 +341,7 @@
   padding: 0 4px;
   color: var(--vn-muted);
   background: var(--vn-panel);
-  font-size: 10px;
+  font-size: 12px;
 }
 #live2d-widget meter {
   width: 35px;
@@ -366,7 +384,7 @@
 }
 #live2d-widget .vn-reading {
   position: relative;
-  min-height: 121px;
+  min-height: 112px;
   padding: 2px 0 14px;
   cursor: pointer;
 }
@@ -374,25 +392,10 @@
   margin: 0;
   padding: 0;
   color: var(--vn-ink);
-  font:
-    14px/1.85 "Hiragino Kaku Gothic ProN",
-    "Yu Gothic",
-    Meiryo,
-    sans-serif;
+  font: 12px/2 var(--vn-font);
+  letter-spacing: 0.5px;
+  line-break: strict;
   overflow-wrap: anywhere;
-}
-#live2d-widget .vn-translation {
-  margin: 8px 0 0;
-  padding: 0;
-  color: var(--vn-muted);
-  font:
-    12px/1.65 "Hiragino Sans GB",
-    "Microsoft YaHei",
-    sans-serif;
-  overflow-wrap: anywhere;
-}
-#live2d-widget[data-subtitles="false"] .vn-translation {
-  display: none;
 }
 #live2d-widget .vn-next-mark {
   position: absolute;
@@ -405,22 +408,6 @@
 }
 #live2d-widget[data-dialogue-state="typing"] .vn-next-mark {
   visibility: hidden;
-}
-#live2d-widget .vn-line-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-  border-top: 1px solid color-mix(in srgb, var(--vn-rule) 35%, transparent);
-  padding-top: 5px;
-  font: 10px/1.4 var(--classic-font);
-  color: var(--vn-muted);
-}
-#live2d-widget .vn-hint {
-  display: block;
-  text-align: right;
-  margin-top: 5px;
-  color: var(--vn-muted);
-  font: 10px/1.4 var(--classic-font);
 }
 #live2d-widget .vn-choices {
   display: grid;
@@ -453,7 +440,7 @@
   display: block;
   width: auto;
   height: auto;
-  min-width: 72px;
+  min-width: 58px;
   margin-left: auto;
   border-color: var(--vn-rule);
   background: var(--classic-soft);
@@ -469,7 +456,7 @@
   border-top: 1px solid var(--vn-rule);
   color: var(--vn-muted);
   text-align: left;
-  font: 11px/1.3 var(--classic-font);
+  font: 12px/1.3 var(--vn-font);
 }
 #live2d-widget .vn-weather-strip span:nth-child(2) {
   flex: 1;
@@ -500,7 +487,7 @@
   padding-bottom: 8px;
   border-bottom: 1px solid var(--vn-rule);
   color: var(--classic-accent);
-  font-size: 15px;
+  font-size: 12px;
 }
 #live2d-widget .vn-panel > header button {
   width: 26px;
@@ -513,7 +500,7 @@
 #live2d-widget .vn-panel label {
   display: block;
   margin: 14px 0 6px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--vn-ink);
 }
 #live2d-widget .vn-panel output {
@@ -538,13 +525,7 @@
 }
 #live2d-widget .vn-panel p {
   margin: 8px 0;
-  font: 12px/1.7 var(--classic-font);
-  color: var(--vn-muted);
-}
-#live2d-widget .vn-panel small {
-  display: block;
-  margin-top: 16px;
-  font: 11px/1.7 var(--classic-font);
+  font: 12px/1.7 var(--vn-font);
   color: var(--vn-muted);
 }
 #live2d-widget .vn-topic-list {
@@ -554,6 +535,17 @@
 #live2d-widget .vn-topic-list button {
   min-height: 39px;
   text-align: left;
+}
+#live2d-widget .vn-friends-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+#live2d-widget .vn-friends-list button {
+  min-height: 36px;
+  padding: 6px 4px;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 #live2d-widget .vn-history {
   max-height: 365px;
@@ -569,11 +561,7 @@
 }
 #live2d-widget .vn-history p:first-child {
   color: var(--vn-ink);
-  font-size: 13px;
-}
-#live2d-widget .vn-history small {
-  margin-top: 5px;
-  font-size: 10px;
+  font-size: 12px;
 }
 #live2d-widget .weather-dial {
   display: block;
@@ -591,18 +579,15 @@
 html body.live2d-is-hidden #live2d-widget {
   display: none;
 }
-/* Reserve a desktop lane so the expanded window never covers the article. */
-@media (min-width: 1280px) {
-  html body.companion-is-expanded {
-    padding-right: 390px;
-  }
-}
 @media (max-width: 599px) {
-  #live2d-widget.is-minimized {
-    width: 222px;
+  #live2d-widget.is-docked {
+    position: relative;
+    z-index: auto;
+    width: 100%;
+    max-width: 100%;
   }
-  #live2d-widget .vn-mode {
-    display: none;
+  #live2d-widget.is-minimized:not(.is-docked) {
+    width: 222px;
   }
   #live2d-widget .companion-footer button {
     padding-inline: 5px;
@@ -616,9 +601,6 @@ html body.live2d-is-hidden #live2d-widget {
 @media print {
   #live2d-widget {
     display: none;
-  }
-  html body.companion-is-expanded {
-    padding-right: 0;
   }
 }
 
@@ -653,4 +635,11 @@ html body.live2d-is-hidden #live2d-widget {
   margin: -14px -14px 18px;
   padding: 14px;
   background: var(--vn-panel);
+}
+
+#live2d-widget .weather-dial {
+  font-family: var(--vn-font);
+}
+#live2d-widget .weather-dial__title {
+  font: 12px/1.5 var(--vn-font);
 }

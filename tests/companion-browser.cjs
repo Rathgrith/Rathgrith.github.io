@@ -38,13 +38,17 @@ fs.mkdirSync(out, { recursive: true });
     await page.locator("#live2d-widget").getAttribute("data-dialogue-state"),
     "ready"
   );
-  assert(
-    (await page.locator("[data-vn-translation]").textContent()).length > 0
+  assert.equal(
+    await page
+      .locator("[data-vn-translation], [data-vn-source], [data-vn-hint]")
+      .count(),
+    0
   );
+  assert.equal(await page.locator("#live2d-widget").getAttribute("lang"), "ja");
   assert.equal(
     await page
       .locator("#live2d-widget")
-      .evaluate((e) => e.parentElement === document.body),
+      .evaluate((e) => e.parentElement.hasAttribute("data-companion-dock")),
     true
   );
   for (const id of ["alice", "marisa", "patchouli"]) {
@@ -81,7 +85,7 @@ fs.mkdirSync(out, { recursive: true });
     );
     assert.equal(
       await page.locator("[data-vn-affinity]").textContent(),
-      "知己"
+      "内緒話"
     );
     assert.equal(
       await page.evaluate(
@@ -91,6 +95,28 @@ fs.mkdirSync(out, { recursive: true });
       ),
       92
     );
+    await page.locator('[data-vn-open="topics"]').click();
+    await page.locator('[data-vn-topic-start="friends"]').click();
+    const remarks = await page.evaluate((id) => CompanionRemarks[id], id);
+    assert.equal(
+      await page.locator("[data-vn-friends-list] button").count(),
+      remarks.length
+    );
+    await page.screenshot({ path: out + "/" + id + "-friends.png" });
+    await page.locator("[data-vn-friends-list] button").last().click();
+    assert.equal(
+      await page.locator("[data-live2d-dialogue-text]").textContent(),
+      remarks.at(-1).text
+    );
+    await page.locator("#live2d-interact").click();
+    assert(await page.locator('[data-vn-panel="friends"]').isVisible());
+    await page.keyboard.press("Escape");
+    assert(
+      await page
+        .locator('[data-vn-open="topics"]')
+        .evaluate((e) => e === document.activeElement)
+    );
+    await page.locator("#live2d-widget").scrollIntoViewIfNeeded();
     await page.screenshot({ path: out + "/" + id + ".png" });
   }
   // Affinity settings survive reload and do not leak between characters.
@@ -99,18 +125,21 @@ fs.mkdirSync(out, { recursive: true });
     e.value = "0";
     e.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  await page.locator("[data-vn-subtitles]").uncheck();
   await page.screenshot({ path: out + "/settings.png" });
   await page.keyboard.press("Escape");
   await page.reload();
   await page.waitForSelector("[data-vn-affinity]");
-  assert.equal(await page.locator("[data-vn-affinity]").textContent(), "初见");
-  assert.equal(await page.locator("[data-vn-translation]").isVisible(), false);
+  assert.equal(
+    await page.locator("[data-vn-affinity]").textContent(),
+    "初対面"
+  );
   await page.locator('[data-vn-open="settings"]').click();
-  await page.locator("[data-vn-subtitles]").check();
   await page.keyboard.press("Escape");
   await page.locator('button[data-vn-character="alice"]').click();
-  assert.equal(await page.locator("[data-vn-affinity]").textContent(), "知己");
+  assert.equal(
+    await page.locator("[data-vn-affinity]").textContent(),
+    "内緒話"
+  );
   await page.locator('[data-vn-open="weather"]').click();
   assert.equal(
     await page
@@ -122,9 +151,17 @@ fs.mkdirSync(out, { recursive: true });
   await page.screenshot({ path: out + "/weather.png" });
   await page.keyboard.press("Escape");
   // A single retained window and weather widget across soft navigation.
+  await page.evaluate(() => {
+    window.qaCanvas = document.querySelector("#live2dcanvas");
+  });
   await page.locator('[data-classic-page="gallery"]').click();
   await page.waitForURL("**/gallery/");
   assert.equal(await page.locator("#live2d-widget").count(), 1);
+  assert(
+    await page.evaluate(
+      () => window.qaCanvas === document.querySelector("#live2dcanvas")
+    )
+  );
   assert.equal(await page.locator("[data-weather-widget]").count(), 1);
   assert.equal(await page.locator(".classic-photo").count(), 110);
   await page.locator(".classic-photo a").first().click();
@@ -143,14 +180,15 @@ fs.mkdirSync(out, { recursive: true });
   await page.keyboard.press("ArrowLeft");
   await page.keyboard.press("ArrowUp");
   await page.keyboard.press("Home");
+  await title.scrollIntoViewIfNeeded();
   const dragBox = await title.boundingBox();
   await page.mouse.move(dragBox.x + 70, dragBox.y + 12);
   await page.mouse.down();
-  await page.mouse.move(300, 120, { steps: 6 });
+  await page.mouse.move(700, 120, { steps: 6 });
   await page.mouse.up();
   const movedBox = await title.boundingBox();
   assert(
-    movedBox.x < dragBox.x - 100,
+    Math.abs(movedBox.x - 630) < 3 && Math.abs(movedBox.y - 108) < 3,
     "Titlebar pointer drag must move the window"
   );
   await title.focus();
@@ -160,20 +198,29 @@ fs.mkdirSync(out, { recursive: true });
     320, 375, 480, 599, 600, 768, 999, 1000, 1279, 1280, 1440, 1920,
   ]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(150);
+    if (!(await page.locator("#live2d-widget").isVisible())) {
+      await page.locator("[data-site-options-trigger]").click();
+      await page.locator("[data-live2d-toggle]").click();
+      await page.keyboard.press("Escape");
+    }
+    await page.evaluate(() => scrollTo(0, 0));
     const info = await page.evaluate(() => {
       let e = document.querySelector("#live2d-widget"),
         r = e.getBoundingClientRect(),
-        f = document.querySelector(".classic-frame").getBoundingClientRect();
+        f = document.querySelector(".classic-frame").getBoundingClientRect(),
+        article = document.querySelector(".page").getBoundingClientRect(),
+        docked = e.classList.contains("is-docked");
       return {
         width: innerWidth,
         overflow: document.documentElement.scrollWidth > innerWidth,
         widgetFits:
           r.left >= 0 &&
           r.right <= innerWidth &&
-          r.top >= 0 &&
-          r.bottom <= innerHeight,
-        overlapsWide: innerWidth >= 1280 && f.right > r.left,
+          (docked || (r.top >= 0 && r.bottom <= innerHeight)),
+        overlapsWide: innerWidth >= 1000 && r.right > article.left,
+        docked,
+        frameWidth: f.width,
         contentOverflow:
           document.querySelector("[data-companion-content]").scrollWidth >
           e.clientWidth,
@@ -186,14 +233,38 @@ fs.mkdirSync(out, { recursive: true });
         !info.contentOverflow,
       JSON.stringify(info)
     );
+    assert.equal(info.docked, true);
+    if (width < 1000) {
+      assert(
+        await page.locator("#live2d-widget").evaluate((e) => {
+          const nav = document
+            .querySelector(".classic-page-index")
+            .getBoundingClientRect();
+          const article = document
+            .querySelector(".page")
+            .getBoundingClientRect();
+          return (
+            e.parentElement.hasAttribute("data-companion-mobile-dock") &&
+            e.getBoundingClientRect().top >= nav.bottom &&
+            nav.top >= article.bottom
+          );
+        })
+      );
+    }
+    if (width >= 1000) assert(info.frameWidth >= Math.min(width - 52, 1760));
     assert(await page.locator("[data-live2d-dialogue-text]").isVisible());
     assert(await page.locator("#live2d-interact").isVisible());
     widths.push(info);
-    if ([320, 375, 768, 1440].includes(width))
+    if ([320, 375, 768, 1440].includes(width)) {
+      await page.locator("#live2d-widget").scrollIntoViewIfNeeded();
       await page.screenshot({ path: out + "/expanded-" + width + ".png" });
+    }
   }
   await page.setViewportSize({ width: 600, height: 360 });
   await page.waitForTimeout(150);
+  await title.scrollIntoViewIfNeeded();
+  await title.focus();
+  await page.keyboard.press("ArrowRight");
   await page.locator('[data-vn-open="settings"]').click();
   await page.screenshot({ path: out + "/short-settings.png" });
   await page.keyboard.press("Escape");

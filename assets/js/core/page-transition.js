@@ -164,6 +164,7 @@
       ? document.importNode(nextMain, true)
       : nextMain.cloneNode(true);
 
+    document.dispatchEvent(new CustomEvent("site:before-content-replace"));
     currentMain.parentNode.replaceChild(imported, currentMain);
     return imported;
   }

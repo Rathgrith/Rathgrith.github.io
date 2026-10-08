@@ -1,19 +1,29 @@
-/* One persisted visibility preference shared by the titlebar and header menu. */
+/* Separate phone/tablet and desktop preferences; small screens start without Live2D. */
 (function () {
-  var key = "site-live2d-enabled";
-  var enabled = true;
-  try {
-    enabled = localStorage.getItem(key) !== "false";
-  } catch (_) {}
-
+  var mobile = matchMedia("(max-width: 999px)");
+  var preferences = { desktop: true, mobile: false };
+  var keys = {
+    desktop: "site-live2d-enabled",
+    mobile: "site-live2d-mobile-enabled",
+  };
+  Object.keys(keys).forEach(function (mode) {
+    try {
+      var saved = localStorage.getItem(keys[mode]);
+      if (saved !== null) preferences[mode] = saved === "true";
+    } catch (_) {}
+  });
+  function mode() {
+    return mobile.matches ? "mobile" : "desktop";
+  }
   function render() {
+    var enabled = preferences[mode()];
     var disabled = document.body.dataset.disableLive2d === "true";
     document.documentElement.dataset.live2dEnabled = String(enabled);
     document.body.classList.toggle("live2d-is-hidden", disabled || !enabled);
     document
       .querySelectorAll("[data-live2d-toggle]")
       .forEach(function (button) {
-        var label = enabled ? "Hide Live2D" : "Show Live2D";
+        var label = enabled ? "Live2D を閉じる" : "Live2D を開く";
         button.hidden = disabled;
         button.setAttribute("aria-pressed", String(enabled));
         button.setAttribute("aria-label", label);
@@ -25,18 +35,25 @@
           "</span>";
       });
   }
-
-  function set(value) {
-    enabled = Boolean(value);
-    try {
-      localStorage.setItem(key, String(enabled));
-    } catch (_) {}
-    render();
+  function notify(userInitiated, layoutChanged) {
     document.dispatchEvent(
-      new CustomEvent("site:live2d-toggle", { detail: { enabled: enabled } })
+      new CustomEvent("site:live2d-toggle", {
+        detail: {
+          enabled: preferences[mode()],
+          userInitiated: Boolean(userInitiated),
+          layoutChanged: Boolean(layoutChanged),
+        },
+      })
     );
   }
-
+  function set(value) {
+    preferences[mode()] = Boolean(value);
+    try {
+      localStorage.setItem(keys[mode()], String(Boolean(value)));
+    } catch (_) {}
+    render();
+    notify(true, false);
+  }
   function init() {
     render();
     document
@@ -45,10 +62,14 @@
         if (button.dataset.visibilityBound) return;
         button.dataset.visibilityBound = "true";
         button.addEventListener("click", function () {
-          set(!enabled);
+          set(!preferences[mode()]);
         });
       });
   }
+  mobile.addEventListener("change", function () {
+    render();
+    notify(false, true);
+  });
   window.SiteCompanionVisibility = { set: set };
   document.addEventListener("site:content-updated", init);
   if (document.readyState === "loading")

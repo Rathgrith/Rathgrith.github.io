@@ -32,8 +32,7 @@
     affinity[id] = number(saved.affinity && saved.affinity[id], 35, 0, 100);
   });
   var speed = [0, 18, 38, 65].indexOf(saved.speed) >= 0 ? saved.speed : 38;
-  var subtitles = saved.subtitles !== false,
-    lighting = saved.lighting !== false,
+  var lighting = saved.lighting !== false,
     auto = false;
   function persist() {
     try {
@@ -42,7 +41,6 @@
         JSON.stringify({
           affinity: affinity,
           speed: speed,
-          subtitles: subtitles,
           lighting: lighting,
         })
       );
@@ -66,31 +64,32 @@
     var value = affinity[currentId],
       label = data.tierNames[data.tier(value)];
     q("[data-vn-affinity]").textContent = label;
-    q("[data-vn-affinity]").title = "好感度 " + value + " / 100";
+    q("[data-vn-affinity]").title = "親密度 " + value + " / 100";
     q("[data-vn-affinity-meter]").value = value;
     q("[data-vn-affinity-input]").value = value;
     q("[data-vn-affinity-output]").textContent = value + " / 100 · " + label;
   }
   function renderSettings() {
     q("[data-vn-speed]").value = speed;
-    q("[data-vn-subtitles]").checked = subtitles;
     q("[data-vn-lighting]").checked = lighting;
-    root.dataset.subtitles = String(subtitles);
     root.dataset.sceneLighting = String(lighting);
     updateAffinity();
   }
   function panelOpen(name) {
     panel = panel === name ? "" : name;
-    ["settings", "history", "weather", "topics"].forEach(function (id) {
-      q('[data-vn-panel="' + id + '"]').hidden = panel !== id;
-      var button = q('[data-vn-open="' + id + '"]');
-      if (button) button.setAttribute("aria-expanded", String(panel === id));
-    });
+    ["settings", "history", "weather", "topics", "friends"].forEach(
+      function (id) {
+        q('[data-vn-panel="' + id + '"]').hidden = panel !== id;
+        var button = q('[data-vn-open="' + id + '"]');
+        if (button) button.setAttribute("aria-expanded", String(panel === id));
+      }
+    );
     root.classList.toggle("has-vn-panel", Boolean(panel));
     q(".vn-main-view").inert = Boolean(panel);
     if (panel) q('[data-vn-panel="' + panel + '"]').scrollTop = 0;
     clearTimeout(autoTimer);
     if (panel === "history") renderHistory();
+    if (panel === "friends") renderFriends();
     if (panel === "settings") renderSettings();
     if (panel) {
       var focus = q('[data-vn-panel="' + panel + '"] button');
@@ -100,6 +99,20 @@
   function closePanel() {
     if (panel) panelOpen(panel);
   }
+  function renderFriends() {
+    var list = q("[data-vn-friends-list]");
+    list.replaceChildren();
+    (window.CompanionRemarks[currentId] || []).forEach(function (remark) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = remark.name;
+      button.setAttribute("data-vn-topic-start", "friend:" + remark.id);
+      list.appendChild(button);
+    });
+  }
+  function panelOpener(name) {
+    return q('[data-vn-open="' + name + '"]') || q('[data-vn-open="topics"]');
+  }
   function renderHistory() {
     var container = q("[data-vn-history-list]");
     container.replaceChildren();
@@ -108,21 +121,15 @@
     });
     if (!entries.length) {
       var empty = document.createElement("p");
-      empty.textContent = "还没有读完的台词。";
+      empty.textContent = "まだ記録はありません。";
       container.appendChild(empty);
     }
     entries.forEach(function (entry) {
       var item = document.createElement("li"),
-        jp = document.createElement("p"),
-        zh = document.createElement("p"),
-        source = document.createElement("small");
-      jp.lang = "ja";
-      jp.textContent = entry.text;
-      zh.lang = "zh-CN";
-      zh.textContent = entry.translation || "";
-      zh.hidden = !subtitles;
-      source.textContent = entry.source;
-      item.append(jp, zh, source);
+        text = document.createElement("p");
+      text.lang = "ja";
+      text.textContent = entry.text;
+      item.appendChild(text);
       container.appendChild(item);
     });
     container.scrollTop = container.scrollHeight;
@@ -138,7 +145,6 @@
     )
       return;
     setState("choice");
-    q("[data-vn-hint]").textContent = "请选择一个回答";
     story.choices.forEach(function (choice) {
       var button = document.createElement("button");
       button.type = "button";
@@ -155,16 +161,14 @@
         history.push({
           character: currentId,
           text: "▸ " + choice.label,
-          translation: "",
-          source: "你的选择",
         });
-        story = { lines: [response], label: "回应" };
+        story = { lines: [response], label: "返事" };
         index = 0;
         renderLine();
       });
       target.appendChild(button);
     });
-    q("#live2d-interact").textContent = "请选择";
+    q("#live2d-interact").textContent = "選択";
     q("#live2d-interact").disabled = true;
   }
   function scheduleAuto() {
@@ -186,30 +190,24 @@
     timer = 0;
     if (!line) return;
     q("[data-live2d-dialogue-text]").textContent = line.text;
-    q("[data-vn-translation]").textContent = line.translation || "";
     hooks.stopSpeaking();
     setState("ready");
-    q("[data-vn-hint]").textContent =
-      index < story.lines.length - 1
-        ? "点击 / Enter 继续"
-        : "会话结束 · 可选择新话题";
     q("#live2d-interact").textContent =
-      index < story.lines.length - 1 ? "继续 ▸" : "话题 ▸";
+      index < story.lines.length - 1
+        ? "次へ ▸"
+        : lastTopic.indexOf("friend:") === 0
+          ? "別の人 ▸"
+          : "話題 ▸";
     q("#live2d-interact").disabled = false;
     if (!logged) {
       logged = true;
       history.push({
         character: currentId,
         text: line.text,
-        translation: line.translation,
-        source: line.source,
       });
       history = history.slice(-80);
       q("[data-vn-announcement]").textContent =
-        data.characters[currentId].name +
-        "：" +
-        line.text +
-        (subtitles && line.translation ? " " + line.translation : "");
+        data.characters[currentId].name + "：" + line.text;
     }
     renderChoices();
     scheduleAuto();
@@ -220,19 +218,9 @@
     line = story.lines[index];
     if (!line) return;
     q("[data-vn-choices]").replaceChildren();
-    q("[data-vn-topic]").textContent = story.label;
-    q("[data-vn-source]").textContent =
-      line.source === "同人创作" ? "同人会话" : line.source;
-    q("[data-vn-source]").title =
-      line.source === "同人创作"
-        ? "本网站创作的同人台词，并非原作引文"
-        : "保留的游戏台词；中文字幕为译文";
     q("[data-live2d-dialogue-text]").textContent = "";
-    q("[data-vn-translation]").textContent = "";
-    q("[data-vn-hint]").textContent = "点击 / Enter 显示完整台词";
-    q("#live2d-interact").textContent = "显示全文";
+    q("#live2d-interact").textContent = "次へ ▸";
     q("#live2d-interact").disabled = false;
-    q("#live2d-dialogue").dataset.live2dSource = line.source;
     q("#live2d-dialogue").setAttribute("aria-hidden", "false");
     q("#live2d-dialogue").classList.add("is-visible");
     root.classList.add("has-dialogue");
@@ -267,19 +255,32 @@
   function start(topic) {
     closePanel();
     lastTopic = topic || "today";
-    if (lastTopic === "original") {
+    if (lastTopic === "friends") {
+      panelOpen("friends");
+      return;
+    }
+    if (lastTopic.indexOf("friend:") === 0) {
+      var remark = (window.CompanionRemarks[currentId] || []).find(
+        function (item) {
+          return item.id === lastTopic.slice(7);
+        }
+      );
+      if (!remark) {
+        panelOpen("friends");
+        return;
+      }
+      story = {
+        lines: [{ text: remark.text, expressionMotionId: "01", poseId: "1" }],
+        label: remark.name,
+      };
+    } else if (lastTopic === "original") {
       var originals = hooks.originals[currentId],
         offset = originalIndices[currentId] || 0,
         original = originals[offset % originals.length];
       originalIndices[currentId] = offset + 1;
       story = {
-        lines: [
-          Object.assign({}, original, {
-            translation:
-              data.translations[currentId][offset % originals.length],
-          }),
-        ],
-        label: "原作回想",
+        lines: [original],
+        label: "思い出",
       };
     } else {
       story = data.story(currentId, lastTopic, affinity[currentId], {
@@ -299,7 +300,7 @@
     if (story && index < story.lines.length - 1) {
       index++;
       renderLine();
-    } else panelOpen("topics");
+    } else panelOpen(lastTopic.indexOf("friend:") === 0 ? "friends" : "topics");
   }
   function cancel() {
     if (!root) return;
@@ -310,10 +311,8 @@
     setState("idle");
     q("[data-vn-choices]").replaceChildren();
     q("[data-live2d-dialogue-text]").textContent = "……";
-    q("[data-vn-translation]").textContent = "选一个话题，坐下来聊聊吧。";
-    q("[data-vn-source]").textContent = "同人会话";
-    q("[data-vn-hint]").textContent = "点击「话题」开始";
-    q("#live2d-interact").textContent = "话题 ▸";
+    q("[data-vn-announcement]").textContent = "";
+    q("#live2d-interact").textContent = "話題 ▸";
     q("#live2d-interact").disabled = false;
   }
   function setCharacter(id) {
@@ -326,7 +325,6 @@
     q("[data-companion-name]").textContent = character.fullName;
     q("[data-live2d-dialogue-name]").textContent = character.name;
     q("[data-vn-location]").textContent = character.location;
-    q("[data-vn-topic]").textContent = "幻想通信";
     root.querySelectorAll("[data-vn-character]").forEach(function (button) {
       button.setAttribute(
         "aria-pressed",
@@ -346,14 +344,8 @@
       String(status === "loading")
     );
     q("[data-vn-load-label]").textContent =
-      status === "error"
-        ? "连接暂时中断"
-        : "正在前往 " +
-          (data.characters[currentId] || data.characters.alice).location;
-    q("[data-vn-load-note]").textContent =
-      status === "error"
-        ? "对话仍可使用，点击重试载入角色。"
-        : "NOW LOADING · 场景与角色载入中";
+      status === "error" ? "接続できませんでした" : "読み込み中…";
+
     q("[data-vn-retry]").hidden = status !== "error";
     if (status === "ready" && !story) start("today");
   }
@@ -362,7 +354,7 @@
     var weather = window.__siteWeather;
     q("[data-vn-weather-summary]").textContent = weather
       ? weather.location + " · " + weather.temperature + "°C · " + weather.name
-      : "天气观测中 · West Midlands";
+      : "天気を観測中…";
     root.dataset.sceneTime = weather
       ? weather.isDay
         ? "day"
@@ -379,44 +371,46 @@
         dialogue: q("#live2d-dialogue"),
       };
     root = widget;
+    root.lang = "ja";
     hooks = callbacks;
     q("[data-companion-stage]").insertAdjacentHTML(
       "afterbegin",
       '<div class="vn-scene-light" aria-hidden="true"></div><div class="vn-scene-caption" data-vn-location></div>'
     );
     q(".companion-load-status").innerHTML =
-      '<span class="vn-loading-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span data-vn-load-label>正在准备场景</span><small data-vn-load-note>NOW LOADING</small><button type="button" data-vn-retry hidden>重新连接</button>';
+      '<span class="vn-loading-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span data-vn-load-label>読み込み中…</span><button type="button" data-vn-retry hidden>再試行</button>';
     q("[data-companion-content]").insertAdjacentHTML(
       "afterbegin",
-      '<div class="vn-cast" aria-label="选择角色">' +
+      '<div class="vn-cast" aria-label="話し相手">' +
         Object.keys(data.characters)
           .map(function (id) {
             return (
               '<button type="button" data-vn-character="' +
               id +
-              '" aria-label="切换到' +
-              data.characters[id].chinese +
+              '" aria-label="話し相手：' +
+              data.characters[id].name +
               '"><img src="/assets/images/classic/characters/' +
               id +
               '.svg" alt="">' +
-              data.characters[id].chinese +
+              data.characters[id].name +
               "</button>"
             );
           })
           .join("") +
-        '<span class="vn-mode">STORY</span></div>'
+        "</div>"
     );
     q("[data-companion-conversation]").innerHTML =
-      '<div class="vn-nameplate"><strong data-live2d-dialogue-name lang="ja"></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="好感度"></meter><span data-vn-affinity></span></span></div><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-label="显示完整台词或继续"><p class="live2d-dialogue__text" data-live2d-dialogue-text lang="ja"></p><p class="vn-translation" data-vn-translation lang="zh-CN"></p><span class="vn-next-mark" aria-hidden="true">▾</span></div><div class="vn-line-meta"><span data-vn-source></span><span data-vn-topic></span></div></aside><div class="vn-choices" data-vn-choices></div><span class="vn-hint" data-vn-hint></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
+      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-label="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
     q("[data-companion-footer]").innerHTML =
-      '<button type="button" data-vn-open="topics" aria-expanded="false">话题</button><button type="button" data-vn-auto aria-pressed="false">自动</button><button type="button" data-vn-open="history" aria-expanded="false">记录</button><button type="button" data-vn-open="settings" aria-expanded="false">设置</button><button type="button" id="live2d-interact" class="live2d-interact">话题 ▸</button>';
+      '<button type="button" data-vn-open="topics" aria-expanded="false">話題</button><button type="button" data-vn-auto aria-pressed="false">自動</button><button type="button" data-vn-open="history" aria-expanded="false">履歴</button><button type="button" data-vn-open="settings" aria-expanded="false">設定</button><button type="button" id="live2d-interact" class="live2d-interact">次へ ▸</button>';
     q("[data-companion-content]").insertAdjacentHTML(
       "beforeend",
-      '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span aria-hidden="true">◇</span><span data-vn-weather-summary>天气观测中</span><span aria-hidden="true">▴</span></button>' +
-        '<section class="vn-panel" data-vn-panel="topics" hidden aria-label="对话话题"><header>选择话题<button type="button" data-vn-close aria-label="关闭话题">×</button></header><div class="vn-topic-list"><button type="button" data-vn-topic-start="today">01 · 今日问候 / 节日</button><button type="button" data-vn-topic-start="craft">02 · 研究与创作</button><button type="button" data-vn-topic-start="rest">03 · 休息片刻</button><button type="button" data-vn-topic-start="weather">04 · 窗外天气</button><button type="button" data-vn-topic-start="original">05 · 原作回想</button></div><small>节日与时间以你的本机日期为准。</small></section>' +
-        '<section class="vn-panel" data-vn-panel="settings" hidden aria-label="对话设置"><header>会话设置<button type="button" data-vn-close aria-label="关闭设置">×</button></header><label for="vn-affinity">好感度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1" aria-describedby="vn-affinity-help"><p id="vn-affinity-help">初见 → 相识 → 信任 → 知己<br>各角色独立保存。回答会增加 1–2 点；也可在此自由设置，新话题与回答使用新数值。</p><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">慢速</option><option value="38">标准</option><option value="18">快速</option><option value="0">立即显示</option></select><label class="vn-check"><input type="checkbox" data-vn-subtitles> 显示中文字幕</label><label class="vn-check"><input type="checkbox" data-vn-lighting> 场景环境光</label><button type="button" data-vn-reset-position>将窗口移回右侧</button><small>设置只保存在此浏览器。新增会话为同人创作；「原作回想」保留原有引文出处。</small></section>' +
-        '<section class="vn-panel" data-vn-panel="history" hidden aria-label="对话记录"><header>对话记录<button type="button" data-vn-close aria-label="关闭记录">×</button></header><ol class="vn-history" data-vn-history-list></ol><small>本次访问 · 最多保留 80 条记录</small></section>' +
-        '<section class="vn-panel" data-vn-panel="weather" hidden aria-label="当地天气"><header>窗外天气<button type="button" data-vn-close aria-label="关闭天气">×</button></header><div data-vn-weather-mount></div><button type="button" data-vn-topic-start="weather">聊聊今天的天气 ▸</button></section>'
+      '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span aria-hidden="true">◇</span><span data-vn-weather-summary>天気を観測中…</span><span aria-hidden="true">▴</span></button>' +
+        '<section class="vn-panel" data-vn-panel="topics" hidden aria-label="話題"><header>話題<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list"><button type="button" data-vn-topic-start="today">今日のこと</button><button type="button" data-vn-topic-start="craft">魔法の話</button><button type="button" data-vn-topic-start="friends">友人のこと</button><button type="button" data-vn-topic-start="rest">お茶にしましょう</button><button type="button" data-vn-topic-start="weather">窓の向こう</button><button type="button" data-vn-topic-start="original">思い出</button></div></section>' +
+        '<section class="vn-panel" data-vn-panel="friends" hidden aria-label="友人のこと"><header>友人のこと<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-friends-list" data-vn-friends-list></div></section>' +
+        '<section class="vn-panel" data-vn-panel="settings" hidden aria-label="設定"><header>設定<button type="button" data-vn-close aria-label="閉じる">×</button></header><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光</label><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
+        '<section class="vn-panel" data-vn-panel="history" hidden aria-label="履歴"><header>履歴<button type="button" data-vn-close aria-label="閉じる">×</button></header><ol class="vn-history" data-vn-history-list></ol></section>' +
+        '<section class="vn-panel" data-vn-panel="weather" hidden aria-label="天気"><header>天気<button type="button" data-vn-close aria-label="閉じる">×</button></header><div data-vn-weather-mount></div><button type="button" data-vn-topic-start="weather">空の話をする ▸</button></section>'
     );
     var content = q("[data-companion-content]");
     var mainView = document.createElement("div");
@@ -441,7 +435,7 @@
       if (target.hasAttribute("data-vn-close")) {
         var previous = panel;
         closePanel();
-        var opener = q('[data-vn-open="' + previous + '"]');
+        var opener = panelOpener(previous);
         if (opener) opener.focus();
       }
       if (target.hasAttribute("data-vn-topic-start"))
@@ -472,7 +466,7 @@
         event.preventDefault();
         var previous = panel;
         closePanel();
-        q('[data-vn-open="' + previous + '"]').focus();
+        panelOpener(previous).focus();
       }
     });
     q("[data-vn-affinity-input]").addEventListener("input", function (event) {
@@ -485,11 +479,6 @@
       persist();
       if (state === "typing") complete();
     });
-    q("[data-vn-subtitles]").addEventListener("change", function (event) {
-      subtitles = event.target.checked;
-      root.dataset.subtitles = String(subtitles);
-      persist();
-    });
     q("[data-vn-lighting]").addEventListener("change", function (event) {
       lighting = event.target.checked;
       root.dataset.sceneLighting = String(lighting);
@@ -501,8 +490,8 @@
         ? window.__siteWeather.location +
           " · " +
           window.__siteWeather.temperature +
-          "°C · 更新失败"
-        : "天气暂不可用 · 点击查看 / 重试";
+          "°C · 更新できませんでした"
+        : "天気を取得できません";
     });
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) {

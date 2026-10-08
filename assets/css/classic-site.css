@@ -9,12 +9,12 @@ body {
     var(--classic-desktop);
   background-size: 128px 128px;
   color: var(--text);
-  font: 400 18px/1.6 var(--classic-font);
+  font: 400 17px/1.6 var(--classic-font);
   -webkit-font-smoothing: auto;
 }
 .classic-frame {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1760px;
   min-width: 0;
   padding: 5px;
   border-color: var(--classic-edge-light) var(--classic-edge-dark)
@@ -209,7 +209,7 @@ code {
   font-weight: 400;
 }
 
-/* Wide layout: a compact rail beside a document with a useful line length. */
+/* Profile and document grow together with the desktop frame. */
 #main {
   display: block;
   width: 100%;
@@ -219,7 +219,7 @@ code {
 }
 #main.classic-home-grid {
   display: grid;
-  grid-template-columns: 216px minmax(0, 1fr);
+  grid-template-columns: minmax(270px, 1fr) minmax(0, 3.2fr);
   gap: 24px;
   align-items: start;
 }
@@ -263,7 +263,7 @@ code {
 .page .page__content {
   float: none;
   width: 100%;
-  max-width: 78ch;
+  max-width: none;
   min-width: 0;
   margin: 0 auto;
   font: inherit;
@@ -271,7 +271,7 @@ code {
 }
 .page__content p,
 .page__content li {
-  font-size: 18px;
+  font-size: 17px;
 }
 .page__content p {
   margin: 0 0 18px;
@@ -973,6 +973,18 @@ html[data-live2d-character="patchouli"]
   margin-right: 0;
 }
 
+/* The character window has a home in the profile rail, without a right-hand lane. */
+.classic-companion-dock:empty {
+  display: none;
+}
+.classic-companion-dock {
+  margin: 20px 10px 0;
+  min-width: 0;
+}
+body.live2d-is-hidden .classic-companion-dock {
+  display: none;
+}
+
 /* Keep the reading index available once the profile has scrolled away. */
 @media (min-width: 1000px) {
   html[data-weather-visible="false"] .classic-profile-rail {
@@ -984,8 +996,37 @@ html[data-live2d-character="patchouli"]
   }
 }
 
+.classic-mobile-footer {
+  display: none;
+}
+.classic-companion-mobile-dock:empty {
+  display: none;
+}
+body.live2d-is-hidden .classic-companion-mobile-dock {
+  display: none;
+}
+
 /* Tablet: profile above the document. */
 @media (max-width: 999px) {
+  .classic-mobile-footer {
+    display: block;
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding: 0 4px;
+  }
+  .classic-mobile-footer:has([data-mobile-page-index]:empty):has(
+      [data-companion-mobile-dock]:empty
+    ) {
+    display: none;
+  }
+  .classic-companion-mobile-dock {
+    width: min(100%, 400px);
+    margin: 22px auto 4px;
+  }
+  .classic-companion-dock {
+    display: none;
+  }
+
   body {
     padding: 16px 16px 28px;
   }

@@ -5,7 +5,7 @@
   data-weather-baseurl="{{ '/' | relative_url }}"
   data-weather-default-latitude="52.4862"
   data-weather-default-longitude="-1.8904"
-  data-weather-default-location="West Midlands"
+  data-weather-default-location="ウェスト・ミッドランズ"
   aria-labelledby="weather-dial-title"
   aria-busy="true"
 >
@@ -107,14 +107,14 @@
     <header class="weather-dial__header">
       <div>
         <p class="weather-dial__eyebrow">幻想天候</p>
-        <h2 class="weather-dial__title" id="weather-dial-title">Local Weather Dial</h2>
+        <h2 class="weather-dial__title" id="weather-dial-title">空模様</h2>
       </div>
 
-      <div class="weather-dial__actions" aria-label="Weather controls">
-        <button class="weather-dial__button" type="button" data-weather-action="refresh" aria-label="Refresh local weather">
+      <div class="weather-dial__actions" aria-label="天気の操作">
+        <button class="weather-dial__button" type="button" data-weather-action="refresh" aria-label="天気を更新">
           <i class="fas fa-redo-alt" aria-hidden="true"></i>
         </button>
-        <button class="weather-dial__button" type="button" data-weather-action="locate" aria-label="Use my current location">
+        <button class="weather-dial__button" type="button" data-weather-action="locate" aria-label="現在地を使う">
           <i class="fas fa-crosshairs" aria-hidden="true"></i>
         </button>
       </div>
@@ -159,7 +159,7 @@
     <footer class="weather-dial__footer">
       <span class="weather-dial__location">
         <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-        <span data-weather-location>West Midlands</span>
+        <span data-weather-location>ウェスト・ミッドランズ</span>
       </span>
       <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
     </footer>

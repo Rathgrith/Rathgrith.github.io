@@ -12,7 +12,8 @@ for (const [id, c] of Object.entries(d.characters)) {
       });
       assert(story.lines.length);
       story.lines.forEach((l) => {
-        assert(l.text && l.translation && l.source);
+        assert(l.text && /[ぁ-んァ-ヶ]/.test(l.text));
+        assert(!l.translation, "Dialogue is Japanese only");
       });
     }
   }
@@ -56,5 +57,22 @@ assert.equal(d.tier(100), 3);
 console.log(
   "PASS: " +
     lines +
-    " original bilingual lines; all 4 affinity tiers, branches, day/night and 7 holiday groups"
+    " original Japanese lines; all 4 affinity tiers, branches, day/night and 7 holiday groups"
+);
+
+require("../assets/js/data/companion-remarks.js");
+let remarks = 0;
+const people = new Set();
+for (const [speaker, entries] of Object.entries(globalThis.CompanionRemarks)) {
+  assert(d.characters[speaker]);
+  assert.equal(new Set(entries.map((e) => e.id)).size, entries.length);
+  entries.forEach((e) => {
+    assert(e.id !== speaker && e.name && /[ぁ-んァ-ヶ]/.test(e.text));
+    assert(!/[<>]/.test(e.text));
+    people.add(e.id);
+    remarks++;
+  });
+}
+console.log(
+  `PASS: ${remarks} Japanese remarks covering ${people.size} characters/groups`
 );

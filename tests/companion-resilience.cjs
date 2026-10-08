@@ -109,7 +109,10 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     });
     await q.goto(base);
     await q.locator('[data-classic-character="patchouli"]').click();
-    await q.locator("[data-companion-minimize]").click();
+    assert.equal(await q.locator("#live2d-widget").isVisible(), false);
+    await q.locator("[data-site-options-trigger]").click();
+    await q.locator("[data-live2d-toggle]").click();
+    await q.keyboard.press("Escape");
     await q.waitForFunction(
       () =>
         document.querySelector("#live2d-widget").dataset.live2dCharacter ===
@@ -141,7 +144,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       e.dispatchEvent(new Event("input", { bubbles: true }));
     });
     await q.keyboard.press("Escape");
-    assert.equal(await q.locator("[data-vn-affinity]").textContent(), "知己");
+    assert.equal(await q.locator("[data-vn-affinity]").textContent(), "内緒話");
     await q.locator("[data-companion-close]").click();
     assert.equal(await q.locator("#live2d-widget").isVisible(), false);
     await q.locator("[data-site-options-trigger]").click();
