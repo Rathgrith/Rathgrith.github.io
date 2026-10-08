@@ -101,7 +101,7 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.locator('[data-publication-filter="all"]').click();
-    assert.equal(await page.locator(".publication-item:visible").count(), 4);
+    assert.equal(await page.locator(".publication-item:visible").count(), 5);
     await page.locator('[data-publication-filter="selected"]').click();
     assert.equal(await page.locator(".publication-item:visible").count(), 3);
     await page.setViewportSize({ width: 375, height: 812 });

@@ -327,7 +327,7 @@ code {
 .page__content h1#education::before {
   mask-image: url("../images/classic/sections/education.svg");
 }
-.page__content h1#selected-publications::before {
+.page__content h1#recent-publications::before {
   mask-image: url("../images/classic/sections/publications.svg");
 }
 .page__content h1#awards::before {
@@ -902,8 +902,14 @@ html[data-live2d-character="patchouli"]
     Arial,
     sans-serif;
 }
+.page__content a.publication-filter__button {
+  color: var(--text);
+  text-decoration: none;
+}
 .publication-filter__button:hover,
-.publication-filter__button:focus-visible {
+.publication-filter__button:focus-visible,
+.page__content a.publication-filter__button:hover,
+.page__content a.publication-filter__button:focus-visible {
   transform: none;
   color: var(--classic-accent);
 }

@@ -44,12 +44,13 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 <div class="anchor" id="publications" aria-hidden="true"></div>
 
-# Selected Publications
+# Recent Publications
 
 <div class="publication-filter" role="group" aria-label="Choose which publications to show">
   <span class="publication-filter__label">Show</span>
   <button class="publication-filter__button is-active" type="button" data-publication-filter="selected" aria-pressed="true">Selected</button>
   <button class="publication-filter__button" type="button" data-publication-filter="all" aria-pressed="false">More</button>
+  <a class="publication-filter__button" href="{{ site.author.googlescholar | escape }}" target="_blank" rel="noopener noreferrer" aria-label="All publications on Google Scholar" title="All publications on Google Scholar">All</a>
   <span class="publication-filter__count" aria-live="polite"><span data-publication-count>3</span> papers</span>
 </div>
 
@@ -59,6 +60,14 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
       <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://arxiv.org/abs/2608.00903" target="_blank" rel="noopener noreferrer">
         <img src="images/peca_eccv2026.gif" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
+      </a>
+    </div>
+  </div>
+  <div class="publication-item" data-publication-selected="false" hidden>
+    <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://happy-new-bears.github.io/scav-project-page/">Whence the Voice? Self-supervised Dual-source Audio-Visual Localisation via Selective Convergence</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Yuqi Hou, Haotian Li, Hyung Jin Chang, Jianbo Jiao</span></div>
+      <a class="publication-thumb-wrap" href="https://happy-new-bears.github.io/scav-project-page/" target="_blank" rel="noopener noreferrer">
+        <img src="/images/papers/scav_eccv2026.png" alt="SCAV overview: selective convergence for dual-source audio-visual localisation" class="publication-thumb paper-preview" loading="lazy" width="2835" height="1151">
       </a>
     </div>
   </div>
