@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" shape-rendering="crispEdges">
+  <title>Monochrome Bayer dither fading away from a lower corner</title>
+  <!-- No viewBox: the pattern's 2px squares keep their size as the surface resizes.
+       Hard radial bands reduce coverage, not the opacity of individual pixels. -->
+  <defs>
+    <pattern id="p0" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2zM2 0h2v2h-2zM4 0h2v2h-2zM8 0h2v2h-2zM10 0h2v2h-2zM12 0h2v2h-2zM2 2h2v2h-2zM6 2h2v2h-2zM10 2h2v2h-2zM14 2h2v2h-2zM0 4h2v2h-2zM4 4h2v2h-2zM6 4h2v2h-2zM8 4h2v2h-2zM12 4h2v2h-2zM14 4h2v2h-2zM2 6h2v2h-2zM6 6h2v2h-2zM10 6h2v2h-2zM14 6h2v2h-2zM0 8h2v2h-2zM2 8h2v2h-2zM4 8h2v2h-2zM8 8h2v2h-2zM10 8h2v2h-2zM12 8h2v2h-2zM2 10h2v2h-2zM6 10h2v2h-2zM10 10h2v2h-2zM14 10h2v2h-2zM0 12h2v2h-2zM4 12h2v2h-2zM6 12h2v2h-2zM8 12h2v2h-2zM12 12h2v2h-2zM14 12h2v2h-2zM2 14h2v2h-2zM6 14h2v2h-2zM10 14h2v2h-2zM14 14h2v2h-2z"/></pattern>
+    <radialGradient id="g0" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="0%" stop-color="white" stop-opacity="0"/>
+      <stop offset="0%" stop-color="white" stop-opacity="1"/>
+      <stop offset="12.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="12.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m0" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g0)"/></mask>
+    <pattern id="p1" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2zM4 0h2v2h-2zM8 0h2v2h-2zM12 0h2v2h-2zM2 2h2v2h-2zM6 2h2v2h-2zM10 2h2v2h-2zM14 2h2v2h-2zM0 4h2v2h-2zM4 4h2v2h-2zM8 4h2v2h-2zM12 4h2v2h-2zM2 6h2v2h-2zM6 6h2v2h-2zM14 6h2v2h-2zM0 8h2v2h-2zM4 8h2v2h-2zM8 8h2v2h-2zM12 8h2v2h-2zM2 10h2v2h-2zM6 10h2v2h-2zM10 10h2v2h-2zM14 10h2v2h-2zM0 12h2v2h-2zM4 12h2v2h-2zM8 12h2v2h-2zM12 12h2v2h-2zM6 14h2v2h-2zM10 14h2v2h-2zM14 14h2v2h-2z"/></pattern>
+    <radialGradient id="g1" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="12.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="12.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="25%" stop-color="white" stop-opacity="1"/>
+      <stop offset="25%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m1" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g1)"/></mask>
+    <pattern id="p2" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2zM4 0h2v2h-2zM8 0h2v2h-2zM12 0h2v2h-2zM2 2h2v2h-2zM10 2h2v2h-2zM0 4h2v2h-2zM4 4h2v2h-2zM8 4h2v2h-2zM12 4h2v2h-2zM6 6h2v2h-2zM0 8h2v2h-2zM4 8h2v2h-2zM8 8h2v2h-2zM12 8h2v2h-2zM2 10h2v2h-2zM10 10h2v2h-2zM0 12h2v2h-2zM4 12h2v2h-2zM8 12h2v2h-2zM12 12h2v2h-2z"/></pattern>
+    <radialGradient id="g2" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="25%" stop-color="white" stop-opacity="0"/>
+      <stop offset="25%" stop-color="white" stop-opacity="1"/>
+      <stop offset="37.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="37.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m2" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g2)"/></mask>
+    <pattern id="p3" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2zM4 0h2v2h-2zM8 0h2v2h-2zM12 0h2v2h-2zM0 4h2v2h-2zM4 4h2v2h-2zM12 4h2v2h-2zM0 8h2v2h-2zM4 8h2v2h-2zM8 8h2v2h-2zM12 8h2v2h-2zM4 12h2v2h-2zM8 12h2v2h-2zM12 12h2v2h-2z"/></pattern>
+    <radialGradient id="g3" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="37.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="37.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="50%" stop-color="white" stop-opacity="1"/>
+      <stop offset="50%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m3" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g3)"/></mask>
+    <pattern id="p4" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2zM8 0h2v2h-2zM4 4h2v2h-2zM12 4h2v2h-2zM0 8h2v2h-2zM8 8h2v2h-2zM4 12h2v2h-2zM12 12h2v2h-2z"/></pattern>
+    <radialGradient id="g4" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="50%" stop-color="white" stop-opacity="0"/>
+      <stop offset="50%" stop-color="white" stop-opacity="1"/>
+      <stop offset="62.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="62.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m4" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g4)"/></mask>
+    <pattern id="p5" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2zM8 0h2v2h-2zM0 8h2v2h-2zM8 8h2v2h-2z"/></pattern>
+    <radialGradient id="g5" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="62.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="62.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="75%" stop-color="white" stop-opacity="1"/>
+      <stop offset="75%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m5" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g5)"/></mask>
+    <pattern id="p6" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2zM8 8h2v2h-2z"/></pattern>
+    <radialGradient id="g6" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="75%" stop-color="white" stop-opacity="0"/>
+      <stop offset="75%" stop-color="white" stop-opacity="1"/>
+      <stop offset="87.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="87.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m6" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g6)"/></mask>
+    <pattern id="p7" width="16" height="16" patternUnits="userSpaceOnUse"><path fill="white" d="M0 0h2v2h-2z"/></pattern>
+    <radialGradient id="g7" cx="0" cy="1" r="1">
+      <stop offset="0" stop-color="white" stop-opacity="0"/>
+      <stop offset="87.5%" stop-color="white" stop-opacity="0"/>
+      <stop offset="87.5%" stop-color="white" stop-opacity="1"/>
+      <stop offset="100%" stop-color="white" stop-opacity="1"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="m7" x="0" y="0" width="100%" height="100%" style="mask-type:alpha"><rect width="100%" height="100%" fill="url(#g7)"/></mask>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#p0)" mask="url(#m0)"/>
+  <rect width="100%" height="100%" fill="url(#p1)" mask="url(#m1)"/>
+  <rect width="100%" height="100%" fill="url(#p2)" mask="url(#m2)"/>
+  <rect width="100%" height="100%" fill="url(#p3)" mask="url(#m3)"/>
+  <rect width="100%" height="100%" fill="url(#p4)" mask="url(#m4)"/>
+  <rect width="100%" height="100%" fill="url(#p5)" mask="url(#m5)"/>
+  <rect width="100%" height="100%" fill="url(#p6)" mask="url(#m6)"/>
+  <rect width="100%" height="100%" fill="url(#p7)" mask="url(#m7)"/>
+</svg>
