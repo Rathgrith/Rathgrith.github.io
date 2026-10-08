@@ -56,34 +56,34 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 <div class="publication-list" data-publication-list data-publication-mode="selected">
   <div class="publication-item" data-publication-selected="true">
     <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://arxiv.org/abs/2608.00903" target="_blank" rel="noopener noreferrer">
         <img src="images/peca_eccv2026.gif" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
       </a>
-      <p class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></p>
     </div>
   </div>
   <div class="publication-item" data-publication-selected="true">
     <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">NeurIPS 2025</span><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></div>
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
         <img src="images/NIPS25_TTR_VAD.png" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
       </a>
-      <p class="publication-line"><span class="publication-tag conference">NeurIPS 2025</span><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></p>
     </div>
   </div>
   <div class="publication-item" data-publication-selected="true">
     <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag journal">TMLR 2025</span><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></div>
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=f1MYOG4iDG" target="_blank" rel="noopener noreferrer">
         <img src="images/timerep3.png" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
       </a>
-      <p class="publication-line"><span class="publication-tag journal">TMLR 2025</span><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></p>
     </div>
   </div>
   <div class="publication-item" data-publication-selected="false" hidden>
     <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">BMVC 2025</span><a href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf">Audio-Visual Separation with Hierarchical Fusion and Representation Alignment</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf" target="_blank" rel="noopener noreferrer">
         <img src="/images/papers/audio_visual_separation_bmvc2025.png" alt="BMVC 2025 audio-visual separation method preview" class="publication-thumb paper-preview">
       </a>
-      <p class="publication-line"><span class="publication-tag conference">BMVC 2025</span><a href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf">Audio-Visual Separation with Hierarchical Fusion and Representation Alignment</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao</span></p>
     </div>
   </div>
 </div>
