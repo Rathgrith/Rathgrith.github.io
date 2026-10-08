@@ -170,6 +170,7 @@
   var focusFrame = 0;
   var lastPointerPosition = null;
   var application = null;
+  var syncModelLighting = null;
   var currentModel = null;
   var currentCharacterId = "";
   var currentPoseId = "1";
@@ -552,6 +553,9 @@
         widget.setAttribute("data-live2d-speaking", "true");
       },
       select: selectCharacter,
+      lighting: function () {
+        if (syncModelLighting) syncModelLighting();
+      },
       retry: function () {
         window.__sitePixiLibraryPromise = null;
         window.__siteCubismCoreLibraryPromise = null;
@@ -798,6 +802,12 @@
       backgroundAlpha: 0,
       resolution: Math.min(window.devicePixelRatio || 1, 2),
     });
+
+    syncModelLighting = window.CompanionLighting.create(
+      application,
+      elements.widget
+    );
+    syncModelLighting();
 
     return application;
   }
@@ -1595,7 +1605,9 @@
       .then(function (model) {
         clearTimeout(deadline);
         if (generation !== modelLoadGeneration) {
-          model.destroy({ children: true, texture: true, baseTexture: true });
+          // Texture.fromURL caches by URL. A newer load of the same character
+          // may already be using these textures; discard only the stale rig.
+          model.destroy({ children: true, texture: false, baseTexture: false });
           return null;
         }
 

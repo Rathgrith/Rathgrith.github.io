@@ -46,6 +46,7 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/site-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-resilience.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-mobile.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-lighting.cjs
 ```
 
 Screenshots go to the system temporary directory by default; set `QA_OUTPUT` to retain them elsewhere. Software Chrome rendering is used for consistent captures on the development Mac.

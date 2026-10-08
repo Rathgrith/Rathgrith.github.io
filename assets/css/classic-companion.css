@@ -16,7 +16,6 @@
   --vn-rule: #6a7688;
   --vn-scene: url("../images/classic/scenes/alice-atelier.png");
   --vn-light: #99bfff;
-  --vn-model-light: saturate(0.97) brightness(0.98);
   position: fixed;
   z-index: var(--layer-companion);
   box-sizing: border-box;
@@ -49,7 +48,6 @@
   --vn-muted: #c3b8a8;
   --vn-scene: url("../images/classic/scenes/marisa-workshop.png");
   --vn-light: #ffc57c;
-  --vn-model-light: sepia(0.08) saturate(0.97) brightness(0.98);
 }
 #live2d-widget[data-vn-character="patchouli"] {
   --vn-panel: #1c1627;
@@ -57,7 +55,6 @@
   --vn-muted: #c4b7cd;
   --vn-scene: url("../images/classic/scenes/patchouli-library.png");
   --vn-light: #c6a8f6;
-  --vn-model-light: saturate(0.96) brightness(0.97);
 }
 #live2d-widget [hidden] {
   display: none;
@@ -220,11 +217,8 @@
   opacity: 1;
   transform: none;
   animation: none;
-  filter: var(--vn-model-light);
-  pointer-events: none;
-}
-#live2d-widget[data-scene-lighting="false"] #live2dcanvas {
   filter: none;
+  pointer-events: none;
 }
 #live2d-widget .vn-scene-light {
   position: absolute;
@@ -233,16 +227,16 @@
   pointer-events: none;
   background: linear-gradient(115deg, var(--vn-light), transparent 65%);
   mix-blend-mode: soft-light;
-  opacity: 0.17;
+  opacity: calc(var(--vn-light-strength, 0.75) * 0.2);
 }
 #live2d-widget[data-scene-time="night"] .vn-scene-light {
-  opacity: 0.26;
+  opacity: calc(var(--vn-light-strength, 0.75) * 0.32);
 }
 #live2d-widget[data-scene-weather="rain"] .vn-scene-light,
 #live2d-widget[data-scene-weather="storm"] .vn-scene-light {
   background: linear-gradient(110deg, #829fc3, transparent);
   mix-blend-mode: multiply;
-  opacity: 0.15;
+  opacity: calc(var(--vn-light-strength, 0.75) * 0.18);
 }
 #live2d-widget[data-scene-lighting="false"] .vn-scene-light {
   display: none;
