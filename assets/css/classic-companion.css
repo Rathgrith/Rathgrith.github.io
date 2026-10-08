@@ -1,204 +1,656 @@
-/* A small desktop companion: docked in the profile rail, movable elsewhere. */
-body.classic-site #live2d-widget.classic-companion {
+/* A floating PC-98-inspired conversation window. Its contents outlive soft navigation. */
+#live2d-widget.classic-companion {
+  --vn-ink: #eee9df;
+  --vn-muted: #bebbb8;
+  --vn-panel: #111722;
+  --vn-rule: #6a7688;
+  --vn-scene: url("../images/classic/scenes/alice-atelier.png");
+  --vn-light: #99bfff;
+  --vn-model-light: saturate(0.97) brightness(0.98);
   position: fixed;
-  z-index: 1100;
+  z-index: var(--layer-companion);
   box-sizing: border-box;
-  margin: 0;
+  width: var(--vn-width, 352px);
+  min-width: 0;
   max-width: calc(100vw - 16px);
-  max-height: calc(100vh - 16px);
-  max-height: calc(100dvh - 16px);
+  max-height: calc(100dvh - 24px);
+  margin: 0;
   padding: 4px;
-  overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--classic-edge-light);
   border-radius: 0;
-  background: var(--classic-silver, #e6e5e0);
-  box-shadow: inset 1px 1px var(--classic-edge-mid), 2px 2px 0 rgba(0, 0, 0, .1);
-  color: var(--text);
-  font: 15px/1.35 var(--classic-font);
+  outline: 1px solid #080c13;
+  background: var(--vn-panel);
+  box-shadow:
+    inset 0 0 0 1px var(--classic-edge-dark),
+    4px 4px 0 #0007;
+  color: var(--vn-ink);
+  font: 13px/1.5 var(--classic-font);
+  overflow: hidden;
   opacity: 1;
   transform: none;
   filter: none;
-  pointer-events: auto !important;
   transition: none;
   animation: none;
+  pointer-events: auto;
 }
-body.classic-site #live2d-widget.classic-companion.is-docked {
-  position: relative;
-  z-index: 1;
-  width: 100% !important;
+#live2d-widget[data-vn-character="marisa"] {
+  --vn-panel: #211b13;
+  --vn-rule: #948062;
+  --vn-muted: #c3b8a8;
+  --vn-scene: url("../images/classic/scenes/marisa-workshop.png");
+  --vn-light: #ffc57c;
+  --vn-model-light: sepia(0.08) saturate(0.97) brightness(0.98);
+}
+#live2d-widget[data-vn-character="patchouli"] {
+  --vn-panel: #1c1627;
+  --vn-rule: #8c769f;
+  --vn-muted: #c4b7cd;
+  --vn-scene: url("../images/classic/scenes/patchouli-library.png");
+  --vn-light: #c6a8f6;
+  --vn-model-light: saturate(0.96) brightness(0.97);
+}
+#live2d-widget [hidden] {
+  display: none;
+}
+#live2d-widget button,
+#live2d-widget select {
+  box-sizing: border-box;
   min-width: 0;
-  max-width: 258px;
-  max-height: none;
-  margin-top: 18px;
-  box-shadow: inset 1px 1px var(--classic-edge-mid);
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--vn-rule);
+  border-radius: 0;
+  background: var(--vn-panel);
+  color: var(--vn-ink);
+  font: 13px/1.5 var(--classic-font);
+  cursor: pointer;
+  box-shadow: none;
+  transform: none;
+  transition: none;
+  text-shadow: none;
+  opacity: 1;
 }
-body.classic-site #live2d-widget.classic-companion .companion-titlebar {
+#live2d-widget button:hover,
+#live2d-widget button[aria-pressed="true"] {
+  background: var(--classic-soft);
+  color: var(--classic-accent);
+}
+#live2d-widget button:disabled {
+  cursor: default;
+  color: var(--vn-muted);
+}
+#live2d-widget :focus-visible {
+  outline: 1px dashed var(--classic-accent);
+  outline-offset: 2px;
+}
+#live2d-widget .companion-titlebar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  min-height: 25px;
-  padding: 2px 3px 2px 6px;
-  background: linear-gradient(90deg, var(--classic-title), var(--classic-title-end));
-  color: #fff;
-  font: 14px/1.1 "W95FA", Tahoma, sans-serif;
+  gap: 6px;
+  min-height: 27px;
+  padding: 2px 3px 2px 7px;
+  border-bottom: 1px solid var(--vn-rule);
+  color: var(--vn-ink);
+  background: linear-gradient(90deg, var(--classic-title), var(--vn-panel));
+  font:
+    14px/1.2 "W95FA",
+    sans-serif;
   cursor: grab;
   touch-action: none;
   user-select: none;
 }
-body.classic-site #live2d-widget.is-dragging .companion-titlebar { cursor: grabbing; }
-body.classic-site #live2d-widget .companion-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-body.classic-site #live2d-widget .companion-controls { display: flex; gap: 3px; }
-body.classic-site #live2d-widget .companion-controls button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  width: 21px;
-  height: 20px;
-  padding: 0;
-  border: 1px solid;
-  border-color: var(--classic-edge-light) var(--classic-edge-dark) var(--classic-edge-dark) var(--classic-edge-light);
-  border-radius: 0;
-  background: var(--classic-silver, #e6e5e0);
-  box-shadow: none;
-  color: var(--text);
-  font: bold 15px/1 Arial, sans-serif;
-  cursor: pointer;
+#live2d-widget.is-dragging .companion-titlebar {
+  cursor: grabbing;
 }
-body.classic-site #live2d-widget .companion-controls button:active { border-color: var(--classic-edge-dark) var(--classic-edge-light) var(--classic-edge-light) var(--classic-edge-dark); }
-body.classic-site #live2d-widget [data-companion-content] {
-  max-height: calc(100vh - 53px);
-  max-height: calc(100dvh - 53px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-body.classic-site #live2d-widget.is-docked [data-companion-content] { max-height: none; }
-body.classic-site #live2d-widget [data-companion-content][hidden] { display: none; }
-body.classic-site #live2d-widget .companion-stage {
-  position: relative;
-  margin-top: 4px;
+#live2d-widget .companion-title {
+  min-width: 0;
+  white-space: nowrap;
   overflow: hidden;
-  background: var(--classic-pattern) repeat, var(--classic-document);
-  background-size: 128px 128px;
-  border-bottom: 1px solid var(--border);
+  text-overflow: ellipsis;
 }
-body.classic-site #live2d-widget #live2dcanvas {
-  position: static;
+#live2d-widget .companion-title::before {
+  content: "◇";
+  margin-right: 6px;
+  color: var(--classic-accent);
+}
+#live2d-widget .companion-controls {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+#live2d-widget .companion-controls button {
+  width: 24px;
+  height: 23px;
+  padding: 0;
+  font:
+    17px/1 "W95FA",
+    sans-serif;
+}
+#live2d-widget [data-companion-content] {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  max-height: calc(var(--vn-available-height, 100dvh - 24px) - 38px);
+  overflow: clip;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vn-rule) var(--vn-panel);
+}
+#live2d-widget.is-minimized {
+  width: 244px;
+}
+#live2d-widget .vn-cast {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 3px;
+}
+#live2d-widget .vn-cast button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px;
+  font-size: 11px;
+  border-color: transparent;
+}
+#live2d-widget .vn-cast button[aria-pressed="true"] {
+  border-color: var(--vn-rule);
+}
+#live2d-widget .vn-cast img {
+  display: block;
+  width: 22px;
+  height: 22px;
+  image-rendering: pixelated;
+}
+#live2d-widget .vn-mode {
+  margin-left: auto;
+  color: var(--vn-muted);
+  font:
+    11px "W95FA",
+    sans-serif;
+  letter-spacing: 1px;
+}
+#live2d-widget .companion-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin: 0;
+  background:
+    var(--vn-scene) center 45% / cover,
+    var(--vn-panel);
+  border: 1px solid var(--vn-rule);
+  isolation: isolate;
+}
+#live2d-widget #live2dcanvas {
+  position: relative;
+  z-index: 1;
   display: block;
   max-width: 100%;
-  margin: 0 auto;
+  margin: 0;
   opacity: 1;
   transform: none;
   animation: none;
-  filter: none;
-  pointer-events: none !important;
+  filter: var(--vn-model-light);
+  pointer-events: none;
 }
-body.classic-site #live2d-widget .companion-load-status {
+#live2d-widget[data-scene-lighting="false"] #live2dcanvas {
+  filter: none;
+}
+#live2d-widget .vn-scene-light {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, var(--vn-light), transparent 65%);
+  mix-blend-mode: soft-light;
+  opacity: 0.17;
+}
+#live2d-widget[data-scene-time="night"] .vn-scene-light {
+  opacity: 0.26;
+}
+#live2d-widget[data-scene-weather="rain"] .vn-scene-light,
+#live2d-widget[data-scene-weather="storm"] .vn-scene-light {
+  background: linear-gradient(110deg, #829fc3, transparent);
+  mix-blend-mode: multiply;
+  opacity: 0.15;
+}
+#live2d-widget[data-scene-lighting="false"] .vn-scene-light {
+  display: none;
+}
+#live2d-widget .vn-scene-caption {
+  position: absolute;
+  z-index: 3;
+  left: 8px;
+  top: 8px;
+  max-width: calc(100% - 16px);
+  padding: 3px 7px;
+  background: #0c101bc9;
+  color: #e4dfd9;
+  border-left: 2px solid var(--classic-accent);
+  font:
+    10px/1.6 "Hiragino Kaku Gothic ProN",
+    Meiryo,
+    sans-serif;
+  pointer-events: none;
+}
+#live2d-widget .companion-load-status {
   display: none;
   position: absolute;
+  z-index: 4;
   inset: 0;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  gap: 10px;
+  padding: 20px;
+  color: var(--vn-ink);
+  background: #0e1220e6;
   text-align: center;
-  background: var(--classic-document);
-  font-size: 15px;
 }
-body.classic-site #live2d-widget.is-loading .companion-load-status,
-body.classic-site #live2d-widget.has-live2d-error .companion-load-status { display: flex; }
-body.classic-site #live2d-widget .companion-conversation {
+#live2d-widget.is-loading .companion-load-status,
+#live2d-widget.has-live2d-error .companion-load-status {
+  display: flex;
+}
+#live2d-widget .companion-load-status small {
+  font: 11px/1.5 var(--classic-font);
+  color: var(--vn-muted);
+}
+#live2d-widget .vn-loading-icon {
   display: grid;
-  min-height: 72px;
-  margin-top: 4px;
-  border: 1px solid;
-  border-color: var(--classic-edge-dark) var(--classic-edge-mid) var(--classic-edge-mid) var(--classic-edge-dark);
-  background: var(--classic-document);
+  grid-template-columns: repeat(2, 7px);
+  gap: 3px;
+  margin-bottom: 8px;
+  transform: rotate(45deg);
 }
-body.classic-site #live2d-widget .companion-prompt,
-body.classic-site #live2d-widget #live2d-dialogue {
-  grid-area: 1 / 1;
-  box-sizing: border-box;
-  min-width: 0;
-  min-height: 72px;
-  max-height: 108px;
-  overflow: auto;
+#live2d-widget .vn-loading-icon i {
+  width: 7px;
+  height: 7px;
+  background: var(--classic-accent);
+  animation: vn-pixel-load 1.2s steps(4, end) infinite;
 }
-body.classic-site #live2d-widget .companion-prompt {
+#live2d-widget .vn-loading-icon i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+#live2d-widget .vn-loading-icon i:nth-child(3) {
+  animation-delay: 0.45s;
+}
+#live2d-widget .vn-loading-icon i:nth-child(4) {
+  animation-delay: 0.3s;
+}
+@keyframes vn-pixel-load {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+#live2d-widget.has-live2d-error .vn-loading-icon i {
+  animation: none;
+  opacity: 0.4;
+}
+#live2d-widget .companion-conversation {
+  position: relative;
+  min-height: 0;
+  margin-top: 8px;
+  padding: 11px 10px 6px;
+  border: 3px double var(--vn-rule);
+  background: var(--vn-panel);
+}
+#live2d-widget .vn-nameplate {
   display: flex;
   align-items: center;
-  margin: 0;
-  padding: 10px;
-  color: var(--text-muted);
-  font: 15px/1.4 var(--classic-font);
+  justify-content: space-between;
+  gap: 12px;
+  margin: -20px 0 8px;
 }
-body.classic-site #live2d-widget.has-dialogue .companion-prompt { visibility: hidden; }
-body.classic-site #live2d-widget #live2d-dialogue {
-  position: relative;
+#live2d-widget .vn-nameplate strong {
+  padding: 0 6px;
+  background: var(--vn-panel);
+  color: var(--classic-accent);
+  font:
+    14px/1.4 "Hiragino Kaku Gothic ProN",
+    Meiryo,
+    sans-serif;
+}
+#live2d-widget .vn-affinity {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 4px;
+  color: var(--vn-muted);
+  background: var(--vn-panel);
+  font-size: 10px;
+}
+#live2d-widget meter {
+  width: 35px;
+  height: 5px;
+  appearance: none;
+  border: 0;
+  background: var(--classic-edge-mid);
+}
+#live2d-widget meter::-webkit-meter-bar {
+  border: 0;
+  border-radius: 0;
+  height: 5px;
+  background: var(--classic-edge-mid);
+}
+#live2d-widget meter::-webkit-meter-optimum-value {
+  background: var(--classic-accent);
+}
+#live2d-widget meter::-moz-meter-bar {
+  background: var(--classic-accent);
+}
+#live2d-widget #live2d-dialogue {
+  position: static;
   inset: auto;
   z-index: auto;
-  width: auto;
+  display: block;
+  opacity: 1;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: var(--classic-document);
   box-shadow: none;
+  background: none;
   backdrop-filter: none;
   transform: none;
   transition: none;
+  pointer-events: auto;
 }
-body.classic-site #live2d-widget #live2d-dialogue.is-visible { visibility: visible; opacity: 1; }
-body.classic-site #live2d-widget .live2d-dialogue__meta { display: none; }
-body.classic-site #live2d-widget .live2d-dialogue__text {
+#live2d-widget .vn-reading {
+  position: relative;
+  min-height: 121px;
+  padding: 2px 0 14px;
+  cursor: pointer;
+}
+#live2d-widget .live2d-dialogue__text {
   margin: 0;
-  padding: 9px 28px 9px 9px;
-  overflow-wrap: anywhere;
-  font: 13px/1.55 Tahoma, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-  color: var(--text);
-}
-body.classic-site #live2d-widget .live2d-dialogue__close {
-  top: 5px;
-  right: 4px;
-  width: 18px;
-  height: 18px;
   padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  font-size: 10px;
-  color: var(--text-muted);
+  color: var(--vn-ink);
+  font:
+    14px/1.85 "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    Meiryo,
+    sans-serif;
+  overflow-wrap: anywhere;
 }
-body.classic-site #live2d-widget .companion-footer { display: flex; justify-content: flex-end; padding: 5px 0 1px; }
-body.classic-site #live2d-widget .live2d-interact {
-  position: static;
-  display: inline-flex;
+#live2d-widget .vn-translation {
+  margin: 8px 0 0;
+  padding: 0;
+  color: var(--vn-muted);
+  font:
+    12px/1.65 "Hiragino Sans GB",
+    "Microsoft YaHei",
+    sans-serif;
+  overflow-wrap: anywhere;
+}
+#live2d-widget[data-subtitles="false"] .vn-translation {
+  display: none;
+}
+#live2d-widget .vn-next-mark {
+  position: absolute;
+  bottom: -1px;
+  right: 0;
+  font:
+    15px "W95FA",
+    sans-serif;
+  color: var(--classic-accent);
+}
+#live2d-widget[data-dialogue-state="typing"] .vn-next-mark {
+  visibility: hidden;
+}
+#live2d-widget .vn-line-meta {
+  display: flex;
+  justify-content: space-between;
   gap: 6px;
-  width: auto;
-  height: 26px;
-  min-width: 68px;
-  min-height: 26px;
-  padding: 2px 10px;
-  border: 1px solid;
-  border-color: var(--classic-edge-light) var(--classic-edge-dark) var(--classic-edge-dark) var(--classic-edge-light);
-  border-radius: 0;
-  background: var(--classic-silver, #e6e5e0);
-  box-shadow: none;
-  color: var(--text);
-  font: 15px/1 var(--classic-font);
-  opacity: 1;
-  transform: none;
-  transition: none;
+  border-top: 1px solid color-mix(in srgb, var(--vn-rule) 35%, transparent);
+  padding-top: 5px;
+  font: 10px/1.4 var(--classic-font);
+  color: var(--vn-muted);
 }
-body.classic-site #live2d-widget .live2d-interact[hidden] { display: none; }
-body.classic-site #live2d-widget .live2d-interact:disabled { color: var(--text-muted); cursor: default; }
-body.classic-site #live2d-widget .live2d-interact i { font-size: 11px; }
-body.classic-site.live2d-is-hidden #live2d-widget.classic-companion { display: none !important; }
-@media (min-width: 600px) and (max-width: 999px) {
-  body.classic-site #live2d-widget.classic-companion.is-docked { margin-top: 0; }
+#live2d-widget .vn-hint {
+  display: block;
+  text-align: right;
+  margin-top: 5px;
+  color: var(--vn-muted);
+  font: 10px/1.4 var(--classic-font);
+}
+#live2d-widget .vn-choices {
+  display: grid;
+  gap: 5px;
+  margin-top: 7px;
+}
+#live2d-widget .vn-choices:empty {
+  display: none;
+}
+#live2d-widget .vn-choices button {
+  text-align: left;
+  min-height: 31px;
+  border-color: color-mix(in srgb, var(--vn-rule) 60%, transparent);
+}
+#live2d-widget .companion-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 6px;
+}
+#live2d-widget .companion-footer button {
+  min-height: 29px;
+  padding: 3px 7px;
+  border-color: transparent;
+  font-size: 12px;
+  white-space: nowrap;
+}
+#live2d-widget .companion-footer #live2d-interact {
+  position: static;
+  display: block;
+  width: auto;
+  height: auto;
+  min-width: 72px;
+  margin-left: auto;
+  border-color: var(--vn-rule);
+  background: var(--classic-soft);
+  font-size: 12px;
+}
+#live2d-widget .vn-weather-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px;
+  border: 0;
+  border-top: 1px solid var(--vn-rule);
+  color: var(--vn-muted);
+  text-align: left;
+  font: 11px/1.3 var(--classic-font);
+}
+#live2d-widget .vn-weather-strip span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#live2d-widget .vn-panel {
+  position: relative;
+  grid-area: 1 / 1;
+  z-index: 8;
+  min-height: 0;
+  max-height: calc(var(--vn-available-height, 100dvh - 24px) - 38px);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid var(--vn-rule);
+  background: var(--vn-panel);
+  box-shadow:
+    inset 0 0 0 3px var(--vn-panel),
+    inset 0 0 0 4px color-mix(in srgb, var(--vn-rule) 45%, transparent);
+}
+#live2d-widget .vn-panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--vn-rule);
+  color: var(--classic-accent);
+  font-size: 15px;
+}
+#live2d-widget .vn-panel > header button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font:
+    18px "W95FA",
+    sans-serif;
+}
+#live2d-widget .vn-panel label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 13px;
+  color: var(--vn-ink);
+}
+#live2d-widget .vn-panel output {
+  display: block;
+  float: right;
+  color: var(--classic-accent);
+  font: inherit;
+}
+#live2d-widget .vn-panel input[type="range"] {
+  width: 100%;
+  height: 24px;
+  padding: 0;
+  margin: 4px 0;
+  accent-color: var(--classic-accent);
+}
+#live2d-widget .vn-panel input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: var(--classic-accent);
+}
+#live2d-widget .vn-panel select {
+  width: 100%;
+}
+#live2d-widget .vn-panel p {
+  margin: 8px 0;
+  font: 12px/1.7 var(--classic-font);
+  color: var(--vn-muted);
+}
+#live2d-widget .vn-panel small {
+  display: block;
+  margin-top: 16px;
+  font: 11px/1.7 var(--classic-font);
+  color: var(--vn-muted);
+}
+#live2d-widget .vn-topic-list {
+  display: grid;
+  gap: 10px;
+}
+#live2d-widget .vn-topic-list button {
+  min-height: 39px;
+  text-align: left;
+}
+#live2d-widget .vn-history {
+  max-height: 365px;
+  overflow: auto;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+#live2d-widget .vn-history li {
+  padding: 0 0 12px;
+  margin: 0 0 12px;
+  border-bottom: 1px solid var(--vn-rule);
+}
+#live2d-widget .vn-history p:first-child {
+  color: var(--vn-ink);
+  font-size: 13px;
+}
+#live2d-widget .vn-history small {
+  margin-top: 5px;
+  font-size: 10px;
+}
+#live2d-widget .weather-dial {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+#live2d-widget .weather-dial__bezel {
+  background: var(--vn-panel);
+}
+#live2d-widget .weather-dial__status {
+  color: var(--vn-muted);
+}
+html body.live2d-is-hidden #live2d-widget {
+  display: none;
+}
+/* Reserve a desktop lane so the expanded window never covers the article. */
+@media (min-width: 1280px) {
+  html body.companion-is-expanded {
+    padding-right: 390px;
+  }
 }
 @media (max-width: 599px) {
-  body.classic-site #live2d-widget.classic-companion { display: none !important; }
+  #live2d-widget.is-minimized {
+    width: 222px;
+  }
+  #live2d-widget .vn-mode {
+    display: none;
+  }
+  #live2d-widget .companion-footer button {
+    padding-inline: 5px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #live2d-widget .vn-loading-icon i {
+    animation: none;
+  }
 }
 @media print {
-  body.classic-site #live2d-widget.classic-companion { display: none !important; }
+  #live2d-widget {
+    display: none;
+  }
+  html body.companion-is-expanded {
+    padding-right: 0;
+  }
+}
+
+#live2d-widget .vn-panel .vn-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+#live2d-widget .vn-panel input[type="checkbox"] {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+/* Scene and auxiliary panels share a bounded viewport; only the active view scrolls. */
+#live2d-widget .vn-main-view {
+  grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#live2d-widget.has-vn-panel .vn-main-view {
+  visibility: hidden;
+  overflow: clip;
+}
+#live2d-widget .vn-panel > header {
+  position: sticky;
+  top: -14px;
+  z-index: 1;
+  margin: -14px -14px 18px;
+  padding: 14px;
+  background: var(--vn-panel);
 }

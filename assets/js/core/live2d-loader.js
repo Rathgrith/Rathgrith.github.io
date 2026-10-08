@@ -22,8 +22,6 @@
   ];
   var DIALOGUE_HOLD_DURATION = 7200;
   var INTERACTION_MOTION_DURATION = 1030;
-  var IDLE_INTERACTION_DELAY = 32000;
-  var WELCOME_INTERACTION_DELAY = 1400;
   var CHARACTER_INTERACTIONS = {
     alice: [
       {
@@ -165,7 +163,6 @@
   var preferenceStorageKey = "site-live2d-enabled";
   var characterStorageKey = "site-live2d-character";
   var companionWidget = null;
-  var companionFloating = false;
   var companionMinimized = false;
   var companionVisibilityChosen = false;
   var companionPosition = null;
@@ -203,105 +200,9 @@
   var lipSyncHandler = null;
   var lipSyncStartedAt = 0;
   var lipSyncEndsAt = 0;
-  var interactionDialogueTimer = 0;
   var interactionMotionTimer = 0;
   var interactionMotionGeneration = 0;
   var interactionMotionPending = false;
-  var interactionIdleTimer = 0;
-  var interactionWelcomeTimer = 0;
-  var interactionIndices = {};
-  var interactionTurnIndices = {};
-  var weatherInteractionIndices = {};
-  var WEATHER_MOOD_PREFERENCES = {
-    clear: [
-      "confident",
-      "cheerful",
-      "curious",
-      "mischievous",
-      "irritable",
-      "quiet",
-    ],
-    calm: ["reflective", "quiet", "cheerful", "mischievous"],
-    cloud: ["reflective", "quiet", "curious", "mischievous"],
-    mist: [
-      "mysterious",
-      "curious",
-      "cautious",
-      "mischievous",
-      "quiet",
-      "confident",
-    ],
-    rain: ["reflective", "quiet", "sleepy", "mischievous", "cautious"],
-    storm: [
-      "confident",
-      "cautious",
-      "irritable",
-      "mischievous",
-      "reflective",
-    ],
-    snow: ["reflective", "quiet", "cautious", "mischievous", "confident"],
-    heat: ["irritable", "sleepy", "quiet", "reflective", "confident"],
-    aurora: [
-      "mysterious",
-      "curious",
-      "cheerful",
-      "mischievous",
-      "confident",
-      "quiet",
-    ],
-  };
-
-  function eligibleInteractionsForWeather(interactions, phase) {
-    if (!phase) return interactions;
-
-    var eligible = interactions.filter(function (interaction) {
-      var phases = interaction.weatherPhases || [];
-      return !phases.length || phases.indexOf(phase) !== -1;
-    });
-
-    return eligible.length ? eligible : interactions;
-  }
-
-  function preferredInteractionsForWeather(interactions, phase) {
-    var preferences = WEATHER_MOOD_PREFERENCES[phase] || [];
-    var preferred = [];
-
-    for (var moodIndex = 0; moodIndex < preferences.length; moodIndex += 1) {
-      var mood = preferences[moodIndex];
-      for (
-        var interactionIndex = 0;
-        interactionIndex < interactions.length;
-        interactionIndex += 1
-      ) {
-        var interaction = interactions[interactionIndex];
-        var moods = interaction.moods || [];
-        if (
-          moods.indexOf(mood) !== -1 &&
-          preferred.indexOf(interaction) === -1
-        ) {
-          preferred.push(interaction);
-        }
-      }
-      if (preferred.length >= 3) break;
-    }
-
-    return preferred;
-  }
-
-  function selectWeatherInteraction(character, interactions, turn, phase) {
-    if (!character || !phase || turn % 4 === 3) {
-      return null;
-    }
-
-    var preferred = preferredInteractionsForWeather(interactions, phase);
-    if (!preferred.length) return null;
-
-    var key = character.id + ":" + phase;
-    var index = weatherInteractionIndices[key] || 0;
-    weatherInteractionIndices[key] = index + 1;
-    return preferred[index % preferred.length];
-  }
-
   var fallbackCharacters = [
     {
       id: "marisa",
@@ -346,20 +247,14 @@
   function isPageDisabled() {
     return Boolean(
       document.body &&
-      document.body.getAttribute("data-disable-live2d") === "true"
+        document.body.getAttribute("data-disable-live2d") === "true"
     );
-  }
-
-  function isPhoneViewport() {
-    var viewportWidth =
-      window.innerWidth || document.documentElement.clientWidth || 1280;
-    return viewportWidth < 600;
   }
 
   function prefersReducedMotion() {
     return Boolean(
       window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
     );
   }
 
@@ -368,7 +263,7 @@
   }
 
   function shouldRenderLive2D() {
-    return !shouldDisableLive2D() && !isPhoneViewport();
+    return !shouldDisableLive2D() && !companionMinimized;
   }
 
   function syncVisibilityClass() {
@@ -403,7 +298,11 @@
     return getCharacters()[0].id;
   }
 
+  var selectedCharacterPreference = "";
+
   function getSelectedCharacterId() {
+    if (getCharacter(selectedCharacterPreference))
+      return selectedCharacterPreference;
     var stored = "";
     try {
       stored = localStorage.getItem(characterStorageKey) || "";
@@ -415,6 +314,7 @@
   }
 
   function persistSelectedCharacter(characterId) {
+    selectedCharacterPreference = characterId;
     try {
       localStorage.setItem(characterStorageKey, characterId);
     } catch (e) {
@@ -430,45 +330,60 @@
       "data-live2d-character",
       character.id
     );
-    Array.prototype.forEach.call(document.querySelectorAll("[data-classic-character]"), function (button) {
-      button.setAttribute("aria-pressed", button.getAttribute("data-classic-character") === character.id ? "true" : "false");
-    });
+    Array.prototype.forEach.call(
+      document.querySelectorAll("[data-classic-character]"),
+      function (button) {
+        button.setAttribute(
+          "aria-pressed",
+          button.getAttribute("data-classic-character") === character.id
+            ? "true"
+            : "false"
+        );
+      }
+    );
   }
 
   function getDisplayConfig() {
-    var viewportHeight = window.innerHeight || 800;
-    var viewportWidth = window.innerWidth || 1280;
-    var rail = !companionFloating && document.querySelector(".classic-profile-rail");
-    var dockedWidth = companionWidget ? companionWidget.clientWidth - 8 : 248;
-    var width = rail ? Math.min(248, Math.max(1, dockedWidth)) : 248;
-    var stageHeight = rail && viewportWidth < 1000 ? 180 : 232;
+    var width = Math.min(342, Math.max(260, window.innerWidth - 26));
     return {
       width: width,
-      height: Math.max(56, Math.min(stageHeight, viewportHeight - 202)),
+      height: Math.max(
+        170,
+        Math.min(260, Math.round(window.innerHeight * 0.31))
+      ),
     };
   }
 
   function constrainCompanionPosition(widget) {
-    if (widget.classList.contains("is-docked")) {
-      widget.style.left = widget.style.top = widget.style.right = widget.style.bottom = "auto";
-      return;
-    }
     if (!companionPosition) {
+      var top = Math.max(12, Math.min(160, window.innerHeight - 710));
       widget.style.left = "auto";
-      widget.style.top = "auto";
-      widget.style.right = "16px";
-      widget.style.bottom = "16px";
+      widget.style.top = companionMinimized ? "auto" : top + "px";
+      widget.style.right = "12px";
+      widget.style.bottom = companionMinimized ? "16px" : "auto";
+      var available = companionMinimized
+        ? window.innerHeight - 24
+        : window.innerHeight - top - 16;
+      widget.style.maxHeight = available + "px";
+      widget.style.setProperty("--vn-available-height", available + "px");
       return;
     }
     var bounds = widget.getBoundingClientRect();
-    companionPosition.x = Math.max(8, Math.min(companionPosition.x,
-      window.innerWidth - bounds.width - 8));
-    companionPosition.y = Math.max(8, Math.min(companionPosition.y,
-      window.innerHeight - bounds.height - 8));
+    companionPosition.x = Math.max(
+      8,
+      Math.min(companionPosition.x, window.innerWidth - bounds.width - 8)
+    );
+    companionPosition.y = Math.max(
+      8,
+      Math.min(companionPosition.y, window.innerHeight - bounds.height - 8)
+    );
     widget.style.left = companionPosition.x + "px";
     widget.style.top = companionPosition.y + "px";
     widget.style.right = "auto";
     widget.style.bottom = "auto";
+    var available = window.innerHeight - companionPosition.y - 8;
+    widget.style.maxHeight = available + "px";
+    widget.style.setProperty("--vn-available-height", available + "px");
   }
 
   function renderCompanionVisibility(widget) {
@@ -476,10 +391,16 @@
     if (widget.getAttribute("data-companion-minimized") === state) return;
     widget.setAttribute("data-companion-minimized", state);
     widget.classList.toggle("is-minimized", companionMinimized);
-    widget.querySelector("[data-companion-content]").hidden = companionMinimized;
+    widget.querySelector("[data-companion-content]").hidden =
+      companionMinimized;
     var button = widget.querySelector("[data-companion-minimize]");
     button.setAttribute("aria-expanded", companionMinimized ? "false" : "true");
-    button.setAttribute("aria-label", companionMinimized ? "Restore companion window" : "Minimize companion window");
+    button.setAttribute(
+      "aria-label",
+      companionMinimized
+        ? "Restore companion window"
+        : "Minimize companion window"
+    );
     button.setAttribute("title", companionMinimized ? "Restore" : "Minimize");
     button.textContent = companionMinimized ? "□" : "_";
   }
@@ -490,9 +411,13 @@
     var elements = ensureWidget();
     if (!elements) return;
     renderCompanionVisibility(elements.widget);
-    if (minimized) hideDialogue(true);
-    else scheduleIdleInteraction();
+    window.SiteCompanion.setVisible(!minimized && isPreferenceEnabled());
     applyResponsiveSize();
+    if (
+      !minimized &&
+      (!currentModel || currentCharacterId !== getSelectedCharacterId())
+    )
+      initLive2D();
   }
 
   function ensureCompanionShell(widget) {
@@ -502,45 +427,46 @@
     widget.setAttribute("role", "region");
     widget.setAttribute("aria-labelledby", "companion-title");
     widget.innerHTML = [
-      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="Drag to move; arrow keys move the window, Home resets its position">',
+      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="拖动标题栏移动；方向键微调，Home 返回右侧">',
       '<span id="companion-title" class="companion-title"><span data-companion-name>Companion</span></span>',
       '<div class="companion-controls">',
       '<button type="button" data-companion-minimize aria-label="Minimize companion window" aria-expanded="true" aria-controls="companion-content" title="Minimize">_</button>',
       '<button type="button" data-companion-close aria-label="Close companion window" title="Close">×</button>',
-      '</div></div>',
+      "</div></div>",
       '<div id="companion-content" data-companion-content>',
       '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">Loading companion…</span></div>',
       '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">Click Talk to start a conversation.</p></div>',
       '<div class="companion-footer" data-companion-footer></div>',
-      '</div>',
+      "</div>",
     ].join("");
-    widget.querySelector("[data-companion-minimize]").addEventListener("click", function () {
-      setCompanionMinimized(!companionMinimized);
-    });
-    widget.querySelector("[data-companion-close]").addEventListener("click", function () {
-      var toggle = document.querySelector("[data-live2d-toggle]");
-      if (toggle && isPreferenceEnabled()) toggle.click();
-      var options = document.querySelector("[data-site-options-trigger]");
-      if (options) options.focus({ preventScroll: true });
-    });
+    widget
+      .querySelector("[data-companion-minimize]")
+      .addEventListener("click", function () {
+        setCompanionMinimized(!companionMinimized);
+      });
+    widget
+      .querySelector("[data-companion-close]")
+      .addEventListener("click", function () {
+        window.SiteCompanionVisibility.set(false);
+        var options = document.querySelector("[data-site-options-trigger]");
+        if (options) options.focus({ preventScroll: true });
+      });
     var titlebar = widget.querySelector("[data-companion-titlebar]");
     var drag = null;
     titlebar.addEventListener("pointerdown", function (event) {
       if (event.button !== 0 || event.target.closest("button")) return;
       var bounds = widget.getBoundingClientRect();
       drag = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-      if (widget.classList.contains("is-docked")) {
-        companionFloating = true;
-        companionPosition = { x: bounds.left, y: bounds.top };
-        applyResponsiveSize();
-      }
       titlebar.setPointerCapture(event.pointerId);
       widget.classList.add("is-dragging");
       event.preventDefault();
     });
     titlebar.addEventListener("pointermove", function (event) {
       if (!drag) return;
-      companionPosition = { x: event.clientX - drag.x, y: event.clientY - drag.y };
+      companionPosition = {
+        x: event.clientX - drag.x,
+        y: event.clientY - drag.y,
+      };
       constrainCompanionPosition(widget);
     });
     function endDrag() {
@@ -552,7 +478,6 @@
     titlebar.addEventListener("lostpointercapture", endDrag);
     titlebar.addEventListener("dblclick", function (event) {
       if (event.target.closest("button")) return;
-      companionFloating = false;
       companionPosition = null;
       applyResponsiveSize();
     });
@@ -560,15 +485,21 @@
       if (event.target !== titlebar) return;
       if (event.key === "Home") {
         companionPosition = null;
-        companionFloating = false;
       } else {
-        var directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+        var directions = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1],
+        };
         var direction = directions[event.key];
         if (!direction) return;
         var bounds = widget.getBoundingClientRect();
         var step = event.shiftKey ? 1 : 10;
-        companionFloating = true;
-        companionPosition = { x: bounds.left + direction[0] * step, y: bounds.top + direction[1] * step };
+        companionPosition = {
+          x: bounds.left + direction[0] * step,
+          y: bounds.top + direction[1] * step,
+        };
       }
       event.preventDefault();
       applyResponsiveSize();
@@ -577,57 +508,29 @@
   }
 
   function ensureInteractionUI(widget) {
-    var footer = widget.querySelector("[data-companion-footer]");
-    var conversation = widget.querySelector("[data-companion-conversation]");
-    var trigger = document.getElementById("live2d-interact");
-    if (!trigger) {
-      trigger = document.createElement("button");
-      trigger.id = "live2d-interact";
-      trigger.className = "live2d-interact";
-      trigger.type = "button";
-      trigger.innerHTML = '<i class="fas fa-comment" aria-hidden="true"></i><span>Talk</span>';
-      trigger.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        showNextInteraction(true);
-      });
-      footer.appendChild(trigger);
-    } else if (trigger.parentNode !== footer) {
-      footer.appendChild(trigger);
-    }
-
-    var dialogue = document.getElementById("live2d-dialogue");
-    if (!dialogue) {
-      dialogue = document.createElement("aside");
-      dialogue.id = "live2d-dialogue";
-      dialogue.className = "live2d-dialogue";
-      dialogue.setAttribute("aria-live", "polite");
-      dialogue.setAttribute("aria-atomic", "true");
-      dialogue.setAttribute("aria-hidden", "true");
-      dialogue.innerHTML = [
-        '<div class="live2d-dialogue__meta">',
-        '<strong class="live2d-dialogue__name" data-live2d-dialogue-name></strong>',
-        "</div>",
-        '<p class="live2d-dialogue__text" data-live2d-dialogue-text lang="ja"></p>',
-        '<button type="button" class="live2d-dialogue__close" data-live2d-dialogue-close aria-label="Close character dialogue">',
-        '<i class="fas fa-times" aria-hidden="true"></i>',
-        "</button>",
-      ].join("");
-      dialogue
-        .querySelector("[data-live2d-dialogue-close]")
-        .addEventListener("click", function () {
-          hideDialogue(true);
-          scheduleIdleInteraction();
-        });
-      conversation.appendChild(dialogue);
-    } else if (dialogue.parentNode !== conversation) {
-      conversation.appendChild(dialogue);
-    }
-
-    return {
-      trigger: trigger,
-      dialogue: dialogue,
-    };
+    return window.SiteCompanion.mount(widget, {
+      originals: CHARACTER_INTERACTIONS,
+      perform: animateInteraction,
+      stopSpeaking: stopLipSync,
+      speak: function () {
+        if (!currentModel || currentCharacterId !== getSelectedCharacterId())
+          return;
+        if (!lipSyncEndsAt) lipSyncStartedAt = window.performance.now();
+        lipSyncEndsAt = window.performance.now() + 180;
+        widget.setAttribute("data-live2d-speaking", "true");
+      },
+      select: selectCharacter,
+      retry: function () {
+        window.__sitePixiLibraryPromise = null;
+        window.__siteCubismCoreLibraryPromise = null;
+        window.__siteLive2DDisplayLibraryPromise = null;
+        initLive2D();
+      },
+      resetPosition: function () {
+        companionPosition = null;
+        applyResponsiveSize();
+      },
+    });
   }
 
   function ensureWidget() {
@@ -641,20 +544,13 @@
       document.body.appendChild(widget);
     }
     companionWidget = widget;
-    var rail = !companionFloating && document.querySelector(".classic-profile-rail");
-    var parent = rail || document.body;
-    if (widget.parentNode !== parent) {
-      var index = rail && rail.querySelector(".classic-page-index");
-      if (index) rail.insertBefore(widget, index);
-      else parent.appendChild(widget);
-    }
-    widget.classList.toggle("is-docked", Boolean(rail));
+    if (widget.parentNode !== document.body) document.body.appendChild(widget);
+    widget.classList.remove("is-docked");
     widget.removeAttribute("aria-hidden");
     ensureCompanionShell(widget);
-    if (!companionVisibilityChosen) {
-      companionMinimized = !document.querySelector(".classic-profile-rail");
-      renderCompanionVisibility(widget);
-    }
+    if (!companionVisibilityChosen)
+      companionMinimized = window.innerWidth < 1280;
+    renderCompanionVisibility(widget);
     var stage = widget.querySelector("[data-companion-stage]");
 
     var canvas = document.getElementById("live2dcanvas");
@@ -678,21 +574,21 @@
 
   function fitCurrentModel() {
     if (!application || !currentModel) return;
-
     var display = getDisplayConfig();
     currentModel.scale.set(1);
-
-    var modelWidth = Math.max(currentModel.width || 1, 1);
     var modelHeight = Math.max(currentModel.height || 1, 1);
-    var scale = Math.min(
-      (display.width * 0.94) / modelWidth,
-      (display.height * 0.96) / modelHeight
-    );
-
-    currentModel.anchor.set(0.5, 1);
+    // Frame the upper half of the original model canvas; preserve its own motion rig.
+    var cameras = {
+      alice: { crop: 0.46, top: 0.13 },
+      marisa: { crop: 0.48, top: 0.1 },
+      patchouli: { crop: 0.46, top: 0.13 },
+    };
+    var camera = cameras[currentCharacterId] || cameras.alice;
+    var scale = display.height / (modelHeight * camera.crop);
+    currentModel.anchor.set(0.5, 0);
     currentModel.scale.set(scale);
     currentModel.x = display.width * 0.5;
-    currentModel.y = display.height * 0.98;
+    currentModel.y = -modelHeight * scale * camera.top;
   }
 
   function applyPointerFocus() {
@@ -754,18 +650,22 @@
     var elements = ensureWidget();
     if (!elements) return false;
 
-    if (isPhoneViewport()) {
-      elements.widget.style.display = "none";
-      elements.trigger.hidden = true;
-      hideDialogue(false);
-      return true;
-    }
-
-    elements.widget.style.display = "block";
     var display = getDisplayConfig();
-    elements.widget.style.width = display.width + 10 + "px";
+    elements.widget.style.setProperty("--vn-width", display.width + 10 + "px");
     elements.widget.style.height = "auto";
-    elements.trigger.hidden = shouldDisableLive2D() || !currentModel;
+    elements.trigger.hidden = false;
+    document.body.classList.toggle(
+      "companion-is-expanded",
+      !companionMinimized && !shouldDisableLive2D()
+    );
+    window.SiteCompanion.setVisible(
+      !companionMinimized && !shouldDisableLive2D()
+    );
+    if (application) {
+      if (companionMinimized || shouldDisableLive2D() || document.hidden)
+        application.stop();
+      else application.start();
+    }
     elements.canvas.style.width = display.width + "px";
     elements.canvas.style.height = display.height + "px";
 
@@ -800,18 +700,27 @@
 
     window[cacheKey] = new Promise(function (resolve, reject) {
       var existing = document.querySelector('script[src="' + source + '"]');
-      if (existing) {
-        existing.addEventListener("load", resolve, { once: true });
-        existing.addEventListener("error", reject, { once: true });
-        return;
-      }
+      if (existing) existing.remove();
 
       var script = document.createElement("script");
       script.src = source;
       script.async = true;
       script.crossOrigin = "anonymous";
-      script.onload = resolve;
-      script.onerror = reject;
+      var deadline = window.setTimeout(function () {
+        script.remove();
+        window[cacheKey] = null;
+        reject(new Error("Library timeout"));
+      }, 20000);
+      script.onload = function () {
+        clearTimeout(deadline);
+        resolve();
+      };
+      script.onerror = function () {
+        clearTimeout(deadline);
+        script.remove();
+        window[cacheKey] = null;
+        reject(new Error("Library unavailable"));
+      };
       document.head.appendChild(script);
     });
 
@@ -838,8 +747,8 @@
           function () {
             return Boolean(
               window.PIXI &&
-              window.PIXI.live2d &&
-              window.PIXI.live2d.Live2DModel
+                window.PIXI.live2d &&
+                window.PIXI.live2d.Live2DModel
             );
           }
         );
@@ -1211,20 +1120,14 @@
     model.internalModel.on("beforeModelUpdate", lipSyncHandler);
   }
 
-  function triggerLipSync(text) {
-    if (!lipSyncModel || lipSyncModel !== currentModel) return;
-    var duration = Math.min(4200, Math.max(1900, text.length * 95));
-    lipSyncStartedAt = window.performance.now();
-    lipSyncEndsAt = lipSyncStartedAt + duration;
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.setAttribute("data-live2d-speaking", "true");
-    }
-  }
-
   function stopLipSync() {
     lipSyncStartedAt = 0;
     lipSyncEndsAt = 0;
+    if (lipSyncModel)
+      lipSyncModel.internalModel.coreModel.setParameterValueById(
+        "ParamMouthOpenY",
+        0
+      );
     var elements = ensureWidget();
     if (elements) {
       elements.widget.removeAttribute("data-live2d-speaking");
@@ -1569,290 +1472,55 @@
   function clearInteractionTimers() {
     interactionMotionGeneration += 1;
     interactionMotionPending = false;
-    if (interactionDialogueTimer) {
-      window.clearTimeout(interactionDialogueTimer);
-      interactionDialogueTimer = 0;
-    }
     if (interactionMotionTimer) {
       window.clearTimeout(interactionMotionTimer);
       interactionMotionTimer = 0;
     }
-    if (interactionIdleTimer) {
-      window.clearTimeout(interactionIdleTimer);
-      interactionIdleTimer = 0;
-    }
-    if (interactionWelcomeTimer) {
-      window.clearTimeout(interactionWelcomeTimer);
-      interactionWelcomeTimer = 0;
-    }
-  }
-
-  function returnToRestPose(model, character) {
-    if (!model || model !== currentModel || !character) return;
-
-    var elements = ensureWidget();
-    if (isIdleOnlyCharacter(character)) {
-      interactionMotionPending = false;
-      if (elements) elements.trigger.disabled = false;
-      return;
-    }
-    if (currentPoseId === "1") {
-      interactionMotionPending = false;
-      applyStaticRestPose(model, character).then(function () {
-        if (model === currentModel) {
-          var restElements = ensureWidget();
-          if (restElements) restElements.trigger.disabled = false;
-        }
-      });
-      return;
-    }
-
-    var returnGeneration = ++interactionMotionGeneration;
-    var returnMotionId = currentPoseId + "1";
-    interactionMotionPending = true;
-    if (elements) elements.trigger.disabled = true;
-
-    playMotionById(model, returnMotionId, false).then(function () {
-      if (
-        returnGeneration !== interactionMotionGeneration ||
-        model !== currentModel ||
-        currentCharacterId !== character.id
-      ) {
-        return;
-      }
-
-      if (interactionMotionTimer) {
-        window.clearTimeout(interactionMotionTimer);
-      }
-      interactionMotionTimer = window.setTimeout(function () {
-        interactionMotionTimer = 0;
-        if (
-          returnGeneration !== interactionMotionGeneration ||
-          model !== currentModel ||
-          currentCharacterId !== character.id
-        ) {
-          return;
-        }
-        currentPoseId = "1";
-        interactionMotionPending = false;
-        applyStaticRestPose(model, character).then(function () {
-          if (model === currentModel) {
-            var restElements = ensureWidget();
-            if (restElements) restElements.trigger.disabled = false;
-          }
-        });
-      }, INTERACTION_MOTION_DURATION);
-    });
-  }
-
-  function hideDialogue(resumeRestPose) {
-    if (interactionDialogueTimer) {
-      window.clearTimeout(interactionDialogueTimer);
-      interactionDialogueTimer = 0;
-    }
-    stopLipSync();
-
-    var elements = ensureWidget();
-    if (!elements) return;
-    elements.widget.classList.remove("has-dialogue");
-    elements.dialogue.classList.remove("is-visible");
-    elements.dialogue.setAttribute("aria-hidden", "true");
-    elements.trigger.setAttribute("aria-expanded", "false");
-
-    if (
-      resumeRestPose &&
-      !interactionMotionPending &&
-      currentModel &&
-      currentCharacterId
-    ) {
-      returnToRestPose(currentModel, getCharacter(currentCharacterId));
-    }
   }
 
   function updateInteractionUI(character) {
-    var elements = ensureWidget();
-    if (!elements || !character) return;
-
-    elements.widget.querySelector("[data-companion-name]").textContent = character.name;
-    var label = "Talk to " + character.name;
-    elements.trigger.hidden = !shouldRenderLive2D() || !currentModel;
-    elements.trigger.setAttribute("aria-label", label);
-    elements.trigger.setAttribute("title", label);
-    elements.trigger.setAttribute("aria-controls", "live2d-dialogue");
-    elements.trigger.setAttribute("aria-expanded", "false");
-    elements.trigger.disabled = false;
-    elements.dialogue.querySelector("[data-live2d-dialogue-name]").textContent =
-      character.name;
+    if (character) window.SiteCompanion.setCharacter(character.id);
   }
 
-  function showInteraction(character, interaction) {
+  function animateInteraction(interaction) {
     if (
-      !character ||
-      !interaction ||
-      companionMinimized ||
       !currentModel ||
-      currentCharacterId !== character.id ||
+      currentCharacterId !== getSelectedCharacterId() ||
       !shouldRenderLive2D()
-    ) {
+    )
       return;
-    }
-
-    if (interactionWelcomeTimer) {
-      window.clearTimeout(interactionWelcomeTimer);
-      interactionWelcomeTimer = 0;
-    }
-    if (interactionIdleTimer) {
-      window.clearTimeout(interactionIdleTimer);
-      interactionIdleTimer = 0;
-    }
-
-    var elements = ensureWidget();
-    elements.dialogue.querySelector("[data-live2d-dialogue-name]").textContent =
-      character.name;
-    elements.dialogue.setAttribute("data-live2d-source", interaction.source);
-    elements.dialogue.querySelector("[data-live2d-dialogue-text]").textContent =
-      interaction.text;
-    var idleOnly = isIdleOnlyCharacter(character);
-    var targetPoseId = idleOnly ? currentPoseId : interaction.poseId || "1";
-    var transitionMotionId = currentPoseId + targetPoseId;
-    elements.dialogue.setAttribute("data-live2d-character", character.id);
-    elements.dialogue.setAttribute(
-      "data-live2d-motion-id",
-      idleOnly ? "static" : transitionMotionId
-    );
-    elements.dialogue.setAttribute("aria-hidden", "false");
-    elements.widget.classList.add("has-dialogue");
-    elements.dialogue.classList.add("is-visible");
-    constrainCompanionPosition(elements.widget);
-    elements.trigger.setAttribute("aria-expanded", "true");
-    elements.trigger.disabled = true;
-
-    if (idleOnly) {
-      interactionMotionPending = false;
-      elements.trigger.disabled = false;
-    } else {
-      var interactionModel = currentModel;
-      var motionGeneration = ++interactionMotionGeneration;
-      interactionMotionPending = true;
-      playMotionById(interactionModel, transitionMotionId, false).then(
-        function () {
-          if (
-            motionGeneration !== interactionMotionGeneration ||
-            interactionModel !== currentModel ||
-            currentCharacterId !== character.id
-          ) {
-            return;
-          }
-
-          if (interactionMotionTimer) {
-            window.clearTimeout(interactionMotionTimer);
-          }
-          interactionMotionTimer = window.setTimeout(function () {
-            interactionMotionTimer = 0;
-            interactionMotionPending = false;
-            if (currentModel && currentCharacterId === character.id) {
-              currentPoseId = targetPoseId;
-              var currentElements = ensureWidget();
-              if (currentElements) {
-                currentElements.widget.setAttribute(
-                  "data-live2d-pose-id",
-                  targetPoseId
-                );
-              }
-              preloadPoseMotions(currentModel, targetPoseId);
-              if (
-                currentElements &&
-                currentElements.dialogue.classList.contains("is-visible")
-              ) {
-                currentElements.trigger.disabled = false;
-              } else {
-                returnToRestPose(currentModel, character);
-              }
-            }
-          }, INTERACTION_MOTION_DURATION);
-        }
-      );
-    }
-    setInteractionExpression(interaction.expressionMotionId);
-    triggerLipSync(interaction.text);
-
-    if (interactionDialogueTimer) {
-      window.clearTimeout(interactionDialogueTimer);
-    }
-    interactionDialogueTimer = window.setTimeout(function () {
-      hideDialogue(true);
-    }, DIALOGUE_HOLD_DURATION);
-    scheduleIdleInteraction();
-  }
-
-  function showNextInteraction() {
-    if (interactionMotionPending || !shouldRenderLive2D()) return;
     var character = getCharacter(currentCharacterId);
-    if (!character) return;
-
-    var interactions = CHARACTER_INTERACTIONS[character.id] || [];
-    if (!interactions.length) return;
-
-    var turn = interactionTurnIndices[character.id] || 0;
-    var weather = window.__siteWeather;
-    var weatherPhase = weather && weather.phase ? weather.phase : "";
-    var availableInteractions = eligibleInteractionsForWeather(
-      interactions,
-      weatherPhase
-    );
-    var interactionKey = character.id + ":" + (weatherPhase || "default");
-    var index = interactionIndices[interactionKey] || 0;
-    var weatherInteraction = selectWeatherInteraction(
-      character,
-      availableInteractions,
-      turn,
-      weatherPhase
-    );
-
-    if (weatherInteraction) {
-      showInteraction(character, weatherInteraction);
-    } else {
-      showInteraction(
-        character,
-        availableInteractions[index % availableInteractions.length]
-      );
-      interactionIndices[interactionKey] =
-        (index + 1) % availableInteractions.length;
-    }
-    interactionTurnIndices[character.id] = turn + 1;
-  }
-
-  function scheduleIdleInteraction() {
-    if (interactionIdleTimer) window.clearTimeout(interactionIdleTimer);
-    if (companionMinimized || prefersReducedMotion() || !shouldRenderLive2D() || document.hidden) {
-      interactionIdleTimer = 0;
-      return;
-    }
-
-    interactionIdleTimer = window.setTimeout(function () {
-      interactionIdleTimer = 0;
-      showNextInteraction();
-    }, IDLE_INTERACTION_DELAY);
-  }
-
-  function scheduleWelcomeInteraction(character) {
-    if (interactionWelcomeTimer) {
-      window.clearTimeout(interactionWelcomeTimer);
-    }
-    if (companionMinimized || prefersReducedMotion() || !shouldRenderLive2D()) return;
-
-    interactionWelcomeTimer = window.setTimeout(function () {
-      interactionWelcomeTimer = 0;
-      if (character && currentCharacterId === character.id) {
-        showNextInteraction();
-      }
-    }, WELCOME_INTERACTION_DELAY);
+    setInteractionExpression(interaction.expressionMotionId || "01");
+    if (interactionMotionPending || isIdleOnlyCharacter(character)) return;
+    var model = currentModel,
+      targetPose = interaction.poseId || "1";
+    if (currentPoseId === targetPose) return;
+    var motionGeneration = ++interactionMotionGeneration;
+    interactionMotionPending = true;
+    playMotionById(model, currentPoseId + targetPose, false).then(function () {
+      if (
+        motionGeneration !== interactionMotionGeneration ||
+        model !== currentModel
+      )
+        return;
+      interactionMotionTimer = window.setTimeout(function () {
+        if (
+          motionGeneration !== interactionMotionGeneration ||
+          model !== currentModel
+        )
+          return;
+        currentPoseId = targetPose;
+        interactionMotionPending = false;
+        companionWidget.setAttribute("data-live2d-pose-id", targetPose);
+        preloadPoseMotions(model, targetPose);
+      }, INTERACTION_MOTION_DURATION);
+    });
   }
 
   function destroyCurrentModel() {
     if (!currentModel) return;
     clearInteractionTimers();
-    hideDialogue(false);
+    stopLipSync();
     stopPartOpacityGuard();
     stopLipSyncLoop();
     stopEyeBlinkLoop();
@@ -1875,24 +1543,28 @@
     var elements = ensureWidget();
     if (currentModel && currentCharacterId === character.id) {
       elements.widget.classList.remove("is-loading", "has-live2d-error");
+      currentModel.visible = true;
       fitCurrentModel();
       updateInteractionUI(character);
-      scheduleIdleInteraction();
+      window.SiteCompanion.setReady("ready");
       return applyStaticRestPose(currentModel, character).then(function () {
         return currentModel;
       });
     }
 
-    elements.widget.classList.add("is-loading");
-    elements.widget.classList.remove("has-live2d-error");
-    elements.widget.querySelector(".companion-load-status").textContent = "Loading " + character.name + "…";
-    elements.widget.querySelector("[data-companion-name]").textContent = character.name;
+    window.SiteCompanion.setReady("loading");
+    if (currentModel) currentModel.visible = false;
 
+    var deadline = setTimeout(function () {
+      if (generation === modelLoadGeneration)
+        window.SiteCompanion.setReady("error");
+    }, 25000);
     return window.PIXI.live2d.Live2DModel.from(character.modelPath, {
       autoInteract: false,
       motionPreload: window.PIXI.live2d.MotionPreloadStrategy.NONE,
     })
       .then(function (model) {
+        clearTimeout(deadline);
         if (generation !== modelLoadGeneration) {
           model.destroy({ children: true, texture: true, baseTexture: true });
           return null;
@@ -1919,22 +1591,19 @@
         elements.widget.setAttribute("data-live2d-character", character.id);
         updateInteractionUI(character);
         return Promise.all([restPoseReady, expressionReady]).then(function () {
-          if (model !== currentModel || generation !== modelLoadGeneration) return null;
+          if (model !== currentModel || generation !== modelLoadGeneration)
+            return null;
           startEyeBlinkLoop(model);
           startLipSyncLoop(model);
           startBreathingLoop(model, character);
-          scheduleWelcomeInteraction(character);
-          elements.widget.classList.remove("is-loading");
+          window.SiteCompanion.setReady("ready");
           return model;
         });
       })
       .catch(function (error) {
+        clearTimeout(deadline);
         if (generation === modelLoadGeneration) {
-          elements.widget.classList.remove("is-loading");
-          elements.widget.classList.add("has-live2d-error");
-          elements.widget.querySelector(".companion-load-status").textContent = "Companion unavailable. Please reopen to retry.";
-          elements.trigger.hidden = true;
-          hideDialogue(false);
+          window.SiteCompanion.setReady("error");
         }
         // A stale request must never mark the currently selected model as failed.
         // Current failures have already been rendered above; do not rethrow them
@@ -2005,11 +1674,14 @@
     var selectionGeneration = ++modelLoadGeneration;
     persistSelectedCharacter(character.id);
     syncCharacterTheme(character.id);
+    window.SiteCompanion.setCharacter(character.id);
     renderCharacterButton(ensureCharacterButton());
     clearInteractionTimers();
-    hideDialogue(false);
+    stopLipSync();
 
     if (shouldRenderLive2D()) {
+      window.SiteCompanion.setReady("loading");
+      if (currentModel) currentModel.visible = false;
       loadLibraries()
         .then(function () {
           if (selectionGeneration !== modelLoadGeneration) return null;
@@ -2017,19 +1689,24 @@
           return loadCharacter(character.id);
         })
         .catch(function () {
-          // Live2D is decorative; do not block the page if it fails.
+          if (selectionGeneration === modelLoadGeneration)
+            window.SiteCompanion.setReady("error");
         });
     }
   }
 
   function bindCharacterButton() {
-    Array.prototype.forEach.call(document.querySelectorAll("[data-classic-character]"), function (button) {
-      if (button.getAttribute("data-classic-character-bound") === "true") return;
-      button.setAttribute("data-classic-character-bound", "true");
-      button.addEventListener("click", function () {
-        selectCharacter(button.getAttribute("data-classic-character"));
-      });
-    });
+    Array.prototype.forEach.call(
+      document.querySelectorAll("[data-classic-character]"),
+      function (button) {
+        if (button.getAttribute("data-classic-character-bound") === "true")
+          return;
+        button.setAttribute("data-classic-character-bound", "true");
+        button.addEventListener("click", function () {
+          selectCharacter(button.getAttribute("data-classic-character"));
+        });
+      }
+    );
     var button = ensureCharacterButton();
     if (!button) return;
     renderCharacterButton(button);
@@ -2051,10 +1728,12 @@
     applyResponsiveSize();
     if (!shouldRenderLive2D()) {
       clearInteractionTimers();
-      hideDialogue(false);
+      stopLipSync();
       return;
     }
 
+    window.SiteCompanion.setCharacter(getSelectedCharacterId());
+    if (!currentModel) window.SiteCompanion.setReady("loading");
     var libraryGeneration = modelLoadGeneration;
     loadLibraries()
       .then(function () {
@@ -2067,13 +1746,13 @@
         if (libraryGeneration !== modelLoadGeneration) return;
         var elements = ensureWidget();
         if (elements) {
-          elements.widget.classList.add("has-live2d-error");
-          elements.widget.querySelector(".companion-load-status").textContent = "Companion unavailable. Please reload to retry.";
+          window.SiteCompanion.setReady("error");
         }
         // Live2D is decorative; do not block the page if it fails.
       });
   }
 
+  document.addEventListener("visibilitychange", applyResponsiveSize);
   document.addEventListener("site:content-updated", initLive2D);
   document.addEventListener("site:live2d-toggle", function (event) {
     if (event.detail && event.detail.enabled) setCompanionMinimized(false);

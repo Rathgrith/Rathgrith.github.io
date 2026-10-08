@@ -1,0 +1,148 @@
+/* Weather is a panel inside the companion; no global visibility or viewport overrides. */
+.weather-dial {
+  --weather-needle-angle: 0deg;
+  width: 100%;
+  min-width: 0;
+}
+.weather-dial__symbols {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.weather-dial__bezel {
+  padding: 7px;
+  border: 1px solid var(--border);
+  background: var(--classic-chrome);
+}
+.weather-dial__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px;
+  margin-bottom: 8px;
+  background: var(--classic-title);
+}
+.weather-dial__eyebrow,
+.weather-dial__title {
+  margin: 0;
+  color: #fff;
+  font: 12px/1.5 var(--classic-font);
+}
+.weather-dial__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+.weather-dial__button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+.weather-dial__instrument {
+  position: relative;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--classic-document);
+}
+.weather-dial__ring {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto;
+  background:
+    radial-gradient(circle, var(--classic-document) 0 62%, transparent 63%),
+    repeating-conic-gradient(
+      from -4deg,
+      var(--text-muted) 0 1deg,
+      transparent 1deg 18deg
+    );
+}
+.weather-dial__needle {
+  position: absolute;
+  left: calc(50% - 1px);
+  top: 13px;
+  width: 2px;
+  height: 53px;
+  transform-origin: center bottom;
+  transform: rotate(var(--weather-needle-angle));
+  background: var(--classic-accent);
+  transition: transform 0.6s ease;
+}
+.weather-dial__reading {
+  position: absolute;
+  left: 50%;
+  top: 31px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 5px;
+  background: var(--classic-document);
+}
+.weather-dial__icon {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: var(--classic-accent);
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+.weather-dial__name {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.weather-dial__time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.weather-dial__condition-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.weather-dial__temperature {
+  font-size: 30px;
+  line-height: 1.1;
+}
+.weather-dial__description {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.weather-dial__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 8px 4px;
+  border: 1px solid var(--border);
+  background: var(--classic-document);
+  text-align: center;
+}
+.weather-dial__metrics dt {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.weather-dial__metrics dd {
+  margin: 3px 0 0;
+  font-size: 13px;
+}
+.weather-dial__footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.weather-dial__status {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  overflow-wrap: anywhere;
+}

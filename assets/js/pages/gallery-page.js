@@ -180,7 +180,7 @@
       var image = createElement("img", "gallery-modal__thumb-image");
       image.src = state.thumbnailDir + item.filename;
       image.alt = "";
-      image.loading = "lazy";
+      image.loading = "eager";
       image.decoding = "async";
       button.appendChild(image);
       fragment.appendChild(button);
@@ -271,8 +271,8 @@
     state.isOpen = true;
     state.currentIndex = index;
     state.triggerElement = triggerElement || null;
-    // Page-enter filters establish a fixed containing block. Mount the viewer
-    // on body so it stays in the viewport even during navigation animations.
+    // Mount outside the document frame so viewport layout and modal stacking
+    // remain independent of page navigation.
     if (refs.root.parentNode !== document.body) {
       state.modalMount = { parent: refs.root.parentNode, next: refs.root.nextSibling };
       document.body.appendChild(refs.root);

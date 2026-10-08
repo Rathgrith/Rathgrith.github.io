@@ -32,18 +32,17 @@ AcadHomepage
 - **美观而简约**: 此主页美观而简约，适合个人学术主页的搭建。
 - **搜索引擎优化**: 搜索引擎优化 (SEO) 帮助搜索引擎轻松找到您在主页上发布的信息，然后将其与类似网站进行排名，并获得排名优势。
 
-## 前端结构
+## 当前分支前端结构
 
-- `assets/js/core/`：存放导航级行为模块：
-  - `link-target-policy.js`：站内链接保持当前标签页，站外链接默认新开标签页。
-  - `page-transition.js`：站内页面切换时的平滑过渡动画。
-- `assets/css/core/`：存放跨页面 UX 样式（例如 `page-transitions.css`）。
-- `assets/js/components/music-player.js` + `assets/css/components/music-player.css`：可控的自定义音乐播放器 UI。
-- `_data/music_playlists.yml`：播放器数据源，可通过 `{% raw %}{% include music-player.html playlist="homepage" %}{% endraw %}` 引用。
-  - 可选字段：`stream_url`、`cover`、`song_url`。
-  - `stream_url` 与 `cover` 支持仓库内本地路径（例如 `assets/music/voyage-1970.mp3`、`assets/music/voyage-1970.png`）。
-  - 也支持别名字段：`local_audio`、`local_cover`。
-  - 不填写 `song_url` 时会自动隐藏 `Source` 按钮。
+当前分支为深色 Nostalgia 1990s 版本，提供爱丽丝、魔理沙、帕秋莉三个配色。旧模板 CSS、玻璃/纸张效果、jQuery 导航和已移除的播放器代码已清理。
+
+- 主题、基础排版、主页、Gallery、图片查看器、天气、对话窗口各有独立样式文件。
+- `assets/js/core/` 管理导航、窗口、对话和界面交互；`assets/js/data/companion-dialogues.js` 存放对话内容。
+- Gallery 缩略图统一为 4:3，查看器保留原图比例。
+- Live2D 位于右侧浮动窗口，提供逐字显示、分支、独立好感度、节日对话、天气和加载失败重试。
+- [完整前端结构和检查方法](frontend-architecture.md) · [对话系统说明](companion-system.md)
+
+下面保留原始模板的建站说明，当前功能以仓库根目录 README 为准。
 
 ## 快速开始
 

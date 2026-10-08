@@ -1,0 +1,67 @@
+/* Theme tokens are the only source of the three palettes. */
+html {
+  color-scheme: dark;
+  --classic-font:
+    "W95FA", "Hiragino Kaku Gothic ProN", "Microsoft YaHei", Arial, sans-serif;
+  --classic-desktop: #0c1119;
+  --classic-pattern: url("../images/classic/patterns/alice.svg");
+  --classic-chrome: #222c38;
+  --classic-document: #141c27;
+  --classic-soft: #2e4054;
+  --classic-title: #2e4763;
+  --classic-title-end: #445e79;
+  --classic-accent: #a9cce9;
+  --classic-link: #a9cce9;
+  --classic-edge-light: #627083;
+  --classic-edge-mid: #394757;
+  --classic-edge-dark: #080d14;
+  --text: #e0e6ed;
+  --text-muted: #aab6c5;
+  --border: var(--classic-edge-mid);
+  --link: var(--classic-link);
+  --link-hover: #f4f6fa;
+  --classic-silver: var(--classic-chrome);
+  --classic-bevel-raised:
+    inset -1px -1px var(--classic-edge-mid),
+    inset 1px 1px var(--classic-edge-mid);
+  /* Global stacking order; components only use local layers internally. */
+  --layer-menu: 100;
+  --layer-companion: 200;
+  --layer-preview: 300;
+  --layer-modal: 400;
+  --layer-loading: 500;
+  font-size: 16px;
+  background: var(--classic-desktop);
+}
+html[data-live2d-character="marisa"] {
+  --classic-desktop: #14130f;
+  --classic-chrome: #302c23;
+  --classic-document: #201e18;
+  --classic-soft: #443b29;
+  --classic-pattern: url("../images/classic/patterns/marisa.svg");
+  --classic-title: #51442b;
+  --classic-title-end: #6b5c3d;
+  --classic-accent: #e4c78c;
+  --classic-link: #e4c78c;
+  --classic-edge-light: #7a715f;
+  --classic-edge-mid: #4b4436;
+  --classic-edge-dark: #100e09;
+  --text: #e9e3d7;
+  --text-muted: #bbb1a0;
+}
+html[data-live2d-character="patchouli"] {
+  --classic-desktop: #14111c;
+  --classic-chrome: #2d2638;
+  --classic-document: #1e1928;
+  --classic-soft: #41344f;
+  --classic-pattern: url("../images/classic/patterns/patchouli.svg");
+  --classic-title: #4a365f;
+  --classic-title-end: #635078;
+  --classic-accent: #cdb5e9;
+  --classic-link: #cdb5e9;
+  --classic-edge-light: #766782;
+  --classic-edge-mid: #493b57;
+  --classic-edge-dark: #0d0912;
+  --text: #e7e0ee;
+  --text-muted: #b9acc7;
+}

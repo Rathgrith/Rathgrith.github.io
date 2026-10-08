@@ -3,13 +3,6 @@
   var CACHE_LIFETIME_MS = 10 * 60 * 1000;
   var REFRESH_INTERVAL_MS = 15 * 60 * 1000;
   var REQUEST_TIMEOUT_MS = 9000;
-  var VISIBILITY_STORAGE_KEY = "site-weather-visible";
-  var MOBILE_MEDIA_QUERY = "(max-width: 36em)";
-  var visibilityMedia = window.matchMedia
-    ? window.matchMedia(MOBILE_MEDIA_QUERY)
-    : null;
-  var visibilityMediaBound = false;
-
   var NEEDLE_ANGLES = {
     clear: -32,
     calm: -8,
@@ -55,122 +48,6 @@
     icon: "observe",
     description: "空模様を観測しています",
   };
-
-  function readVisibilityPreference() {
-    try {
-      var stored = window.localStorage.getItem(VISIBILITY_STORAGE_KEY);
-      if (stored === "true") return true;
-      if (stored === "false") return false;
-    } catch (error) {
-      // Storage is optional; the responsive default remains available.
-    }
-    return null;
-  }
-
-  function defaultVisibility() {
-    return false;
-  }
-
-  function isMobileViewport() {
-    return Boolean(visibilityMedia && visibilityMedia.matches);
-  }
-
-  function currentVisibility() {
-    if (isMobileViewport()) return false;
-    var preference = readVisibilityPreference();
-    return preference === null ? defaultVisibility() : preference;
-  }
-
-  function persistVisibility(isVisible) {
-    try {
-      window.localStorage.setItem(
-        VISIBILITY_STORAGE_KEY,
-        isVisible ? "true" : "false"
-      );
-    } catch (error) {
-      // A blocked preference store should not disable the control.
-    }
-  }
-
-  function renderVisibilityButton(button, isVisible) {
-    if (!button) return;
-    if (isMobileViewport()) {
-      button.hidden = true;
-      return;
-    }
-
-    var label = isVisible ? "Hide weather" : "Show weather";
-    var icon = isVisible ? "fa-cloud-sun" : "fa-cloud";
-
-    button.hidden = false;
-    button.setAttribute("aria-label", label);
-    button.setAttribute("title", label);
-    button.setAttribute("aria-pressed", isVisible ? "true" : "false");
-    button.innerHTML = [
-      '<span class="site-options-fab__action-icon" aria-hidden="true"><i class="fas ',
-      icon,
-      '"></i></span>',
-      '<span class="site-options-fab__action-label">',
-      label,
-      "</span>",
-    ].join("");
-  }
-
-  function applyVisibility(isVisible) {
-    var resolvedVisibility = !isMobileViewport() && Boolean(isVisible);
-    document.documentElement.setAttribute(
-      "data-weather-visible",
-      resolvedVisibility ? "true" : "false"
-    );
-
-    var widgets = document.querySelectorAll("[data-weather-widget]");
-    for (var index = 0; index < widgets.length; index += 1) {
-      widgets[index].hidden = !resolvedVisibility;
-    }
-
-    var button = document.querySelector("[data-weather-toggle]");
-    if (widgets.length && !isMobileViewport()) {
-      renderVisibilityButton(button, resolvedVisibility);
-    } else if (button) {
-      button.hidden = true;
-    }
-  }
-
-  function initVisibilityControl() {
-    var button = document.querySelector("[data-weather-toggle]");
-    if (!button) return;
-
-    applyVisibility(currentVisibility());
-    if (button.getAttribute("data-weather-toggle-bound") === "true") return;
-
-    button.setAttribute("data-weather-toggle-bound", "true");
-    button.addEventListener("click", function (event) {
-      event.preventDefault();
-      if (isMobileViewport()) {
-        applyVisibility(false);
-        return;
-      }
-
-      var isVisible =
-        document.documentElement.getAttribute("data-weather-visible") ===
-        "true";
-      persistVisibility(!isVisible);
-      applyVisibility(!isVisible);
-    });
-
-    if (visibilityMedia && !visibilityMediaBound) {
-      var syncResponsiveVisibility = function () {
-        applyVisibility(currentVisibility());
-      };
-
-      if (typeof visibilityMedia.addEventListener === "function") {
-        visibilityMedia.addEventListener("change", syncResponsiveVisibility);
-      } else if (typeof visibilityMedia.addListener === "function") {
-        visibilityMedia.addListener(syncResponsiveVisibility);
-      }
-      visibilityMediaBound = true;
-    }
-  }
 
   function toNumber(value, fallback) {
     var number = Number(value);
@@ -399,6 +276,9 @@
       if (!statusNode) return;
       statusNode.textContent = message || "";
       statusNode.hidden = !message;
+      if (/timed out|could not update/.test(message || "")) {
+        document.dispatchEvent(new CustomEvent("site:weather-error"));
+      }
     }
 
     function renderWeather(payload, locationLabel) {
@@ -571,23 +451,9 @@
   }
 
   function initAllWeatherWidgets() {
-    initVisibilityControl();
     var widgets = document.querySelectorAll("[data-weather-widget]");
     for (var index = 0; index < widgets.length; index += 1) {
       initWeatherWidget(widgets[index]);
-    }
-  }
-
-  if (visibilityMedia) {
-    var syncResponsiveVisibility = function () {
-      if (readVisibilityPreference() === null) {
-        applyVisibility(defaultVisibility());
-      }
-    };
-    if (typeof visibilityMedia.addEventListener === "function") {
-      visibilityMedia.addEventListener("change", syncResponsiveVisibility);
-    } else if (typeof visibilityMedia.addListener === "function") {
-      visibilityMedia.addListener(syncResponsiveVisibility);
     }
   }
 

@@ -2,21 +2,8 @@
   if (window.__sitePageTransitionBootstrapped) return;
   window.__sitePageTransitionBootstrapped = true;
 
-  var EXIT_CLASS = "page-transition-out";
-  var ENTER_CLASS = "page-transition-enter";
-  var ENABLED_CLASS = "page-transition-enabled";
-  var EXIT_DURATION_MS = 300;
-  var ENTER_DURATION_MS = 420;
   var navigating = false;
   var boundNavigation = false;
-  var lastEnterStartedAt = 0;
-  var reducedMotionQuery = window.matchMedia
-    ? window.matchMedia("(prefers-reduced-motion: reduce)")
-    : null;
-
-  function prefersReducedMotion() {
-    return Boolean(reducedMotionQuery && reducedMotionQuery.matches);
-  }
 
   function isModifiedClick(event) {
     return (
@@ -96,23 +83,6 @@
     );
   }
 
-  function playEnterAnimation() {
-    if (prefersReducedMotion()) return;
-    if (!document.body) return;
-
-    var now = Date.now();
-    if (now - lastEnterStartedAt < ENTER_DURATION_MS) return;
-    lastEnterStartedAt = now;
-
-    document.body.classList.remove(EXIT_CLASS);
-    document.body.classList.add(ENTER_CLASS);
-
-    window.setTimeout(function () {
-      if (!document.body) return;
-      document.body.classList.remove(ENTER_CLASS);
-    }, ENTER_DURATION_MS);
-  }
-
   function hardNavigate(url) {
     window.location.assign(url);
   }
@@ -172,13 +142,6 @@
   function applyBodyClass(nextBody) {
     if (!document.body || !nextBody) return;
 
-    var preserved = {};
-    if (document.body.classList.contains(ENABLED_CLASS))
-      preserved[ENABLED_CLASS] = true;
-    if (document.body.classList.contains(ENTER_CLASS))
-      preserved[ENTER_CLASS] = true;
-    if (document.body.classList.contains(EXIT_CLASS))
-      preserved[EXIT_CLASS] = true;
     var nextClasses = (nextBody.getAttribute("class") || "")
       .trim()
       .split(/\s+/)
@@ -190,11 +153,6 @@
     document.body.className = nextClasses;
 
     syncBodyDataAttribute(nextBody, "data-disable-live2d");
-    syncBodyDataAttribute(nextBody, "data-disable-mouse-firework");
-
-    Object.keys(preserved).forEach(function (className) {
-      document.body.classList.add(className);
-    });
   }
 
   function replaceMain(nextDoc) {
@@ -343,9 +301,6 @@
 
     function finalizeSuccess() {
       navigating = false;
-      if (!document.body) return;
-      document.body.classList.remove(EXIT_CLASS);
-      playEnterAnimation();
     }
 
     function fallbackToHardNavigation() {
@@ -364,13 +319,7 @@
         .catch(fallbackToHardNavigation);
     }
 
-    if (prefersReducedMotion() || !document.body) {
-      startSwap();
-      return;
-    }
-
-    document.body.classList.add(EXIT_CLASS);
-    window.setTimeout(startSwap, EXIT_DURATION_MS);
+    startSwap();
   }
 
   function bindNavigationTransition() {
@@ -397,10 +346,6 @@
   }
 
   function init() {
-    if (document.body) {
-      document.body.classList.add(ENABLED_CLASS);
-    }
-
     if (window.history && typeof window.history.replaceState === "function") {
       try {
         window.history.replaceState(
@@ -413,15 +358,11 @@
       }
     }
 
-    playEnterAnimation();
     bindNavigationTransition();
   }
 
   window.addEventListener("pageshow", function (event) {
     navigating = false;
-    if (event && event.persisted) {
-      playEnterAnimation();
-    }
   });
 
   if (document.readyState === "loading") {
