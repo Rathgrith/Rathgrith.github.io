@@ -19,7 +19,7 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 | `classic-weather.css` | Integrated observation dial; no independent mobile/global hiding rules |
 | `classic-companion.css` | Floating window, scene, dialogue, panels, loading and viewport behavior |
 | `classic-danmaku.css` | Companion arcade lobby, score HUD, playfield and pause/result screens |
-| `classic-ornaments.css` | Character corner art in documents; monochrome Bayer dithering in dialogue/panels and the lower desktop profile rail |
+| `classic-ornaments.css` | Static character corner art in documents and companion panels |
 
 The native `hidden` attribute wins globally. The active styles do not depend on increasing `html.classic-root body.classic-site` specificity to defeat another template. Site options, companion, previews, modal and loading layers are ordered through theme variables. Each component uses small local layers within its own stacking context.
 

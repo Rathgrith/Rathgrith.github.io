@@ -15,7 +15,9 @@
     canvas.width = W;
     canvas.height = H;
     var ready = Promise.all(
-      Object.keys(DanmakuEngine.cast).map(function (id) {
+      Object.keys(DanmakuEngine.cast).reduce(function (ids, id) {
+        return ids.concat(id, id + "-player");
+      }, []).map(function (id) {
         return new Promise(function (resolve) {
           var image = new Image();
           image.onload = function () {
@@ -37,10 +39,11 @@
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.stroke();
     }
-    function witch(id, x, y, width) {
-      if (images[id])
+    function witch(id, x, y, width, rear) {
+      var image = images[id + (rear ? "-player" : "")];
+      if (image)
         ctx.drawImage(
-          images[id],
+          image,
           Math.round(x - width / 2),
           Math.round(y - width * 0.65),
           width,
@@ -48,7 +51,7 @@
         );
       else {
         rect(x - 5, y - 9, 10, 19, DanmakuEngine.cast[id].color);
-        rect(x - 3, y - 6, 6, 5, "#f7ddba");
+        rect(x - 3, y - 6, 6, rear ? 9 : 5, rear ? "#b39c85" : "#f7ddba");
       }
     }
     function star(x, y, r, color) {
@@ -365,15 +368,32 @@
       });
       var p = s.player;
       ctx.globalAlpha = p.invulnerable > 0 ? 0.65 : 1;
-      witch(s.playerId, p.x, p.y, 22);
+      witch(s.playerId, p.x, p.y, 24, true);
       if (s.playerId === "alice") {
-        witch("alice", p.x - (s.focus ? 11 : 19), p.y - 7, 8);
-        witch("alice", p.x + (s.focus ? 11 : 19), p.y - 7, 8);
+        witch("alice", p.x - (s.focus ? 11 : 19), p.y - 7, 8, true);
+        witch("alice", p.x + (s.focus ? 11 : 19), p.y - 7, 8, true);
       } else if (s.playerId === "patchouli") {
         circle(p.x - 11, p.y - 3, 2, "#b7e9ea");
         circle(p.x + 11, p.y - 3, 2, "#d6b6ed");
       }
       ctx.globalAlpha = 1;
+      // Boxed pickups cannot be mistaken for round/diamond/star enemy bullets.
+      var itemColors = { power: "#ef8b92", life: "#e6abea", clear: "#92d6e5" };
+      var itemGlyphs = {
+        power: ["11110", "10001", "11110", "10000", "10000"],
+        life: ["01010", "11111", "11111", "01110", "00100"],
+        clear: ["11110", "10001", "11110", "10001", "11110"],
+      };
+      s.items.forEach(function (item) {
+        var ix = Math.round(item.x), iy = Math.round(item.y);
+        rect(ix - 7, iy - 7, 14, 14, "#090e1c");
+        rect(ix - 6, iy - 6, 12, 12, itemColors[item.type]);
+        rect(ix - 4, iy - 4, 8, 8, "#252238");
+        itemGlyphs[item.type].forEach(function (row, y) {
+          for (var x = 0; x < row.length; x++)
+            if (row[x] === "1") rect(ix - 2 + x, iy - 2 + y, 1, 1, "#fff7e7");
+        });
+      });
       s.bullets.forEach(function (b) {
         var x = Math.round(b.x),
           y = Math.round(b.y);
@@ -415,6 +435,33 @@
         });
       ctx.globalAlpha = 1;
       drawSpell(s);
+      if (s.clearPulse) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, 1 - s.clearPulse.age / 0.7);
+        var radius = reduced ? 45 : 12 + s.clearPulse.age * 420;
+        circle(s.clearPulse.x, s.clearPulse.y, radius, "#b9f4e6");
+        circle(s.clearPulse.x, s.clearPulse.y, radius + 4, "#74b4ce");
+        ctx.restore();
+      }
+      if (s.pickupNotice) {
+        var notices = {
+          power: s.power === 4 ? "火力 MAX" : "火力 UP",
+          life: s.lives === 5 ? "残機 MAX" : "残機 +1",
+          clear: s.bombs === 5 ? "消弾 · 霊撃 MAX" : "消弾 · 霊撃 +1",
+        };
+        rect(54, 118, 132, 19, "#0c1125de");
+        ctx.font = '12px "Fusion Pixel", monospace';
+        ctx.textAlign = "center";
+        ctx.fillStyle = itemColors[s.pickupNotice.type];
+        ctx.fillText(notices[s.pickupNotice.type], W / 2, 132);
+      }
+      if (s.auto) {
+        rect(4, H - 17, 45, 13, "#0c1125d9");
+        ctx.fillStyle = "#b8dfd0";
+        ctx.font = '10px "Fusion Pixel", monospace';
+        ctx.textAlign = "left";
+        ctx.fillText("自動", 9, H - 7);
+      }
       if (s.countdown > 0 && s.phase === "playing") {
         ctx.fillStyle = "#0b1023d9";
         ctx.fillRect(63, 153, 114, 37);

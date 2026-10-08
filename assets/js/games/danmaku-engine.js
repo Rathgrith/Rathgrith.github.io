@@ -47,6 +47,12 @@
       hits: 0,
       lives: 3,
       bombs: 2,
+      power: 1,
+      auto: false,
+      assisted: false,
+      pickups: { power: 0, life: 0, clear: 0 },
+      pickupNotice: null,
+      clearPulse: null,
       level: 1,
       phase: "playing",
       countdown: 1.5,
@@ -55,18 +61,56 @@
       bullets: [],
       shots: [],
       sparks: [],
+      items: [],
       spell: null,
       wave: 0,
       focus: false,
     };
     var shotTimer = 0,
       waveTimer = 0.3,
-      seedState = (seed || 1977) >>> 0;
+      seedState = (seed >>> 0) || 1977,
+      dropTimer,
+      autoTimer = 0,
+      autoInput = { x: 0, y: 0, focus: false };
     function random() {
       seedState ^= seedState << 13;
       seedState ^= seedState >>> 17;
       seedState ^= seedState << 5;
       return (seedState >>> 0) / 4294967296;
+    }
+    dropTimer = 3 + random() * 2;
+    function dropItem() {
+      if (state.items.length >= 12) return;
+      var roll = random();
+      state.items.push({
+        type: roll < 0.6 ? "power" : roll < 0.88 ? "clear" : "life",
+        x: clamp(state.boss.x + (random() - 0.5) * 112, 16, W - 16),
+        y: state.boss.y + 16,
+        vx: (random() - 0.5) * 20,
+        vy: -18,
+        age: 0,
+      });
+    }
+    function collect(item) {
+      var type = item.type;
+      state.pickups[type]++;
+      state.score += 300;
+      if (type === "power") {
+        if (state.power < 4) state.power++;
+        else state.score += 1000;
+      } else if (type === "life") {
+        if (state.lives < 5) state.lives++;
+        else state.score += 2000;
+      } else {
+        if (state.bombs < 5) state.bombs++;
+        else state.score += 1000;
+        state.score += state.bullets.length * 2;
+        state.bullets.length = 0;
+        state.player.invulnerable = Math.max(state.player.invulnerable, 1.2);
+        state.clearPulse = { age: 0, x: state.player.x, y: state.player.y };
+      }
+      state.pickupNotice = { type: type, age: 0 };
+      spark(item.x, item.y, cast[player].color, 10);
     }
     function spark(x, y, color, amount) {
       for (var i = 0; i < amount; i++) {
@@ -217,7 +261,7 @@
           y: p.y - 12,
           vx: vx,
           vy: -300,
-          damage: damage,
+          damage: damage * (1 + (state.power - 1) * 0.2),
           homing: homing,
           color: cast[player].color,
         });
@@ -236,6 +280,13 @@
         shot(-9, -36, 1.55, true);
         shot(9, 36, 1.55, true);
         shotTimer += 0.2;
+      }
+      // Extra options add real firepower while preserving each pilot's shot type.
+      for (var level = 1; level < state.power; level++) {
+        var offset = 6 + level * (focused ? 3 : 6);
+        var spread = player === "marisa" ? 0 : (focused ? 8 : 32) * level;
+        shot(-offset, -spread, 0.7, player === "patchouli");
+        shot(offset, spread, 0.7, player === "patchouli");
       }
     }
     function bomb() {
@@ -260,11 +311,75 @@
       spark(state.player.x, state.player.y, cast[player].color, 24);
       return true;
     }
+    function steerAuto() {
+      var p = state.player,
+        goal = { x: state.boss.x, y: H - 64 },
+        nearest = Infinity;
+      // Prefer nearby, reachable pickups; never chase items into the boss.
+      state.items.forEach(function (item) {
+        var d = distance(item, p);
+        if (item.y > 155 && d < 115 && d < nearest) {
+          nearest = d;
+          goal = item;
+        }
+      });
+      var threats = state.bullets.filter(function (b) {
+        return distance(b, p) < 135;
+      });
+      var best = null;
+      for (var i = 0; i < 17; i++) {
+        var focus = i > 8,
+          speed = focus ? 56 : cast[player].speed,
+          angle = ((i - 1) % 8) * TAU / 8,
+          x = i ? Math.cos(angle) : 0,
+          y = i ? Math.sin(angle) : 0;
+        var vx = x * speed,
+          vy = y * speed,
+          horizon = 0.42,
+          end = { x: p.x + vx * horizon, y: p.y + vy * horizon };
+        if (end.x < 12 || end.x > W - 12 || end.y < Math.min(135, p.y) || end.y > H - 16)
+          continue;
+        var cost = distance(end, goal) * 0.045 + (i ? 0.2 : 0),
+          clearance = Infinity;
+        // Predict the closest approach along each candidate movement segment.
+        threats.forEach(function (b) {
+          var rx = b.x - p.x, ry = b.y - p.y,
+            rvx = b.vx - vx, rvy = b.vy - vy,
+            speed2 = rvx * rvx + rvy * rvy;
+          var t = speed2 ? clamp(-(rx * rvx + ry * rvy) / speed2, 0, horizon) : 0;
+          var gap = Math.hypot(rx + rvx * t, ry + rvy * t) - b.radius - p.radius;
+          clearance = Math.min(clearance, gap);
+          if (gap < 24) cost += 220 / Math.pow(Math.max(0, gap) + 2, 2);
+          if (gap < 2) cost += 600 * (1 - t);
+        });
+        cost += Math.abs(x - autoInput.x) * 0.12 + Math.abs(y - autoInput.y) * 0.12;
+        if (!best || cost < best.cost)
+          best = { x: x, y: y, focus: focus, cost: cost, clearance: clearance };
+      }
+      autoInput = best || { x: 0, y: 0, focus: true };
+      if (best && best.clearance < 3 && p.invulnerable < 0.2) bomb();
+      return autoInput;
+    }
+    function setAuto(value) {
+      if (state.phase === "over") return;
+      state.auto = Boolean(value);
+      if (state.auto) state.assisted = true;
+      autoTimer = 0;
+      autoInput = { x: 0, y: 0, focus: false };
+    }
     function step(dt, input) {
       if (state.phase !== "playing") return;
       dt = clamp(dt, 0, 1 / 30);
       input = input || {};
       var p = state.player;
+      if (state.auto && state.countdown <= 0) {
+        autoTimer -= dt;
+        if (autoTimer <= 0) {
+          steerAuto();
+          autoTimer = 0.08;
+        }
+        input = autoInput;
+      }
       state.focus = Boolean(input.focus);
       var speed = state.focus ? 56 : cast[player].speed;
       if (input.target) {
@@ -301,6 +416,14 @@
         state.spell.age += dt;
         if (state.spell.age >= state.spell.duration) state.spell = null;
       }
+      if (state.clearPulse) {
+        state.clearPulse.age += dt;
+        if (state.clearPulse.age >= 0.7) state.clearPulse = null;
+      }
+      if (state.pickupNotice) {
+        state.pickupNotice.age += dt;
+        if (state.pickupNotice.age >= 1.1) state.pickupNotice = null;
+      }
       shotTimer -= dt;
       if (shotTimer <= 0) fire();
       waveTimer -= dt;
@@ -308,9 +431,15 @@
         emitWave();
         waveTimer += Math.max(0.16, 0.7 / (1 + state.time / 65));
       }
+      dropTimer -= dt;
+      if (dropTimer <= 0) {
+        dropItem();
+        dropTimer += 4.2 + random() * 2.8;
+      }
       // The visible opening pulse also clears fresh bullets, rather than
       // letting them immediately reappear inside the spell effect.
-      if (state.spell && state.spell.age < 0.65) {
+      if ((state.spell && state.spell.age < 0.65) ||
+          (state.clearPulse && state.clearPulse.age < 0.35)) {
         state.score += state.bullets.length * 2;
         state.bullets.length = 0;
       }
@@ -329,6 +458,20 @@
           return false;
         }
         return s.y > -20 && s.y < H + 20 && s.x > -20 && s.x < W + 20;
+      });
+      state.items = state.items.filter(function (item) {
+        item.age += dt;
+        var dx = p.x - item.x, dy = p.y - item.y, d = Math.hypot(dx, dy);
+        if (d < 36) {
+          var travel = Math.min(d, 180 * dt);
+          if (d) { item.x += dx / d * travel; item.y += dy / d * travel; }
+        } else {
+          item.vy = Math.min(44, item.vy + 65 * dt);
+          item.x = clamp(item.x + item.vx * dt, 8, W - 8);
+          item.y += item.vy * dt;
+        }
+        if (distance(item, p) < 10) { collect(item); return false; }
+        return item.y < H + 12 && item.age < 15;
       });
       var hit = false;
       state.bullets = state.bullets.filter(function (b) {
@@ -357,6 +500,7 @@
       });
       if (hit) {
         state.lives--;
+        state.power = Math.max(1, state.power - 1);
         p.invulnerable = 2.5;
         state.bullets = state.bullets.filter(function (b) {
           return distance(b, p) > 48;
@@ -375,6 +519,7 @@
       state: state,
       step: step,
       bomb: bomb,
+      setAuto: setAuto,
       pause: function () {
         if (state.phase === "playing") state.phase = "paused";
       },

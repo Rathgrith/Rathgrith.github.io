@@ -16,7 +16,8 @@
     keys = {},
     drag = null,
     target = null,
-    slow = false;
+    slow = false,
+    autoMode = false;
   var records = {},
     storageKey = "site-danmaku-records-v1",
     hudAt = 0;
@@ -25,9 +26,10 @@
     var stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
     Object.keys(cast).forEach(function (p) {
       Object.keys(cast).forEach(function (e) {
-        var value = stored && stored[p + ":" + e];
-        if (Number.isSafeInteger(value) && value >= 0)
-          records[p + ":" + e] = value;
+        ["", ":auto"].forEach(function (mode) {
+          var key = p + ":" + e + mode, value = stored && stored[key];
+          if (Number.isSafeInteger(value) && value >= 0) records[key] = value;
+        });
       });
     });
   } catch (_) {}
@@ -38,7 +40,8 @@
     return String(Math.floor(n)).padStart(7, "0");
   }
   function recordKey() {
-    return game.state.playerId + ":" + game.state.enemyId;
+    return game.state.playerId + ":" + game.state.enemyId +
+      (game.state.assisted ? ":auto" : "");
   }
   function save() {
     if (!game) return;
@@ -69,8 +72,9 @@
     q("[data-danmaku-best]").textContent = score(
       Math.max(s.score, records[recordKey()] || 0)
     );
-    q("[data-danmaku-lives]").textContent =
-      "◆".repeat(s.lives) + "◇".repeat(3 - s.lives);
+    q("[data-danmaku-lives]").textContent = s.lives;
+    q("[data-danmaku-power]").textContent = s.power + "/4";
+    q("[data-danmaku-record-mode]").textContent = s.assisted ? "自動記録" : "手動記録";
     q("[data-danmaku-bombs]").textContent = s.bombs;
     q("[data-danmaku-bomb]").disabled =
       !s.bombs || s.phase !== "playing" || Boolean(s.spell) || s.countdown > 0;
@@ -172,8 +176,25 @@
     });
     view.querySelectorAll("[data-danmaku-record]").forEach(function (e) {
       e.textContent =
-        "最高 " + score(records[playerId + ":" + e.dataset.danmakuRecord] || 0);
+        "最高 " + score(records[playerId + ":" + e.dataset.danmakuRecord + (autoMode ? ":auto" : "")] || 0);
     });
+    view.querySelectorAll("[data-danmaku-auto]").forEach(function (button) {
+      button.setAttribute("aria-pressed", String(autoMode));
+    });
+    q("[data-danmaku-mode-label]").textContent = autoMode ? "自動記録" : "手動記録";
+  }
+  function setAuto(value) {
+    if (game && game.state.phase === "over") return;
+    if (value && game && !game.state.assisted) save();
+    autoMode = Boolean(value);
+    clearInput();
+    if (game) {
+      game.setAuto(autoMode);
+      syncHUD();
+      canvas.focus({ preventScroll: true });
+    }
+    renderSelection();
+    q("[data-danmaku-announcement]").textContent = autoMode ? "自動操作" : "手動操作";
   }
   function open() {
     if (active) return;
@@ -201,7 +222,11 @@
     if (!cast[enemyId] || !active) return;
     save();
     stop();
-    game = DanmakuEngine.create(playerId, enemyId);
+    var seed = window.crypto && window.crypto.getRandomValues
+      ? window.crypto.getRandomValues(new Uint32Array(1))[0]
+      : (Date.now() ^ Math.floor(Math.random() * 4294967296)) >>> 0;
+    game = DanmakuEngine.create(playerId, enemyId, seed);
+    game.setAuto(autoMode);
     view.dataset.enemy = enemyId;
     q("[data-danmaku-heading]").textContent =
       cast[enemyId].name + "戦 · 耐久 ∞";
@@ -269,7 +294,7 @@
             id +
             '" aria-pressed="false"><img src="/assets/images/classic/danmaku/' +
             id +
-            '.svg" alt=""><strong>' +
+            '-player.svg" alt=""><strong>' +
             cast[id].name +
             "</strong><small>" +
             cast[id].shot +
@@ -277,7 +302,7 @@
           );
         })
         .join("") +
-      '</div><h3>挑戦する相手</h3><div class="danmaku-opponents">' +
+      '</div><div class="danmaku-mode"><button type="button" data-danmaku-auto aria-pressed="false">自動操作</button><span data-danmaku-mode-label>手動記録</span></div><h3>挑戦する相手</h3><div class="danmaku-opponents">' +
       ids
         .map(function (id) {
           return (
@@ -295,11 +320,11 @@
           );
         })
         .join("") +
-      '</div><details class="danmaku-help"><summary>遊び方</summary><p data-danmaku-help>射撃は自動。矢印 / WASD で移動、Shift で低速、X で霊撃。タッチは画面をドラッグ。中央の小さな点が当たり判定。</p><p>命中・生存・擦弾で得点。敵は無敵、20秒ごとに段位が上がり、弾幕は徐々に濃くなる。残機3、霊撃2。P / Esc で一時停止。</p></details></div>' +
-      '<div class="danmaku-battle" data-danmaku-battle hidden><div class="danmaku-hud"><div>得点 <strong data-danmaku-score>0000000</strong></div><div>最高 <span data-danmaku-best>0000000</span></div><div>残機 <span data-danmaku-lives>◆◆◆</span> · 符 <span data-danmaku-bombs>2</span></div><div>段位 <span data-danmaku-level>1</span> · 擦弾 <span data-danmaku-graze>0</span></div></div>' +
-      '<div class="danmaku-pattern" data-danmaku-pattern></div><div class="danmaku-arena"><div class="danmaku-canvas-wrap" data-danmaku-canvas-wrap><canvas data-danmaku-canvas tabindex="0" role="img" aria-label="弾幕戦。矢印かWASDで移動、Shiftで低速、Xで霊撃、Pで一時停止。タッチはドラッグ。"></canvas></div>' +
+      '</div><details class="danmaku-help"><summary>遊び方</summary><p data-danmaku-help>射撃は自動。矢印 / WASD で移動、Shift で低速、X で霊撃。タッチは画面をドラッグ。中央の小さな点が当たり判定。</p><p>P は火力強化、♥ は残機追加、B は消弾と霊撃補給。火力は最大4、残機と霊撃は最大5。被弾すると火力が1段階下がる。</p><p>自動操作 / T で回避・回収・霊撃をおまかせ。移動キーかドラッグで手動に戻る。自動を一度でも使った挑戦は別記録。P / Esc で一時停止。</p><p>命中・生存・擦弾で得点。敵は無敵、20秒ごとに段位が上がり、弾幕は徐々に濃くなる。残機3、霊撃2で開始。</p></details></div>' +
+      '<div class="danmaku-battle" data-danmaku-battle hidden><div class="danmaku-hud"><div>得点 <strong data-danmaku-score>0000000</strong></div><div>最高 <span data-danmaku-best>0000000</span></div><div>残機 <span data-danmaku-lives>3</span> · 符 <span data-danmaku-bombs>2</span></div><div>火力 <span data-danmaku-power>1/4</span></div><div>段位 <span data-danmaku-level>1</span> · 擦弾 <span data-danmaku-graze>0</span></div><div data-danmaku-record-mode>手動記録</div></div>' +
+      '<div class="danmaku-pattern" data-danmaku-pattern></div><div class="danmaku-arena"><div class="danmaku-canvas-wrap" data-danmaku-canvas-wrap><canvas data-danmaku-canvas tabindex="0" role="img" aria-label="弾幕戦。矢印かWASDで移動、Shiftで低速、Xで霊撃、Tで自動操作、Pで一時停止。タッチはドラッグ。"></canvas></div>' +
       '<div class="danmaku-overlay" data-danmaku-overlay hidden><h3 data-danmaku-overlay-title></h3><p data-danmaku-result></p><button type="button" data-danmaku-resume>続ける</button><button type="button" data-danmaku-retry>もう一度</button><button type="button" data-danmaku-menu>相手を選ぶ</button></div></div>' +
-      '<div class="danmaku-controls" data-danmaku-controls><button type="button" data-danmaku-slow aria-pressed="false">低速</button><button type="button" data-danmaku-bomb>霊撃 X</button><button type="button" data-danmaku-pause>一時停止</button></div></div><span class="visually-hidden" data-danmaku-announcement aria-live="polite" aria-atomic="true"></span>';
+      '<div class="danmaku-controls" data-danmaku-controls><button type="button" data-danmaku-slow aria-pressed="false">低速</button><button type="button" data-danmaku-bomb>霊撃 X</button><button type="button" data-danmaku-auto aria-pressed="false">自動</button><button type="button" data-danmaku-pause>一時停止</button></div></div><span class="visually-hidden" data-danmaku-announcement aria-live="polite" aria-atomic="true"></span>';
     root.querySelector("[data-companion-content]").appendChild(view);
     canvas = q("[data-danmaku-canvas]");
     new ResizeObserver(function () {
@@ -333,7 +358,9 @@
         q('[data-danmaku-player="' + playerId + '"]').focus();
       }
       if (b.hasAttribute("data-danmaku-bomb")) bomb();
+      if (b.hasAttribute("data-danmaku-auto")) setAuto(!autoMode);
       if (b.hasAttribute("data-danmaku-slow")) {
+        if (autoMode) setAuto(false);
         slow = !slow;
         b.setAttribute("aria-pressed", String(slow));
       }
@@ -360,6 +387,7 @@
           "d",
           "Shift",
           "x",
+          "t",
           "p",
           "Escape",
         ].indexOf(key) < 0
@@ -385,6 +413,11 @@
         return;
       }
       if (game.state.phase !== "playing") return;
+      if (key === "t") {
+        if (!e.repeat) setAuto(!autoMode);
+        return;
+      }
+      if (/^(Arrow|[wasd]$)/.test(key) && autoMode) setAuto(false);
       keys[key] = true;
       if (key === "x" && !e.repeat) bomb();
       if (/^(Arrow|[wasd]$)/.test(key)) target = null;
@@ -396,6 +429,7 @@
       if (!game || game.state.phase !== "playing" || drag || e.button !== 0)
         return;
       e.preventDefault();
+      if (autoMode) setAuto(false);
       canvas.focus({ preventScroll: true });
       canvas.setPointerCapture(e.pointerId);
       drag = {

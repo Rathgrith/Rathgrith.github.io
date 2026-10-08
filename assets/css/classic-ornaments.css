@@ -1,5 +1,5 @@
-/* Character artwork belongs to the document; UI surfaces use monochrome dithering.
-   Decoration stays behind content and never takes focus, clicks or scroll space. */
+/* Static PC-98 still lifes: transparent ordered dithering, shared by all themes.
+   Keep artwork behind the surface content, never over text, focus or hit targets. */
 .classic-document {
   --corner-size: 320px;
   --corner-veil: 80%;
@@ -14,40 +14,17 @@
   background-repeat: no-repeat;
 }
 
-/* One tint, fixed 2px squares, progressively lower Bayer coverage toward the centre. */
+/* Tint the illustration into the observation/menu surface. The header remains solid. */
 #live2d-widget .vn-panel {
-  background-image: none;
-}
-#live2d-widget .companion-conversation {
-  isolation: isolate;
-}
-#live2d-widget :is(.vn-panel, .companion-conversation)::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--classic-accent);
-  opacity: 0.16;
-  mask: url("../images/classic/patterns/dither-corner.svg") left bottom / 100% 100% no-repeat;
-  transform: scaleX(-1);
-  pointer-events: none;
-}
-@media (min-width: 1000px) {
-  .classic-profile-rail {
-    display: flex;
-    flex-direction: column;
-    align-self: stretch;
-  }
-  .classic-profile-rail::after {
-    content: "";
-    flex: 1 0 0;
-    min-height: 0;
-    margin: 24px 10px 0;
-    background: var(--classic-accent);
-    opacity: 0.18;
-    mask: url("../images/classic/patterns/dither-corner.svg") left bottom / 100% 100% no-repeat;
-    pointer-events: none;
-  }
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--vn-panel) 86%, transparent),
+      color-mix(in srgb, var(--vn-panel) 86%, transparent)
+    ),
+    var(--classic-corner-art);
+  background-position: right top;
+  background-size: 240px 240px;
+  background-repeat: no-repeat;
 }
 
 @media (max-width: 599px) {
@@ -60,9 +37,5 @@
   .classic-document,
   #live2d-widget .vn-panel {
     background-image: none;
-  }
-  #live2d-widget :is(.vn-panel, .companion-conversation)::before,
-  .classic-profile-rail::after {
-    display: none;
   }
 }

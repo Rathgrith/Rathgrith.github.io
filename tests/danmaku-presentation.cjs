@@ -43,6 +43,15 @@ fs.mkdirSync(out, { recursive: true });
           renderer.draw(s);
           const moving = pixels();
           const background = canvas.toDataURL();
+          s.items = [
+            { type: "power", x: 72, y: 175, age: 1 },
+            { type: "life", x: 120, y: 175, age: 1 },
+            { type: "clear", x: 168, y: 175, age: 1 },
+          ];
+          renderer.draw(s);
+          const pickupDifference = difference(moving, pixels());
+          const pickups = canvas.toDataURL();
+          s.items = [];
           const transitions = [];
           for (const boundary of [
             48,
@@ -70,6 +79,8 @@ fs.mkdirSync(out, { recursive: true });
             transitions,
             spellDifference: difference(moving, pixels()),
             background,
+            pickups,
+            pickupDifference,
             spell: canvas.toDataURL(),
           });
         }
@@ -90,7 +101,8 @@ fs.mkdirSync(out, { recursive: true });
           r.spellDifference > 3,
           `${r.id}: X must produce a substantial visible effect, also with reduced motion`
         );
-        for (const type of ["background", "spell"])
+        assert(r.pickupDifference > 0.1, "Distinct boxed pickups must render");
+        for (const type of ["background", "spell", "pickups"])
           fs.writeFileSync(
             `${out}/${r.id}-${reducedMotion}-${type}.png`,
             Buffer.from(r[type].split(",")[1], "base64")

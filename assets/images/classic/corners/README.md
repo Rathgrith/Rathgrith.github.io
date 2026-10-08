@@ -9,8 +9,7 @@ tool on 2026-10-08. Full production prompts are in `prompts.json`.
 
 The artwork contains its own transparent pixel-dither edges. Theme variables in
 `classic-theme.css` select the image; `classic-ornaments.css` owns placement and
-contrast. Documents receive a quiet corner watermark. Companion panels and the
-lower homepage rail use `../patterns/dither-corner.svg`, a monochrome Bayer mask,
-instead of illustrations. Compact documents use a smaller, fainter image.
+contrast. Documents and companion panels receive a quiet corner watermark;
+the empty side rails have no artwork. Compact layouts use a smaller, fainter image.
 All art is noninteractive and static, and is disabled in print/forced-color views.
 There is no runtime drawing, animation, added DOM, or extra loading gate.

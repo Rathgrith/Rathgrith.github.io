@@ -132,6 +132,14 @@
   border-top: 1px solid var(--vn-rule);
   padding: 7px 2px 0;
 }
+#live2d-widget .danmaku-mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--vn-muted);
+}
 #live2d-widget .danmaku-help summary {
   cursor: pointer;
   color: var(--classic-accent);
@@ -198,7 +206,7 @@
 }
 #live2d-widget .danmaku-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
   padding: 6px 0 0;
   flex-shrink: 0;

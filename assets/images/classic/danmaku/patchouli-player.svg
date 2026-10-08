@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40" shape-rendering="crispEdges">
+  <title>Patchouli floating away — rear view</title>
+  <path fill="#261e38" d="M10 1h12v2h4v4h3v6h-3v8h3v6h-2v7h2v4H3v-4h2v-7H3v-6h3v-8H3V7h3V3h4z"/>
+  <path fill="#cbbddd" d="M10 2h12v2h3v4h3v4H4V8h3V4h3z"/>
+  <path fill="#e8ddeb" d="M11 3h10v3h4v3H7V6h4z"/>
+  <path fill="#9677ac" d="M6 11h20v3H6zM8 14h16v16H8z"/>
+  <path fill="#71548a" d="M7 14h4v12H9v6H6v-9h1zM22 14h3v10h2v8h-4v-6h-1zM14 14h3v17h-3z"/>
+  <path fill="#b799c6" d="M11 14h3v12h-3zm7 0h3v13h-3zM8 15h1v6H8zm15 1h1v7h-1z"/>
+  <path fill="#a45f86" d="M2 11h4v1h3v4H5v-1H2zM24 12h3v-1h3v5h-4v1h-2zM6 16h2v7H6zm20 1h2v7h-2z"/>
+  <path fill="#e0c994" d="M22 4h2v4h-2v2h-3V8h2V5h1z"/>
+  <path fill="#aa8bbd" d="M11 28h10v3h3v3h3v3H5v-3h3v-3h3z"/>
+  <path fill="#72588a" d="M10 31h3v5h-3zm6-1h3v6h-3zm7 4h2v2h-2z"/>
+  <path fill="#e5d8e7" d="M5 36h22v2H5zM4 23h3v4H4zm21 0h3v4h-3z"/>
+  <path fill="#bea4cf" d="M13 29h3v5h-3zm6 1h2v5h-2z"/>
+  <path fill="#433149" d="M10 38h4v2h-4zm9 0h4v2h-4z"/>
+</svg>
