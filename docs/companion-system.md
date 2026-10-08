@@ -70,7 +70,7 @@ Alice uses restrained invitations and a thinking pose for craft; Marisa uses her
 
 Body transitions use the rig's authored `from+to` motion and its actual duration. The destination's static pose/hand layers are then held, with small breathing and bounded pointer focus. Fast next/topic clicks retain only the latest requested pose after the current transition, while the face changes immediately. Patchouli's former idle-only gate is removed. Reduced-motion preferences keep the authored face and pose but apply them without animated transitions. Character changes invalidate pending motion callbacks, and resizing/navigation keep the current performance.
 
-The redrawn Alice portrait is `images/avatars/alice-portrait.png`, made with built-in imagegen using the supplied Marisa/Patchouli portraits as style references. Its [full prompt](../images/avatars/alice-portrait.prompt.txt) is retained next to the asset. The previous Alice image remains available, but is no longer the active avatar.
+All three active portraits in `images/avatars/` are supplied by the site owner. The Alice portrait was replaced with the supplied illustration on 2026-10-08; the earlier generated version is retained in Git history. Original pixel ribbon/doll, star/hat and crescent/book ornaments live in `_includes/avatar-ornaments.html`; `classic-site.css` owns their responsive frames and switches them with the character palette. The portrait stays square with a closer crop, while the ornaments are decorative and excluded from the accessibility tree.
 
 ## Code map
 

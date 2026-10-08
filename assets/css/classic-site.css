@@ -519,24 +519,104 @@ body.gallery-page.classic-site .page__content h1::before {
   perspective: none;
 }
 .profile_box .author__avatar-frame {
+  --portrait-thread: #b88292;
+  --portrait-stitch: 1px;
   width: 100%;
-  padding: 3px;
-  border: 1px solid var(--border);
+  padding: 8px;
+  border: 1px solid var(--classic-edge-light);
   border-radius: 0;
   background: var(--classic-document);
-  box-shadow: none;
-  transform: none;
-  transform-style: flat;
-  will-change: auto;
+  box-shadow:
+    inset 0 0 0 2px var(--classic-edge-dark),
+    2px 2px 0 var(--classic-edge-dark);
+}
+html[data-live2d-character="marisa"] .author__avatar-frame {
+  --portrait-thread: #c4a367;
+  --portrait-stitch: 3px;
+}
+html[data-live2d-character="patchouli"] .author__avatar-frame {
+  --portrait-thread: #b492be;
+  --portrait-stitch: 2px;
+}
+.author__avatar-frame::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--classic-edge-mid);
+  background:
+    repeating-linear-gradient(
+        90deg,
+        var(--portrait-thread) 0 var(--portrait-stitch),
+        transparent var(--portrait-stitch) 6px
+      )
+      top center / calc(100% - 40px) 1px no-repeat,
+    repeating-linear-gradient(
+        90deg,
+        var(--portrait-thread) 0 var(--portrait-stitch),
+        transparent var(--portrait-stitch) 6px
+      )
+      bottom center / calc(100% - 40px) 1px no-repeat;
+  pointer-events: none;
+}
+.author__avatar-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(var(--classic-accent), var(--classic-accent)) top right /
+      17px 2px no-repeat,
+    linear-gradient(var(--classic-accent), var(--classic-accent)) top right /
+      2px 17px no-repeat,
+    linear-gradient(var(--classic-accent), var(--classic-accent)) bottom left /
+      17px 2px no-repeat,
+    linear-gradient(var(--classic-accent), var(--classic-accent)) bottom left /
+      2px 17px no-repeat;
+  pointer-events: none;
 }
 .author__avatar-media {
-  border-radius: 0;
-  transform: none;
+  border: 1px solid var(--classic-edge-dark);
 }
-.author__avatar-aura,
-.author__avatar-shine,
-.author__avatar-corner {
+.author__avatar-ornaments {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+[data-avatar-decoration] {
   display: none;
+}
+html[data-live2d-character="alice"] [data-avatar-decoration="alice"],
+html[data-live2d-character="marisa"] [data-avatar-decoration="marisa"],
+html[data-live2d-character="patchouli"] [data-avatar-decoration="patchouli"] {
+  display: contents;
+}
+.author__avatar-sigil,
+.author__avatar-crest {
+  position: absolute;
+  display: block;
+  background: var(--classic-document);
+  border: 1px solid var(--classic-edge-light);
+  box-shadow: 1px 1px 0 var(--classic-edge-dark);
+}
+.author__avatar-sigil {
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+}
+.author__avatar-crest {
+  right: 0;
+  bottom: 0;
+  width: 38px;
+  height: 38px;
+  padding: 6px;
+  outline: 2px solid var(--classic-document);
+  outline-offset: -3px;
+}
+.author__avatar-crest svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .profile_box .author__avatar-frame .author__avatar-image {
   width: 100%;
@@ -1050,6 +1130,19 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
   .profile_box .author__avatar {
     grid-column: 1;
     grid-row: 1;
+  }
+  .profile_box .author__avatar-frame {
+    padding: 6px;
+  }
+  .author__avatar-sigil {
+    width: 20px;
+    height: 20px;
+    padding: 1px;
+  }
+  .author__avatar-crest {
+    width: 28px;
+    height: 28px;
+    padding: 3px;
   }
   .profile_box .author__content {
     grid-column: 2;
