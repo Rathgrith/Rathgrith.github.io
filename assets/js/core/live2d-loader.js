@@ -191,6 +191,8 @@
   var breathStartedAt = 0;
   var partOpacityModel = null;
   var partOpacityHandler = null;
+  var poseParameterHandler = null;
+  var poseParameterValues = {};
   var partOpacityActiveState = null;
   var partOpacityStateCache = {};
   var partOpacityRequestGeneration = 0;
@@ -198,7 +200,8 @@
   var lipSyncHandler = null;
   var lipSyncStartedAt = 0;
   var lipSyncEndsAt = 0;
-  var interactionMotionTimer = 0;
+  var interactionMotionManager = null;
+  var interactionMotionFinishHandler = null;
   var interactionMotionGeneration = 0;
   var interactionMotionPending = false;
   var requestedPoseId = "1";
@@ -1180,9 +1183,12 @@
         "beforeModelUpdate",
         partOpacityHandler
       );
+      partOpacityModel.internalModel.off("afterMotionUpdate", poseParameterHandler);
     }
     partOpacityModel = null;
     partOpacityHandler = null;
+    poseParameterHandler = null;
+    poseParameterValues = {};
     partOpacityActiveState = null;
     partOpacityStateCache = {};
     partOpacityRequestGeneration += 1;
@@ -1258,6 +1264,22 @@
   function startPartOpacityGuard(model) {
     stopPartOpacityGuard();
     partOpacityModel = model;
+    poseParameterHandler = function () {
+      if (model !== currentModel || !partOpacityActiveState) return;
+      var core = model.internalModel.coreModel;
+      var frozen = typeof partOpacityActiveState.frozenTime === "number";
+      poseParameterValues = {};
+      Object.keys(partOpacityActiveState.staticParameters).forEach(function (id) {
+        if (frozen) {
+          // Restore the held pose before Cubism saves its motion baseline.
+          core.setParameterValueById(id, partOpacityActiveState.staticParameters[id]);
+        }
+        // Capture the authored pose before SDK focus, breath and physics add
+        // their offsets. Moving and held poses share the same overlay below.
+        poseParameterValues[id] = core.getParameterValueById(id);
+      });
+    };
+    model.internalModel.on("afterMotionUpdate", poseParameterHandler);
     partOpacityHandler = function () {
       if (
         !partOpacityModel ||
@@ -1267,8 +1289,11 @@
         return;
       }
 
+      if (partOpacityActiveState.startedAt === null) {
+        partOpacityActiveState.startedAt = model.elapsedTime;
+      }
       var elapsed =
-        (window.performance.now() - partOpacityActiveState.startedAt) / 1000;
+        (model.elapsedTime - partOpacityActiveState.startedAt) / 1000;
       var duration = Math.max(0.001, partOpacityActiveState.duration);
       var motionTime = partOpacityActiveState.loop
         ? elapsed % duration
@@ -1276,14 +1301,15 @@
       if (typeof partOpacityActiveState.frozenTime === "number") {
         motionTime = partOpacityActiveState.frozenTime;
       }
-      // Hold the selected pose after its transition. Cubism's idle/breathing
-      // update must not gradually restore the old arms, book or head angle.
+      // Use the same bounded gaze throughout motion and rest. Switching from
+      // the SDK's 30-degree gaze/breath offsets to these small offsets only at
+      // the end of a motion caused a visible head snap.
       var core = partOpacityModel.internalModel.coreModel;
       var focus = partOpacityModel.internalModel.focusController;
       var reducedMotion = prefersReducedMotion();
-      Object.keys(partOpacityActiveState.staticParameters).forEach(
+      Object.keys(poseParameterValues).forEach(
         function (id) {
-          var value = partOpacityActiveState.staticParameters[id];
+          var value = poseParameterValues[id];
           if (!reducedMotion) {
             if (id === "ParamAngleX") value += focus.x * 8;
             if (id === "ParamAngleY") value += focus.y * 5;
@@ -1376,10 +1402,9 @@
       curves: state.curves || [],
       duration: state.duration || 1,
       loop: shouldLoop !== false,
-      startedAt: window.performance.now(),
+      startedAt: null,
       frozenTime: typeof frozenTime === "number" ? frozenTime : null,
-      staticParameters:
-        typeof frozenTime === "number" ? state.staticParameters || {} : {},
+      staticParameters: state.staticParameters || {},
     };
   }
 
@@ -1471,9 +1496,12 @@
             loadedMotion.setFadeOutTime(0);
           }
         }
-        activatePartOpacityState(model, loadedResources[0], shouldLoop);
         return model.motion("", motionIndex, 3).then(function (started) {
-          return started ? loadedResources[0].duration * 1000 + 30 : 0;
+          if (requestGeneration !== partOpacityRequestGeneration || model !== currentModel) {
+            return false;
+          }
+          if (started) activatePartOpacityState(model, loadedResources[0], shouldLoop);
+          return started;
         });
       })
       .catch(function () {
@@ -1485,6 +1513,7 @@
     if (!model || model !== currentModel) return;
     var motionManager = model.internalModel.motionManager;
     for (var targetPose = 1; targetPose <= 5; targetPose += 1) {
+      loadPartOpacityState(model, String(targetPose) + String(targetPose));
       if (String(targetPose) === poseId) continue;
       var motionIndex = motionIndexForId(model, poseId + String(targetPose));
       if (motionIndex < 0) continue;
@@ -1510,14 +1539,19 @@
     expressionTimer = 0;
   }
 
-  function clearInteractionTimers() {
+  function clearMotionFinishListener() {
+    if (interactionMotionManager && interactionMotionFinishHandler) {
+      interactionMotionManager.off("motionFinish", interactionMotionFinishHandler);
+    }
+    interactionMotionManager = null;
+    interactionMotionFinishHandler = null;
+  }
+
+  function clearInteractionMotion() {
     interactionMotionGeneration += 1;
     interactionMotionPending = false;
     requestedPoseId = "1";
-    if (interactionMotionTimer) {
-      window.clearTimeout(interactionMotionTimer);
-      interactionMotionTimer = 0;
-    }
+    clearMotionFinishListener();
   }
 
   function updateInteractionUI(character) {
@@ -1560,6 +1594,7 @@
     }
     function settle() {
       if (!isCurrent()) return;
+      clearMotionFinishListener();
       applyStaticPose(model, targetPose).then(function () {
         if (!isCurrent()) return;
         interactionMotionPending = false;
@@ -1572,17 +1607,23 @@
       return;
     }
     playMotionById(model, currentPoseId + targetPose, false).then(
-      function (duration) {
+      function (started) {
         if (!isCurrent()) return;
-        if (!duration) settle();
-        else interactionMotionTimer = window.setTimeout(settle, duration);
+        if (!started) settle();
+        else {
+          // Follow Cubism's rendered timeline, including paused/slow frames,
+          // rather than cutting off the animation with a wall-clock timeout.
+          interactionMotionManager = model.internalModel.motionManager;
+          interactionMotionFinishHandler = settle;
+          interactionMotionManager.once("motionFinish", settle);
+        }
       }
     );
   }
 
   function destroyCurrentModel() {
     if (!currentModel) return;
-    clearInteractionTimers();
+    clearInteractionMotion();
     stopLipSync();
     stopPartOpacityGuard();
     stopLipSyncLoop();
@@ -1748,7 +1789,7 @@
     syncCharacterTheme(character.id);
     window.SiteCompanion.setCharacter(character.id);
     renderCharacterButton(ensureCharacterButton());
-    clearInteractionTimers();
+    clearInteractionMotion();
     stopLipSync();
 
     if (shouldRenderLive2D()) {
@@ -1799,7 +1840,8 @@
     bindFocusEvents();
     applyResponsiveSize();
     if (!shouldRenderLive2D()) {
-      clearInteractionTimers();
+      // Keep the pending completion attached while the renderer is hidden.
+      // Character replacement, rather than visibility, cancels its motion.
       stopLipSync();
       return;
     }

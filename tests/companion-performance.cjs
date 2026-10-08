@@ -94,6 +94,7 @@ const hands = {
       );
       await page.evaluate(() => {
         const model = performanceTestApp.stage.children[0];
+        window.performanceFrames = [];
         model.internalModel.on("beforeModelUpdate", () => {
           const core = model.internalModel.coreModel;
           window.performanceFrame = {
@@ -106,6 +107,14 @@ const hands = {
               }).filter(Boolean)
             ),
           };
+          performanceFrames.push({
+            time: performance.now(),
+            resting: document.querySelector("#live2d-widget").dataset.live2dResting === "true",
+            angles: ["ParamAngleX", "ParamAngleY", "ParamAngleZ"].map(
+              (id) => core.getParameterValueById(id)
+            ),
+          });
+          if (performanceFrames.length > 500) performanceFrames.shift();
         });
       });
     }
@@ -143,8 +152,24 @@ const hands = {
           { id, pose }
         );
         assert(line, `${id} pose ${pose} is used in the script`);
-        await page.evaluate((line) => performanceTestHooks.perform(line), line);
+        await page.evaluate((line) => {
+          performanceFrames.length = 0;
+          // A steady off-centre gaze exposes a change in focus amplitude.
+          performanceTestApp.stage.children[0].internalModel.focusController.focus(0.6, -0.4, true);
+          performanceTestHooks.perform(line);
+        }, line);
         await settle(String(pose), line.expressionMotionId);
+        const frames = await page.evaluate(() => performanceFrames);
+        fs.writeFileSync(`${out}/${id}-pose-${pose}-frames.json`, JSON.stringify(frames));
+        const handoff = frames.findIndex((frame, index) =>
+          index > 0 && frame.resting && !frames[index - 1].resting
+        );
+        if (handoff > 0) {
+          const jump = Math.max(...frames[handoff].angles.map(
+            (value, index) => Math.abs(value - frames[handoff - 1].angles[index])
+          ));
+          assert(jump < 2, `${id} pose ${pose} snaps ${jump.toFixed(2)} degrees when its motion ends`);
+        }
         const frame = await page.evaluate(() => performanceFrame);
         assert.deepEqual(
           frame.hands.sort(),
@@ -210,6 +235,42 @@ const hands = {
       });
       await settle("5", "07");
       assert((await page.evaluate(() => performanceFrame.mouth)) > 0.9);
+      // Minimized/hidden renderers must not settle a half-played animation on
+      // a wall-clock timeout. Resume the same motion before accepting rest.
+      await page.evaluate(() => performanceTestHooks.perform({ poseId: "4", expressionMotionId: "01" }));
+      await page.waitForFunction(() => {
+        const manager = performanceTestApp.stage.children[0].internalModel.motionManager;
+        return manager.playing && !manager.isFinished();
+      });
+      await page.evaluate(() => {
+        performanceTestApp.stage.children[0].autoUpdate = false;
+        performanceTestApp.stop();
+      });
+      await page.waitForTimeout(1300);
+      assert.notEqual(await page.locator("#live2d-widget").getAttribute("data-live2d-resting"), "true");
+      await page.evaluate(() => {
+        performanceTestApp.stage.children[0].autoUpdate = true;
+        performanceTestApp.start();
+      });
+      await settle("4", "01");
+      if (id === "alice") {
+        await page.evaluate(() => performanceTestHooks.perform({ poseId: "2", expressionMotionId: "02" }));
+        await page.waitForFunction(() => {
+          const manager = performanceTestApp.stage.children[0].internalModel.motionManager;
+          return manager.playing && !manager.isFinished();
+        });
+        await page.locator("[data-companion-close]").click();
+        await page.waitForTimeout(1300);
+        assert.notEqual(await page.locator("#live2d-widget").getAttribute("data-live2d-resting"), "true");
+        await page.locator("[data-site-options-trigger]").click();
+        await page.locator("[data-live2d-toggle]").click();
+        await page.keyboard.press("Escape");
+        await page.waitForFunction(() => {
+          const widget = document.querySelector("#live2d-widget");
+          return widget.dataset.live2dResting === "true" &&
+            widget.dataset.live2dPoseId === widget.dataset.live2dRequestedPose;
+        });
+      }
     }
 
     // Reparenting after responsive changes must still put the index first.
@@ -248,7 +309,7 @@ const hands = {
     await page.screenshot({ path: `${out}/alice-home.png` });
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: 15 real model poses, directed friend remarks, sustained faces, latest-line motion queue, reduced motion and desktop index ordering"
+      "PASS: 15 real model poses, continuous head handoffs, paused motion completion, directed friend remarks, sustained faces, latest-line motion queue, reduced motion and desktop index ordering"
     );
   } finally {
     await browser.close();
