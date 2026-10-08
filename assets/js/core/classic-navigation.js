@@ -7,22 +7,31 @@
       else link.removeAttribute('aria-current');
     });
   }
-  // Rebind the template's archive navigation after the site's soft navigation.
-  var archiveLinks = [];
+  // Each page index tracks its own current section after scroll or soft navigation.
+  var sectionGroups = [];
   var scrollPending = false;
   function updateArchive() {
-    var active = archiveLinks[0];
-    archiveLinks.forEach(function (link) {
-      var section = document.getElementById(decodeURIComponent(link.hash.slice(1)));
-      if (section && section.getBoundingClientRect().top <= 40) active = link;
-    });
-    archiveLinks.forEach(function (link) {
-      if (link === active) link.setAttribute('aria-current', 'location');
-      else link.removeAttribute('aria-current');
+    var atBottom = window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    sectionGroups.forEach(function (links) {
+      var active = links[0];
+      links.forEach(function (link) {
+        var section = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        if (section && section.getBoundingClientRect().top <= 80) active = link;
+      });
+      // Short final sections cannot always reach the top of the viewport.
+      if (atBottom) active = links[links.length - 1];
+      links.forEach(function (link) {
+        if (link === active) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
     });
   }
   function bindArchive() {
-    archiveLinks = Array.from(document.querySelectorAll('.classic-year-navigation a[href^="#"]'));
+    sectionGroups = Array.from(document.querySelectorAll('.classic-year-navigation, .classic-page-index')).map(function (nav) {
+      return Array.from(nav.querySelectorAll('a[href]')).filter(function (link) {
+        return link.hash && document.getElementById(decodeURIComponent(link.hash.slice(1)));
+      });
+    });
     updateArchive();
   }
   window.addEventListener('scroll', function () {
@@ -31,6 +40,7 @@
     requestAnimationFrame(function () { updateArchive(); scrollPending = false; });
   }, { passive: true });
   window.addEventListener('hashchange', updateArchive);
+  window.addEventListener('resize', updateArchive);
   document.addEventListener('DOMContentLoaded', bindArchive);
   document.addEventListener('site:content-updated', bindArchive);
   document.addEventListener('DOMContentLoaded', updateNavigation);
