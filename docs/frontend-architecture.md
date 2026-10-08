@@ -55,7 +55,7 @@ Validated on 2026-10-08:
 - 45 combinations: three themes at 15 widths from 320 to 1920px; no page overflow, square portraits, 28px contained school emblems, single-row navigation, bounded footer.
 - Gallery at seven widths, all 110 thumbnail crops, full-size containment, keyboard navigation/focus, browser history, and useful static links with JavaScript disabled.
 - Companion at twelve widths plus 600×360 landscape: text and primary action remain visible, dock placement and detached window bounds stay correct, short settings panels scroll independently.
-- All 99 restored Japanese lines plus 83 friend remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups.
+- All 99 Japanese everyday lines plus 18 acquaintance remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups.
 - Saved affinity/text speed, per-character isolation, typewriter completion, minimized pause, auto stopping for choices, single instances across soft navigation, close/reopen and keyboard movement.
 - Fresh mobile visits do not load a model; opt-in, page-bottom/index order, separate desktop/mobile visibility, reload and soft-navigation retention are checked.
 - Simulated model/CDN and weather failure, model retry, rapid character switching, blocked localStorage, reduced motion and the Halloween branch in the UI.

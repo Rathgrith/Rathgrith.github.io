@@ -15,7 +15,17 @@ The homepage uses a local, scripted visual-novel system. It needs no chat API, A
 
 ## Scene and dialogue design
 
-The dialogue contains 99 Japanese everyday/holiday/affinity lines and 18 existing game quotations. The dedicated friends topic adds 83 original short remarks (Alice 20, Marisa 43, Patchouli 20) covering 46 characters or groups. These are observations about personalities, magic and interactions.
+The dialogue contains 99 Japanese everyday/holiday/affinity lines and 18 unchanged game quotations. The everyday story beats remain, with light edits to 12 lines for character voice. The friends topic has 18 original short remarks (Alice 5, Marisa 8, Patchouli 5) covering 11 characters or groups.
+
+The roster is deliberately small. Shared residence, established visits and working together are the main selection criteria. A fighting-game matchup alone is insufficient evidence of a close friendship; comments about less intimate acquaintances stick to observable habits and abilities. The menu title does not assert that every listed relationship is an intimate friendship.
+
+| Speaker | Retained acquaintances | Selection basis |
+| --- | --- | --- |
+| Alice | Marisa, Patchouli, Reimu, Sakuya, the Three Fairies of Light | The magician circle and recurring early-game acquaintances; Alice's house visits in *Strange and Bright Nature Deity*. Her Sakuya remark stays with time manipulation and knives. |
+| Marisa | Reimu, Alice, Patchouli, Sakuya, Remilia, Rinnosuke, Nitori, Kosuzu | Recurring shrine/forest/mansion interactions; *Curiosities of Lotus Asia*, the Nitori partnership in *Subterranean Animism*, and *Forbidden Scrollery*. |
+| Patchouli | Remilia, Sakuya, Meiling, Marisa, Alice | Her mansion household, library visitor and fellow magician. No speculative personal accounts of distant characters. |
+
+Voice guidance: Marisa alternates casual contractions, teasing questions and endings such as ぜ / だぜ / だな / だろ. These are hand-edited where the Japanese grammar supports them, never appended automatically. Alice uses measured feminine endings, rhetorical questions and occasional sharp remarks; Patchouli uses shorter assertions, dry corrections and the familiar レミィ when speaking of Remilia. Preserve variation rather than forcing a catchphrase into every sentence. New remarks remain fan writing; the original-game quotation data is not rewritten.
 
 Dialogue and menus use the locally hosted Japanese Fusion Pixel 12px proportional font, release 2026.09.25. The unmodified font and its upstream licenses are in `assets/fonts/fusion-pixel/`. The academic page still uses W95FA at 17px on desktop.
 
@@ -26,6 +36,11 @@ Character research references (background context, not copied new dialogue):
 - [Marisa's official-setting reference index](https://thwiki.cc/雾雨魔理沙/一设资料)
 - [Patchouli's profile](https://thwiki.cc/帕秋莉·诺蕾姬)
 - [Alice’s Scarlet Weather Rhapsody dialogue index](https://thwiki.cc/游戏对话:东方绯想天/爱丽丝·玛格特洛依德)
+- [Scarlet Weather Rhapsody: Marisa's Japanese dialogue](https://thbwiki.cc/游戏对话:东方绯想天/雾雨魔理沙/中日对照)
+- [Scarlet Weather Rhapsody: Patchouli's Japanese dialogue](https://thbwiki.cc/游戏对话:东方绯想天/帕秋莉·诺蕾姬/中日对照)
+- [Alice relationship index, including the fairy visits](https://en.touhouwiki.net/wiki/Alice_Margatroid#Relationships)
+- [Patchouli relationship index](https://en.touhouwiki.net/wiki/Patchouli_Knowledge#Relationships)
+- [Nitori relationship index](https://en.touhouwiki.net/wiki/Nitori_Kawashiro#Relationships)
 
 The remarks are new writing, not copied winning quotes. Metadata and research notes stay here, outside the game UI.
 
@@ -33,7 +48,7 @@ The three empty-room backgrounds were made with the built-in imagegen tool. [All
 
 ## Code map
 
-- `assets/js/data/companion-dialogues.js`: restored Japanese writing, tier selection, dates, weather and story construction. Pure selection functions allow deterministic date/tier tests.
+- `assets/js/data/companion-dialogues.js`: Japanese writing, tier selection, dates, weather and story construction. Pure selection functions allow deterministic date/tier tests.
 - `assets/js/data/companion-remarks.js`: per-speaker friend rosters and Japanese remarks.
 - `assets/js/core/companion-dialogue.js`: typing/ready/choice states, text completion, history, settings, auto advancement and panels. No user content is inserted as HTML.
 - `assets/js/core/live2d-loader.js`: model loading, cancellation by generation, half-body camera, expressions/poses, typewriter-linked mouth movement, drag/minimize/restore and rendering lifecycle.
