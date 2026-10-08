@@ -50,6 +50,8 @@ Lighting uses a single PIXI fragment-filter pass over the visible model canvas. 
 
 ## Dialogue performance
 
+The **弾幕に挑戦** button opens an independent pixel score-attack view in this same window. Its three pilots/opponents, controls, scoring and lifecycle are documented in [the arcade guide](danmaku-game.md). The typewriter and model renderer pause while the arcade is open and resume when returning to conversation.
+
 All 135 lines have explicit `expressionMotionId` and `poseId`: 99 everyday/affinity/holiday lines, 18 acquaintance remarks and 18 existing quotations. Japanese text is unchanged. Directions were assigned after inspecting the three original rigs' eight faces and five body poses. These are rendered with the existing Cannonball models; no replacement model is installed.
 
 Expressions use the rigs' authored presets: 01 neutral, 02 gentle smile, 03 serious/firm, 04 troubled, 05 annoyed, 06 surprised, 07 amused/confident, 08 tired/downcast. Their intensity differs between characters. Expressions interpolate over about 260ms and remain with the current line through typing, choices and reading; there is no timed reset to an unrelated idle smile.

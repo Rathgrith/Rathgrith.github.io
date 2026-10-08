@@ -17,6 +17,7 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 | `classic-gallery-viewer.css` | Modal, original-image containment, controls and filmstrip |
 | `classic-weather.css` | Integrated observation dial; no independent mobile/global hiding rules |
 | `classic-companion.css` | Floating window, scene, dialogue, panels, loading and viewport behavior |
+| `classic-danmaku.css` | Companion arcade lobby, score HUD, playfield and pause/result screens |
 
 The native `hidden` attribute wins globally. The active styles do not depend on increasing `html.classic-root body.classic-site` specificity to defeat another template. Site options, companion, previews, modal and loading layers are ordered through theme variables. Each component uses small local layers within its own stacking context.
 
@@ -31,6 +32,7 @@ Gallery cards always crop to 4:3. The viewer and its placeholder always contain 
 - `site-options.js` owns the header menu. `live2d-toggle.js` owns the single persisted companion visibility preference.
 - `companion-dialogue.js` owns the dialogue state machine and persistent preferences; `companion-dialogues.js` contains writing and pure story selection. See [the companion guide](companion-system.md).
 - `live2d-loader.js` owns Cubism/PIXI model lifecycle, half-body framing, motion and window movement. Model requests use a generation token so rapid switches cannot replace the current character with a stale result.
+- `games/danmaku-engine.js`, `danmaku-renderer.js` and `companion-danmaku.js` separately own the arcade simulation, Canvas 2D view and UI/lifecycle. The mounted game pauses the conversation renderer and typewriter; local pixel sprites keep it independent of remote Live2D availability. See [the game guide](danmaku-game.md).
 - Before replacing `#main`, page navigation emits `site:before-content-replace`. The companion temporarily reparents to `body`, then moves to the new dock. This retains the same canvas and weather instance. Weather refresh/location/cache behavior remains in `components/weather-widget.js`.
 - Publications, visitor count, runtime, hover previews and the gallery each keep their own small module. No generic legacy feature loader or jQuery bundle is required.
 
@@ -42,6 +44,8 @@ Build Jekyll and serve `_site` first. Tests require Node and an installed Playwr
 
 ```sh
 node tests/companion-data.cjs
+node tests/danmaku-engine.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/site-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-resilience.cjs
@@ -62,6 +66,7 @@ Validated on 2026-10-08:
 - Saved affinity/text speed, per-character isolation, typewriter completion, minimized pause, auto stopping for choices, single instances across soft navigation, close/reopen and keyboard movement.
 - Fresh mobile visits do not load a model; opt-in, page-bottom/index order, separate desktop/mobile visibility, reload and soft-navigation retention are checked.
 - Simulated model/CDN and weather failure, model retry, rapid character switching, blocked localStorage, reduced motion and the Halloween branch in the UI.
+- Nine endless arcade matchups, three distinct shot types and patterns, growing density, collision/graze/strike rules, actual canvas output, keyboard/touch controls, result/retry/records, short landscape and seven playfield widths. Leaving the game restores the existing conversation.
 - Browser checks observed no uncaught JavaScript errors or missing local assets. Remote models, weather, visitor count and original photos still depend on their existing providers; failure behavior is tested separately from successful loading.
 
 Manual review includes desktop views of all three characters, tablet/phone profile layouts, gallery cards and viewer, weather, settings, choices and short-window scrolling. These checks document tested coverage rather than a guarantee about every browser or third-party outage.

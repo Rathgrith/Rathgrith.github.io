@@ -14,7 +14,8 @@
     generation = 0,
     logged = false,
     panel = "",
-    visible = true;
+    visible = true,
+    gameActive = false;
   var history = [],
     originalIndices = {},
     lastTopic = "today";
@@ -187,6 +188,7 @@
     if (
       !auto ||
       !visible ||
+      gameActive ||
       document.hidden ||
       panel ||
       state !== "ready" ||
@@ -246,7 +248,7 @@
       run = generation;
     function tick() {
       if (run !== generation) return;
-      if (!visible || document.hidden) {
+      if (!visible || gameActive || document.hidden) {
         timer = setTimeout(tick, 250);
         return;
       }
@@ -303,7 +305,7 @@
     renderLine();
   }
   function advance() {
-    if (!visible || panel || state === "choice") return;
+    if (!visible || gameActive || panel || state === "choice") return;
     if (state === "typing") {
       complete();
       return;
@@ -375,6 +377,19 @@
         : "night";
     root.dataset.sceneWeather = weather ? weather.phase : "unknown";
     syncLighting();
+  }
+  function setGameActive(value) {
+    gameActive = value;
+    closePanel();
+    q(".vn-main-view").hidden = value;
+    q(".vn-main-view").inert = value;
+    if (value) {
+      clearTimeout(autoTimer);
+      hooks.stopSpeaking();
+    } else scheduleAuto();
+    document.dispatchEvent(
+      new CustomEvent("site:companion-game", { detail: { active: value } })
+    );
   }
   function mount(widget, callbacks) {
     if (root)
@@ -517,6 +532,12 @@
       } else scheduleAuto();
     });
     setCharacter(document.documentElement.dataset.live2dCharacter || "alice");
+    window.CompanionDanmaku.mount(root, {
+      activate: setGameActive,
+      character: function () {
+        return currentId;
+      },
+    });
     return { trigger: q("#live2d-interact"), dialogue: q("#live2d-dialogue") };
   }
   window.SiteCompanion = {
@@ -527,6 +548,7 @@
     next: advance,
     setVisible: function (value) {
       visible = value;
+      if (window.CompanionDanmaku) window.CompanionDanmaku.setVisible(value);
       if (!value) {
         clearTimeout(autoTimer);
         if (hooks) hooks.stopSpeaking();

@@ -31,7 +31,7 @@
 <link rel="preload" href="{{ '/assets/fonts/fa-solid-900.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{{ '/assets/fonts/fa-brands-400.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
 <!-- Explicit order: tokens, reset, layout, independent components. No legacy theme bundle. -->
-{% assign stylesheets = 'icons.css,classic-theme.css,classic-base.css,classic-site.css,classic-widgets.css,classic-pages.css,classic-gallery-viewer.css,classic-weather.css,classic-companion.css' | split: ',' %}
+{% assign stylesheets = 'icons.css,classic-theme.css,classic-base.css,classic-site.css,classic-widgets.css,classic-pages.css,classic-gallery-viewer.css,classic-weather.css,classic-companion.css,classic-danmaku.css' | split: ',' %}
 {% for stylesheet in stylesheets %}<link rel="stylesheet" href="{{ '/assets/css/' | append: stylesheet | relative_url }}?v={{ asset_version | url_encode }}">
 {% endfor %}
 <meta http-equiv="cleartype" content="on">

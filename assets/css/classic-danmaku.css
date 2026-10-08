@@ -1,0 +1,240 @@
+/* The arcade occupies the existing companion window, including its bounded height. */
+#live2d-widget .vn-arcade-entry {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  border: 1px solid var(--vn-rule);
+  color: var(--classic-accent);
+  background: var(--classic-soft);
+  text-align: left;
+}
+#live2d-widget .vn-arcade-entry span:last-child {
+  margin-left: auto;
+}
+#live2d-widget .vn-danmaku-view {
+  --arcade-accent: #a8d7e8;
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: min(
+    560px,
+    calc(var(--vn-available-height, 100dvh - 24px) - 38px),
+    calc(100dvh - 76px)
+  );
+  overflow: hidden;
+  background: var(--vn-panel);
+}
+#live2d-widget .vn-danmaku-view[data-enemy="marisa"] {
+  --arcade-accent: #f5d18a;
+}
+#live2d-widget .vn-danmaku-view[data-enemy="patchouli"] {
+  --arcade-accent: #d2b4ed;
+}
+#live2d-widget .danmaku-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 6px;
+  min-height: 35px;
+  padding: 5px 3px;
+  border-bottom: 1px solid var(--vn-rule);
+}
+#live2d-widget .danmaku-header strong {
+  font-weight: 400;
+  color: var(--arcade-accent);
+}
+#live2d-widget .danmaku-header button {
+  padding: 3px 6px;
+  flex-shrink: 0;
+}
+#live2d-widget .danmaku-lobby {
+  overflow: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  padding: 8px 5px;
+}
+#live2d-widget .danmaku-kicker {
+  color: var(--vn-muted);
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+#live2d-widget .vn-danmaku-view h3 {
+  margin: 10px 0 7px;
+  padding: 0;
+  font: 12px/1.6 var(--vn-font);
+  color: var(--classic-accent);
+}
+#live2d-widget .danmaku-pilots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+#live2d-widget .danmaku-pilots button {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 6px 1px;
+  gap: 3px;
+}
+#live2d-widget .danmaku-pilots img {
+  width: 32px;
+  height: 40px;
+  image-rendering: pixelated;
+}
+#live2d-widget .vn-danmaku-view strong {
+  font-weight: 400;
+}
+#live2d-widget .danmaku-pilots strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+#live2d-widget .vn-danmaku-view small {
+  display: block;
+  font: 12px/1.5 var(--vn-font);
+  color: var(--vn-muted);
+}
+#live2d-widget .danmaku-opponents {
+  display: grid;
+  gap: 5px;
+}
+#live2d-widget .danmaku-opponents button {
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 7px;
+  padding: 6px;
+  text-align: left;
+}
+#live2d-widget .danmaku-opponents img {
+  width: 25px;
+  height: 25px;
+  image-rendering: pixelated;
+  grid-row: 1 / 3;
+}
+#live2d-widget .danmaku-opponents button > span:last-child {
+  grid-column: 3;
+  grid-row: 1 / 3;
+}
+#live2d-widget .danmaku-record {
+  grid-column: 2;
+  color: var(--vn-muted);
+  font-size: 12px;
+}
+#live2d-widget .danmaku-help {
+  margin-top: 10px;
+  border-top: 1px solid var(--vn-rule);
+  padding: 7px 2px 0;
+}
+#live2d-widget .danmaku-help summary {
+  cursor: pointer;
+  color: var(--classic-accent);
+}
+#live2d-widget .danmaku-help p {
+  margin: 8px 0;
+  font: 12px/1.8 var(--vn-font);
+  color: var(--vn-muted);
+}
+#live2d-widget .danmaku-battle {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+#live2d-widget .danmaku-hud {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 6px;
+  padding: 6px 3px 3px;
+  color: var(--vn-muted);
+  font: 12px/1.7 var(--vn-font);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+#live2d-widget .danmaku-hud > div:nth-child(even) {
+  text-align: right;
+}
+#live2d-widget .danmaku-hud strong,
+#live2d-widget [data-danmaku-lives] {
+  color: var(--arcade-accent);
+}
+#live2d-widget .danmaku-pattern {
+  text-align: center;
+  font: 12px/1.5 var(--vn-font);
+  color: var(--arcade-accent);
+  padding: 2px 0 5px;
+  flex-shrink: 0;
+}
+#live2d-widget .danmaku-arena {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--vn-rule);
+  background: #080c16;
+  overflow: hidden;
+}
+#live2d-widget .danmaku-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+#live2d-widget [data-danmaku-canvas] {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  image-rendering: pixelated;
+  touch-action: none;
+  user-select: none;
+  outline-offset: -2px;
+}
+#live2d-widget .danmaku-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px 0 0;
+  flex-shrink: 0;
+}
+#live2d-widget .danmaku-controls button {
+  min-height: 36px;
+  padding: 4px 2px;
+}
+#live2d-widget .danmaku-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: safe center;
+  gap: 7px;
+  padding: 14px;
+  background: #0c1125ed;
+  overflow: auto;
+  text-align: center;
+}
+#live2d-widget .danmaku-overlay h3 {
+  color: var(--arcade-accent);
+  font-size: 16px;
+  margin: 0;
+}
+#live2d-widget .danmaku-overlay p {
+  margin: 0 0 6px;
+  font: 12px/1.7 var(--vn-font);
+  color: var(--vn-muted);
+}
+#live2d-widget .danmaku-overlay button {
+  min-height: 33px;
+}
+#live2d-widget .vn-danmaku-view[hidden],
+#live2d-widget .vn-danmaku-view [hidden] {
+  display: none;
+}

@@ -202,6 +202,7 @@
   var interactionMotionGeneration = 0;
   var interactionMotionPending = false;
   var requestedPoseId = "1";
+  var companionGameActive = false;
   var fallbackCharacters = [
     {
       id: "marisa",
@@ -620,7 +621,13 @@
 
   function applyPointerFocus() {
     focusFrame = 0;
-    if (!application || !currentModel || prefersReducedMotion()) return;
+    if (
+      !application ||
+      !currentModel ||
+      companionGameActive ||
+      prefersReducedMotion()
+    )
+      return;
 
     var elements = ensureWidget();
     if (!elements || !lastPointerPosition) return;
@@ -685,7 +692,12 @@
       !companionMinimized && !shouldDisableLive2D()
     );
     if (application) {
-      if (companionMinimized || shouldDisableLive2D() || document.hidden)
+      if (
+        companionMinimized ||
+        companionGameActive ||
+        shouldDisableLive2D() ||
+        document.hidden
+      )
         application.stop();
       else application.start();
     }
@@ -1802,6 +1814,10 @@
   }
 
   document.addEventListener("visibilitychange", applyResponsiveSize);
+  document.addEventListener("site:companion-game", function (event) {
+    companionGameActive = event.detail.active;
+    applyResponsiveSize();
+  });
   document.addEventListener("site:content-updated", initLive2D);
   document.addEventListener("site:live2d-toggle", function (event) {
     var detail = event.detail || {};
