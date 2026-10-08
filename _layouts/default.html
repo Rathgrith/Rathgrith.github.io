@@ -1,14 +1,11 @@
----
-layout: compress
----
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="en" class="no-js classic-root" data-theme="dark" data-live2d-character="alice">
   <head>
     {% include head.html %}
     {% include head/custom.html %}
   </head>
 
-  {% assign body_classes = page.body_class | default: "" %}
+  {% assign body_classes = page.body_class | default: "" | append: " classic-site" %}
   {% if page.body_class == "home-page" and page.disable_home_loading != true %}
     {% assign body_classes = body_classes | append: " home-loading" %}
   {% endif %}
@@ -16,16 +13,18 @@ layout: compress
 
     {% include browser-upgrade.html %}
     {% if page.body_class == "home-page" and page.disable_home_loading != true %}
-      <div class="home-loading-screen" id="home-loading-screen" aria-live="polite" aria-label="Page loading">
-        <span class="home-loading-screen__label">Now Loading...</span>
+      <div class="home-loading-screen" id="home-loading-screen" role="status" lang="ja" aria-label="少女祈祷中…">
+        {% include prayer-loader.html %}
       </div>
     {% endif %}
+    <a class="classic-skip-link" href="#main">Skip to content</a>
+    <div class="classic-frame">
     {% include masthead.html %}
 
-    <div id="main" role="main">
+    <main id="main" class="classic-main{% if page.author_profile %} classic-home-grid{% endif %}" tabindex="-1">
       {% include sidebar.html %}
     
-      <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+      <article class="page{% if page.classic_unframed or layout.classic_unframed %} classic-page-unframed{% else %} classic-document{% endif %}" itemscope itemtype="http://schema.org/CreativeWork">
         {% if page.title %}<meta itemprop="headline" content="{{ page.title | markdownify | strip_html | strip_newlines | escape_once }}">{% endif %}
         <div class="page__inner-wrap">
           <section class="page__content" itemprop="text">
@@ -33,9 +32,15 @@ layout: compress
           </section>
         </div>
       </article>
-    </div>
+      <div class="classic-mobile-footer">
+        <div data-mobile-page-index></div>
+        <div class="classic-companion-mobile-dock" data-companion-mobile-dock></div>
+      </div>
+    </main>
 
     {% include site-runtime-footer.html %}
+    {% include classic-credits.html %}
+    </div>
     <script>
       window.__siteLive2DConfig = window.__siteLive2DConfig || {
         defaultCharacter: "alice",
@@ -56,13 +61,14 @@ layout: compress
           {
             id: "patchouli",
             name: "Patchouli",
-            idleOnly: true,
             expressionMotionIds: ["01", "02", "03", "04", "05", "06", "07", "08"],
             modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Patchouli/object_live2d_008_101.asset.model3.json"
           }
         ]
       };
     </script>
+    <template id="prayer-loader-template">{% include prayer-loader.html %}</template>
+    <div hidden data-companion-weather-source>{% include weather-widget.html %}</div>
     {% include scripts.html %}
   </body>
 

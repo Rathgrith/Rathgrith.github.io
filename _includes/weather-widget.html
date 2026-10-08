@@ -1,11 +1,12 @@
 <section
   class="weather-dial"
   data-weather-widget
+  data-weather-integrated="true"
   data-weather-baseurl="{{ '/' | relative_url }}"
   data-weather-default-latitude="52.4862"
   data-weather-default-longitude="-1.8904"
-  data-weather-default-location="West Midlands"
-  aria-labelledby="weather-dial-title"
+  data-weather-default-location="ウェスト・ミッドランズ"
+  aria-label="天候の観測"
   aria-busy="true"
 >
   <svg class="weather-dial__symbols" aria-hidden="true" focusable="false">
@@ -102,67 +103,38 @@
     </symbol>
   </svg>
 
-  <div class="weather-dial__bezel">
-    <header class="weather-dial__header">
-      <div>
-        <p class="weather-dial__eyebrow">幻想天候</p>
-        <h2 class="weather-dial__title" id="weather-dial-title">Local Weather Dial</h2>
-      </div>
-
-      <div class="weather-dial__actions" aria-label="Weather controls">
-        <button class="weather-dial__button" type="button" data-weather-action="refresh" aria-label="Refresh local weather">
-          <i class="fas fa-redo-alt" aria-hidden="true"></i>
-        </button>
-        <button class="weather-dial__button" type="button" data-weather-action="locate" aria-label="Use my current location">
-          <i class="fas fa-crosshairs" aria-hidden="true"></i>
-        </button>
-      </div>
-    </header>
-
-    <div class="weather-dial__instrument">
-      <div class="weather-dial__ring" aria-hidden="true">
-        <span class="weather-dial__needle"></span>
-      </div>
-
-      <div class="weather-dial__reading">
-        <svg class="weather-dial__icon" viewBox="0 0 24 24" aria-hidden="true">
-          <use data-weather-icon-use href="#weather-icon-observe"></use>
-        </svg>
-        <span class="weather-dial__name" data-weather-name>観測待ち</span>
-        <span class="weather-dial__time" data-weather-time>--:--</span>
-      </div>
-
-      <div class="weather-dial__condition">
-        <div class="weather-dial__condition-summary">
-          <span class="weather-dial__temperature" data-weather-temperature>--°</span>
-          <span class="weather-dial__description" data-weather-description>空模様を観測しています</span>
-        </div>
-      </div>
-    </div>
-
-    <dl class="weather-dial__metrics">
-      <div>
-        <dt>湿度</dt>
-        <dd data-weather-humidity>--%</dd>
-      </div>
-      <div>
-        <dt>風速</dt>
-        <dd data-weather-wind>--</dd>
-      </div>
-      <div>
-        <dt>最高 / 最低</dt>
-        <dd data-weather-range>-- / --</dd>
-      </div>
-    </dl>
-
-    <footer class="weather-dial__footer">
-      <span class="weather-dial__location">
-        <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-        <span data-weather-location>West Midlands</span>
-      </span>
-      <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
-    </footer>
-
-    <p class="weather-dial__status" data-weather-status aria-live="polite" hidden></p>
+  <div class="weather-dial__location">
+    <svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M3 0h8v2h2v8h-2v2H9v2H8v2H6v-2H5v-2H3v-2H1V2h2zm2 4v4h4V4z" fill-rule="evenodd"/></svg>
+    <span data-weather-location>ウェスト・ミッドランズ</span>
   </div>
+  <div class="weather-dial__observation"><span>観測時刻</span><time data-weather-time>--:--</time></div>
+
+  <div class="weather-dial__instrument">
+    <div class="weather-dial__compass" aria-hidden="true">
+      <div class="weather-dial__ring"><span class="weather-dial__needle"></span></div>
+      <svg class="weather-dial__icon" viewBox="0 0 24 24"><use data-weather-icon-use href="#weather-icon-observe"></use></svg>
+    </div>
+    <div class="weather-dial__reading">
+      <span class="weather-dial__name" data-weather-name>観測待ち</span>
+      <span class="weather-dial__temperature" data-weather-temperature>--°C</span>
+    </div>
+    <div class="weather-dial__description" data-weather-description>空模様を観測しています</div>
+  </div>
+
+  <dl class="weather-dial__metrics">
+    <div><dt>湿度</dt><dd data-weather-humidity>--%</dd></div>
+    <div><dt>風速</dt><dd data-weather-wind>--</dd></div>
+    <div class="weather-dial__range"><dt>最高 / 最低</dt><dd data-weather-range>-- / --</dd></div>
+  </dl>
+
+  <div class="weather-dial__actions" role="group" aria-label="天気の操作">
+    <button class="weather-dial__button" type="button" data-weather-action="refresh" aria-label="天気を更新">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M4 2h7v2h2V1h2v6H9V5h2V4H5v2H3v5h2v2h6v-2h2v2h-2v2H4v-2H2v-2H1V6h1V4h2z"/></svg><span>再観測</span>
+    </button>
+    <button class="weather-dial__button" type="button" data-weather-action="locate" aria-label="現在地を使う">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M7 0h2v3h4v4h3v2h-3v4H9v3H7v-3H3V9H0V7h3V3h4zM5 5v6h6V5zm2 2h2v2H7z" fill-rule="evenodd"/></svg><span>現在地</span>
+    </button>
+  </div>
+  <p class="weather-dial__status" data-weather-status aria-live="polite" hidden></p>
+  <footer class="weather-dial__footer"><a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a></footer>
 </section>

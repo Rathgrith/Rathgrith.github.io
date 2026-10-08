@@ -1,0 +1,11 @@
+<span class="prayer-loader">
+  <span class="prayer-loader__seal" aria-hidden="true">
+    <span class="prayer-loader__orbit"></span>
+    <span class="prayer-loader__cast">
+      {% assign prayer_characters = 'alice,marisa,patchouli' | split: ',' %}
+      {% for character in prayer_characters %}<img src="{{ '/assets/images/classic/danmaku/' | append: character | append: '.svg' | relative_url }}" alt="" width="32" height="40" data-prayer-character="{{ character }}">{% endfor %}
+    </span>
+  </span>
+  <span class="prayer-loader__label" data-prayer-label>少女祈祷中…</span>
+  <span class="prayer-loader__track" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+</span>

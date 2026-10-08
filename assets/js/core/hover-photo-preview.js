@@ -72,7 +72,37 @@
     trigger.setAttribute("data-gallery-hover-ready", "true");
   }
 
+  function bindPlacement(trigger) {
+    if (trigger.dataset.previewPlacementBound) return;
+    trigger.dataset.previewPlacementBound = "true";
+    var card = trigger.querySelector(".hover-photo__card");
+    if (!card) return;
+    function place() {
+      var anchor = trigger.getBoundingClientRect();
+      var bounds = card.getBoundingClientRect();
+      card.style.left =
+        Math.max(
+          16,
+          Math.min(
+            innerWidth - bounds.width - 16,
+            anchor.left + anchor.width / 2 - bounds.width / 2
+          )
+        ) + "px";
+      card.style.top =
+        Math.max(
+          8,
+          anchor.top > bounds.height + 18
+            ? anchor.top - bounds.height - 10
+            : Math.min(innerHeight - bounds.height - 8, anchor.bottom + 10)
+        ) + "px";
+    }
+    trigger.addEventListener("pointerenter", place);
+    trigger.addEventListener("focus", place);
+    window.addEventListener("resize", place);
+  }
+
   function init() {
+    document.querySelectorAll(".hover-photo").forEach(bindPlacement);
     var pool = parseGalleryPool();
     Array.prototype.forEach.call(
       document.querySelectorAll(TRIGGER_SELECTOR),

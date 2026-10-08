@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges" role="img" aria-labelledby="title">
+  <title id="title">Patchouli Knowledge, pixel portrait</title>
+  <path fill="#493a54" d="M8 11h16v2h2v7h1v9h-3v2H7v-2H4v-9h1v-7h3z"/>
+  <path fill="#9277ad" d="M8 12h16v2h1v8h1v6h-4v2H9v-2H5v-6h1v-8h2z"/>
+  <path fill="#b599c6" d="M7 16h3v10H8v1H6v-5h1zM23 15h1v7h1v5h-2v-1h-1V16h1z"/>
+  <path fill="#f3d0c6" d="M10 14h12v2h1v7h-2v2H11v-2H9v-7h1z"/>
+  <path fill="#ffe5d7" d="M11 15h10v2h1v5h-2v2h-8v-2h-2v-5h1z"/>
+  <path fill="#9277ad" d="M9 12h14v5h-2v-2h-3v2h-2v-3h-2v2h-3v2H9z"/>
+  <path fill="#b599c6" d="M10 12h5v2h-2v1h-3zM17 12h5v2h-3v1h-1v-2h-1z"/>
+  <path fill="#493a54" d="M11 18h3v3h-3zM19 18h3v3h-3z"/>
+  <path fill="#9277ad" d="M12 19h2v2h-2zM20 19h2v2h-2z"/>
+  <path fill="#fff4e5" d="M11 18h1v1h-1zM19 18h1v1h-1z"/>
+  <path fill="#e8a3ad" d="M10 21h3v1h-3zM20 21h3v1h-3z"/>
+  <path fill="#b66d83" d="M15 23h3v1h-3z"/>
+  <path fill="#cfb6d1" d="M11 26h3v-1h4v1h3v2h2v2H9v-2h2z"/>
+  <path fill="#f4e5e7" d="M12 25h2v1h4v-1h2v2h-2v1h-4v-1h-2zM11 28h2v2h-2zM19 28h2v2h-2z"/>
+  <path fill="#904e79" d="M13 27h2v1h2v-1h2v3h-2v-1h-2v1h-2z"/>
+  <path fill="#493a54" d="M11 2h10v1h4v2h2v3h1v4h-2v2h-4v-1h-4v1h-4v-1h-4v1H6v-2H4V8h1V5h3V3h3z"/>
+  <path fill="#cfb6d1" d="M11 3h10v1h4v2h1v3h1v2h-2v2h-3v-1h-4v1h-4v-1h-4v1H7v-2H5V8h1V6h3V4h2z"/>
+  <path fill="#f4e5e7" d="M11 4h10v1h3v2h1v3h-3V9h-4v1h-4V9h-4v1H7V8h1V6h3z"/>
+  <path fill="#d7b76f" d="M21 3h2v1h-1v3h1v1h2v-1h1v2h-1v1h-4V9h-1V5h1z"/>
+  <path fill="#493a54" d="M2 11h3v1h2v-1h2v6H6v-1H4v1H2zM23 12h2v1h2v-1h3v6h-2v-1h-2v1h-3z"/>
+  <path fill="#6974a0" d="M3 12h1v1h2v1h1v-2h1v4H7v-1H5v-1H3z"/>
+  <path fill="#aa668e" d="M24 13h1v2h2v-1h2v3h-1v-1h-2v1h-2z"/>
+</svg>

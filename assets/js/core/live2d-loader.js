@@ -5,7 +5,6 @@
     "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js";
   var LIVE2D_DISPLAY_URL =
     "https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js";
-  var WIDGET_RATIO = 1.52;
   var DEFAULT_EXPRESSION_MOTION_IDS = [
     "01",
     "02",
@@ -21,10 +20,6 @@
     { motionId: "02", hold: 1800 },
     { motionId: "01", hold: 12500 },
   ];
-  var DIALOGUE_HOLD_DURATION = 7200;
-  var INTERACTION_MOTION_DURATION = 1030;
-  var IDLE_INTERACTION_DELAY = 32000;
-  var WELCOME_INTERACTION_DELAY = 1400;
   var CHARACTER_INTERACTIONS = {
     alice: [
       {
@@ -44,7 +39,7 @@
       {
         text: "人形が気になるの？ ふふっ、触ってみる？",
         source: "東方LostWord",
-        poseId: "1",
+        poseId: "5",
         expressionMotionId: "02",
         moods: ["cheerful", "curious"],
       },
@@ -52,13 +47,13 @@
         text: "少し部屋の片付けでもしたらどう？ 地震が来たら埋もれても知らないわよ？",
         source: "東方緋想天",
         poseId: "3",
-        expressionMotionId: "05",
+        expressionMotionId: "03",
         moods: ["cautious", "irritable"],
       },
       {
         text: "何体まで同時に操っても大丈夫かしら？",
         source: "東方緋想天",
-        poseId: "2",
+        poseId: "4",
         expressionMotionId: "01",
         moods: ["curious", "reflective"],
       },
@@ -75,14 +70,14 @@
         text: "イメージトレーニングは百戦百一勝！",
         source: "東方緋想天",
         poseId: "4",
-        expressionMotionId: "02",
+        expressionMotionId: "07",
         moods: ["confident", "cheerful"],
       },
       {
         text: "今年は森にも陽の光が差して暑いな。",
         source: "東方非想天則",
         poseId: "5",
-        expressionMotionId: "05",
+        expressionMotionId: "04",
         moods: ["irritable", "quiet"],
         weatherPhases: ["clear", "heat"],
       },
@@ -97,14 +92,14 @@
         text: "じゃあな。神社が壊れて元気がないんじゃないか？",
         source: "東方緋想天",
         poseId: "2",
-        expressionMotionId: "01",
+        expressionMotionId: "02",
         moods: ["mischievous", "confident"],
       },
       {
         text: "人形の首を沢山吊そうぜ。そうしたら晴れるに違いない。",
         source: "東方緋想天",
         poseId: "4",
-        expressionMotionId: "02",
+        expressionMotionId: "07",
         moods: ["mischievous", "cheerful", "mysterious"],
         weatherPhases: ["cloud", "rain", "storm"],
       },
@@ -112,7 +107,7 @@
         text: "耐水性に優れた本もあるんだな。それなら風呂の中でも読めそうだぜ。",
         source: "東方緋想天",
         poseId: "5",
-        expressionMotionId: "05",
+        expressionMotionId: "06",
         moods: ["curious", "mischievous"],
         weatherPhases: ["rain", "storm"],
       },
@@ -121,42 +116,42 @@
       {
         text: "どんな天気でも家の中に居れば関係ないけどね。",
         source: "東方緋想天",
-        poseId: "5",
+        poseId: "4",
         expressionMotionId: "01",
         moods: ["quiet", "detached"],
       },
       {
         text: "魔法の本質は万物の根源を調べること。",
         source: "東方非想天則",
-        poseId: "1",
-        expressionMotionId: "03",
+        poseId: "3",
+        expressionMotionId: "01",
         moods: ["curious", "reflective", "mysterious"],
       },
       {
         text: "また一つ、新たな知識を吸収することができたわ。",
         source: "東方LostWord",
-        poseId: "4",
+        poseId: "2",
         expressionMotionId: "02",
         moods: ["cheerful", "quiet"],
       },
       {
         text: "最近、また鼠の被害が増えているわ。",
         source: "東方非想天則",
-        poseId: "1",
+        poseId: "2",
         expressionMotionId: "05",
         moods: ["irritable", "cautious"],
       },
       {
         text: "人形を操っているのは魔法の糸だろうけど、沢山操るのは普通に器用よね。",
         source: "東方非想天則",
-        poseId: "1",
+        poseId: "3",
         expressionMotionId: "01",
         moods: ["curious", "reflective"],
       },
       {
         text: "雲一つ無い快晴は、時として生物に害を為す。日光は避けられない有害な物の一つね。",
         source: "東方緋想天",
-        poseId: "1",
+        poseId: "2",
         expressionMotionId: "03",
         moods: ["cautious", "reflective"],
         weatherPhases: ["clear", "heat"],
@@ -165,10 +160,15 @@
   };
   var preferenceStorageKey = "site-live2d-enabled";
   var characterStorageKey = "site-live2d-character";
+  var companionWidget = null;
+  var companionMinimized = false;
+  var companionVisibilityChosen = false;
+  var companionPosition = null;
   var resizeTimer = 0;
   var focusFrame = 0;
   var lastPointerPosition = null;
   var application = null;
+  var syncModelLighting = null;
   var currentModel = null;
   var currentCharacterId = "";
   var currentPoseId = "1";
@@ -189,9 +189,10 @@
   var breathModel = null;
   var breathHandler = null;
   var breathStartedAt = 0;
-  var breathBaseValues = {};
   var partOpacityModel = null;
   var partOpacityHandler = null;
+  var poseParameterHandler = null;
+  var poseParameterValues = {};
   var partOpacityActiveState = null;
   var partOpacityStateCache = {};
   var partOpacityRequestGeneration = 0;
@@ -199,105 +200,12 @@
   var lipSyncHandler = null;
   var lipSyncStartedAt = 0;
   var lipSyncEndsAt = 0;
-  var interactionDialogueTimer = 0;
-  var interactionMotionTimer = 0;
+  var interactionMotionManager = null;
+  var interactionMotionFinishHandler = null;
   var interactionMotionGeneration = 0;
   var interactionMotionPending = false;
-  var interactionIdleTimer = 0;
-  var interactionWelcomeTimer = 0;
-  var interactionIndices = {};
-  var interactionTurnIndices = {};
-  var weatherInteractionIndices = {};
-  var WEATHER_MOOD_PREFERENCES = {
-    clear: [
-      "confident",
-      "cheerful",
-      "curious",
-      "mischievous",
-      "irritable",
-      "quiet",
-    ],
-    calm: ["reflective", "quiet", "cheerful", "mischievous"],
-    cloud: ["reflective", "quiet", "curious", "mischievous"],
-    mist: [
-      "mysterious",
-      "curious",
-      "cautious",
-      "mischievous",
-      "quiet",
-      "confident",
-    ],
-    rain: ["reflective", "quiet", "sleepy", "mischievous", "cautious"],
-    storm: [
-      "confident",
-      "cautious",
-      "irritable",
-      "mischievous",
-      "reflective",
-    ],
-    snow: ["reflective", "quiet", "cautious", "mischievous", "confident"],
-    heat: ["irritable", "sleepy", "quiet", "reflective", "confident"],
-    aurora: [
-      "mysterious",
-      "curious",
-      "cheerful",
-      "mischievous",
-      "confident",
-      "quiet",
-    ],
-  };
-
-  function eligibleInteractionsForWeather(interactions, phase) {
-    if (!phase) return interactions;
-
-    var eligible = interactions.filter(function (interaction) {
-      var phases = interaction.weatherPhases || [];
-      return !phases.length || phases.indexOf(phase) !== -1;
-    });
-
-    return eligible.length ? eligible : interactions;
-  }
-
-  function preferredInteractionsForWeather(interactions, phase) {
-    var preferences = WEATHER_MOOD_PREFERENCES[phase] || [];
-    var preferred = [];
-
-    for (var moodIndex = 0; moodIndex < preferences.length; moodIndex += 1) {
-      var mood = preferences[moodIndex];
-      for (
-        var interactionIndex = 0;
-        interactionIndex < interactions.length;
-        interactionIndex += 1
-      ) {
-        var interaction = interactions[interactionIndex];
-        var moods = interaction.moods || [];
-        if (
-          moods.indexOf(mood) !== -1 &&
-          preferred.indexOf(interaction) === -1
-        ) {
-          preferred.push(interaction);
-        }
-      }
-      if (preferred.length >= 3) break;
-    }
-
-    return preferred;
-  }
-
-  function selectWeatherInteraction(character, interactions, turn, phase) {
-    if (!character || !phase || turn % 4 === 3) {
-      return null;
-    }
-
-    var preferred = preferredInteractionsForWeather(interactions, phase);
-    if (!preferred.length) return null;
-
-    var key = character.id + ":" + phase;
-    var index = weatherInteractionIndices[key] || 0;
-    weatherInteractionIndices[key] = index + 1;
-    return preferred[index % preferred.length];
-  }
-
+  var requestedPoseId = "1";
+  var companionGameActive = false;
   var fallbackCharacters = [
     {
       id: "marisa",
@@ -316,7 +224,6 @@
     {
       id: "patchouli",
       name: "Patchouli",
-      idleOnly: true,
       expressionMotionIds: DEFAULT_EXPRESSION_MOTION_IDS.slice(),
       modelPath:
         "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Patchouli/object_live2d_008_101.asset.model3.json",
@@ -342,20 +249,14 @@
   function isPageDisabled() {
     return Boolean(
       document.body &&
-      document.body.getAttribute("data-disable-live2d") === "true"
+        document.body.getAttribute("data-disable-live2d") === "true"
     );
-  }
-
-  function isPhoneViewport() {
-    var viewportWidth =
-      window.innerWidth || document.documentElement.clientWidth || 1280;
-    return viewportWidth < 600;
   }
 
   function prefersReducedMotion() {
     return Boolean(
       window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
     );
   }
 
@@ -364,7 +265,7 @@
   }
 
   function shouldRenderLive2D() {
-    return !shouldDisableLive2D() && !isPhoneViewport();
+    return !shouldDisableLive2D() && !companionMinimized;
   }
 
   function syncVisibilityClass() {
@@ -387,10 +288,6 @@
     return null;
   }
 
-  function isIdleOnlyCharacter(character) {
-    return Boolean(character && character.idleOnly);
-  }
-
   function getDefaultCharacterId() {
     var configured =
       window.__siteLive2DConfig && window.__siteLive2DConfig.defaultCharacter;
@@ -399,7 +296,11 @@
     return getCharacters()[0].id;
   }
 
+  var selectedCharacterPreference = "";
+
   function getSelectedCharacterId() {
+    if (getCharacter(selectedCharacterPreference))
+      return selectedCharacterPreference;
     var stored = "";
     try {
       stored = localStorage.getItem(characterStorageKey) || "";
@@ -411,6 +312,7 @@
   }
 
   function persistSelectedCharacter(characterId) {
+    selectedCharacterPreference = characterId;
     try {
       localStorage.setItem(characterStorageKey, characterId);
     } catch (e) {
@@ -426,116 +328,278 @@
       "data-live2d-character",
       character.id
     );
+    Array.prototype.forEach.call(
+      document.querySelectorAll("[data-classic-character]"),
+      function (button) {
+        button.setAttribute(
+          "aria-pressed",
+          button.getAttribute("data-classic-character") === character.id
+            ? "true"
+            : "false"
+        );
+      }
+    );
+  }
+
+  function getCompanionDock() {
+    if (companionPosition) return null;
+    return document.querySelector(
+      window.innerWidth >= 1000
+        ? "[data-companion-dock]"
+        : "[data-companion-mobile-dock]"
+    );
+  }
+
+  function placeCompanion(widget) {
+    var dock = getCompanionDock();
+    var parent = dock || document.body;
+    if (widget.parentNode !== parent) parent.appendChild(widget);
+    widget.classList.toggle("is-docked", Boolean(dock));
   }
 
   function getDisplayConfig() {
-    var viewportWidth =
-      window.innerWidth || document.documentElement.clientWidth || 1280;
-    var width;
-    var hOffsetRatio;
-    var vOffsetRatio;
-
-    if (viewportWidth < 980) {
-      width = Math.round(Math.max(170, Math.min(205, viewportWidth * 0.22)));
-      hOffsetRatio = 0.35;
-      vOffsetRatio = 0.45;
-    } else if (viewportWidth < 1450) {
-      width = Math.round(Math.max(210, Math.min(300, viewportWidth * 0.205)));
-      hOffsetRatio = 0.24;
-      vOffsetRatio = 0.45;
-    } else {
-      width = Math.round(Math.max(300, Math.min(360, viewportWidth * 0.24)));
-      hOffsetRatio = 0.06;
-      vOffsetRatio = 0.45;
-    }
-
-    var height = Math.round(width * WIDGET_RATIO);
-
+    var dock = getCompanionDock();
+    var width = dock
+      ? Math.max(220, Math.floor(dock.getBoundingClientRect().width) - 12)
+      : Math.min(342, Math.max(260, window.innerWidth - 26));
     return {
       width: width,
-      height: height,
-      right: -Math.round(width * hOffsetRatio),
-      bottom: -Math.round(height * vOffsetRatio),
+      height: dock
+        ? Math.round(Math.min(300, width * 0.78))
+        : Math.max(170, Math.min(260, Math.round(window.innerHeight * 0.31))),
     };
+  }
+
+  function constrainCompanionPosition(widget) {
+    placeCompanion(widget);
+    if (widget.classList.contains("is-docked")) {
+      widget.style.left =
+        widget.style.top =
+        widget.style.right =
+        widget.style.bottom =
+          "auto";
+      // A docked window participates in the page's flow. Dialogue choices and
+      // auxiliary panels can grow naturally; only the arcade needs a height budget.
+      var arcadeHeight = Math.max(540, getDisplayConfig().height + 340);
+      widget.style.maxHeight = "none";
+      widget.style.setProperty("--vn-available-height", arcadeHeight + "px");
+      return;
+    }
+    if (!companionPosition) {
+      var top = Math.max(12, Math.min(160, window.innerHeight - 710));
+      widget.style.left = "auto";
+      widget.style.top = companionMinimized ? "auto" : top + "px";
+      widget.style.right = "12px";
+      widget.style.bottom = companionMinimized ? "16px" : "auto";
+      var available = companionMinimized
+        ? window.innerHeight - 24
+        : window.innerHeight - top - 16;
+      widget.style.maxHeight = available + "px";
+      widget.style.setProperty("--vn-available-height", available + "px");
+      return;
+    }
+    var bounds = widget.getBoundingClientRect();
+    companionPosition.x = Math.max(
+      8,
+      Math.min(companionPosition.x, window.innerWidth - bounds.width - 8)
+    );
+    companionPosition.y = Math.max(
+      8,
+      Math.min(companionPosition.y, window.innerHeight - bounds.height - 8)
+    );
+    widget.style.left = companionPosition.x + "px";
+    widget.style.top = companionPosition.y + "px";
+    widget.style.right = "auto";
+    widget.style.bottom = "auto";
+    var available = window.innerHeight - companionPosition.y - 8;
+    widget.style.maxHeight = available + "px";
+    widget.style.setProperty("--vn-available-height", available + "px");
+  }
+
+  function renderCompanionVisibility(widget) {
+    var state = companionMinimized ? "true" : "false";
+    if (widget.getAttribute("data-companion-minimized") === state) return;
+    widget.setAttribute("data-companion-minimized", state);
+    widget.classList.toggle("is-minimized", companionMinimized);
+    widget.querySelector("[data-companion-content]").hidden =
+      companionMinimized;
+    var button = widget.querySelector("[data-companion-minimize]");
+    button.setAttribute("aria-expanded", companionMinimized ? "false" : "true");
+    button.setAttribute(
+      "aria-label",
+      companionMinimized ? "ウィンドウを開く" : "最小化"
+    );
+    button.setAttribute("title", companionMinimized ? "開く" : "最小化");
+    button.textContent = companionMinimized ? "□" : "_";
+  }
+
+  function setCompanionMinimized(minimized) {
+    companionVisibilityChosen = true;
+    companionMinimized = minimized;
+    var elements = ensureWidget();
+    if (!elements) return;
+    renderCompanionVisibility(elements.widget);
+    window.SiteCompanion.setVisible(!minimized && isPreferenceEnabled());
+    applyResponsiveSize();
+    if (
+      !minimized &&
+      (!currentModel || currentCharacterId !== getSelectedCharacterId())
+    )
+      initLive2D();
+  }
+
+  function resetCompanionPosition() {
+    companionPosition = null;
+    applyResponsiveSize();
+  }
+
+  function ensureCompanionShell(widget) {
+    var content = widget.querySelector("[data-companion-content]");
+    if (content) return content;
+    widget.classList.add("classic-companion");
+    widget.setAttribute("role", "region");
+    widget.setAttribute("aria-labelledby", "companion-title");
+    widget.innerHTML = [
+      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="ドラッグで移動・ダブルクリックで元の位置へ">',
+      '<span id="companion-title" class="companion-title"><span data-companion-name>幻想通信</span></span>',
+      '<div class="companion-controls">',
+      '<button type="button" data-companion-reset-position aria-label="元の位置へ" title="元の位置へ"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M1 1h6v2H4l6 6-1 1-6-6v3H1zM10 2h5v13H2v-5h2v3h9V4h-3z"/></svg></button>',
+      '<button type="button" data-companion-minimize aria-label="最小化" aria-expanded="true" aria-controls="companion-content" title="最小化">_</button>',
+      '<button type="button" data-companion-close aria-label="閉じる" title="閉じる">×</button>',
+      "</div></div>",
+      '<div id="companion-content" data-companion-content>',
+      '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">少女祈祷中…</span></div>',
+      '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">……</p></div>',
+      '<div class="companion-footer" data-companion-footer></div>',
+      "</div>",
+    ].join("");
+    widget
+      .querySelector("[data-companion-reset-position]")
+      .addEventListener("click", resetCompanionPosition);
+    widget
+      .querySelector("[data-companion-minimize]")
+      .addEventListener("click", function () {
+        setCompanionMinimized(!companionMinimized);
+      });
+    widget
+      .querySelector("[data-companion-close]")
+      .addEventListener("click", function () {
+        window.SiteCompanionVisibility.set(false);
+        var options = document.querySelector("[data-site-options-trigger]");
+        if (options) options.focus({ preventScroll: true });
+      });
+    var titlebar = widget.querySelector("[data-companion-titlebar]");
+    var drag = null;
+    titlebar.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0 || event.target.closest("button")) return;
+      var bounds = widget.getBoundingClientRect();
+      drag = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+      titlebar.setPointerCapture(event.pointerId);
+      widget.classList.add("is-dragging");
+      event.preventDefault();
+    });
+    titlebar.addEventListener("pointermove", function (event) {
+      if (!drag) return;
+      var wasDocked = widget.classList.contains("is-docked");
+      companionPosition = {
+        x: event.clientX - drag.x,
+        y: event.clientY - drag.y,
+      };
+      if (wasDocked) {
+        applyResponsiveSize();
+        titlebar.setPointerCapture(event.pointerId);
+      } else constrainCompanionPosition(widget);
+    });
+    function endDrag() {
+      drag = null;
+      widget.classList.remove("is-dragging");
+    }
+    titlebar.addEventListener("pointerup", endDrag);
+    titlebar.addEventListener("pointercancel", endDrag);
+    titlebar.addEventListener("lostpointercapture", endDrag);
+    titlebar.addEventListener("dblclick", function (event) {
+      if (event.target.closest("button")) return;
+      resetCompanionPosition();
+    });
+    titlebar.addEventListener("keydown", function (event) {
+      if (event.target !== titlebar) return;
+      if (event.key === "Home") {
+        event.preventDefault();
+        resetCompanionPosition();
+        return;
+      } else {
+        var directions = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1],
+        };
+        var direction = directions[event.key];
+        if (!direction) return;
+        var bounds = widget.getBoundingClientRect();
+        var step = event.shiftKey ? 1 : 10;
+        companionPosition = {
+          x: bounds.left + direction[0] * step,
+          y: bounds.top + direction[1] * step,
+        };
+      }
+      event.preventDefault();
+      applyResponsiveSize();
+    });
+    return widget.querySelector("[data-companion-content]");
   }
 
   function ensureInteractionUI(widget) {
-    var trigger = document.getElementById("live2d-interact");
-    if (!trigger) {
-      trigger = document.createElement("button");
-      trigger.id = "live2d-interact";
-      trigger.className = "live2d-interact";
-      trigger.type = "button";
-      trigger.innerHTML = '<i class="fas fa-comment" aria-hidden="true"></i>';
-      trigger.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        showNextInteraction(true);
-      });
-      widget.appendChild(trigger);
-    } else if (trigger.parentNode !== widget) {
-      widget.appendChild(trigger);
-    }
-
-    var dialogue = document.getElementById("live2d-dialogue");
-    if (!dialogue) {
-      dialogue = document.createElement("aside");
-      dialogue.id = "live2d-dialogue";
-      dialogue.className = "live2d-dialogue";
-      dialogue.setAttribute("aria-live", "polite");
-      dialogue.setAttribute("aria-atomic", "true");
-      dialogue.setAttribute("aria-hidden", "true");
-      dialogue.innerHTML = [
-        '<div class="live2d-dialogue__meta">',
-        '<strong class="live2d-dialogue__name" data-live2d-dialogue-name></strong>',
-        "</div>",
-        '<p class="live2d-dialogue__text" data-live2d-dialogue-text lang="ja"></p>',
-        '<button type="button" class="live2d-dialogue__close" data-live2d-dialogue-close aria-label="Close character dialogue">',
-        '<i class="fas fa-times" aria-hidden="true"></i>',
-        "</button>",
-      ].join("");
-      dialogue
-        .querySelector("[data-live2d-dialogue-close]")
-        .addEventListener("click", function () {
-          hideDialogue(true);
-          scheduleIdleInteraction();
-        });
-      document.body.appendChild(dialogue);
-    }
-
-    return {
-      trigger: trigger,
-      dialogue: dialogue,
-    };
-  }
-
-  function positionInteractionUI(elements, display) {
-    if (!elements || !elements.dialogue) return;
-    var visibleHeight = Math.max(1, display.height + display.bottom);
-    var dialogueRight = window.innerWidth < 980 ? 14 : 20;
-    var dialogueBottom = Math.max(128, visibleHeight * 0.88);
-
-    elements.dialogue.style.right = Math.round(dialogueRight) + "px";
-    elements.dialogue.style.bottom = Math.round(dialogueBottom) + "px";
+    return window.SiteCompanion.mount(widget, {
+      originals: CHARACTER_INTERACTIONS,
+      perform: animateInteraction,
+      stopSpeaking: stopLipSync,
+      speak: function () {
+        if (!currentModel || currentCharacterId !== getSelectedCharacterId())
+          return;
+        if (!lipSyncEndsAt) lipSyncStartedAt = window.performance.now();
+        lipSyncEndsAt = window.performance.now() + 180;
+        widget.setAttribute("data-live2d-speaking", "true");
+      },
+      select: selectCharacter,
+      lighting: function () {
+        if (syncModelLighting) syncModelLighting();
+      },
+      retry: function () {
+        window.__sitePixiLibraryPromise = null;
+        window.__siteCubismCoreLibraryPromise = null;
+        window.__siteLive2DDisplayLibraryPromise = null;
+        initLive2D();
+      },
+      resetPosition: resetCompanionPosition,
+    });
   }
 
   function ensureWidget() {
     if (!document.body) return null;
 
-    var widget = document.getElementById("live2d-widget");
+    var widget = document.getElementById("live2d-widget") || companionWidget;
     if (!widget) {
       widget = document.createElement("div");
       widget.id = "live2d-widget";
       widget.className = "live2d-widget-container";
       document.body.appendChild(widget);
     }
+    companionWidget = widget;
+    placeCompanion(widget);
     widget.removeAttribute("aria-hidden");
+    ensureCompanionShell(widget);
+    if (!companionVisibilityChosen) companionMinimized = false;
+    renderCompanionVisibility(widget);
+    var stage = widget.querySelector("[data-companion-stage]");
 
     var canvas = document.getElementById("live2dcanvas");
     if (!canvas) {
       canvas = document.createElement("canvas");
       canvas.id = "live2dcanvas";
-      widget.appendChild(canvas);
+      stage.appendChild(canvas);
+    } else if (canvas.parentNode !== stage) {
+      stage.appendChild(canvas);
     }
     canvas.setAttribute("aria-hidden", "true");
 
@@ -550,26 +614,32 @@
 
   function fitCurrentModel() {
     if (!application || !currentModel) return;
-
     var display = getDisplayConfig();
     currentModel.scale.set(1);
-
-    var modelWidth = Math.max(currentModel.width || 1, 1);
     var modelHeight = Math.max(currentModel.height || 1, 1);
-    var scale = Math.min(
-      (display.width * 1.08) / modelWidth,
-      (display.height * 1.04) / modelHeight
-    );
-
-    currentModel.anchor.set(0.5, 1);
+    // Frame the upper half of the original model canvas; preserve its own motion rig.
+    var cameras = {
+      alice: { crop: 0.46, top: 0.13 },
+      marisa: { crop: 0.48, top: 0.1 },
+      patchouli: { crop: 0.46, top: 0.13 },
+    };
+    var camera = cameras[currentCharacterId] || cameras.alice;
+    var scale = display.height / (modelHeight * camera.crop);
+    currentModel.anchor.set(0.5, 0);
     currentModel.scale.set(scale);
-    currentModel.x = display.width * 0.51;
-    currentModel.y = display.height;
+    currentModel.x = display.width * 0.5;
+    currentModel.y = -modelHeight * scale * camera.top;
   }
 
   function applyPointerFocus() {
     focusFrame = 0;
-    if (!application || !currentModel || prefersReducedMotion()) return;
+    if (
+      !application ||
+      !currentModel ||
+      companionGameActive ||
+      prefersReducedMotion()
+    )
+      return;
 
     var elements = ensureWidget();
     if (!elements || !lastPointerPosition) return;
@@ -626,22 +696,23 @@
     var elements = ensureWidget();
     if (!elements) return false;
 
-    if (isPhoneViewport()) {
-      elements.widget.style.display = "none";
-      elements.trigger.hidden = true;
-      hideDialogue(false);
-      return true;
-    }
-
     var display = getDisplayConfig();
-    elements.widget.style.display = "block";
-    elements.widget.style.width = display.width + "px";
-    elements.widget.style.height = display.height + "px";
-    elements.widget.style.right = display.right + "px";
-    elements.widget.style.bottom = display.bottom + "px";
-    elements.trigger.hidden = shouldDisableLive2D() || !currentModel;
-    positionInteractionUI(elements, display);
-
+    elements.widget.style.setProperty("--vn-width", display.width + 10 + "px");
+    elements.widget.style.height = "auto";
+    elements.trigger.hidden = false;
+    window.SiteCompanion.setVisible(
+      !companionMinimized && !shouldDisableLive2D()
+    );
+    if (application) {
+      if (
+        companionMinimized ||
+        companionGameActive ||
+        shouldDisableLive2D() ||
+        document.hidden
+      )
+        application.stop();
+      else application.start();
+    }
     elements.canvas.style.width = display.width + "px";
     elements.canvas.style.height = display.height + "px";
 
@@ -649,6 +720,8 @@
       application.renderer.resize(display.width, display.height);
       fitCurrentModel();
     }
+    // Clamp after the stage has its new height, including after a rotation.
+    constrainCompanionPosition(elements.widget);
 
     return true;
   }
@@ -666,6 +739,11 @@
     window.__siteLive2DResponsiveBound = true;
     window.addEventListener("resize", scheduleResponsiveSync);
     window.addEventListener("orientationchange", scheduleResponsiveSync);
+    document.addEventListener("site:before-content-replace", function () {
+      // Each page starts in its own dock, including after dragging on the previous page.
+      companionPosition = null;
+      if (companionWidget) document.body.appendChild(companionWidget);
+    });
   }
 
   function loadScriptOnce(cacheKey, source, isReady) {
@@ -674,18 +752,27 @@
 
     window[cacheKey] = new Promise(function (resolve, reject) {
       var existing = document.querySelector('script[src="' + source + '"]');
-      if (existing) {
-        existing.addEventListener("load", resolve, { once: true });
-        existing.addEventListener("error", reject, { once: true });
-        return;
-      }
+      if (existing) existing.remove();
 
       var script = document.createElement("script");
       script.src = source;
       script.async = true;
       script.crossOrigin = "anonymous";
-      script.onload = resolve;
-      script.onerror = reject;
+      var deadline = window.setTimeout(function () {
+        script.remove();
+        window[cacheKey] = null;
+        reject(new Error("Library timeout"));
+      }, 20000);
+      script.onload = function () {
+        clearTimeout(deadline);
+        resolve();
+      };
+      script.onerror = function () {
+        clearTimeout(deadline);
+        script.remove();
+        window[cacheKey] = null;
+        reject(new Error("Library unavailable"));
+      };
       document.head.appendChild(script);
     });
 
@@ -712,8 +799,8 @@
           function () {
             return Boolean(
               window.PIXI &&
-              window.PIXI.live2d &&
-              window.PIXI.live2d.Live2DModel
+                window.PIXI.live2d &&
+                window.PIXI.live2d.Live2DModel
             );
           }
         );
@@ -734,6 +821,12 @@
       backgroundAlpha: 0,
       resolution: Math.min(window.devicePixelRatio || 1, 2),
     });
+
+    syncModelLighting = window.CompanionLighting.create(
+      application,
+      elements.widget
+    );
+    syncModelLighting();
 
     return application;
   }
@@ -844,7 +937,6 @@
 
   function startExpressionLoop(model, character) {
     stopExpressionLoop();
-    if (prefersReducedMotion()) return Promise.resolve();
 
     var motionIds =
       character.expressionMotionIds || DEFAULT_EXPRESSION_MOTION_IDS;
@@ -870,7 +962,7 @@
 
         var now = window.performance.now();
         var elapsed = Math.min(now - expressionLastUpdate, 80);
-        var blend = 1 - Math.exp(-elapsed / 520);
+        var blend = prefersReducedMotion() ? 1 : 1 - Math.exp(-elapsed / 260);
         expressionLastUpdate = now;
 
         Object.keys(expressionTargetValues).forEach(function (parameterId) {
@@ -891,7 +983,7 @@
       if (elements) {
         elements.widget.setAttribute("data-live2d-expression-id", "01");
       }
-      scheduleNextExpression();
+      if (!prefersReducedMotion()) scheduleNextExpression();
     });
   }
 
@@ -977,53 +1069,34 @@
     breathModel = null;
     breathHandler = null;
     breathStartedAt = 0;
-    breathBaseValues = {};
     var elements = ensureWidget();
     if (elements) {
       elements.widget.removeAttribute("data-live2d-breathing");
     }
   }
 
-  function startBreathingLoop(model, character) {
+  function startBreathingLoop(model) {
     stopBreathingLoop();
-    if (
-      prefersReducedMotion() ||
-      !model ||
-      model !== currentModel ||
-      !isIdleOnlyCharacter(character)
-    ) {
+    if (prefersReducedMotion() || !model || model !== currentModel) {
       return;
     }
 
-    var coreModel = model.internalModel.coreModel;
     breathModel = model;
     breathStartedAt = window.performance.now();
-    breathBaseValues = {
-      ParamBodyWeight: coreModel.getParameterValueById("ParamBodyWeight"),
-      ParamLeftShoulderUpDown: coreModel.getParameterValueById(
-        "ParamLeftShoulderUpDown"
-      ),
-      ParamRightShoulderUpDown: coreModel.getParameterValueById(
-        "ParamRightShoulderUpDown"
-      ),
-    };
 
     breathHandler = function () {
       if (!breathModel || breathModel !== currentModel) return;
       var elapsed = (window.performance.now() - breathStartedAt) / 1000;
       var phase = Math.sin((elapsed * Math.PI * 2) / 5.8);
       var breathCoreModel = breathModel.internalModel.coreModel;
-      breathCoreModel.setParameterValueById(
-        "ParamBodyWeight",
-        breathBaseValues.ParamBodyWeight + phase * 0.32
-      );
-      breathCoreModel.setParameterValueById(
+      breathCoreModel.addParameterValueById("ParamBodyWeight", phase * 0.32);
+      breathCoreModel.addParameterValueById(
         "ParamLeftShoulderUpDown",
-        breathBaseValues.ParamLeftShoulderUpDown + phase * 0.12
+        phase * 0.12
       );
-      breathCoreModel.setParameterValueById(
+      breathCoreModel.addParameterValueById(
         "ParamRightShoulderUpDown",
-        breathBaseValues.ParamRightShoulderUpDown + phase * 0.12
+        phase * 0.12
       );
     };
 
@@ -1085,20 +1158,14 @@
     model.internalModel.on("beforeModelUpdate", lipSyncHandler);
   }
 
-  function triggerLipSync(text) {
-    if (!lipSyncModel || lipSyncModel !== currentModel) return;
-    var duration = Math.min(4200, Math.max(1900, text.length * 95));
-    lipSyncStartedAt = window.performance.now();
-    lipSyncEndsAt = lipSyncStartedAt + duration;
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.setAttribute("data-live2d-speaking", "true");
-    }
-  }
-
   function stopLipSync() {
     lipSyncStartedAt = 0;
     lipSyncEndsAt = 0;
+    if (lipSyncModel)
+      lipSyncModel.internalModel.coreModel.setParameterValueById(
+        "ParamMouthOpenY",
+        0
+      );
     var elements = ensureWidget();
     if (elements) {
       elements.widget.removeAttribute("data-live2d-speaking");
@@ -1116,9 +1183,12 @@
         "beforeModelUpdate",
         partOpacityHandler
       );
+      partOpacityModel.internalModel.off("afterMotionUpdate", poseParameterHandler);
     }
     partOpacityModel = null;
     partOpacityHandler = null;
+    poseParameterHandler = null;
+    poseParameterValues = {};
     partOpacityActiveState = null;
     partOpacityStateCache = {};
     partOpacityRequestGeneration += 1;
@@ -1194,6 +1264,22 @@
   function startPartOpacityGuard(model) {
     stopPartOpacityGuard();
     partOpacityModel = model;
+    poseParameterHandler = function () {
+      if (model !== currentModel || !partOpacityActiveState) return;
+      var core = model.internalModel.coreModel;
+      var frozen = typeof partOpacityActiveState.frozenTime === "number";
+      poseParameterValues = {};
+      Object.keys(partOpacityActiveState.staticParameters).forEach(function (id) {
+        if (frozen) {
+          // Restore the held pose before Cubism saves its motion baseline.
+          core.setParameterValueById(id, partOpacityActiveState.staticParameters[id]);
+        }
+        // Capture the authored pose before SDK focus, breath and physics add
+        // their offsets. Moving and held poses share the same overlay below.
+        poseParameterValues[id] = core.getParameterValueById(id);
+      });
+    };
+    model.internalModel.on("afterMotionUpdate", poseParameterHandler);
     partOpacityHandler = function () {
       if (
         !partOpacityModel ||
@@ -1203,8 +1289,11 @@
         return;
       }
 
+      if (partOpacityActiveState.startedAt === null) {
+        partOpacityActiveState.startedAt = model.elapsedTime;
+      }
       var elapsed =
-        (window.performance.now() - partOpacityActiveState.startedAt) / 1000;
+        (model.elapsedTime - partOpacityActiveState.startedAt) / 1000;
       var duration = Math.max(0.001, partOpacityActiveState.duration);
       var motionTime = partOpacityActiveState.loop
         ? elapsed % duration
@@ -1212,6 +1301,23 @@
       if (typeof partOpacityActiveState.frozenTime === "number") {
         motionTime = partOpacityActiveState.frozenTime;
       }
+      // Use the same bounded gaze throughout motion and rest. Switching from
+      // the SDK's 30-degree gaze/breath offsets to these small offsets only at
+      // the end of a motion caused a visible head snap.
+      var core = partOpacityModel.internalModel.coreModel;
+      var focus = partOpacityModel.internalModel.focusController;
+      var reducedMotion = prefersReducedMotion();
+      Object.keys(poseParameterValues).forEach(
+        function (id) {
+          var value = poseParameterValues[id];
+          if (!reducedMotion) {
+            if (id === "ParamAngleX") value += focus.x * 8;
+            if (id === "ParamAngleY") value += focus.y * 5;
+            if (id === "ParamBodyAngleX") value += focus.x * 2;
+          }
+          core.setParameterValueById(id, value);
+        }
+      );
       var visibleParts = [];
 
       partOpacityActiveState.curves.forEach(function (curve) {
@@ -1296,29 +1402,19 @@
       curves: state.curves || [],
       duration: state.duration || 1,
       loop: shouldLoop !== false,
-      startedAt: window.performance.now(),
+      startedAt: null,
       frozenTime: typeof frozenTime === "number" ? frozenTime : null,
+      staticParameters: state.staticParameters || {},
     };
   }
 
-  function applyStaticRestPose(model, character) {
-    if (!model || model !== currentModel || !character) {
+  function applyStaticPose(model, poseId) {
+    if (!model || model !== currentModel) {
       return Promise.resolve(false);
     }
 
     var requestGeneration = ++partOpacityRequestGeneration;
-    currentPoseId = "1";
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.setAttribute("data-live2d-motion-id", "static");
-      elements.widget.setAttribute("data-live2d-pose-id", "1");
-      elements.widget.setAttribute("data-live2d-resting", "true");
-    }
-    if (!isIdleOnlyCharacter(character)) {
-      preloadPoseMotions(model, "1");
-    }
-
-    return loadPartOpacityState(model, "11").then(function (state) {
+    return loadPartOpacityState(model, poseId + poseId).then(function (state) {
       if (
         requestGeneration !== partOpacityRequestGeneration ||
         model !== currentModel
@@ -1326,6 +1422,7 @@
         return false;
       }
 
+      model.internalModel.motionManager.stopAllMotions();
       var coreModel = model.internalModel.coreModel;
       Object.keys(state.staticParameters || {}).forEach(function (parameterId) {
         coreModel.setParameterValueById(
@@ -1340,6 +1437,10 @@
         );
       });
       activatePartOpacityState(model, state, false, 0);
+      currentPoseId = poseId;
+      companionWidget.setAttribute("data-live2d-pose-id", poseId);
+      companionWidget.setAttribute("data-live2d-motion-id", "static");
+      companionWidget.setAttribute("data-live2d-resting", "true");
       return true;
     });
   }
@@ -1395,9 +1496,13 @@
             loadedMotion.setFadeOutTime(0);
           }
         }
-        activatePartOpacityState(model, loadedResources[0], shouldLoop);
-        if (prefersReducedMotion()) return false;
-        return model.motion("", motionIndex, 3);
+        return model.motion("", motionIndex, 3).then(function (started) {
+          if (requestGeneration !== partOpacityRequestGeneration || model !== currentModel) {
+            return false;
+          }
+          if (started) activatePartOpacityState(model, loadedResources[0], shouldLoop);
+          return started;
+        });
       })
       .catch(function () {
         return false;
@@ -1408,6 +1513,7 @@
     if (!model || model !== currentModel) return;
     var motionManager = model.internalModel.motionManager;
     for (var targetPose = 1; targetPose <= 5; targetPose += 1) {
+      loadPartOpacityState(model, String(targetPose) + String(targetPose));
       if (String(targetPose) === poseId) continue;
       var motionIndex = motionIndexForId(model, poseId + String(targetPose));
       if (motionIndex < 0) continue;
@@ -1428,300 +1534,97 @@
     if (elements) {
       elements.widget.setAttribute("data-live2d-expression-id", motionId);
     }
-    expressionTimer = window.setTimeout(function () {
-      if (!expressionModel || expressionModel !== currentModel) return;
-      expressionSequenceIndex = 0;
-      expressionTargetValues = expressionStatesByMotionId["01"] || {};
-      var resetElements = ensureWidget();
-      if (resetElements) {
-        resetElements.widget.setAttribute("data-live2d-expression-id", "01");
-      }
-      scheduleNextExpression();
-    }, DIALOGUE_HOLD_DURATION);
+    // Keep this line's face throughout typing, choices and reading. The next
+    // line, rather than a wall-clock timeout, supplies its replacement.
+    expressionTimer = 0;
   }
 
-  function clearInteractionTimers() {
+  function clearMotionFinishListener() {
+    if (interactionMotionManager && interactionMotionFinishHandler) {
+      interactionMotionManager.off("motionFinish", interactionMotionFinishHandler);
+    }
+    interactionMotionManager = null;
+    interactionMotionFinishHandler = null;
+  }
+
+  function clearInteractionMotion() {
     interactionMotionGeneration += 1;
     interactionMotionPending = false;
-    if (interactionDialogueTimer) {
-      window.clearTimeout(interactionDialogueTimer);
-      interactionDialogueTimer = 0;
-    }
-    if (interactionMotionTimer) {
-      window.clearTimeout(interactionMotionTimer);
-      interactionMotionTimer = 0;
-    }
-    if (interactionIdleTimer) {
-      window.clearTimeout(interactionIdleTimer);
-      interactionIdleTimer = 0;
-    }
-    if (interactionWelcomeTimer) {
-      window.clearTimeout(interactionWelcomeTimer);
-      interactionWelcomeTimer = 0;
-    }
-  }
-
-  function returnToRestPose(model, character) {
-    if (!model || model !== currentModel || !character) return;
-
-    var elements = ensureWidget();
-    if (isIdleOnlyCharacter(character)) {
-      interactionMotionPending = false;
-      if (elements) elements.trigger.disabled = false;
-      return;
-    }
-    if (currentPoseId === "1") {
-      interactionMotionPending = false;
-      applyStaticRestPose(model, character).then(function () {
-        if (model === currentModel) {
-          var restElements = ensureWidget();
-          if (restElements) restElements.trigger.disabled = false;
-        }
-      });
-      return;
-    }
-
-    var returnGeneration = ++interactionMotionGeneration;
-    var returnMotionId = currentPoseId + "1";
-    interactionMotionPending = true;
-    if (elements) elements.trigger.disabled = true;
-
-    playMotionById(model, returnMotionId, false).then(function () {
-      if (
-        returnGeneration !== interactionMotionGeneration ||
-        model !== currentModel ||
-        currentCharacterId !== character.id
-      ) {
-        return;
-      }
-
-      if (interactionMotionTimer) {
-        window.clearTimeout(interactionMotionTimer);
-      }
-      interactionMotionTimer = window.setTimeout(function () {
-        interactionMotionTimer = 0;
-        if (
-          returnGeneration !== interactionMotionGeneration ||
-          model !== currentModel ||
-          currentCharacterId !== character.id
-        ) {
-          return;
-        }
-        currentPoseId = "1";
-        interactionMotionPending = false;
-        applyStaticRestPose(model, character).then(function () {
-          if (model === currentModel) {
-            var restElements = ensureWidget();
-            if (restElements) restElements.trigger.disabled = false;
-          }
-        });
-      }, INTERACTION_MOTION_DURATION);
-    });
-  }
-
-  function hideDialogue(resumeRestPose) {
-    if (interactionDialogueTimer) {
-      window.clearTimeout(interactionDialogueTimer);
-      interactionDialogueTimer = 0;
-    }
-    stopLipSync();
-
-    var elements = ensureWidget();
-    if (!elements) return;
-    elements.dialogue.classList.remove("is-visible");
-    elements.dialogue.setAttribute("aria-hidden", "true");
-    elements.trigger.setAttribute("aria-expanded", "false");
-
-    if (
-      resumeRestPose &&
-      !interactionMotionPending &&
-      currentModel &&
-      currentCharacterId
-    ) {
-      returnToRestPose(currentModel, getCharacter(currentCharacterId));
-    }
+    requestedPoseId = "1";
+    clearMotionFinishListener();
   }
 
   function updateInteractionUI(character) {
-    var elements = ensureWidget();
-    if (!elements || !character) return;
-
-    var label = "Talk to " + character.name;
-    elements.trigger.hidden = !shouldRenderLive2D() || !currentModel;
-    elements.trigger.setAttribute("aria-label", label);
-    elements.trigger.setAttribute("title", label);
-    elements.trigger.setAttribute("aria-controls", "live2d-dialogue");
-    elements.trigger.setAttribute("aria-expanded", "false");
-    elements.trigger.disabled = false;
-    elements.dialogue.querySelector("[data-live2d-dialogue-name]").textContent =
-      character.name;
+    if (character) window.SiteCompanion.setCharacter(character.id);
   }
 
-  function showInteraction(character, interaction) {
+  function animateInteraction(interaction) {
     if (
-      !character ||
-      !interaction ||
       !currentModel ||
-      currentCharacterId !== character.id ||
+      currentCharacterId !== getSelectedCharacterId() ||
       !shouldRenderLive2D()
-    ) {
+    )
+      return;
+    setInteractionExpression(interaction.expressionMotionId || "01");
+    requestedPoseId = /^[1-5]$/.test(interaction.poseId)
+      ? interaction.poseId
+      : "1";
+    companionWidget.setAttribute("data-live2d-requested-pose", requestedPoseId);
+    moveToRequestedPose();
+  }
+
+  function moveToRequestedPose() {
+    // Finish the current transition, then take the latest queued pose. Rapid
+    // next/topic clicks never drop the newest line or stack obsolete motions.
+    if (
+      interactionMotionPending ||
+      !currentModel ||
+      currentPoseId === requestedPoseId
+    )
+      return;
+    var model = currentModel,
+      targetPose = requestedPoseId;
+    var motionGeneration = ++interactionMotionGeneration;
+    interactionMotionPending = true;
+    function isCurrent() {
+      return (
+        motionGeneration === interactionMotionGeneration &&
+        model === currentModel
+      );
+    }
+    function settle() {
+      if (!isCurrent()) return;
+      clearMotionFinishListener();
+      applyStaticPose(model, targetPose).then(function () {
+        if (!isCurrent()) return;
+        interactionMotionPending = false;
+        preloadPoseMotions(model, targetPose);
+        moveToRequestedPose();
+      });
+    }
+    if (prefersReducedMotion()) {
+      settle();
       return;
     }
-
-    if (interactionWelcomeTimer) {
-      window.clearTimeout(interactionWelcomeTimer);
-      interactionWelcomeTimer = 0;
-    }
-    if (interactionIdleTimer) {
-      window.clearTimeout(interactionIdleTimer);
-      interactionIdleTimer = 0;
-    }
-
-    var elements = ensureWidget();
-    elements.dialogue.querySelector("[data-live2d-dialogue-name]").textContent =
-      character.name;
-    elements.dialogue.setAttribute("data-live2d-source", interaction.source);
-    elements.dialogue.querySelector("[data-live2d-dialogue-text]").textContent =
-      interaction.text;
-    var idleOnly = isIdleOnlyCharacter(character);
-    var targetPoseId = idleOnly ? currentPoseId : interaction.poseId || "1";
-    var transitionMotionId = currentPoseId + targetPoseId;
-    elements.dialogue.setAttribute("data-live2d-character", character.id);
-    elements.dialogue.setAttribute(
-      "data-live2d-motion-id",
-      idleOnly ? "static" : transitionMotionId
-    );
-    elements.dialogue.setAttribute("aria-hidden", "false");
-    elements.dialogue.classList.add("is-visible");
-    elements.trigger.setAttribute("aria-expanded", "true");
-    elements.trigger.disabled = true;
-
-    if (idleOnly) {
-      interactionMotionPending = false;
-      elements.trigger.disabled = false;
-    } else {
-      var interactionModel = currentModel;
-      var motionGeneration = ++interactionMotionGeneration;
-      interactionMotionPending = true;
-      playMotionById(interactionModel, transitionMotionId, false).then(
-        function () {
-          if (
-            motionGeneration !== interactionMotionGeneration ||
-            interactionModel !== currentModel ||
-            currentCharacterId !== character.id
-          ) {
-            return;
-          }
-
-          if (interactionMotionTimer) {
-            window.clearTimeout(interactionMotionTimer);
-          }
-          interactionMotionTimer = window.setTimeout(function () {
-            interactionMotionTimer = 0;
-            interactionMotionPending = false;
-            if (currentModel && currentCharacterId === character.id) {
-              currentPoseId = targetPoseId;
-              var currentElements = ensureWidget();
-              if (currentElements) {
-                currentElements.widget.setAttribute(
-                  "data-live2d-pose-id",
-                  targetPoseId
-                );
-              }
-              preloadPoseMotions(currentModel, targetPoseId);
-              if (
-                currentElements &&
-                currentElements.dialogue.classList.contains("is-visible")
-              ) {
-                currentElements.trigger.disabled = false;
-              } else {
-                returnToRestPose(currentModel, character);
-              }
-            }
-          }, INTERACTION_MOTION_DURATION);
+    playMotionById(model, currentPoseId + targetPose, false).then(
+      function (started) {
+        if (!isCurrent()) return;
+        if (!started) settle();
+        else {
+          // Follow Cubism's rendered timeline, including paused/slow frames,
+          // rather than cutting off the animation with a wall-clock timeout.
+          interactionMotionManager = model.internalModel.motionManager;
+          interactionMotionFinishHandler = settle;
+          interactionMotionManager.once("motionFinish", settle);
         }
-      );
-    }
-    setInteractionExpression(interaction.expressionMotionId);
-    triggerLipSync(interaction.text);
-
-    if (interactionDialogueTimer) {
-      window.clearTimeout(interactionDialogueTimer);
-    }
-    interactionDialogueTimer = window.setTimeout(function () {
-      hideDialogue(true);
-    }, DIALOGUE_HOLD_DURATION);
-    scheduleIdleInteraction();
-  }
-
-  function showNextInteraction() {
-    if (interactionMotionPending || !shouldRenderLive2D()) return;
-    var character = getCharacter(currentCharacterId);
-    if (!character) return;
-
-    var interactions = CHARACTER_INTERACTIONS[character.id] || [];
-    if (!interactions.length) return;
-
-    var turn = interactionTurnIndices[character.id] || 0;
-    var weather = window.__siteWeather;
-    var weatherPhase = weather && weather.phase ? weather.phase : "";
-    var availableInteractions = eligibleInteractionsForWeather(
-      interactions,
-      weatherPhase
-    );
-    var interactionKey = character.id + ":" + (weatherPhase || "default");
-    var index = interactionIndices[interactionKey] || 0;
-    var weatherInteraction = selectWeatherInteraction(
-      character,
-      availableInteractions,
-      turn,
-      weatherPhase
-    );
-
-    if (weatherInteraction) {
-      showInteraction(character, weatherInteraction);
-    } else {
-      showInteraction(
-        character,
-        availableInteractions[index % availableInteractions.length]
-      );
-      interactionIndices[interactionKey] =
-        (index + 1) % availableInteractions.length;
-    }
-    interactionTurnIndices[character.id] = turn + 1;
-  }
-
-  function scheduleIdleInteraction() {
-    if (interactionIdleTimer) window.clearTimeout(interactionIdleTimer);
-    if (prefersReducedMotion() || !shouldRenderLive2D() || document.hidden) {
-      interactionIdleTimer = 0;
-      return;
-    }
-
-    interactionIdleTimer = window.setTimeout(function () {
-      interactionIdleTimer = 0;
-      showNextInteraction();
-    }, IDLE_INTERACTION_DELAY);
-  }
-
-  function scheduleWelcomeInteraction(character) {
-    if (interactionWelcomeTimer) {
-      window.clearTimeout(interactionWelcomeTimer);
-    }
-    if (prefersReducedMotion() || !shouldRenderLive2D()) return;
-
-    interactionWelcomeTimer = window.setTimeout(function () {
-      interactionWelcomeTimer = 0;
-      if (character && currentCharacterId === character.id) {
-        showNextInteraction();
       }
-    }, WELCOME_INTERACTION_DELAY);
+    );
   }
 
   function destroyCurrentModel() {
     if (!currentModel) return;
-    clearInteractionTimers();
-    hideDialogue(false);
+    clearInteractionMotion();
+    stopLipSync();
     stopPartOpacityGuard();
     stopLipSyncLoop();
     stopEyeBlinkLoop();
@@ -1740,27 +1643,34 @@
     var character =
       getCharacter(characterId) || getCharacter(getDefaultCharacterId());
     if (!character || !shouldRenderLive2D()) return Promise.resolve();
-    if (currentModel && currentCharacterId === character.id) {
-      fitCurrentModel();
-      updateInteractionUI(character);
-      scheduleIdleInteraction();
-      return applyStaticRestPose(currentModel, character).then(function () {
-        return currentModel;
-      });
-    }
-
     var generation = ++modelLoadGeneration;
     var elements = ensureWidget();
-    elements.widget.classList.add("is-loading");
-    elements.widget.classList.remove("has-live2d-error");
+    if (currentModel && currentCharacterId === character.id) {
+      elements.widget.classList.remove("is-loading", "has-live2d-error");
+      currentModel.visible = true;
+      fitCurrentModel();
+      updateInteractionUI(character);
+      window.SiteCompanion.setReady("ready");
+      return Promise.resolve(currentModel);
+    }
 
+    window.SiteCompanion.setReady("loading");
+    if (currentModel) currentModel.visible = false;
+
+    var deadline = setTimeout(function () {
+      if (generation === modelLoadGeneration)
+        window.SiteCompanion.setReady("error");
+    }, 25000);
     return window.PIXI.live2d.Live2DModel.from(character.modelPath, {
       autoInteract: false,
       motionPreload: window.PIXI.live2d.MotionPreloadStrategy.NONE,
     })
       .then(function (model) {
+        clearTimeout(deadline);
         if (generation !== modelLoadGeneration) {
-          model.destroy({ children: true, texture: true, baseTexture: true });
+          // Texture.fromURL caches by URL. A newer load of the same character
+          // may already be using these textures; discard only the stale rig.
+          model.destroy({ children: true, texture: false, baseTexture: false });
           return null;
         }
 
@@ -1776,7 +1686,8 @@
           focusModelAtRest(true);
         }
         startPartOpacityGuard(model);
-        var restPoseReady = applyStaticRestPose(model, character);
+        var restPoseReady = applyStaticPose(model, "1");
+        preloadPoseMotions(model, "1");
         var expressionReady = startExpressionLoop(model, character).catch(
           function () {
             // Keep the model usable if optional expression data fails to load.
@@ -1785,23 +1696,24 @@
         elements.widget.setAttribute("data-live2d-character", character.id);
         updateInteractionUI(character);
         return Promise.all([restPoseReady, expressionReady]).then(function () {
-          if (model !== currentModel) return null;
+          if (model !== currentModel || generation !== modelLoadGeneration)
+            return null;
           startEyeBlinkLoop(model);
           startLipSyncLoop(model);
-          startBreathingLoop(model, character);
-          scheduleWelcomeInteraction(character);
-          elements.widget.classList.remove("is-loading");
+          startBreathingLoop(model);
+          window.SiteCompanion.setReady("ready");
           return model;
         });
       })
       .catch(function (error) {
+        clearTimeout(deadline);
         if (generation === modelLoadGeneration) {
-          elements.widget.classList.remove("is-loading");
-          elements.widget.classList.add("has-live2d-error");
-          elements.trigger.hidden = true;
-          hideDialogue(false);
+          window.SiteCompanion.setReady("error");
         }
-        throw error;
+        // A stale request must never mark the currently selected model as failed.
+        // Current failures have already been rendered above; do not rethrow them
+        // into an earlier initLive2D promise chain.
+        return null;
       });
   }
 
@@ -1834,8 +1746,9 @@
     var selected =
       getCharacter(getSelectedCharacterId()) ||
       getCharacter(getDefaultCharacterId());
-    var label = "Theme: " + selected.name;
-    var accessibleLabel = "Switch visual theme. Current: " + selected.name;
+    var name = window.CompanionStories.characters[selected.id].name;
+    var label = "テーマ：" + name;
+    var accessibleLabel = "テーマを切り替える：" + name;
 
     button.hidden = isPageDisabled();
     button.setAttribute("aria-label", accessibleLabel);
@@ -1858,25 +1771,55 @@
     }
 
     var next = characters[(selectedIndex + 1) % characters.length];
-    persistSelectedCharacter(next.id);
-    syncCharacterTheme(next.id);
+    selectCharacter(next.id);
+  }
+
+  function selectCharacter(characterId) {
+    var character = getCharacter(characterId);
+    if (!character) return;
+    if (
+      currentModel &&
+      currentCharacterId === character.id &&
+      getSelectedCharacterId() === character.id &&
+      !companionWidget.classList.contains("is-loading")
+    )
+      return;
+    var selectionGeneration = ++modelLoadGeneration;
+    persistSelectedCharacter(character.id);
+    syncCharacterTheme(character.id);
+    window.SiteCompanion.setCharacter(character.id);
     renderCharacterButton(ensureCharacterButton());
-    clearInteractionTimers();
-    hideDialogue(false);
+    clearInteractionMotion();
+    stopLipSync();
 
     if (shouldRenderLive2D()) {
+      window.SiteCompanion.setReady("loading");
+      if (currentModel) currentModel.visible = false;
       loadLibraries()
         .then(function () {
+          if (selectionGeneration !== modelLoadGeneration) return null;
           ensureApplication();
-          return loadCharacter(next.id);
+          return loadCharacter(character.id);
         })
         .catch(function () {
-          // Live2D is decorative; do not block the page if it fails.
+          if (selectionGeneration === modelLoadGeneration)
+            window.SiteCompanion.setReady("error");
         });
     }
   }
 
   function bindCharacterButton() {
+    Array.prototype.forEach.call(
+      document.querySelectorAll("[data-classic-character]"),
+      function (button) {
+        if (button.getAttribute("data-classic-character-bound") === "true")
+          return;
+        button.setAttribute("data-classic-character-bound", "true");
+        button.addEventListener("click", function () {
+          selectCharacter(button.getAttribute("data-classic-character"));
+        });
+      }
+    );
     var button = ensureCharacterButton();
     if (!button) return;
     renderCharacterButton(button);
@@ -1897,26 +1840,55 @@
     bindFocusEvents();
     applyResponsiveSize();
     if (!shouldRenderLive2D()) {
-      clearInteractionTimers();
-      hideDialogue(false);
+      // Keep the pending completion attached while the renderer is hidden.
+      // Character replacement, rather than visibility, cancels its motion.
+      stopLipSync();
       return;
     }
 
+    window.SiteCompanion.setCharacter(getSelectedCharacterId());
+    if (!currentModel) window.SiteCompanion.setReady("loading");
+    var libraryGeneration = modelLoadGeneration;
     loadLibraries()
       .then(function () {
+        if (libraryGeneration !== modelLoadGeneration) return null;
         ensureApplication();
         applyResponsiveSize();
         return loadCharacter(getSelectedCharacterId());
       })
       .catch(function () {
+        if (libraryGeneration !== modelLoadGeneration) return;
         var elements = ensureWidget();
-        if (elements) elements.widget.classList.add("has-live2d-error");
+        if (elements) {
+          window.SiteCompanion.setReady("error");
+        }
         // Live2D is decorative; do not block the page if it fails.
       });
   }
 
+  document.addEventListener("visibilitychange", applyResponsiveSize);
+  document.addEventListener("site:companion-game", function (event) {
+    companionGameActive = event.detail.active;
+    applyResponsiveSize();
+  });
   document.addEventListener("site:content-updated", initLive2D);
-  document.addEventListener("site:live2d-toggle", initLive2D);
+  document.addEventListener("site:live2d-toggle", function (event) {
+    var detail = event.detail || {};
+    if (detail.layoutChanged) companionPosition = null;
+    if (detail.enabled) setCompanionMinimized(false);
+    initLive2D();
+    if (detail.enabled && detail.userInitiated && window.innerWidth < 1000) {
+      requestAnimationFrame(function () {
+        companionWidget.scrollIntoView({
+          block: "center",
+          behavior: "instant",
+        });
+        companionWidget
+          .querySelector("[data-companion-titlebar]")
+          .focus({ preventScroll: true });
+      });
+    }
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initLive2D);

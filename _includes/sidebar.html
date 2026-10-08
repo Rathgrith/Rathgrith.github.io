@@ -1,7 +1,11 @@
 {% if page.author_profile or layout.author_profile or page.sidebar %}
-  <div class="sidebar sticky">
+  <div class="sidebar classic-profile-rail">
   {% if page.author_profile or layout.author_profile %}{% include author-profile.html %}{% endif %}
-  {% if page.body_class == "home-page" %}{% include weather-widget.html %}{% endif %}
+  <nav class="classic-page-index" aria-label="On this page">
+    <h4 class="classic-rail-heading">On this page</h4>
+    {% for link in site.data.navigation.main %}{% if link.url contains "/#" %}<a href="{{ link.url | relative_url }}">{{ link.title }}</a>{% endif %}{% endfor %}
+  </nav>
+  <div class="classic-companion-dock" data-companion-dock></div>
   {% if page.sidebar %}
     {% for s in page.sidebar %}
       {% if s.image %}

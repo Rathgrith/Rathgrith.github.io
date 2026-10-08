@@ -12,58 +12,26 @@
 
 <script>
   (function () {
-    var saved = "light";
     var character = "alice";
-    var weatherVisibility = null;
-
     try {
-      var key = "site-theme";
-      saved = localStorage.getItem(key);
-      if (saved !== "dark" && saved !== "light") {
-        saved = "light";
-      }
-
-      character = localStorage.getItem("site-live2d-character");
-      if (["marisa", "alice", "patchouli"].indexOf(character) === -1) {
-        character = "alice";
-      }
-
-      weatherVisibility = localStorage.getItem("site-weather-visible");
-      if (weatherVisibility !== "true" && weatherVisibility !== "false") {
-        weatherVisibility = null;
-      }
+      var stored = localStorage.getItem("site-live2d-character");
+      if (["marisa", "alice", "patchouli"].indexOf(stored) !== -1) character = stored;
     } catch (e) {}
 
-    var isMobileWeatherViewport =
-      window.matchMedia && window.matchMedia("(max-width: 36em)").matches;
-
-    if (isMobileWeatherViewport) {
-      weatherVisibility = "false";
-    } else if (weatherVisibility === null) {
-      weatherVisibility = "false";
-    }
-
-    document.documentElement.setAttribute("data-theme", saved);
-    document.documentElement.style.colorScheme =
-      saved === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.style.colorScheme = "dark";
     document.documentElement.setAttribute("data-live2d-character", character);
-    document.documentElement.setAttribute(
-      "data-weather-visible",
-      weatherVisibility
-    );
   })();
 </script>
 
 {% assign build_timestamp = site.time | date: "%s" %}
 {% assign asset_version = site.github.build_revision | append: "-" | append: build_timestamp %}
-<!-- For all browsers -->
-<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}?v={{ asset_version | url_encode }}">
-<link rel="stylesheet" href="{{ '/assets/css/site-shared.css' | relative_url }}?v={{ asset_version | url_encode }}">
-<link rel="stylesheet" href="{{ '/assets/css/site-publications.css' | relative_url }}?v={{ asset_version | url_encode }}">
-<link rel="stylesheet" href="{{ '/assets/css/site-standalone.css' | relative_url }}?v={{ asset_version | url_encode }}">
-<link rel="stylesheet" href="{{ '/assets/css/core/page-transitions.css' | relative_url }}?v={{ asset_version | url_encode }}">
-<link rel="stylesheet" href="{{ '/assets/css/content-enhancements.css' | relative_url }}?v={{ asset_version | url_encode }}">
-<link rel="stylesheet" href="{{ '/assets/css/site-redesign.css' | relative_url }}?v={{ asset_version | url_encode }}">
-<link rel="stylesheet" href="{{ '/assets/css/site-instrument.css' | relative_url }}?v={{ asset_version | url_encode }}">
-
+<!-- Start the local UI fonts before optional remote widgets request their assets. -->
+<link rel="preload" href="{{ '/assets/fonts/classic/w95fa.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ '/assets/fonts/fa-solid-900.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ '/assets/fonts/fa-brands-400.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+<!-- Explicit order: tokens, reset, layout, independent components. No legacy theme bundle. -->
+{% assign stylesheets = 'icons.css,classic-theme.css,classic-base.css,classic-site.css,classic-widgets.css,classic-pages.css,classic-gallery-viewer.css,classic-weather.css,classic-companion.css,classic-danmaku.css,classic-loading.css,classic-ornaments.css' | split: ',' %}
+{% for stylesheet in stylesheets %}<link rel="stylesheet" href="{{ '/assets/css/' | append: stylesheet | relative_url }}?v={{ asset_version | url_encode }}">
+{% endfor %}
 <meta http-equiv="cleartype" content="on">

@@ -12,8 +12,6 @@
   var state = {
     gallery: null,
     captions: {},
-    filenames: [],
-    groups: [],
     items: [],
     thumbnailDir: "",
     originalDir: "",
@@ -21,6 +19,7 @@
     isOpen: false,
     triggerElement: null,
     modalRefs: null,
+    modalMount: null,
     preloaded: {},
   };
 
@@ -33,18 +32,6 @@
       return parsed && typeof parsed === "object" ? parsed : {};
     } catch (error) {
       return {};
-    }
-  }
-
-  function parseGroupConfig() {
-    var dataNode = document.getElementById("gallery-groups-data");
-    if (!dataNode) return [];
-
-    try {
-      var parsed = JSON.parse(dataNode.textContent || "[]");
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      return [];
     }
   }
 
@@ -74,86 +61,11 @@
     };
   }
 
-  function buildGroups(config) {
-    var known = new Set(Object.keys(state.captions));
-    var assigned = new Set();
-    var groups = [];
-
-    config.forEach(function (entry, index) {
-      if (!entry || !Array.isArray(entry.items)) return;
-      var filenames = entry.items.filter(function (filename) {
-        if (!known.has(filename) || assigned.has(filename)) return false;
-        assigned.add(filename);
-        return true;
-      });
-      if (!filenames.length) return;
-
-      groups.push({
-        id: String(entry.id || "group-" + index),
-        title: String(entry.title || "Collection"),
-        description: String(entry.description || ""),
-        filenames: filenames,
-        rendered: [],
-        grid: null,
-      });
-    });
-
-    var ungrouped = Array.from(known).filter(function (filename) {
-      return !assigned.has(filename);
-    });
-    if (ungrouped.length) {
-      groups.push({
-        id: "other",
-        title: "Other",
-        description: "",
-        filenames: ungrouped,
-        rendered: [],
-        grid: null,
-      });
-    }
-    return groups;
-  }
-
   function createElement(tagName, className, text) {
     var element = document.createElement(tagName);
     if (className) element.className = className;
     if (typeof text === "string") element.textContent = text;
     return element;
-  }
-
-  function createGroupSections() {
-    var fragment = document.createDocumentFragment();
-
-    state.groups.forEach(function (group, groupIndex) {
-      var section = createElement("section", "gallery-group");
-      var header = createElement("header", "gallery-group__header");
-      var heading = createElement("h2", "gallery-group__title", group.title);
-      var count = createElement(
-        "span",
-        "gallery-group__count",
-        String(group.filenames.length)
-      );
-      var description = createElement(
-        "p",
-        "gallery-group__description",
-        group.description
-      );
-      var grid = createElement("div", "gallery");
-
-      heading.id = "gallery-group-" + group.id;
-      section.setAttribute("aria-labelledby", heading.id);
-      section.style.setProperty("--gallery-group-index", String(groupIndex));
-      grid.setAttribute("data-gallery-group", group.id);
-      heading.appendChild(count);
-      header.appendChild(heading);
-      if (group.description) header.appendChild(description);
-      section.appendChild(header);
-      section.appendChild(grid);
-      fragment.appendChild(section);
-      group.grid = grid;
-    });
-
-    state.gallery.replaceChildren(fragment);
   }
 
   function getModalRefs() {
@@ -170,6 +82,8 @@
       counter: document.getElementById("gallery-modal-counter"),
       strip: document.getElementById("gallery-modal-strip"),
       closeButton: root.querySelector(".gallery-modal__close"),
+      placeholder: root.querySelector("[data-gallery-placeholder]"),
+      status: root.querySelector("[data-gallery-status]"),
     };
     return state.modalRefs;
   }
@@ -182,12 +96,6 @@
 
     element.textContent = parts.join("  ·  ");
     element.hidden = !parts.length;
-  }
-
-  function renderedFilenames() {
-    return state.items.map(function (item) {
-      return item.filename;
-    });
   }
 
   function wrapIndex(index, total) {
@@ -226,6 +134,18 @@
     return indices;
   }
 
+  function centerModalActiveThumbnail(refs) {
+    if (!refs || !refs.strip) return;
+    // Center within the strip only; scrollIntoView can also move the page.
+    window.requestAnimationFrame(function () {
+      var active = refs.strip.querySelector(".is-active");
+      if (!active) return;
+      var stripRect = refs.strip.getBoundingClientRect();
+      var activeRect = active.getBoundingClientRect();
+      refs.strip.scrollLeft += activeRect.left - stripRect.left - (refs.strip.clientWidth - activeRect.width) / 2;
+    });
+  }
+
   function renderModalStrip(refs, current) {
     if (!refs || !refs.strip) return;
     var total = state.items.length;
@@ -254,12 +174,13 @@
           : "Image " + (index + 1)
       );
       button.classList.toggle("is-active", index === current);
+      button.tabIndex = index === current ? 0 : -1;
       if (entry.caption) button.title = entry.caption;
 
       var image = createElement("img", "gallery-modal__thumb-image");
       image.src = state.thumbnailDir + item.filename;
       image.alt = "";
-      image.loading = "lazy";
+      image.loading = "eager";
       image.decoding = "async";
       button.appendChild(image);
       fragment.appendChild(button);
@@ -267,8 +188,13 @@
       if (index === current) activeId = buttonId;
     });
 
+    var restoreStripFocus = refs.strip.contains(document.activeElement);
     refs.strip.replaceChildren(fragment);
-    if (activeId) refs.strip.setAttribute("aria-activedescendant", activeId);
+    if (activeId) {
+      refs.strip.setAttribute("aria-activedescendant", activeId);
+      if (restoreStripFocus) document.getElementById(activeId).focus({ preventScroll: true });
+      centerModalActiveThumbnail(refs);
+    }
   }
 
   function updateModalContent() {
@@ -281,7 +207,33 @@
     var item = state.items[state.currentIndex];
     var entry = normaliseCaption(item.filename);
 
-    refs.image.src = state.originalDir + item.filename;
+    // Show the local thumbnail until the large original has decoded.
+    // A request token prevents a slow previous photo replacing the next one.
+    var requestId = (state.imageRequestId || 0) + 1;
+    state.imageRequestId = requestId;
+    refs.image.style.opacity = "0";
+    refs.placeholder.src = state.thumbnailDir + item.filename;
+    refs.placeholder.hidden = false;
+    refs.status.textContent = "Loading full-size image…";
+    var fullImage = new Image();
+    fullImage.src = state.originalDir + item.filename;
+    var ready = fullImage.decode ? fullImage.decode() : new Promise(function (resolve, reject) {
+      fullImage.onload = resolve;
+      fullImage.onerror = reject;
+    });
+    ready.then(function () {
+      if (requestId !== state.imageRequestId || !state.isOpen) return;
+      refs.image.src = fullImage.src;
+      return refs.image.decode ? refs.image.decode() : Promise.resolve();
+    }).then(function () {
+      if (requestId !== state.imageRequestId || !state.isOpen) return;
+      refs.image.style.opacity = "1";
+      refs.placeholder.hidden = true;
+      refs.status.textContent = "";
+    }).catch(function () {
+      if (requestId !== state.imageRequestId || !state.isOpen) return;
+      refs.status.textContent = "Full-size image unavailable. Showing preview.";
+    });
     refs.image.alt = entry.caption || "Gallery image";
     refs.caption.textContent = entry.caption;
     refs.counter.textContent = state.currentIndex + 1 + " / " + total;
@@ -290,6 +242,20 @@
 
     preloadModalImage(state.currentIndex - 1);
     preloadModalImage(state.currentIndex + 1);
+  }
+
+  function restoreModalMount() {
+    var mount = state.modalMount;
+    var refs = state.modalRefs;
+    if (!mount || !refs) return;
+    if (mount.parent.isConnected) {
+      var next = mount.next && mount.next.parentNode === mount.parent ? mount.next : null;
+      mount.parent.insertBefore(refs.root, next);
+    } else {
+      // Soft navigation may have replaced the original page while open.
+      refs.root.remove();
+    }
+    state.modalMount = null;
   }
 
   function openModal(index, triggerElement) {
@@ -305,13 +271,19 @@
     state.isOpen = true;
     state.currentIndex = index;
     state.triggerElement = triggerElement || null;
+    // Mount outside the document frame so viewport layout and modal stacking
+    // remain independent of page navigation.
+    if (refs.root.parentNode !== document.body) {
+      state.modalMount = { parent: refs.root.parentNode, next: refs.root.nextSibling };
+      document.body.appendChild(refs.root);
+    }
     refs.root.hidden = false;
     refs.root.setAttribute("aria-hidden", "false");
     document.body.classList.add("gallery-modal-open");
     updateModalContent();
 
     window.requestAnimationFrame(function () {
-      if (refs.closeButton) refs.closeButton.focus();
+      if (refs.closeButton) refs.closeButton.focus({ preventScroll: true });
     });
   }
 
@@ -323,6 +295,7 @@
     refs.root.hidden = true;
     refs.root.setAttribute("aria-hidden", "true");
     document.body.classList.remove("gallery-modal-open");
+    restoreModalMount();
 
     if (state.triggerElement && document.contains(state.triggerElement)) {
       state.triggerElement.focus();
@@ -371,89 +344,28 @@
     if (window.__siteGalleryModalKeyBound) return;
     window.__siteGalleryModalKeyBound = true;
 
+    window.addEventListener("resize", function () {
+      if (state.isOpen) centerModalActiveThumbnail(getModalRefs());
+    });
+
     document.addEventListener("keydown", function (event) {
       if (!state.isOpen) return;
+      if (event.key === "Tab") {
+        var refs = getModalRefs();
+        var controls = refs.root.querySelectorAll('button:not([disabled]), a[href], [tabindex="0"]');
+        var first = controls[0];
+        var last = controls[controls.length - 1];
+        if (!refs.root.contains(document.activeElement)) { (event.shiftKey ? last : first).focus(); event.preventDefault(); }
+        else if (event.shiftKey && document.activeElement === first) { last.focus(); event.preventDefault(); }
+        else if (!event.shiftKey && document.activeElement === last) { first.focus(); event.preventDefault(); }
+        return;
+      }
       if (event.key === "Escape") closeModal();
       else if (event.key === "ArrowLeft") stepModal(-1);
       else if (event.key === "ArrowRight") stepModal(1);
       else return;
       event.preventDefault();
     });
-  }
-
-  function createGalleryItem(filename, indexInBatch, isInitialGroup) {
-    var entry = normaliseCaption(filename);
-    var anchor = createElement("a");
-    var image = createElement("img");
-    var zoom = createElement("span", "gallery-card__zoom");
-    var icon = createElement("i", "fas fa-search-plus");
-    var caption = createElement("div", "caption", entry.caption);
-    var item = createElement("div", "gallery-item");
-
-    anchor.href = state.originalDir + filename;
-    anchor.setAttribute("data-gallery-filename", filename);
-    anchor.setAttribute(
-      "aria-label",
-      entry.caption ? "Open " + entry.caption : "Open image preview"
-    );
-
-    image.src = state.thumbnailDir + filename;
-    image.alt = entry.caption || "Gallery image";
-    image.loading = "lazy";
-    image.decoding = "async";
-    image.fetchPriority = isInitialGroup && indexInBatch < 2 ? "high" : "low";
-
-    zoom.setAttribute("aria-hidden", "true");
-    zoom.appendChild(icon);
-    anchor.appendChild(image);
-    anchor.appendChild(zoom);
-
-    if (entry.caption) caption.title = entry.caption;
-    item.style.setProperty(
-      "--gallery-reveal-delay",
-      Math.min(indexInBatch, 8) * 45 + "ms"
-    );
-    item.appendChild(anchor);
-    item.appendChild(caption);
-
-    return { filename: filename, anchor: anchor, element: item };
-  }
-
-  function revealItems(items) {
-    window.requestAnimationFrame(function () {
-      items.forEach(function (item) {
-        item.element.classList.add("is-visible");
-      });
-    });
-  }
-
-  function rebuildItemOrder() {
-    state.items = state.groups.reduce(function (items, group) {
-      return items.concat(group.rendered);
-    }, []);
-  }
-
-  function appendGroupBatch(group, count, groupIndex) {
-    if (!group.grid || count <= 0) return 0;
-    var start = group.rendered.length;
-    var end = Math.min(start + count, group.filenames.length);
-    var fragment = document.createDocumentFragment();
-    var additions = [];
-
-    for (var index = start; index < end; index += 1) {
-      var item = createGalleryItem(
-        group.filenames[index],
-        index - start,
-        groupIndex === 0 && start === 0
-      );
-      group.rendered.push(item);
-      additions.push(item);
-      fragment.appendChild(item.element);
-    }
-
-    group.grid.appendChild(fragment);
-    revealItems(additions);
-    return additions.length;
   }
 
   function bindGalleryEvents() {
@@ -478,8 +390,8 @@
   }
 
   function resetState() {
+    restoreModalMount();
     state.gallery = null;
-    state.groups = [];
     state.items = [];
     state.currentIndex = -1;
     state.isOpen = false;
@@ -487,6 +399,23 @@
     state.modalRefs = null;
     state.preloaded = {};
     document.body.classList.remove("gallery-modal-open");
+  }
+
+  function shuffleCollections(gallery) {
+    gallery.querySelectorAll(".classic-showcase-grid").forEach(function (grid) {
+      var cards = Array.prototype.slice.call(grid.children);
+      for (var i = cards.length - 1; i > 0; i -= 1) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var card = cards[i];
+        cards[i] = cards[j];
+        cards[j] = card;
+      }
+      var fragment = document.createDocumentFragment();
+      cards.forEach(function (card) {
+        fragment.appendChild(card);
+      });
+      grid.appendChild(fragment);
+    });
   }
 
   function initGalleryPage() {
@@ -499,15 +428,16 @@
 
     var container = gallery.closest(".gallery-container");
     if (!container) return;
+    restoreModalMount();
     gallery.setAttribute("data-gallery-bound", "true");
 
+    // Shuffle once per page load, before deriving the viewer's navigation order.
+    shuffleCollections(gallery);
     state.gallery = gallery;
     state.captions = parseCaptions();
-    state.groups = buildGroups(parseGroupConfig());
-    state.filenames = state.groups.reduce(function (filenames, group) {
-      return filenames.concat(group.filenames);
-    }, []);
-    state.items = [];
+    state.items = Array.prototype.map.call(gallery.querySelectorAll("a[data-gallery-filename]"), function (anchor) {
+      return { filename: anchor.getAttribute("data-gallery-filename"), anchor: anchor, element: anchor.closest("figure") };
+    });
     state.thumbnailDir = (
       container.getAttribute("data-thumbnail-dir") || ""
     ).trim();
@@ -518,15 +448,10 @@
     state.isOpen = false;
     state.modalRefs = null;
     state.preloaded = {};
-    createGroupSections();
 
     bindModalEvents();
     bindGlobalKeyboardEvents();
     bindGalleryEvents();
-    state.groups.forEach(function (group, groupIndex) {
-      appendGroupBatch(group, group.filenames.length, groupIndex);
-    });
-    rebuildItemOrder();
   }
 
   window.__siteInitGalleryPage = initGalleryPage;

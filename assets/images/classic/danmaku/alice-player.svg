@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40" shape-rendering="crispEdges">
+  <title>Alice flying away — rear view</title>
+  <path fill="#172238" d="M11 2h10v2h4v4h2v10h-2v4h3v5h2v7h-5v3h-5v3h-4v-4h-2v4h-4v-3H6v-3H2v-7h2v-5h3v-4H5V8h2V4h4z"/>
+  <path fill="#b88e4b" d="M11 3h10v2h3v4h2v8h-3v4H9v-4H6V9h2V5h3z"/>
+  <path fill="#e2bc72" d="M11 4h10v2h2v5h-2v7h-3v3h-6v-3H9V8h2zM7 11h2v7H7zm16 0h2v7h-2z"/>
+  <path fill="#f6db9b" d="M12 5h8v3h-3v8h-2V8h-3zM10 10h2v7h-2zm10 1h2v6h-2z"/>
+  <path fill="#b64d64" d="M8 6h3V5h10v1h3v3h-3V8H11v1H8z"/>
+  <path fill="#eeece2" d="M6 20h4v2h12v-2h4v4h3v3h-5v-2h-3v2H11v-2H8v2H3v-3h3z"/>
+  <path fill="#557caa" d="M10 25h12v3h3v4h3v2H4v-2h3v-4h3z"/>
+  <path fill="#36516f" d="M14 27h4v7h-4zM8 29h3v4H8zm13 0h3v4h-3z"/>
+  <path fill="#91b4cd" d="M11 28h2v4h-2zm8 0h2v4h-2z"/>
+  <path fill="#c46a7d" d="M10 23h4v1h4v-1h4v4h-4v-1h-4v1h-4zM14 26h2v5h-2zm3 0h2v7h-2z"/>
+  <path fill="#f1eada" d="M4 33h24v2H4zM10 35h4v2h-4zm9 0h4v2h-4z"/>
+  <path fill="#384760" d="M10 37h4v2h-4zm9 0h4v2h-4z"/>
+  <path fill="#ddbb9f" d="M2 27h3v2H2zm25 0h3v2h-3z"/>
+</svg>

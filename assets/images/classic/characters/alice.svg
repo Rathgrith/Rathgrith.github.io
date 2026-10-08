@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges" role="img" aria-labelledby="title">
+  <title id="title">Alice Margatroid, pixel portrait</title>
+  <!-- Original 32-pixel artwork. Integer edges stay sharp at icon sizes. -->
+  <path fill="#493a42" d="M11 3h10v1h3v2h2v3h1v7h1v10h-3v2h2v3H5v-3h2v-2H4V16h1V9h1V6h2V4h3z"/>
+  <path fill="#d8a857" d="M11 4h10v1h3v2h1v3h1v7h1v8h-5v2H10v-2H5v-8h1v-7h1V7h2V5h2z"/>
+  <path fill="#f1cf7c" d="M11 5h10v1h2v3H9V7h2zM7 11h3v11H8v2H6v-7h1zM23 11h2v6h1v7h-2v-2h-1z"/>
+  <path fill="#bb454d" d="M8 8h2V7h12v1h2v2H8z"/>
+  <path fill="#e67673" d="M10 7h12v1H10z"/>
+  <path fill="#f3d0b1" d="M10 12h12v3h1v8h-2v2H11v-2H9v-8h1z"/>
+  <path fill="#ffe5c9" d="M11 13h10v3h1v6h-2v2h-8v-2h-2v-6h1z"/>
+  <path fill="#d8a857" d="M9 10h14v5h-2v-2h-3v-1h-2v3h-3v-2h-2v3H9z"/>
+  <path fill="#f1cf7c" d="M10 10h7v2h-3v2h-1v-2h-3zM18 10h4v2h-4z"/>
+  <path fill="#4b3e47" d="M11 17h3v3h-3zM19 17h3v3h-3z"/>
+  <path fill="#6b97ad" d="M12 18h2v2h-2zM20 18h2v2h-2z"/>
+  <path fill="#fff4e5" d="M11 17h1v1h-1zM19 17h1v1h-1z"/>
+  <path fill="#e8a3a0" d="M10 20h3v1h-3zM20 20h3v1h-3z"/>
+  <path fill="#b66d70" d="M15 22h3v1h-3z"/>
+  <path fill="#4c6e94" d="M9 26h5v1h4v-1h5v2h3v2H6v-2h3z"/>
+  <path fill="#f8efdc" d="M11 25h3v1h4v-1h3v2h-2v1h-6v-1h-2z"/>
+  <path fill="#bb454d" d="M12 27h3v1h2v-1h3v3h-3v-1h-2v1h-3z"/>
+</svg>

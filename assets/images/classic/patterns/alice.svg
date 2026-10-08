@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" shape-rendering="crispEdges">
+  <title>Subtle pixel ribbons</title>
+  <g fill="#a9cce9" opacity="0.10">
+    <path d="M18 20h2v1h2v1h2v2h-2v1h-2v1h-2zM24 22h2v-1h2v-1h2v6h-2v-1h-2v-1h-2z"/>
+    <path d="M82 84h2v1h2v1h2v2h-2v1h-2v1h-2zM88 86h2v-1h2v-1h2v6h-2v-1h-2v-1h-2z"/>
+  </g>
+  <path fill="#a9cce9" opacity="0.06" d="M84 24h2v2h-2zM20 88h2v2h-2zM52 54h2v2h-2zM116 118h2v2h-2z"/>
+</svg>

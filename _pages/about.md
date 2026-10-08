@@ -4,83 +4,100 @@ title: ""
 excerpt: ""
 author_profile: true
 body_class: home-page
-has_music_player: true
-disable_home_loading: true
 disable_mouse_firework: true
 redirect_from:
   - /about/
   - /about.html
 ---
 
-<span class='anchor' id='about-me'></span>
+<div class="anchor" id="about-me" aria-hidden="true"></div>
 
 # About
 
-<p>Thanks for stopping by.</p>
+<p class="classic-welcome">Thanks for stopping by.</p>
 
 I am a PhD student (part-time) in Computer Science at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd), supervised by [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Eyal Ofek](https://eyalofek.org/). Alongside my PhD, I work as a software engineer (part-time) at [Allsee Technology](https://www.allsee-tech.com/).
 
 Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). Pre-PhD entrance, I was lucky to had a RA-ship under supervision of [Prof. Yunchao Wei](https://weiyc.github.io/). Earlier than that, during my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) on some research projects.
 
-Current Research Interests: Correspondences, Vision for Animation and Open Problems.
+<aside class="classic-research" aria-label="Research interests">
+  <span class="classic-research-label">Research interests</span>
+  <p>Correspondences <span aria-hidden="true">·</span> Vision for Animation <span aria-hidden="true">·</span> Open Problems</p>
+</aside>
 
 # Education
 
-- _2026.01 - Present_, <img src="/images/universities/birmingham-shield.svg" alt="University of Birmingham icon" class="inline-school-icon"> PhD in Computer Science, [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd)
-- _2023.08 - 2024.12_, <img src="/images/universities/uiuc.png" alt="UIUC icon" class="inline-school-icon"> MEng in Electrical and Computer Engineering, [University of Illinois, Urbana-Champaign](https://ece.illinois.edu/)
-- _2019.09 - 2023.07_, <img src="/images/universities/liverpool.png" alt="University of Liverpool icon" class="inline-school-icon"> BSc (Hons) in Information and Computing Science, [University of Liverpool & XJTLU](https://www.liverpool.ac.uk/computer-science/).
+<ol class="classic-education">
+  <li>
+    <span class="classic-education-date">2026.01 — Present</span>
+    <div><p class="classic-degree">PhD in Computer Science</p><a href="https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd"><img src="/images/universities/birmingham-shield.svg" alt="" class="inline-school-icon"> University of Birmingham</a></div>
+  </li>
+  <li>
+    <span class="classic-education-date">2023.08 — 2024.12</span>
+    <div><p class="classic-degree">MEng in Electrical and Computer Engineering</p><a href="https://ece.illinois.edu/"><img src="/images/universities/uiuc.png" alt="" class="inline-school-icon"> University of Illinois, Urbana-Champaign</a></div>
+  </li>
+  <li>
+    <span class="classic-education-date">2019.09 — 2023.07</span>
+    <div><p class="classic-degree">BSc (Hons) in Information and Computing Science</p><a href="https://www.liverpool.ac.uk/computer-science/"><img src="/images/universities/liverpool.png" alt="" class="inline-school-icon"> University of Liverpool &amp; XJTLU</a></div>
+  </li>
+</ol>
 
-<span class='anchor' id='publications'></span>
+<div class="anchor" id="publications" aria-hidden="true"></div>
 
-# Selected Publications
+# Recent Publications
 
 <div class="publication-filter" role="group" aria-label="Choose which publications to show">
   <span class="publication-filter__label">Show</span>
   <button class="publication-filter__button is-active" type="button" data-publication-filter="selected" aria-pressed="true">Selected</button>
   <button class="publication-filter__button" type="button" data-publication-filter="all" aria-pressed="false">More</button>
+  <a class="publication-filter__button" href="{{ site.author.googlescholar | escape }}" target="_blank" rel="noopener noreferrer" aria-label="All publications on Google Scholar" title="All publications on Google Scholar">All</a>
   <span class="publication-filter__count" aria-live="polite"><span data-publication-count>3</span> papers</span>
 </div>
 
 <div class="publication-list" data-publication-list data-publication-mode="selected">
   <div class="publication-item" data-publication-selected="true">
     <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://arxiv.org/abs/2608.00903" target="_blank" rel="noopener noreferrer">
-        <span class="publication-tag conference">ECCV 2026</span>
         <img src="images/peca_eccv2026.gif" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
       </a>
-      <p class="publication-line"><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></p>
-    </div>
-  </div>
-  <div class="publication-item" data-publication-selected="true">
-    <div class="publication-item-inner">
-      <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
-        <span class="publication-tag conference">NeurIPS 2025</span>
-        <img src="images/NIPS25_TTR_VAD.png" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
-      </a>
-      <p class="publication-line"><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></p>
-    </div>
-  </div>
-  <div class="publication-item" data-publication-selected="true">
-    <div class="publication-item-inner">
-      <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=f1MYOG4iDG" target="_blank" rel="noopener noreferrer">
-        <span class="publication-tag journal">TMLR 2025</span>
-        <img src="images/timerep3.png" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
-      </a>
-      <p class="publication-line"><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></p>
     </div>
   </div>
   <div class="publication-item" data-publication-selected="false" hidden>
     <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://happy-new-bears.github.io/scav-project-page/">Whence the Voice? Self-supervised Dual-source Audio-Visual Localisation via Selective Convergence</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Yuqi Hou, Haotian Li, Hyung Jin Chang, Jianbo Jiao</span></div>
+      <a class="publication-thumb-wrap" href="https://happy-new-bears.github.io/scav-project-page/" target="_blank" rel="noopener noreferrer">
+        <img src="/images/papers/scav_eccv2026.png" alt="SCAV overview: selective convergence for dual-source audio-visual localisation" class="publication-thumb paper-preview" loading="lazy" width="2835" height="1151">
+      </a>
+    </div>
+  </div>
+  <div class="publication-item" data-publication-selected="true">
+    <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">NeurIPS 2025</span><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></div>
+      <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
+        <img src="images/NIPS25_TTR_VAD.png" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
+      </a>
+    </div>
+  </div>
+  <div class="publication-item" data-publication-selected="true">
+    <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag journal">TMLR 2025</span><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></div>
+      <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=f1MYOG4iDG" target="_blank" rel="noopener noreferrer">
+        <img src="images/timerep3.png" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
+      </a>
+    </div>
+  </div>
+  <div class="publication-item" data-publication-selected="false" hidden>
+    <div class="publication-item-inner">
+      <div class="publication-line"><span class="publication-tag conference">BMVC 2025</span><a href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf">Audio-Visual Separation with Hierarchical Fusion and Representation Alignment</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf" target="_blank" rel="noopener noreferrer">
-        <span class="publication-tag conference">BMVC 2025</span>
         <img src="/images/papers/audio_visual_separation_bmvc2025.png" alt="BMVC 2025 audio-visual separation method preview" class="publication-thumb paper-preview">
       </a>
-      <p class="publication-line"><a href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf">Audio-Visual Separation with Hierarchical Fusion and Representation Alignment</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao</span></p>
     </div>
   </div>
 </div>
 
-<span id='awards-services' aria-hidden='true'></span>
+<div id="awards-services" aria-hidden="true"></div>
 
 # Awards
 
@@ -112,8 +129,6 @@ Current Research Interests: Correspondences, Vision for Animation and Open Probl
 > 力強い竹の下には、さらに力強い根が張り巡らされている。<br>
 > Beneath the sturdy bamboo, even sturdier roots spread out.<br>
 > From:[『東方永夜抄 ～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4
-
-{% include music-player.html playlist="homepage" %}
 
 My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is 4, calculated via:
 
