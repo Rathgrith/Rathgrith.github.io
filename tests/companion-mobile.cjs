@@ -24,18 +24,9 @@ fs.mkdirSync(out, { recursive: true });
     });
     await p.goto(base);
     await p.locator("#live2d-widget").waitFor({ state: "attached" });
-    assert.equal(await p.locator("#live2d-widget").isVisible(), false);
-    assert.equal(
-      modelRequests,
-      0,
-      "No Live2D model request before mobile opt-in"
-    );
+    assert(await p.locator("#live2d-widget").isVisible());
     assert.equal(await p.locator(".classic-page-index").count(), 1);
     await p.screenshot({ path: out + "/mobile-default.png" });
-    await p.locator("[data-site-options-trigger]").click();
-    assert.match(await p.locator("[data-live2d-toggle]").textContent(), /開く/);
-    await p.locator("[data-live2d-toggle]").click();
-    await p.keyboard.press("Escape");
     await p.waitForFunction(
       () =>
         document.querySelector("#live2d-widget").dataset.dialogueState ===
@@ -43,6 +34,9 @@ fs.mkdirSync(out, { recursive: true });
       null,
       { timeout: 45000 }
     );
+    assert(modelRequests > 0, "Mobile loads its default companion without opt-in");
+    assert.equal(await p.evaluate(() => scrollY), 0, "Default opening must not jump to the page bottom");
+    assert.equal(await p.evaluate(() => localStorage.getItem("site-live2d-mobile-enabled")), null);
     const bounds = await p.evaluate(() => {
       const rect = (s) => document.querySelector(s).getBoundingClientRect();
       return {
@@ -75,9 +69,11 @@ fs.mkdirSync(out, { recursive: true });
     await p.setViewportSize({ width: 375, height: 812 });
     await p.waitForTimeout(150);
     assert.equal(await p.locator("#live2d-widget").isVisible(), false);
+    modelRequests = 0;
     await p.reload();
     await p.locator("#live2d-widget").waitFor({ state: "attached" });
     assert.equal(await p.locator("#live2d-widget").isVisible(), false);
+    assert.equal(modelRequests, 0, "An explicit mobile opt-out must still prevent model loading");
     await p.locator("[data-site-options-trigger]").click();
     await p.locator("[data-live2d-toggle]").click();
     await p.keyboard.press("Escape");
@@ -116,7 +112,7 @@ fs.mkdirSync(out, { recursive: true });
     );
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: mobile opt-in, no early model load, footer/index ordering, independent visibility and persistent canvas on navigation"
+      "PASS: mobile default-on without scroll jumps, persisted opt-out with no model load, footer/index ordering, independent visibility and persistent canvas on navigation"
     );
   } finally {
     await b.close();

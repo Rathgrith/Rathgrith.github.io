@@ -1,7 +1,7 @@
-/* Separate phone/tablet and desktop preferences; small screens start without Live2D. */
+/* Live2D starts enabled; phone/tablet and desktop keep separate saved preferences. */
 (function () {
   var mobile = matchMedia("(max-width: 999px)");
-  var preferences = { desktop: true, mobile: false };
+  var preferences = { desktop: true, mobile: true };
   var keys = {
     desktop: "site-live2d-enabled",
     mobile: "site-live2d-mobile-enabled",
