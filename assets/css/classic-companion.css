@@ -132,6 +132,10 @@
     17px/1 "W95FA",
     sans-serif;
 }
+#live2d-widget .companion-controls svg {
+  display: block;
+  margin: auto;
+}
 #live2d-widget [data-companion-content] {
   position: relative;
   display: grid;

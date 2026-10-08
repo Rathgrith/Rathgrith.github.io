@@ -443,6 +443,11 @@
       initLive2D();
   }
 
+  function resetCompanionPosition() {
+    companionPosition = null;
+    applyResponsiveSize();
+  }
+
   function ensureCompanionShell(widget) {
     var content = widget.querySelector("[data-companion-content]");
     if (content) return content;
@@ -453,6 +458,7 @@
       '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="ドラッグで移動・ダブルクリックで元の位置へ">',
       '<span id="companion-title" class="companion-title"><span data-companion-name>幻想通信</span></span>',
       '<div class="companion-controls">',
+      '<button type="button" data-companion-reset-position aria-label="元の位置へ" title="元の位置へ"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M1 1h6v2H4l6 6-1 1-6-6v3H1zM10 2h5v13H2v-5h2v3h9V4h-3z"/></svg></button>',
       '<button type="button" data-companion-minimize aria-label="最小化" aria-expanded="true" aria-controls="companion-content" title="最小化">_</button>',
       '<button type="button" data-companion-close aria-label="閉じる" title="閉じる">×</button>',
       "</div></div>",
@@ -462,6 +468,9 @@
       '<div class="companion-footer" data-companion-footer></div>',
       "</div>",
     ].join("");
+    widget
+      .querySelector("[data-companion-reset-position]")
+      .addEventListener("click", resetCompanionPosition);
     widget
       .querySelector("[data-companion-minimize]")
       .addEventListener("click", function () {
@@ -505,13 +514,14 @@
     titlebar.addEventListener("lostpointercapture", endDrag);
     titlebar.addEventListener("dblclick", function (event) {
       if (event.target.closest("button")) return;
-      companionPosition = null;
-      applyResponsiveSize();
+      resetCompanionPosition();
     });
     titlebar.addEventListener("keydown", function (event) {
       if (event.target !== titlebar) return;
       if (event.key === "Home") {
-        companionPosition = null;
+        event.preventDefault();
+        resetCompanionPosition();
+        return;
       } else {
         var directions = {
           ArrowLeft: [-1, 0],
@@ -556,10 +566,7 @@
         window.__siteLive2DDisplayLibraryPromise = null;
         initLive2D();
       },
-      resetPosition: function () {
-        companionPosition = null;
-        applyResponsiveSize();
-      },
+      resetPosition: resetCompanionPosition,
     });
   }
 
