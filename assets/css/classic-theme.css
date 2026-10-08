@@ -5,6 +5,7 @@ html {
     "W95FA", "Hiragino Kaku Gothic ProN", "Microsoft YaHei", Arial, sans-serif;
   --classic-desktop: #0c1119;
   --classic-pattern: url("../images/classic/patterns/alice.svg");
+  --classic-corner-art: url("../images/classic/corners/alice.png");
   --classic-chrome: #222c38;
   --classic-document: #141c27;
   --classic-soft: #2e4054;
@@ -39,6 +40,7 @@ html[data-live2d-character="marisa"] {
   --classic-document: #201e18;
   --classic-soft: #443b29;
   --classic-pattern: url("../images/classic/patterns/marisa.svg");
+  --classic-corner-art: url("../images/classic/corners/marisa.png");
   --classic-title: #51442b;
   --classic-title-end: #6b5c3d;
   --classic-accent: #e4c78c;
@@ -55,6 +57,7 @@ html[data-live2d-character="patchouli"] {
   --classic-document: #1e1928;
   --classic-soft: #41344f;
   --classic-pattern: url("../images/classic/patterns/patchouli.svg");
+  --classic-corner-art: url("../images/classic/corners/patchouli.png");
   --classic-title: #4a365f;
   --classic-title-end: #635078;
   --classic-accent: #cdb5e9;

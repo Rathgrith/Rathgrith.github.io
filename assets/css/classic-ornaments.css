@@ -1,0 +1,41 @@
+/* Static PC-98 still lifes: transparent ordered dithering, shared by all themes.
+   Keep artwork behind the surface content, never over text, focus or hit targets. */
+.classic-document {
+  --corner-size: 320px;
+  --corner-veil: 80%;
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--classic-document) var(--corner-veil), transparent),
+      color-mix(in srgb, var(--classic-document) var(--corner-veil), transparent)
+    ),
+    var(--classic-corner-art);
+  background-position: right top;
+  background-size: var(--corner-size) var(--corner-size);
+  background-repeat: no-repeat;
+}
+
+/* Tint the illustration into the observation/menu surface. The header remains solid. */
+#live2d-widget .vn-panel {
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--vn-panel) 86%, transparent),
+      color-mix(in srgb, var(--vn-panel) 86%, transparent)
+    ),
+    var(--classic-corner-art);
+  background-position: right top;
+  background-size: 240px 240px;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 599px) {
+  .classic-document {
+    --corner-size: 224px;
+    --corner-veil: 86%;
+  }
+}
+@media print, (forced-colors: active) {
+  .classic-document,
+  #live2d-widget .vn-panel {
+    background-image: none;
+  }
+}
