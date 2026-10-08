@@ -72,7 +72,8 @@
     q("[data-danmaku-lives]").textContent =
       "◆".repeat(s.lives) + "◇".repeat(3 - s.lives);
     q("[data-danmaku-bombs]").textContent = s.bombs;
-    q("[data-danmaku-bomb]").disabled = !s.bombs || s.phase !== "playing";
+    q("[data-danmaku-bomb]").disabled =
+      !s.bombs || s.phase !== "playing" || Boolean(s.spell) || s.countdown > 0;
     q("[data-danmaku-level]").textContent = s.level;
     q("[data-danmaku-graze]").textContent = s.grazes;
     root.dataset.danmakuState = s.phase;
@@ -225,6 +226,9 @@
   }
   function bomb() {
     if (game && game.bomb()) {
+      // The cooldown disables its button; move focus first so that the browser's
+      // implicit blur cannot accidentally pause a pointer-triggered spell.
+      canvas.focus({ preventScroll: true });
       syncHUD();
       q("[data-danmaku-announcement]").textContent =
         "霊撃。残り " + game.state.bombs;

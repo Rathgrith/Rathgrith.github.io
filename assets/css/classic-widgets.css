@@ -167,19 +167,3 @@
     transform: translate(-50%, -50%) scale(1.6);
   }
 }
-.home-loading-screen {
-  position: fixed;
-  z-index: var(--layer-loading);
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: var(--classic-desktop);
-  color: var(--classic-accent);
-  font: 20px var(--classic-font);
-  transition: opacity 160ms ease;
-  pointer-events: none;
-}
-.home-loading-screen.is-hidden {
-  opacity: 0;
-  visibility: hidden;
-}

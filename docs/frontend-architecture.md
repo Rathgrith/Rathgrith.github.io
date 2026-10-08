@@ -12,7 +12,8 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 | `classic-theme.css` | Three palettes, wallpaper, typeface and global stacking levels |
 | `classic-base.css` | Reset, shared primitives, hidden/accessibility rules and original cursors |
 | `classic-site.css` | Frame, header, profile, document typography, education, publications and responsive layout |
-| `classic-widgets.css` | Options menu, bounded hover previews, pixel click feedback and loading screen |
+| `classic-widgets.css` | Options menu, bounded hover previews and pixel click feedback |
+| `classic-loading.css` | Shared pixel prayer animation and bounded homepage entrance |
 | `classic-pages.css` | Gallery collections, cards and archive layout |
 | `classic-gallery-viewer.css` | Modal, original-image containment, controls and filmstrip |
 | `classic-weather.css` | Integrated observation dial; no independent mobile/global hiding rules |
@@ -46,6 +47,8 @@ Build Jekyll and serve `_site` first. Tests require Node and an installed Playwr
 node tests/companion-data.cjs
 node tests/danmaku-engine.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-browser.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-presentation.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/loading-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/site-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-resilience.cjs

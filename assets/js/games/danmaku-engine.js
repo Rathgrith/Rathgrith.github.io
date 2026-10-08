@@ -40,6 +40,8 @@
       playerId: player,
       enemyId: enemy,
       time: 0,
+      scroll: 0,
+      scrollSpeed: 16,
       score: 0,
       grazes: 0,
       hits: 0,
@@ -53,12 +55,12 @@
       bullets: [],
       shots: [],
       sparks: [],
-      flash: 0,
+      spell: null,
       wave: 0,
       focus: false,
     };
     var shotTimer = 0,
-      waveTimer = 0.5,
+      waveTimer = 0.3,
       seedState = (seed || 1977) >>> 0;
     function random() {
       seedState ^= seedState << 13;
@@ -81,7 +83,7 @@
       }
     }
     function bullet(x, y, angle, speed, color, shape, curve) {
-      if (state.bullets.length >= 560) return;
+      if (state.bullets.length >= 720) return;
       state.bullets.push({
         x: x,
         y: y,
@@ -97,8 +99,8 @@
     function emitWave() {
       var t = state.time,
         boss = state.boss,
-        n = Math.min(42, 10 + Math.floor(t / 12));
-      var speed = Math.min(130, 47 + t * 0.26),
+        n = Math.min(50, 14 + Math.floor(t / 8));
+      var speed = Math.min(155, 64 + t * 0.42),
         turn = state.wave++;
       var aim = Math.atan2(state.player.y - boss.y, state.player.x - boss.x);
       if (enemy === "alice") {
@@ -116,8 +118,8 @@
               "diamond"
             );
         }
-        if (turn % 3 === 2)
-          for (var a = -2; a <= 2; a++)
+        if (turn % 2 === 0)
+          for (var a = -3; a <= 3; a++)
             bullet(
               boss.x,
               boss.y + 12,
@@ -149,8 +151,8 @@
               -0.12
             );
         }
-        if (turn % 3 === 1)
-          for (var k = -2; k <= 2; k++)
+        if (turn % 2 === 1)
+          for (var k = -3; k <= 3; k++)
             bullet(
               boss.x,
               boss.y,
@@ -178,6 +180,32 @@
               element % 2 ? 0.1 : -0.1
             );
         }
+        if (turn % 2 === 0)
+          for (var fan = -3; fan <= 3; fan++)
+            bullet(
+              boss.x,
+              boss.y + 10,
+              aim + fan * 0.13,
+              speed * 1.15,
+              colors[turn % 5],
+              "orb"
+            );
+      }
+      // Alternating side volleys force movement across the radial patterns.
+      // They enter from the top of the arena, giving time to read the crossing.
+      if (t >= 12 && turn % 2 === 0) {
+        var originX = turn % 4 === 0 ? 16 : W - 16;
+        var sideAim = Math.atan2(state.player.y - 34, state.player.x - originX);
+        var spread = t >= 45 ? 3 : 2;
+        for (var lane = -spread; lane <= spread; lane++)
+          bullet(
+            originX,
+            34,
+            sideAim + lane * 0.16,
+            speed * 1.1,
+            cast[enemy].color,
+            enemy === "marisa" ? "star" : "diamond"
+          );
       }
     }
     function fire() {
@@ -211,13 +239,24 @@
       }
     }
     function bomb() {
-      if (state.phase !== "playing" || state.countdown > 0 || !state.bombs)
+      if (
+        state.phase !== "playing" ||
+        state.countdown > 0 ||
+        state.spell ||
+        !state.bombs
+      )
         return false;
       state.bombs--;
       state.score += state.bullets.length * 2;
       state.bullets.length = 0;
       state.player.invulnerable = 2.5;
-      state.flash = 0.75;
+      state.spell = {
+        id: player,
+        age: 0,
+        duration: 1.6,
+        x: state.player.x,
+        y: state.player.y,
+      };
       spark(state.player.x, state.player.y, cast[player].color, 24);
       return true;
     }
@@ -251,18 +290,29 @@
         return;
       }
       state.time += dt;
+      state.scrollSpeed = Math.min(88, 16 + state.time * 0.6);
+      state.scroll += state.scrollSpeed * dt;
       state.level = 1 + Math.floor(state.time / 20);
       state.score += dt * 20;
       state.boss.x = W / 2 + Math.sin(state.time * 0.65) * 52;
       state.boss.y = 54 + Math.sin(state.time * 0.9) * 9;
       p.invulnerable = Math.max(0, p.invulnerable - dt);
-      state.flash = Math.max(0, state.flash - dt);
+      if (state.spell) {
+        state.spell.age += dt;
+        if (state.spell.age >= state.spell.duration) state.spell = null;
+      }
       shotTimer -= dt;
       if (shotTimer <= 0) fire();
       waveTimer -= dt;
       if (waveTimer <= 0) {
         emitWave();
-        waveTimer += Math.max(0.19, 1.05 / (1 + state.time / 95));
+        waveTimer += Math.max(0.16, 0.7 / (1 + state.time / 65));
+      }
+      // The visible opening pulse also clears fresh bullets, rather than
+      // letting them immediately reappear inside the spell effect.
+      if (state.spell && state.spell.age < 0.65) {
+        state.score += state.bullets.length * 2;
+        state.bullets.length = 0;
       }
       state.shots = state.shots.filter(function (s) {
         if (s.homing) {

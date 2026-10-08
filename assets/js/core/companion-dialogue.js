@@ -357,7 +357,7 @@
       String(status === "loading")
     );
     q("[data-vn-load-label]").textContent =
-      status === "error" ? "接続できませんでした" : "読み込み中…";
+      status === "error" ? "接続できませんでした" : "少女祈祷中…";
 
     q("[data-vn-retry]").hidden = status !== "error";
     if (status === "ready" && !story) start("today");
@@ -404,8 +404,17 @@
       "afterbegin",
       '<div class="vn-scene-light" aria-hidden="true"></div><div class="vn-scene-caption" data-vn-location></div>'
     );
-    q(".companion-load-status").innerHTML =
-      '<span class="vn-loading-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span data-vn-load-label>読み込み中…</span><button type="button" data-vn-retry hidden>再試行</button>';
+    var loader = q(".companion-load-status");
+    loader.replaceChildren(
+      document.getElementById("prayer-loader-template").content.cloneNode(true)
+    );
+    loader
+      .querySelector("[data-prayer-label]")
+      .setAttribute("data-vn-load-label", "");
+    loader.insertAdjacentHTML(
+      "beforeend",
+      '<button type="button" data-vn-retry hidden>再試行</button>'
+    );
     q("[data-companion-content]").insertAdjacentHTML(
       "afterbegin",
       '<div class="vn-cast" aria-label="話し相手">' +

@@ -457,7 +457,7 @@
       '<button type="button" data-companion-close aria-label="閉じる" title="閉じる">×</button>',
       "</div></div>",
       '<div id="companion-content" data-companion-content>',
-      '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">読み込み中…</span></div>',
+      '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">少女祈祷中…</span></div>',
       '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">……</p></div>',
       '<div class="companion-footer" data-companion-footer></div>',
       "</div>",

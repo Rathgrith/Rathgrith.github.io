@@ -1,0 +1,187 @@
+/* Shared pixel prayer animation for the homepage entrance and model loading. */
+.prayer-loader {
+  --prayer-size: 76px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--classic-accent);
+  font:
+    12px/1.6 "Fusion Pixel",
+    "W95FA",
+    sans-serif;
+}
+.prayer-loader__seal {
+  position: relative;
+  display: block;
+  width: var(--prayer-size);
+  height: var(--prayer-size);
+}
+.prayer-loader__orbit {
+  position: absolute;
+  inset: 1px;
+  border: 1px dashed currentColor;
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: prayer-orbit 9s steps(36) infinite;
+}
+.prayer-loader__orbit::before,
+.prayer-loader__orbit::after {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  border: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+.prayer-loader__orbit::after {
+  transform: rotate(15deg);
+}
+.prayer-loader__cast {
+  position: absolute;
+  inset: 0 -5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+.prayer-loader__cast img {
+  display: block;
+  width: 26px;
+  height: auto;
+  image-rendering: pixelated;
+  opacity: 0.65;
+  animation: prayer-float 1.6s steps(4, end) infinite;
+}
+.prayer-loader__cast img:nth-child(2) {
+  animation-delay: -0.53s;
+}
+.prayer-loader__cast img:nth-child(3) {
+  animation-delay: -1.06s;
+}
+html[data-live2d-character="alice"] [data-prayer-character="alice"],
+html[data-live2d-character="marisa"] [data-prayer-character="marisa"],
+html[data-live2d-character="patchouli"] [data-prayer-character="patchouli"] {
+  opacity: 1;
+}
+.prayer-loader__label {
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+.prayer-loader__track {
+  display: flex;
+  gap: 4px;
+}
+.prayer-loader__track i {
+  display: block;
+  width: 5px;
+  height: 3px;
+  background: currentColor;
+  animation: prayer-pulse 1.4s steps(2, end) infinite;
+}
+.prayer-loader__track i:nth-child(2) {
+  animation-delay: -1.2s;
+}
+.prayer-loader__track i:nth-child(3) {
+  animation-delay: -1s;
+}
+.prayer-loader__track i:nth-child(4) {
+  animation-delay: -0.8s;
+}
+.prayer-loader__track i:nth-child(5) {
+  animation-delay: -0.6s;
+}
+.prayer-loader__track i:nth-child(6) {
+  animation-delay: -0.4s;
+}
+.prayer-loader__track i:nth-child(7) {
+  animation-delay: -0.2s;
+}
+.home-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-loading);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: var(--classic-accent);
+  background: var(--classic-desktop);
+  background-image: radial-gradient(
+    circle at center,
+    var(--classic-soft),
+    transparent 65%
+  );
+  transition:
+    opacity 180ms ease,
+    visibility 0s 180ms;
+  animation: prayer-failsafe 0s 6s forwards;
+}
+.home-loading-screen .prayer-loader {
+  --prayer-size: 144px;
+  gap: 20px;
+  padding: 32px;
+}
+.home-loading-screen .prayer-loader__cast {
+  gap: 7px;
+}
+.home-loading-screen .prayer-loader__cast img {
+  width: 38px;
+}
+.home-loading-screen .prayer-loader__label {
+  font-size: 16px;
+  letter-spacing: 4px;
+}
+.home-loading-screen.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+.no-js .home-loading-screen {
+  display: none;
+}
+#live2d-widget.has-live2d-error .prayer-loader__seal,
+#live2d-widget.has-live2d-error .prayer-loader__track {
+  display: none;
+}
+@keyframes prayer-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes prayer-float {
+  0%,
+  100% {
+    transform: translateY(2px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes prayer-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes prayer-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prayer-loader__orbit,
+  .prayer-loader__cast img,
+  .prayer-loader__track i {
+    animation: none;
+  }
+  .home-loading-screen {
+    transition: none;
+  }
+}
+@media print {
+  .home-loading-screen {
+    display: none;
+  }
+}

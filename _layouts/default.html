@@ -13,8 +13,8 @@
 
     {% include browser-upgrade.html %}
     {% if page.body_class == "home-page" and page.disable_home_loading != true %}
-      <div class="home-loading-screen" id="home-loading-screen" aria-live="polite" aria-label="Page loading">
-        <span class="home-loading-screen__label">Now Loading...</span>
+      <div class="home-loading-screen" id="home-loading-screen" role="status" lang="ja" aria-label="少女祈祷中…">
+        {% include prayer-loader.html %}
       </div>
     {% endif %}
     <a class="classic-skip-link" href="#main">Skip to content</a>
@@ -67,6 +67,7 @@
         ]
       };
     </script>
+    <template id="prayer-loader-template">{% include prayer-loader.html %}</template>
     <div hidden data-companion-weather-source>{% include weather-widget.html %}</div>
     {% include scripts.html %}
   </body>

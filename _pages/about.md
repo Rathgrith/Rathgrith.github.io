@@ -4,7 +4,6 @@ title: ""
 excerpt: ""
 author_profile: true
 body_class: home-page
-disable_home_loading: true
 disable_mouse_firework: true
 redirect_from:
   - /about/

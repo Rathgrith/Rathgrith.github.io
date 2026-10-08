@@ -272,41 +272,6 @@
 #live2d-widget.has-live2d-error .companion-load-status {
   display: flex;
 }
-#live2d-widget .vn-loading-icon {
-  display: grid;
-  grid-template-columns: repeat(2, 7px);
-  gap: 3px;
-  margin-bottom: 8px;
-  transform: rotate(45deg);
-}
-#live2d-widget .vn-loading-icon i {
-  width: 7px;
-  height: 7px;
-  background: var(--classic-accent);
-  animation: vn-pixel-load 1.2s steps(4, end) infinite;
-}
-#live2d-widget .vn-loading-icon i:nth-child(2) {
-  animation-delay: 0.15s;
-}
-#live2d-widget .vn-loading-icon i:nth-child(3) {
-  animation-delay: 0.45s;
-}
-#live2d-widget .vn-loading-icon i:nth-child(4) {
-  animation-delay: 0.3s;
-}
-@keyframes vn-pixel-load {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-#live2d-widget.has-live2d-error .vn-loading-icon i {
-  animation: none;
-  opacity: 0.4;
-}
 #live2d-widget .companion-conversation {
   position: relative;
   min-height: 0;
@@ -585,11 +550,6 @@ html body.live2d-is-hidden #live2d-widget {
   }
   #live2d-widget .companion-footer button {
     padding-inline: 5px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  #live2d-widget .vn-loading-icon i {
-    animation: none;
   }
 }
 @media print {

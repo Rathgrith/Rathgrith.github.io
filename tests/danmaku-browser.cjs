@@ -103,6 +103,12 @@ fs.mkdirSync(out, { recursive: true });
         .screenshot({ path: out + `/${player}-vs-${enemy}.png` });
       await page.keyboard.press("x");
       assert.equal(await page.evaluate(() => gameForQA.state.bombs), 1);
+      await page.waitForTimeout(350);
+      assert.equal(await page.evaluate(() => gameForQA.state.spell.id), player);
+      assert(await page.locator("[data-danmaku-bomb]").isDisabled());
+      await page
+        .locator("#live2d-widget")
+        .screenshot({ path: out + `/${player}-spell.png` });
       await page.keyboard.press("p");
       const t = await page.evaluate(() => gameForQA.state.time);
       await page.waitForTimeout(150);
@@ -113,6 +119,7 @@ fs.mkdirSync(out, { recursive: true });
       await page.evaluate(() => {
         const s = gameForQA.state;
         s.countdown = 0;
+        s.spell = null;
         s.lives = 1;
         s.player.invulnerable = 0;
         s.bullets.push({
@@ -285,6 +292,14 @@ fs.mkdirSync(out, { recursive: true });
     await mobile.waitForTimeout(1500);
     assert(
       Number(await mobile.locator("[data-danmaku-score]").textContent()) > 0
+    );
+    await mobile.locator("[data-danmaku-bomb]").click();
+    assert.equal(await mobile.evaluate(() => touchGame.state.bombs), 1);
+    assert.equal(await mobile.evaluate(() => touchGame.state.phase), "playing");
+    assert(
+      await mobile
+        .locator("[data-danmaku-canvas]")
+        .evaluate((el) => el === document.activeElement)
     );
     await mobile
       .locator("#live2d-widget")

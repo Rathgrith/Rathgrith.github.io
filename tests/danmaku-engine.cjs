@@ -17,7 +17,7 @@ for (const player of Object.keys(engine.cast))
     assert.equal(g.state.phase, "playing");
     assert(g.state.hits > 30 && g.state.score > 3000);
     assert(
-      g.state.bullets.length <= 560 &&
+      g.state.bullets.length <= 720 &&
         g.state.shots.length < 100 &&
         g.state.sparks.length <= 64
     );
@@ -79,6 +79,13 @@ assert(bomb.bomb());
 assert.equal(bomb.state.bullets.length, 0);
 assert.equal(bomb.state.bombs, 1);
 assert(bomb.state.player.invulnerable > 2);
+assert.equal(bomb.state.spell.id, "alice");
+assert(!bomb.bomb(), "Holding X cannot consume both charges together");
+tick(bomb, 0.5);
+assert.equal(bomb.state.bullets.length, 0, "Opening pulse clears fresh waves");
+assert(bomb.state.spell.age > 0.49);
+tick(bomb, 1.2);
+assert.equal(bomb.state.spell, null, "The visible spell expires after 1.6s");
 assert(bomb.bomb());
 assert(!bomb.bomb());
 bomb.pause();
@@ -88,6 +95,36 @@ assert.equal(JSON.stringify(bomb.state), snapshot);
 assert(!bomb.bomb());
 bomb.resume();
 assert(bomb.state.countdown > 0);
+const spellAge = bomb.state.spell.age,
+  scrollAtPause = bomb.state.scroll;
+tick(bomb, 0.5);
+assert.equal(bomb.state.spell.age, spellAge);
+assert.equal(
+  bomb.state.scroll,
+  scrollAtPause,
+  "Resume countdown freezes the scenery too"
+);
+for (const enemy of Object.keys(engine.cast)) {
+  const ramp = ready("marisa", enemy);
+  ramp.state.player.invulnerable = Infinity;
+  tick(ramp, 5);
+  assert(ramp.state.wave >= 7, "Opening waves should already apply pressure");
+  const speeds = [];
+  for (const t of [0, 30, 60, 120, 300]) {
+    ramp.state.time = t;
+    ramp.step(1 / 60);
+    speeds.push(ramp.state.scrollSpeed);
+  }
+  assert(
+    speeds[0] < speeds[1] && speeds[1] < speeds[2] && speeds[2] < speeds[3]
+  );
+  assert.equal(speeds[3], 88);
+  assert.equal(speeds[4], 88, "Scrolling speed has a comfortable upper bound");
+  ramp.pause();
+  const distance = ramp.state.scroll;
+  tick(ramp, 10);
+  assert.equal(ramp.state.scroll, distance);
+}
 const diagonal = ready(),
   horizontal = ready(),
   slow = ready();
@@ -109,5 +146,5 @@ tick(diagonal, 4, { target: { x: 9999, y: -999 } });
 assert.equal(diagonal.state.player.x, 231);
 assert.equal(diagonal.state.player.y, 28);
 console.log(
-  "PASS: all nine matchups, endless bosses, density ramp, three shot types, scoring, grazes, collisions, shields, bombs, pause and bounded movement"
+  "PASS: nine matchups, stronger density ramp, accelerating bounded scroll, shot types, scoring, collisions, timed spells, pause/countdown freeze and movement"
 );
