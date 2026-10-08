@@ -195,6 +195,13 @@ code {
     sans-serif;
   white-space: nowrap;
 }
+.classic-nav-icon {
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
 .classic-tab,
 .classic-button,
 .classic-tab:visited,
@@ -1067,6 +1074,10 @@ body.live2d-is-hidden .classic-companion-dock {
 
 /* Keep the reading index available once the profile has scrolled away. */
 @media (min-width: 1000px) {
+  .profile_box .author__avatar {
+    width: 90%;
+    max-width: 272px;
+  }
   html[data-weather-visible="false"] .classic-profile-rail {
     align-self: stretch;
   }
@@ -1222,6 +1233,9 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
     grid-template-columns: 100px minmax(125px, 1fr) minmax(180px, 1.2fr);
     gap: 14px;
   }
+  .profile_box .author__content {
+    align-self: start;
+  }
   .profile_box .author__urls-wrapper {
     grid-column: 3;
     grid-row: 1;
@@ -1311,15 +1325,21 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
     margin-left: 0;
   }
 }
+@media (max-width: 399px) {
+  .classic-tab {
+    flex-direction: column;
+    gap: 4px;
+    min-height: 54px;
+    padding: 6px;
+    font-size: 15px;
+  }
+}
 @media (max-width: 359px) {
   .classic-site-name {
     font-size: 16px;
   }
   .classic-masthead {
     padding-inline: 4px;
-  }
-  .classic-tab {
-    padding-inline: 6px;
   }
   .sidebar .profile_box {
     grid-template-columns: 80px minmax(0, 1fr);
