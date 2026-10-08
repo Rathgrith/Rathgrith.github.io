@@ -375,9 +375,11 @@
         widget.style.right =
         widget.style.bottom =
           "auto";
-      var dockHeight = Math.max(540, getDisplayConfig().height + 340);
-      widget.style.maxHeight = dockHeight + "px";
-      widget.style.setProperty("--vn-available-height", dockHeight + "px");
+      // A docked window participates in the page's flow. Dialogue choices and
+      // auxiliary panels can grow naturally; only the arcade needs a height budget.
+      var arcadeHeight = Math.max(540, getDisplayConfig().height + 340);
+      widget.style.maxHeight = "none";
+      widget.style.setProperty("--vn-available-height", arcadeHeight + "px");
       return;
     }
     if (!companionPosition) {

@@ -574,7 +574,7 @@ html body.live2d-is-hidden #live2d-widget {
   margin: 0;
 }
 
-/* Scene and auxiliary panels share a bounded viewport; only the active view scrolls. */
+/* Floating windows stay within the viewport; docked windows grow with their content. */
 #live2d-widget .vn-main-view {
   grid-area: 1 / 1;
   min-width: 0;
@@ -585,6 +585,14 @@ html body.live2d-is-hidden #live2d-widget {
 #live2d-widget.has-vn-panel .vn-main-view {
   visibility: hidden;
   overflow: clip;
+}
+#live2d-widget.is-docked [data-companion-content],
+#live2d-widget.is-docked .vn-panel {
+  max-height: none;
+}
+#live2d-widget.is-docked .vn-main-view,
+#live2d-widget.is-docked .vn-panel {
+  overflow: visible;
 }
 #live2d-widget .vn-panel > header {
   position: sticky;

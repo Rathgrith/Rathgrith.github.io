@@ -224,13 +224,17 @@ fs.mkdirSync(out, { recursive: true });
         contentOverflow:
           document.querySelector("[data-companion-content]").scrollWidth >
           e.clientWidth,
+        chatOverflows:
+          document.querySelector(".vn-main-view").scrollHeight >
+          document.querySelector(".vn-main-view").clientHeight + 1,
       };
     });
     assert(
       !info.overflow &&
         info.widgetFits &&
         !info.overlapsWide &&
-        !info.contentOverflow,
+        !info.contentOverflow &&
+        !info.chatOverflows,
       JSON.stringify(info)
     );
     assert.equal(info.docked, true);
