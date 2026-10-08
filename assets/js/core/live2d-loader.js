@@ -20,8 +20,6 @@
     { motionId: "02", hold: 1800 },
     { motionId: "01", hold: 12500 },
   ];
-  var DIALOGUE_HOLD_DURATION = 7200;
-  var INTERACTION_MOTION_DURATION = 1030;
   var CHARACTER_INTERACTIONS = {
     alice: [
       {
@@ -41,7 +39,7 @@
       {
         text: "人形が気になるの？ ふふっ、触ってみる？",
         source: "東方LostWord",
-        poseId: "1",
+        poseId: "5",
         expressionMotionId: "02",
         moods: ["cheerful", "curious"],
       },
@@ -49,13 +47,13 @@
         text: "少し部屋の片付けでもしたらどう？ 地震が来たら埋もれても知らないわよ？",
         source: "東方緋想天",
         poseId: "3",
-        expressionMotionId: "05",
+        expressionMotionId: "03",
         moods: ["cautious", "irritable"],
       },
       {
         text: "何体まで同時に操っても大丈夫かしら？",
         source: "東方緋想天",
-        poseId: "2",
+        poseId: "4",
         expressionMotionId: "01",
         moods: ["curious", "reflective"],
       },
@@ -72,14 +70,14 @@
         text: "イメージトレーニングは百戦百一勝！",
         source: "東方緋想天",
         poseId: "4",
-        expressionMotionId: "02",
+        expressionMotionId: "07",
         moods: ["confident", "cheerful"],
       },
       {
         text: "今年は森にも陽の光が差して暑いな。",
         source: "東方非想天則",
         poseId: "5",
-        expressionMotionId: "05",
+        expressionMotionId: "04",
         moods: ["irritable", "quiet"],
         weatherPhases: ["clear", "heat"],
       },
@@ -94,14 +92,14 @@
         text: "じゃあな。神社が壊れて元気がないんじゃないか？",
         source: "東方緋想天",
         poseId: "2",
-        expressionMotionId: "01",
+        expressionMotionId: "02",
         moods: ["mischievous", "confident"],
       },
       {
         text: "人形の首を沢山吊そうぜ。そうしたら晴れるに違いない。",
         source: "東方緋想天",
         poseId: "4",
-        expressionMotionId: "02",
+        expressionMotionId: "07",
         moods: ["mischievous", "cheerful", "mysterious"],
         weatherPhases: ["cloud", "rain", "storm"],
       },
@@ -109,7 +107,7 @@
         text: "耐水性に優れた本もあるんだな。それなら風呂の中でも読めそうだぜ。",
         source: "東方緋想天",
         poseId: "5",
-        expressionMotionId: "05",
+        expressionMotionId: "06",
         moods: ["curious", "mischievous"],
         weatherPhases: ["rain", "storm"],
       },
@@ -118,42 +116,42 @@
       {
         text: "どんな天気でも家の中に居れば関係ないけどね。",
         source: "東方緋想天",
-        poseId: "5",
+        poseId: "4",
         expressionMotionId: "01",
         moods: ["quiet", "detached"],
       },
       {
         text: "魔法の本質は万物の根源を調べること。",
         source: "東方非想天則",
-        poseId: "1",
-        expressionMotionId: "03",
+        poseId: "3",
+        expressionMotionId: "01",
         moods: ["curious", "reflective", "mysterious"],
       },
       {
         text: "また一つ、新たな知識を吸収することができたわ。",
         source: "東方LostWord",
-        poseId: "4",
+        poseId: "2",
         expressionMotionId: "02",
         moods: ["cheerful", "quiet"],
       },
       {
         text: "最近、また鼠の被害が増えているわ。",
         source: "東方非想天則",
-        poseId: "1",
+        poseId: "2",
         expressionMotionId: "05",
         moods: ["irritable", "cautious"],
       },
       {
         text: "人形を操っているのは魔法の糸だろうけど、沢山操るのは普通に器用よね。",
         source: "東方非想天則",
-        poseId: "1",
+        poseId: "3",
         expressionMotionId: "01",
         moods: ["curious", "reflective"],
       },
       {
         text: "雲一つ無い快晴は、時として生物に害を為す。日光は避けられない有害な物の一つね。",
         source: "東方緋想天",
-        poseId: "1",
+        poseId: "2",
         expressionMotionId: "03",
         moods: ["cautious", "reflective"],
         weatherPhases: ["clear", "heat"],
@@ -191,7 +189,6 @@
   var breathModel = null;
   var breathHandler = null;
   var breathStartedAt = 0;
-  var breathBaseValues = {};
   var partOpacityModel = null;
   var partOpacityHandler = null;
   var partOpacityActiveState = null;
@@ -204,6 +201,7 @@
   var interactionMotionTimer = 0;
   var interactionMotionGeneration = 0;
   var interactionMotionPending = false;
+  var requestedPoseId = "1";
   var fallbackCharacters = [
     {
       id: "marisa",
@@ -222,7 +220,6 @@
     {
       id: "patchouli",
       name: "Patchouli",
-      idleOnly: true,
       expressionMotionIds: DEFAULT_EXPRESSION_MOTION_IDS.slice(),
       modelPath:
         "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Patchouli/object_live2d_008_101.asset.model3.json",
@@ -285,10 +282,6 @@
       if (characters[i].id === characterId) return characters[i];
     }
     return null;
-  }
-
-  function isIdleOnlyCharacter(character) {
-    return Boolean(character && character.idleOnly);
   }
 
   function getDefaultCharacterId() {
@@ -918,7 +911,6 @@
 
   function startExpressionLoop(model, character) {
     stopExpressionLoop();
-    if (prefersReducedMotion()) return Promise.resolve();
 
     var motionIds =
       character.expressionMotionIds || DEFAULT_EXPRESSION_MOTION_IDS;
@@ -944,7 +936,7 @@
 
         var now = window.performance.now();
         var elapsed = Math.min(now - expressionLastUpdate, 80);
-        var blend = 1 - Math.exp(-elapsed / 520);
+        var blend = prefersReducedMotion() ? 1 : 1 - Math.exp(-elapsed / 260);
         expressionLastUpdate = now;
 
         Object.keys(expressionTargetValues).forEach(function (parameterId) {
@@ -965,7 +957,7 @@
       if (elements) {
         elements.widget.setAttribute("data-live2d-expression-id", "01");
       }
-      scheduleNextExpression();
+      if (!prefersReducedMotion()) scheduleNextExpression();
     });
   }
 
@@ -1051,53 +1043,34 @@
     breathModel = null;
     breathHandler = null;
     breathStartedAt = 0;
-    breathBaseValues = {};
     var elements = ensureWidget();
     if (elements) {
       elements.widget.removeAttribute("data-live2d-breathing");
     }
   }
 
-  function startBreathingLoop(model, character) {
+  function startBreathingLoop(model) {
     stopBreathingLoop();
-    if (
-      prefersReducedMotion() ||
-      !model ||
-      model !== currentModel ||
-      !isIdleOnlyCharacter(character)
-    ) {
+    if (prefersReducedMotion() || !model || model !== currentModel) {
       return;
     }
 
-    var coreModel = model.internalModel.coreModel;
     breathModel = model;
     breathStartedAt = window.performance.now();
-    breathBaseValues = {
-      ParamBodyWeight: coreModel.getParameterValueById("ParamBodyWeight"),
-      ParamLeftShoulderUpDown: coreModel.getParameterValueById(
-        "ParamLeftShoulderUpDown"
-      ),
-      ParamRightShoulderUpDown: coreModel.getParameterValueById(
-        "ParamRightShoulderUpDown"
-      ),
-    };
 
     breathHandler = function () {
       if (!breathModel || breathModel !== currentModel) return;
       var elapsed = (window.performance.now() - breathStartedAt) / 1000;
       var phase = Math.sin((elapsed * Math.PI * 2) / 5.8);
       var breathCoreModel = breathModel.internalModel.coreModel;
-      breathCoreModel.setParameterValueById(
-        "ParamBodyWeight",
-        breathBaseValues.ParamBodyWeight + phase * 0.32
-      );
-      breathCoreModel.setParameterValueById(
+      breathCoreModel.addParameterValueById("ParamBodyWeight", phase * 0.32);
+      breathCoreModel.addParameterValueById(
         "ParamLeftShoulderUpDown",
-        breathBaseValues.ParamLeftShoulderUpDown + phase * 0.12
+        phase * 0.12
       );
-      breathCoreModel.setParameterValueById(
+      breathCoreModel.addParameterValueById(
         "ParamRightShoulderUpDown",
-        breathBaseValues.ParamRightShoulderUpDown + phase * 0.12
+        phase * 0.12
       );
     };
 
@@ -1280,6 +1253,22 @@
       if (typeof partOpacityActiveState.frozenTime === "number") {
         motionTime = partOpacityActiveState.frozenTime;
       }
+      // Hold the selected pose after its transition. Cubism's idle/breathing
+      // update must not gradually restore the old arms, book or head angle.
+      var core = partOpacityModel.internalModel.coreModel;
+      var focus = partOpacityModel.internalModel.focusController;
+      var reducedMotion = prefersReducedMotion();
+      Object.keys(partOpacityActiveState.staticParameters).forEach(
+        function (id) {
+          var value = partOpacityActiveState.staticParameters[id];
+          if (!reducedMotion) {
+            if (id === "ParamAngleX") value += focus.x * 8;
+            if (id === "ParamAngleY") value += focus.y * 5;
+            if (id === "ParamBodyAngleX") value += focus.x * 2;
+          }
+          core.setParameterValueById(id, value);
+        }
+      );
       var visibleParts = [];
 
       partOpacityActiveState.curves.forEach(function (curve) {
@@ -1366,27 +1355,18 @@
       loop: shouldLoop !== false,
       startedAt: window.performance.now(),
       frozenTime: typeof frozenTime === "number" ? frozenTime : null,
+      staticParameters:
+        typeof frozenTime === "number" ? state.staticParameters || {} : {},
     };
   }
 
-  function applyStaticRestPose(model, character) {
-    if (!model || model !== currentModel || !character) {
+  function applyStaticPose(model, poseId) {
+    if (!model || model !== currentModel) {
       return Promise.resolve(false);
     }
 
     var requestGeneration = ++partOpacityRequestGeneration;
-    currentPoseId = "1";
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.setAttribute("data-live2d-motion-id", "static");
-      elements.widget.setAttribute("data-live2d-pose-id", "1");
-      elements.widget.setAttribute("data-live2d-resting", "true");
-    }
-    if (!isIdleOnlyCharacter(character)) {
-      preloadPoseMotions(model, "1");
-    }
-
-    return loadPartOpacityState(model, "11").then(function (state) {
+    return loadPartOpacityState(model, poseId + poseId).then(function (state) {
       if (
         requestGeneration !== partOpacityRequestGeneration ||
         model !== currentModel
@@ -1394,6 +1374,7 @@
         return false;
       }
 
+      model.internalModel.motionManager.stopAllMotions();
       var coreModel = model.internalModel.coreModel;
       Object.keys(state.staticParameters || {}).forEach(function (parameterId) {
         coreModel.setParameterValueById(
@@ -1408,6 +1389,10 @@
         );
       });
       activatePartOpacityState(model, state, false, 0);
+      currentPoseId = poseId;
+      companionWidget.setAttribute("data-live2d-pose-id", poseId);
+      companionWidget.setAttribute("data-live2d-motion-id", "static");
+      companionWidget.setAttribute("data-live2d-resting", "true");
       return true;
     });
   }
@@ -1464,8 +1449,9 @@
           }
         }
         activatePartOpacityState(model, loadedResources[0], shouldLoop);
-        if (prefersReducedMotion()) return false;
-        return model.motion("", motionIndex, 3);
+        return model.motion("", motionIndex, 3).then(function (started) {
+          return started ? loadedResources[0].duration * 1000 + 30 : 0;
+        });
       })
       .catch(function () {
         return false;
@@ -1496,21 +1482,15 @@
     if (elements) {
       elements.widget.setAttribute("data-live2d-expression-id", motionId);
     }
-    expressionTimer = window.setTimeout(function () {
-      if (!expressionModel || expressionModel !== currentModel) return;
-      expressionSequenceIndex = 0;
-      expressionTargetValues = expressionStatesByMotionId["01"] || {};
-      var resetElements = ensureWidget();
-      if (resetElements) {
-        resetElements.widget.setAttribute("data-live2d-expression-id", "01");
-      }
-      scheduleNextExpression();
-    }, DIALOGUE_HOLD_DURATION);
+    // Keep this line's face throughout typing, choices and reading. The next
+    // line, rather than a wall-clock timeout, supplies its replacement.
+    expressionTimer = 0;
   }
 
   function clearInteractionTimers() {
     interactionMotionGeneration += 1;
     interactionMotionPending = false;
+    requestedPoseId = "1";
     if (interactionMotionTimer) {
       window.clearTimeout(interactionMotionTimer);
       interactionMotionTimer = 0;
@@ -1528,32 +1508,53 @@
       !shouldRenderLive2D()
     )
       return;
-    var character = getCharacter(currentCharacterId);
     setInteractionExpression(interaction.expressionMotionId || "01");
-    if (interactionMotionPending || isIdleOnlyCharacter(character)) return;
+    requestedPoseId = /^[1-5]$/.test(interaction.poseId)
+      ? interaction.poseId
+      : "1";
+    companionWidget.setAttribute("data-live2d-requested-pose", requestedPoseId);
+    moveToRequestedPose();
+  }
+
+  function moveToRequestedPose() {
+    // Finish the current transition, then take the latest queued pose. Rapid
+    // next/topic clicks never drop the newest line or stack obsolete motions.
+    if (
+      interactionMotionPending ||
+      !currentModel ||
+      currentPoseId === requestedPoseId
+    )
+      return;
     var model = currentModel,
-      targetPose = interaction.poseId || "1";
-    if (currentPoseId === targetPose) return;
+      targetPose = requestedPoseId;
     var motionGeneration = ++interactionMotionGeneration;
     interactionMotionPending = true;
-    playMotionById(model, currentPoseId + targetPose, false).then(function () {
-      if (
-        motionGeneration !== interactionMotionGeneration ||
-        model !== currentModel
-      )
-        return;
-      interactionMotionTimer = window.setTimeout(function () {
-        if (
-          motionGeneration !== interactionMotionGeneration ||
-          model !== currentModel
-        )
-          return;
-        currentPoseId = targetPose;
+    function isCurrent() {
+      return (
+        motionGeneration === interactionMotionGeneration &&
+        model === currentModel
+      );
+    }
+    function settle() {
+      if (!isCurrent()) return;
+      applyStaticPose(model, targetPose).then(function () {
+        if (!isCurrent()) return;
         interactionMotionPending = false;
-        companionWidget.setAttribute("data-live2d-pose-id", targetPose);
         preloadPoseMotions(model, targetPose);
-      }, INTERACTION_MOTION_DURATION);
-    });
+        moveToRequestedPose();
+      });
+    }
+    if (prefersReducedMotion()) {
+      settle();
+      return;
+    }
+    playMotionById(model, currentPoseId + targetPose, false).then(
+      function (duration) {
+        if (!isCurrent()) return;
+        if (!duration) settle();
+        else interactionMotionTimer = window.setTimeout(settle, duration);
+      }
+    );
   }
 
   function destroyCurrentModel() {
@@ -1586,9 +1587,7 @@
       fitCurrentModel();
       updateInteractionUI(character);
       window.SiteCompanion.setReady("ready");
-      return applyStaticRestPose(currentModel, character).then(function () {
-        return currentModel;
-      });
+      return Promise.resolve(currentModel);
     }
 
     window.SiteCompanion.setReady("loading");
@@ -1623,7 +1622,8 @@
           focusModelAtRest(true);
         }
         startPartOpacityGuard(model);
-        var restPoseReady = applyStaticRestPose(model, character);
+        var restPoseReady = applyStaticPose(model, "1");
+        preloadPoseMotions(model, "1");
         var expressionReady = startExpressionLoop(model, character).catch(
           function () {
             // Keep the model usable if optional expression data fails to load.
@@ -1636,7 +1636,7 @@
             return null;
           startEyeBlinkLoop(model);
           startLipSyncLoop(model);
-          startBreathingLoop(model, character);
+          startBreathingLoop(model);
           window.SiteCompanion.setReady("ready");
           return model;
         });
@@ -1713,6 +1713,13 @@
   function selectCharacter(characterId) {
     var character = getCharacter(characterId);
     if (!character) return;
+    if (
+      currentModel &&
+      currentCharacterId === character.id &&
+      getSelectedCharacterId() === character.id &&
+      !companionWidget.classList.contains("is-loading")
+    )
+      return;
     var selectionGeneration = ++modelLoadGeneration;
     persistSelectedCharacter(character.id);
     syncCharacterTheme(character.id);

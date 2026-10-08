@@ -1,6 +1,18 @@
 const assert = require("node:assert/strict");
 require("../assets/js/data/companion-dialogues.js");
 const d = globalThis.CompanionStories;
+function checkActing(line) {
+  assert.match(
+    line.expressionMotionId,
+    /^0[1-8]$/,
+    "Every line needs an explicit expression"
+  );
+  assert.match(
+    line.poseId,
+    /^[1-5]$/,
+    "Every line needs an explicit supported body pose"
+  );
+}
 let lines = 0;
 for (const [id, c] of Object.entries(d.characters)) {
   assert.equal(new Set(c.greetings.map((l) => l.text)).size, 4);
@@ -47,7 +59,10 @@ for (const [id, c] of Object.entries(d.characters)) {
   assert.equal(d.story(id, "weather", 0, {}).lines[0], c.weather.unknown);
   function count(o) {
     if (!o || typeof o !== "object") return;
-    if (o.text) lines++;
+    if (o.text) {
+      lines++;
+      checkActing(o);
+    }
     Object.values(o).forEach(count);
   }
   count(c);
@@ -69,10 +84,31 @@ for (const [speaker, entries] of Object.entries(globalThis.CompanionRemarks)) {
   entries.forEach((e) => {
     assert(e.id !== speaker && e.name && /[ぁ-んァ-ヶ]/.test(e.text));
     assert(!/[<>]/.test(e.text));
+    checkActing(e);
     people.add(e.id);
     remarks++;
   });
 }
 console.log(
   `PASS: ${remarks} Japanese remarks covering ${people.size} characters/groups`
+);
+
+const loader = require("node:fs").readFileSync(
+  require("node:path").join(__dirname, "../assets/js/core/live2d-loader.js"),
+  "utf8"
+);
+const originals = require("node:vm").runInNewContext(
+  "(" +
+    loader
+      .split("var CHARACTER_INTERACTIONS = ")[1]
+      .split(";\n  var preferenceStorageKey")[0] +
+    ")"
+);
+for (const [id, entries] of Object.entries(originals)) {
+  assert.equal(entries.length, 6);
+  entries.forEach(checkActing);
+}
+assert.equal(lines + remarks + 18, 135);
+console.log(
+  "PASS: all 135 dialogue lines have explicit expression and pose direction"
 );

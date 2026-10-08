@@ -4,7 +4,7 @@ The homepage uses a local, scripted visual-novel system. It needs no chat API, A
 
 ## Controls
 
-- At 1000px and above, the window starts below the profile in the left rail. The page and profile grow proportionally inside a 1760px frame without reserving a right lane. On pages without a profile, the desktop window floats.
+- At 1000px and above, the window starts below the in-page navigation in the left rail (portrait/profile → navigation → companion). This order is restored after resizing back from mobile and after soft navigation. The page and profile grow proportionally inside a 1760px frame without reserving a right lane. On pages without a profile, the desktop window floats.
 - Below 1000px it is hidden by default and requests no model. When opened, it docks at the page bottom after the in-page index. The existing index is moved, not duplicated. Desktop and compact-screen visibility have separate saved preferences.
 - Drag the title bar to move; arrow keys move 10px (Shift: 1px). Home, double-click or 設定 → 元の位置へ restores the current layout’s dock. Close is reversible through Options → Live2D を開く. Opening on mobile scrolls to the window.
 - Click the dialogue / press Enter or Space while it is focused to complete typing or continue. The primary button does the same. Auto waits for reading time, and never chooses a response for the visitor.
@@ -47,6 +47,26 @@ The remarks are new writing, not copied winning quotes. Metadata and research no
 The three empty-room backgrounds were made with the built-in imagegen tool. [All final prompts](../assets/images/classic/scenes/PROMPTS.md) are stored with the scene PNGs. The close-up preserves the existing Live2D model, motion, expression, blink and breathing logic. The background has a 1.25px defocus and three faint blurred light spots, on separate layers behind the sharp model.
 
 Lighting uses a single PIXI fragment-filter pass over the visible model canvas. Alice receives cool window light with a little warm fill; Marisa receives amber lamplight with cool fill; Patchouli receives violet ambient/window light with warm fill. A directional falloff and lower-body shading give the close-up depth. Night and precipitation adjust the light; strength changes the rendered RGB values while retaining the rig's alpha. This is stylized 2D relighting, not geometry/normal-based physical illumination. The background's translucent light layer follows the same strength. Zero strength or disabling 環境光 restores the model's original colors. No additional animation loop or network request is introduced.
+
+## Dialogue performance
+
+All 135 lines have explicit `expressionMotionId` and `poseId`: 99 everyday/affinity/holiday lines, 18 acquaintance remarks and 18 existing quotations. Japanese text is unchanged. Directions were assigned after inspecting the three original rigs' eight faces and five body poses. These are rendered with the existing Cannonball models; no replacement model is installed.
+
+Expressions use the rigs' authored presets: 01 neutral, 02 gentle smile, 03 serious/firm, 04 troubled, 05 annoyed, 06 surprised, 07 amused/confident, 08 tired/downcast. Their intensity differs between characters. Expressions interpolate over about 260ms and remain with the current line through typing, choices and reading; there is no timed reset to an unrelated idle smile.
+
+| Pose | Alice | Marisa | Patchouli |
+| --- | --- | --- | --- |
+| 1 | Hand at chest | Hands on hips | Holding book to chest |
+| 2 | Hand near cheek, other at hip | One hand on hip | Both hands on book |
+| 3 | Arms lowered | Relaxed lowered arm | Open palm while explaining |
+| 4 | Hand at chin | Touching hat brim | Book raised, looking down to read |
+| 5 | Open palm, presenting | Both palms open/shrug | Book against cheek/chest, head tilted |
+
+Alice uses restrained invitations and a thinking pose for craft; Marisa uses her hat gesture for confident greetings and open palms for jokes; Patchouli uses her book and a small teaching gesture. For example, Patchouli's complaint about Marisa uses 05/2, while her Sakuya remark uses 02/2. No random reaction or keyword inference overrides a line's direction.
+
+Body transitions use the rig's authored `from+to` motion and its actual duration. The destination's static pose/hand layers are then held, with small breathing and bounded pointer focus. Fast next/topic clicks retain only the latest requested pose after the current transition, while the face changes immediately. Patchouli's former idle-only gate is removed. Reduced-motion preferences keep the authored face and pose but apply them without animated transitions. Character changes invalidate pending motion callbacks, and resizing/navigation keep the current performance.
+
+The redrawn Alice portrait is `images/avatars/alice-portrait.png`, made with built-in imagegen using the supplied Marisa/Patchouli portraits as style references. Its [full prompt](../images/avatars/alice-portrait.prompt.txt) is retained next to the asset. The previous Alice image remains available, but is no longer the active avatar.
 
 ## Code map
 

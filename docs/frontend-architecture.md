@@ -20,7 +20,7 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 
 The native `hidden` attribute wins globally. The active styles do not depend on increasing `html.classic-root body.classic-site` specificity to defeat another template. Site options, companion, previews, modal and loading layers are ordered through theme variables. Each component uses small local layers within its own stacking context.
 
-At 1000px the profile becomes a rail. Below that it sits above the document, and below 600px contacts move under the portrait. At the same breakpoint the companion docks under the profile; the desktop uses proportional columns and a 1760px frame, with no right lane. Compact screens hide the companion by default; opening it reveals a bottom dock after the in-page index. Independent compact/desktop visibility preferences survive resize and reload. Publication rows and education use container queries for their available content width.
+At 1000px the profile becomes a rail. Below that it sits above the document, and below 600px contacts move under the portrait. At the same breakpoint the companion docks under the in-page navigation in the profile rail; the desktop uses proportional columns and a 1760px frame, with no right lane. Compact screens hide the companion by default; opening it reveals a bottom dock after the in-page index. Independent compact/desktop visibility preferences survive resize and reload. Publication rows and education use container queries for their available content width.
 
 Gallery cards always crop to 4:3. The viewer and its placeholder always contain the original aspect ratio. The filmstrip eagerly loads its bounded thirteen-image neighborhood. Hover previews use fixed positioning clamped to the viewport, and do not participate in page overflow while hidden.
 
@@ -47,6 +47,7 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-resilience.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-mobile.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-lighting.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-performance.cjs
 ```
 
 Screenshots go to the system temporary directory by default; set `QA_OUTPUT` to retain them elsewhere. Software Chrome rendering is used for consistent captures on the development Mac.
@@ -57,6 +58,7 @@ Validated on 2026-10-08:
 - Gallery at seven widths, all 110 thumbnail crops, full-size containment, keyboard navigation/focus, browser history, and useful static links with JavaScript disabled.
 - Companion at twelve widths plus 600×360 landscape: text and primary action remain visible, dock placement and detached window bounds stay correct, short settings panels scroll independently.
 - All 99 Japanese everyday lines plus 18 acquaintance remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups.
+- Explicit directions on all 135 lines (including 18 existing quotations), all 15 rendered body poses and hand layers, Patchouli's reading angle, sustained facial expressions, and the latest-line motion queue. Desktop index/dock ordering also survives breakpoint changes.
 - Saved affinity/text speed, per-character isolation, typewriter completion, minimized pause, auto stopping for choices, single instances across soft navigation, close/reopen and keyboard movement.
 - Fresh mobile visits do not load a model; opt-in, page-bottom/index order, separate desktop/mobile visibility, reload and soft-navigation retention are checked.
 - Simulated model/CDN and weather failure, model retry, rapid character switching, blocked localStorage, reduced motion and the Halloween branch in the UI.

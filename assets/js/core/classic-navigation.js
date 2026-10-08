@@ -22,7 +22,11 @@
     var index = document.querySelector(".classic-page-index");
     if (!rail || !footer || !index) return;
     var parent = window.innerWidth < 1000 ? footer : rail;
-    if (index.parentNode !== parent) parent.appendChild(index);
+    if (parent === rail) {
+      var dock = rail.querySelector("[data-companion-dock]");
+      if (index.parentNode !== rail || index.nextElementSibling !== dock)
+        rail.insertBefore(index, dock);
+    } else if (index.parentNode !== parent) parent.appendChild(index);
   }
   matchMedia("(max-width: 999px)").addEventListener("change", placePageIndex);
   document.addEventListener("site:content-updated", placePageIndex);

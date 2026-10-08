@@ -281,7 +281,7 @@
         return;
       }
       story = {
-        lines: [{ text: remark.text, expressionMotionId: "01", poseId: "1" }],
+        lines: [remark],
         label: remark.name,
       };
     } else if (lastTopic === "original") {
