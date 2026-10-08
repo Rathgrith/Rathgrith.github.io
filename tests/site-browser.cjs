@@ -66,7 +66,7 @@ fs.mkdirSync(out, { recursive: true });
             navOneRow: tabs.every((r) => Math.abs(r.top - tabs[0].top) < 1),
             portraitSquare: Math.abs(portrait.width - portrait.height) < 1,
             logos: [
-              ...document.querySelectorAll(".author__affiliation img"),
+              ...document.querySelectorAll(".classic-education .inline-school-icon"),
             ].map((e) => {
               let r = e.getBoundingClientRect();
               return [r.width, r.height, getComputedStyle(e).objectFit];
@@ -81,7 +81,7 @@ fs.mkdirSync(out, { recursive: true });
           JSON.stringify({ id, width, ...geometry })
         );
         assert(geometry.footerHeight < 130);
-        geometry.logos.forEach((x) => assert.deepEqual(x, [28, 28, "contain"]));
+        geometry.logos.forEach((x) => assert.deepEqual(x, [16, 16, "contain"]));
         checks++;
         if ([375, 768, 1440].includes(width))
           await page.screenshot({ path: out + `/home-${id}-${width}.png` });

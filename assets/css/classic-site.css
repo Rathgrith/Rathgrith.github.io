@@ -439,6 +439,10 @@ body.gallery-page.classic-site .page__content h1::before {
   line-height: 1.4;
 }
 .classic-education a {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
   font-size: 16px;
   line-height: 1.5;
   text-decoration: none;
@@ -449,6 +453,7 @@ body.gallery-page.classic-site .page__content h1::before {
 .classic-education .inline-school-icon {
   width: 16px;
   height: 16px;
+  margin: 4px 0 0;
 }
 @container (max-width: 519px) {
   .page__content .classic-education li {
@@ -737,43 +742,6 @@ html[data-live2d-character="patchouli"]
 }
 .profile_box .author__urls_sm {
   display: none;
-}
-.author__affiliations {
-  display: block;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-.profile_box .author__affiliations-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 34px);
-  justify-content: start;
-  gap: 8px;
-  width: max-content;
-  max-width: 100%;
-  margin: 0;
-}
-.profile_box .author__affiliation {
-  width: 34px;
-  height: 34px;
-  min-width: 0;
-  min-height: 0;
-  aspect-ratio: 1;
-  padding: 3px;
-  border: 0;
-  border-radius: 0;
-  background: #c4c9d0;
-  box-shadow: inset 0 0 0 1px var(--classic-edge-light);
-}
-.profile_box .author__affiliation img,
-.profile_box .author__affiliation img.author__affiliation-logo--round {
-  display: block;
-  width: 28px;
-  height: 28px;
-  max-width: 28px;
-  max-height: 28px;
-  margin: 0;
-  object-fit: contain;
 }
 .profile_box .author__urls .classic-contact-icon {
   display: block;
