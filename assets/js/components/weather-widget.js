@@ -311,7 +311,7 @@
         current.time,
         payload.timezone_abbreviation
       );
-      temperatureNode.textContent = temperature + "°";
+      temperatureNode.textContent = temperature + "°C";
       humidityNode.textContent = humidity + "%";
       windNode.textContent = wind + " km/h";
       rangeNode.textContent = high + "° / " + low + "°";

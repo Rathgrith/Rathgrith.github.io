@@ -366,8 +366,8 @@
     if (!root) return;
     var weather = window.__siteWeather;
     q("[data-vn-weather-summary]").textContent = weather
-      ? weather.location + " · " + weather.temperature + "°C · " + weather.name
-      : "天気を観測中…";
+      ? weather.temperature + "°C · " + weather.name
+      : "観測中…";
     root.dataset.sceneTime = weather
       ? weather.isDay
         ? "day"
@@ -441,12 +441,12 @@
       '<button type="button" data-vn-open="topics" aria-expanded="false">話題</button><button type="button" data-vn-auto aria-pressed="false">自動</button><button type="button" data-vn-open="history" aria-expanded="false">履歴</button><button type="button" data-vn-open="settings" aria-expanded="false">設定</button><button type="button" id="live2d-interact" class="live2d-interact">次へ ▸</button>';
     q("[data-companion-content]").insertAdjacentHTML(
       "beforeend",
-      '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span aria-hidden="true">◇</span><span data-vn-weather-summary>天気を観測中…</span><span aria-hidden="true">▴</span></button>' +
+      '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span class="vn-weather-brand">非想天則</span><span data-vn-weather-summary>観測中…</span><span aria-hidden="true">▴</span></button>' +
         '<section class="vn-panel" data-vn-panel="topics" hidden aria-label="話題"><header>話題<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list"><button type="button" data-vn-topic-start="today">今日のこと</button><button type="button" data-vn-topic-start="craft">魔法の話</button><button type="button" data-vn-topic-start="friends">友人のこと</button><button type="button" data-vn-topic-start="rest">お茶にしましょう</button><button type="button" data-vn-topic-start="weather">窓の向こう</button><button type="button" data-vn-topic-start="original">思い出</button></div></section>' +
         '<section class="vn-panel" data-vn-panel="friends" hidden aria-label="友人のこと"><header>友人のこと<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-friends-list" data-vn-friends-list></div></section>' +
         '<section class="vn-panel" data-vn-panel="settings" hidden aria-label="設定"><header>設定<button type="button" data-vn-close aria-label="閉じる">×</button></header><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光</label><label for="vn-light-strength">光の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
         '<section class="vn-panel" data-vn-panel="history" hidden aria-label="履歴"><header>履歴<button type="button" data-vn-close aria-label="閉じる">×</button></header><ol class="vn-history" data-vn-history-list></ol></section>' +
-        '<section class="vn-panel" data-vn-panel="weather" hidden aria-label="天気"><header>天気<button type="button" data-vn-close aria-label="閉じる">×</button></header><div data-vn-weather-mount></div><button type="button" data-vn-topic-start="weather">空の話をする ▸</button></section>'
+        '<section class="vn-panel" data-vn-panel="weather" hidden aria-labelledby="vn-weather-title"><header><h2 class="vn-weather-title" id="vn-weather-title">非想天則</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div data-vn-weather-mount></div><button class="vn-weather-talk" type="button" data-vn-topic-start="weather">空の話をする ▸</button></section>'
     );
     var content = q("[data-companion-content]");
     var mainView = document.createElement("div");
@@ -528,9 +528,7 @@
     document.addEventListener("site:weather-updated", syncWeather);
     document.addEventListener("site:weather-error", function () {
       q("[data-vn-weather-summary]").textContent = window.__siteWeather
-        ? window.__siteWeather.location +
-          " · " +
-          window.__siteWeather.temperature +
+        ? window.__siteWeather.temperature +
           "°C · 更新できませんでした"
         : "天気を取得できません";
     });

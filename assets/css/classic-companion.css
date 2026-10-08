@@ -526,19 +526,6 @@
   color: var(--vn-ink);
   font-size: 12px;
 }
-#live2d-widget .weather-dial {
-  display: block;
-  width: 100%;
-  max-width: none;
-  margin: 0 0 14px;
-  padding: 0;
-}
-#live2d-widget .weather-dial__bezel {
-  background: var(--vn-panel);
-}
-#live2d-widget .weather-dial__status {
-  color: var(--vn-muted);
-}
 html body.live2d-is-hidden #live2d-widget {
   display: none;
 }
@@ -601,11 +588,4 @@ html body.live2d-is-hidden #live2d-widget {
   margin: -14px -14px 18px;
   padding: 14px;
   background: var(--vn-panel);
-}
-
-#live2d-widget .weather-dial {
-  font-family: var(--vn-font);
-}
-#live2d-widget .weather-dial__title {
-  font: 12px/1.5 var(--vn-font);
 }
