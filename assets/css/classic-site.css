@@ -925,7 +925,17 @@ html[data-live2d-character="patchouli"]
 }
 @container (max-width: 499px) {
   .publication-item {
-    padding: 20px 0;
+    padding: 12px;
+    border: 1px solid;
+    border-color: var(--classic-edge-light) var(--classic-edge-dark)
+      var(--classic-edge-dark) var(--classic-edge-light);
+    background: var(--classic-chrome);
+    box-shadow:
+      inset 0 0 0 1px var(--classic-edge-mid),
+      2px 2px 0 var(--classic-edge-dark);
+  }
+  .publication-item + .publication-item {
+    margin-top: 18px;
   }
   .publication-item-inner {
     grid-template-columns: minmax(0, 1fr);
@@ -940,20 +950,18 @@ html[data-live2d-character="patchouli"]
   .publication-tag {
     display: flex;
     align-items: center;
-    width: 100%;
-    margin-bottom: 9px;
-    color: var(--classic-accent);
+    width: calc(100% + 24px);
+    max-width: none;
+    margin: -12px -12px 12px;
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--classic-edge-mid);
+    background: var(--classic-title);
+    color: var(--text);
     font-size: 13px;
   }
   .publication-tag::before {
     flex: 0 0 5px;
     margin-bottom: 0;
-  }
-  .publication-tag::after {
-    content: "";
-    flex: 1;
-    margin-left: 10px;
-    border-top: 1px solid var(--border);
   }
   .publication-authors {
     margin-top: 7px;
