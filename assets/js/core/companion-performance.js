@@ -74,8 +74,10 @@
       lineAt = time;
       phraseAt = -10;
       effectAt = time;
-      reactionType = line.effect === "none" ? "" :
-        ({ "02": "sparkle", "04": "sweat", "05": "anger", "06": "surprise", "07": "sparkle", "08": "sigh" })[faceId] || "";
+      // A smile can be polite, shy, amused or proud. The dialogue author
+      // chooses the accent; a face alone must never imply sparkling stars.
+      reactionType = scope.CompanionReactions && scope.CompanionReactions.types.indexOf(line.effect) >= 0
+        ? line.effect : "";
       if (reaction) reaction.draw(reactionType, 0, { x: 0, y: 0 }, reduced());
       nextAccent = time + 0.7;
       stopSpeaking();
@@ -187,10 +189,11 @@
       }
       var effectAge = time - effectAt;
       var effect = quiet ? 0 : smooth(effectAge / 0.16) * (1 - smooth((effectAge - 1.1) / 0.85));
-      if (faceId === "02" || faceId === "07") {
+      if (reactionType === "blush")
         core.addParameterValueById("ParamCheek", effect * (character === "alice" ? 0.48 : 0.28));
+      if (reactionType === "sparkle" || reactionType === "idea") {
         core.setParameterValueById("ParamEyeHiLightShake", effect * (character === "marisa" ? 1.7 : 0.7));
-      } else if (faceId === "06") {
+      } else if (reactionType === "surprise") {
         core.setParameterValueById("ParamEyeHiLightShake", effect * 2.5);
       }
       if (character === "marisa" && faceId === "07")

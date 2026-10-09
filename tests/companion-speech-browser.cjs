@@ -47,21 +47,30 @@ fs.mkdirSync(out, {recursive:true});
       assert(Math.max(...frames.map(f=>f.jaw))>0.25);
       await page.waitForTimeout(250);
       assert((await page.evaluate(()=>actingFrames.at(-1).jaw))<0.01);
-      for(const [face,effect] of [['02','sparkle'],['04','sweat'],['05','anger'],['06','surprise'],['08','sigh']]) {
-        await page.evaluate(face=>actingHooks.perform({poseId:'1',expressionMotionId:face}),face);
+      // Exercise the real next-line path, rather than only injecting expressions.
+      await page.locator('#live2d-interact').click();
+      const directed = {alice:'question',marisa:'sparkle',patchouli:'question'}[id];
+      assert.equal(await page.locator('.vn-reaction').getAttribute('data-reaction'),directed);
+      await page.locator('#live2d-interact').click(); // Finish typing before isolated FX checks.
+      for (const effect of [undefined, 'none', 'unsupported']) {
+        await page.evaluate(effect=>actingHooks.perform({poseId:'1',expressionMotionId:'02',effect}),effect);
+        assert.equal(await page.locator('.vn-reaction').isVisible(),false,'A smile must not imply any icon');
+      }
+      for(const [face,effect] of [['02','sparkle'],['04','sweat'],['05','anger'],['06','surprise'],['08','sigh'],['02','music'],['01','question'],['07','blush'],['01','idea']]) {
+        await page.evaluate(({face,effect})=>actingHooks.perform({poseId:'1',expressionMotionId:face,effect}),{face,effect});
         await page.waitForTimeout(380);
         const icon=page.locator('.vn-reaction');
         assert.equal(await icon.count(),1,'Character replacement must clean up the old reaction');
         assert.equal(await icon.getAttribute('data-reaction'),effect);
         assert(await icon.isVisible());
-        if(face==='02') assert((await page.evaluate(()=>actingFrames.at(-1).cheek))>1.1);
-        if(face==='06') assert((await page.evaluate(()=>actingFrames.at(-1).highlight))>1);
-        if(['02','04','06'].includes(face)) await page.locator('[data-companion-stage]').screenshot({path:`${out}/${id}-${effect}.png`});
+        if(effect==='blush') assert((await page.evaluate(()=>actingFrames.at(-1).cheek))>1.1);
+        if(effect==='surprise') assert((await page.evaluate(()=>actingFrames.at(-1).highlight))>1);
+        if(['music','question','blush','idea'].includes(effect)) await page.locator('[data-companion-stage]').screenshot({path:`${out}/${id}-${effect}.png`});
       }
       await page.waitForTimeout(2100);
       assert.equal(await page.locator('.vn-reaction').isVisible(),false,'Effects are transient');
     }
-    await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06'}));
+    await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06',effect:'surprise'}));
     await page.waitForTimeout(300);
     await page.locator('[data-companion-minimize]').click();
     await page.waitForTimeout(50);
@@ -77,7 +86,7 @@ fs.mkdirSync(out, {recursive:true});
     for(const width of [320,375,768,1440]) {
       await page.setViewportSize({width,height:1000});
       await page.waitForTimeout(150);
-      await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06'}));
+      await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06',effect:'question'}));
       await page.waitForTimeout(200);
       const geometry=await page.locator('.vn-reaction').evaluate(el=>{
         const r=el.getBoundingClientRect(),s=el.parentElement.getBoundingClientRect();
@@ -89,10 +98,10 @@ fs.mkdirSync(out, {recursive:true});
       assert.equal(geometry.rendering,'pixelated');
     }
     await page.emulateMedia({reducedMotion:'reduce'});
-    await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06'}));
+    await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06',effect:'surprise'}));
     await page.waitForTimeout(100);
     assert.equal(await page.locator('.vn-reaction').isVisible(),false);
     assert.deepEqual(errors,[]);
-    console.log('PASS: real Japanese lines drive all five rendered visemes on three rigs; native blush/highlights, five transient pixel effects, cleanup and reduced motion');
+    console.log('PASS: text-driven mouth shapes on three rigs; context-driven effects, quiet smiles, nine pixel animations, native blush/highlights, pause/resume and reduced motion');
   } finally { await browser.close(); }
 })().catch(e=>{console.error(e);process.exitCode=1;});
