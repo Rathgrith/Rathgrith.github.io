@@ -36,7 +36,7 @@ Gallery cards always crop to 4:3, with five columns at 1280px and above and thre
 - `companion-dialogue.js` owns the dialogue state machine and persistent preferences; `companion-dialogues.js` contains writing and pure story selection. See [the companion guide](companion-system.md).
 - `companion-bgm.js` owns one lazy `HTMLAudioElement`, three local ensemble tracks and a skeuomorphic cassette deck. Refresh always starts muted and paused; only volume is persisted. Character switches fade down/up; the same audio element survives page navigation. Close/minimize, background tabs and the arcade suspend playback. Source credits and the reproducible offline render are in `assets/music/companion/CREDITS.md`.
 - `live2d-loader.js` owns Cubism/PIXI model lifecycle, half-body framing, motion and window movement. Model requests use a generation token so rapid switches cannot replace the current character with a stale result. Gaze uses the original page-wide SDK coordinate mapping. Only the dialogue rectangle smoothly returns it to neutral; menu/music controls and the rest of the page keep following. Touch and reduced-motion mode do not track. Playground tracks size, position and maximize/restore state independently; ResizeObserver rerenders the stage and budgets compact height from actual controls.
-- `games/danmaku-engine.js`, `danmaku-renderer.js` and `companion-danmaku.js` separately own the arcade simulation, Canvas 2D view and UI/lifecycle. The mounted game pauses the conversation renderer and typewriter; local pixel sprites keep it independent of remote Live2D availability. See [the game guide](danmaku-game.md).
+- `games/danmaku-engine.js`, `danmaku-renderer.js` and `companion-danmaku.js` separately own the arcade simulation, Canvas 2D view and UI/lifecycle. The game uses `danmaku-audio.js` for independent, silent-by-default battle BGM and effect mixing from deterministic event hooks. The mounted game pauses the conversation renderer, music and typewriter; local pixel sprites keep it independent of remote Live2D availability. See [the game guide](danmaku-game.md).
 - Before replacing `#main`, page navigation emits `site:before-content-replace`. The companion clears its dragged position and custom size and temporarily reparents to `body`, then moves to the destination page's dock. This retains the same canvas and weather instance. Weather refresh/location/cache behavior remains in `components/weather-widget.js`.
 - Publications, visitor count, runtime, hover previews and the gallery each keep their own small module. No generic legacy feature loader or jQuery bundle is required.
 
@@ -52,6 +52,8 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-gaze.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/playground-window.cjs
 node tests/companion-data.cjs
 node tests/danmaku-engine.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-audio.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-audio-resilience.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-presentation.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/loading-browser.cjs

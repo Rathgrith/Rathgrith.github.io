@@ -21,10 +21,37 @@ Open **弾幕に挑戦** in the Live2D window. Choose a pilot, then click one of
 - Records are stored locally for each pilot/opponent pair in `site-danmaku-records-v1`. Existing manual keys remain compatible; automatic runs use a separate `:auto` suffix. Once auto has been used, the rest of that run remains in the automatic category even after manual takeover. Game over, leaving the battle and page hide retain the best score. Failed/blocked storage uses session memory; there is no server leaderboard or score verification. Each live run receives a fresh random seed; explicit engine seeds reproduce drops in tests.
 - Minimizing/closing the companion, tab hiding, losing window focus, leaving the game with keyboard focus, scrolling the canvas mostly out of view, resizing, title-bar dragging and soft navigation pause the run. None silently resume it. Returning to the conversation stops the game loop and resumes the Live2D renderer and typewriter.
 
+## Battle audio
+
+The mixer beneath the battle title has independent **BGM：切 / SE：切** buttons
+and a shared volume fader. Both switches start off on every full page load;
+neither setting is persisted. No battle audio request or Web Audio context is
+created before an explicit enable action. Enabling a switch in the lobby arms
+it for the next challenge. Background music follows the opponent, independently
+of the chosen pilot and the conversation player. The musical-note link credits
+the current arrangement; the same three local ensemble tracks are reused.
+
+Real engine events trigger three pilot volley sounds, enemy hits, graze,
+power/life/clear pickups, damage, three spirit strikes and countdown completion.
+Effects come from the licensed **Taisei Project** fan game, not extracted official
+Touhou assets. [Source mapping and license](../assets/audio/danmaku/CREDITS.md).
+The optional sound callback cannot change simulation results or stop gameplay
+when the audio device fails. Per-cue throttling, 12-voice polyphony and a
+compressor bound dense bursts. Muted/loading sounds are discarded, never queued
+for later playback. Decode/request failure offers a retry without disabling play.
+
+Pausing, hiding/minimizing, navigation and closing stop battle music and voices;
+resuming is explicit. On the final life, the damage cue may finish naturally
+while BGM stops. Retrying resets the track and clears old effect tails. Returning
+to dialogue stops battle audio before its independently enabled player resumes.
+The audio instance and decoded soundbank survive soft navigation without new
+contexts or duplicate listeners; a full reload starts silent again.
+
 ## Implementation
 
 - `assets/js/games/danmaku-engine.js`: deterministic fixed-coordinate simulation, input, shot types, patterns, collisions and scoring. No DOM or renderer dependency; exported for Node tests.
 - `assets/js/games/danmaku-renderer.js`: bounded Canvas 2D rendering at 240 × 360, cached local pixel sprites, low-contrast scrolling scenery, character-specific spell effects and readable bullet shapes. Reduced-motion preference disables decorative particles/background motion; essential gameplay movement remains.
+- `assets/js/games/danmaku-audio.js`: lazy battle BGM and Web Audio soundbank, independent opt-in switches, local sample mixing, failure/retry and lifecycle.
 - `assets/js/games/companion-danmaku.js`: lobby/battle/result screens, 60Hz fixed-step animation, relative pointer controls, lifecycle, records and accessibility status announcements. Only the active game owns an animation frame. Pauses discard accumulated elapsed time.
 - `assets/css/classic-danmaku.css`: UI styles isolated inside the existing companion. The field keeps its 2:3 ratio, fits short windows and does not change the site's columns or global palette.
 - `assets/images/classic/danmaku/*.svg`: original integer-grid 32 × 40 sprites; `*-player.svg` depicts the back of each pilot in flight, while the opponents retain separate front views. No downloaded sprites or additional runtime library.
@@ -38,3 +65,10 @@ The dialogue controller exposes a small game-active state, and the loader stops 
 `node tests/danmaku-browser.cjs` checks canvas output and keyboard/touch input, all three opponents, pickup HUD updates, automatic/manual switching, separate record persistence, score/results/retry, saved pair records/reload, conversation/render pause and resume, minimize and soft navigation, seven widths (320–1920px), short landscape, and blocked model CDN/storage. It captures test-only engine/renderer references through intercepted script responses; production code exposes no testing backdoor.
 
 `node tests/danmaku-presentation.cjs` compares actual rendered pixels for all three scenes, wrap-boundary continuity, substantial X effects and reduced-motion behavior. `node tests/loading-browser.cjs` checks the shared homepage/companion prayer loaders, bounded waits, delayed assets, mobile sizing, keyboard dismissal, reduced motion, no JavaScript and the CSS fail-safe.
+
+`node tests/danmaku-audio.cjs` checks real music playback and nonzero Web Audio
+output, actual event cues, independent switches, three pilots/opponents, volume,
+pause/minimize/hidden/final-hit tails, conversation handoff, reload defaults and
+five layouts. `node tests/danmaku-audio-resilience.cjs` covers mobile decoding,
+independent failed-media retries, blocked storage, muting during decoding and
+browsers without Web Audio. Tests instrument genuine browser audio nodes.

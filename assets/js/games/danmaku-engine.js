@@ -33,7 +33,7 @@
   function distance(a, b) {
     return Math.hypot(a.x - b.x, a.y - b.y);
   }
-  function create(player, enemy, seed) {
+  function create(player, enemy, seed, onSound) {
     player = cast[player] ? player : "alice";
     enemy = cast[enemy] ? enemy : "marisa";
     var state = {
@@ -72,6 +72,10 @@
       dropTimer,
       autoTimer = 0,
       autoInput = { x: 0, y: 0, focus: false };
+    function sound(name) {
+      // Optional presentation hook: a failed audio device cannot stop the game.
+      if (onSound) { try { onSound(name, player); } catch (_) {} }
+    }
     function random() {
       seedState ^= seedState << 13;
       seedState ^= seedState >>> 17;
@@ -94,6 +98,7 @@
     function collect(item) {
       var type = item.type;
       state.pickups[type]++;
+      sound(type);
       state.score += 300;
       if (type === "power") {
         if (state.power < 4) state.power++;
@@ -253,6 +258,7 @@
       }
     }
     function fire() {
+      sound("shot");
       var p = state.player,
         focused = state.focus;
       function shot(dx, vx, damage, homing) {
@@ -298,6 +304,7 @@
       )
         return false;
       state.bombs--;
+      sound("bomb");
       state.score += state.bullets.length * 2;
       state.bullets.length = 0;
       state.player.invulnerable = 2.5;
@@ -402,6 +409,7 @@
       p.y = clamp(p.y, 28, H - 12);
       if (state.countdown > 0) {
         state.countdown = Math.max(0, state.countdown - dt);
+        if (!state.countdown) sound("ready");
         return;
       }
       state.time += dt;
@@ -453,6 +461,7 @@
         s.y += s.vy * dt;
         if (distance(s, state.boss) < state.boss.radius + 3) {
           state.hits++;
+          sound("hit");
           state.score += s.damage * 12;
           spark(s.x, s.y, s.color, 1);
           return false;
@@ -493,6 +502,7 @@
         if (!b.grazed && !p.invulnerable && d < b.radius + 12) {
           b.grazed = true;
           state.grazes++;
+          sound("graze");
           state.score += 80;
           spark(p.x, p.y, "#c4fff2", 2);
         }
@@ -500,6 +510,7 @@
       });
       if (hit) {
         state.lives--;
+        sound("death");
         state.power = Math.max(1, state.power - 1);
         p.invulnerable = 2.5;
         state.bullets = state.bullets.filter(function (b) {

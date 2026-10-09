@@ -236,3 +236,28 @@ assert.equal(escape.state.lives, 3);
 console.log(
   "PASS: nine matchups, bounded density/scroll, power shots, seeded random drops, pickup effects/caps, auto dodge/collection/strike/takeover, collisions and pause/countdown freeze"
 );
+// Sound hooks report actual simulation events and cannot affect deterministic play.
+const sounds = [];
+const audible = engine.create('marisa', 'alice', 1977, (name, player) => sounds.push([name, player]));
+const silent = engine.create('marisa', 'alice', 1977);
+for (const game of [audible, silent]) { game.state.player.invulnerable = 999; tick(game, 3); }
+assert.deepEqual(audible.state, silent.state);
+assert(sounds.some(([name]) => name === 'ready'));
+assert(sounds.some(([name]) => name === 'shot'));
+assert(sounds.every(([, player]) => player === 'marisa'));
+function soundScenario(setup, expected) {
+  const events = [];
+  const game = engine.create('alice', 'patchouli', 4, name => events.push(name));
+  game.state.countdown = 0; game.state.player.invulnerable = 0;
+  setup(game); game.step(1 / 60);
+  assert(events.includes(expected), `${expected}: ${events}`);
+}
+soundScenario(game => game.state.shots.push({x:120,y:54,vx:0,vy:0,damage:1,color:'#fff'}), 'hit');
+soundScenario(game => game.state.bullets.push({ ...shot, x: 131 }), 'graze');
+soundScenario(game => game.state.bullets.push({ ...shot }), 'death');
+for (const type of ['power', 'life', 'clear']) soundScenario(game => game.state.items.push({ type, x:120, y:312, vx:0, vy:0, age:0 }), type);
+soundScenario(game => game.bomb(), 'bomb');
+const brokenSound = engine.create('alice', 'marisa', 5, () => { throw new Error('audio unavailable'); });
+tick(brokenSound, 3);
+assert(brokenSound.state.score > 0);
+console.log('PASS: deterministic event sound hooks, pickups/graze/hit/spell/countdown and device-failure isolation');
