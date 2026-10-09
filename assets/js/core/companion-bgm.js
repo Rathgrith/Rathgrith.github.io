@@ -228,5 +228,13 @@
     update();
     return instance;
   }
-  window.CompanionBGM = { mount: mount };
+  window.CompanionBGM = {
+    mount: mount,
+    getTrack: function (id) {
+      id = tracks[id] ? id : "alice";
+      return Object.assign({}, tracks[id], {
+        src: new URL(id + "-ensemble.mp3", new URL(base, location.href)).href,
+      });
+    },
+  };
 })();

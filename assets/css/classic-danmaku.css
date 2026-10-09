@@ -246,3 +246,36 @@
 #live2d-widget .vn-danmaku-view [hidden] {
   display: none;
 }
+
+/* Independent, silent-by-default battle mixer; one compact hardware-like strip. */
+#live2d-widget .danmaku-audio {
+  display: grid;
+  grid-template-columns: auto auto 18px minmax(42px, 1fr);
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 5px 2px;
+  border-bottom: 1px solid var(--vn-rule);
+  background: linear-gradient(#ffffff06, #0002);
+}
+#live2d-widget .danmaku-audio button {
+  min-height: 25px;
+  padding: 2px 5px;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+  border-color: color-mix(in srgb, var(--vn-rule) 70%, #101218);
+  background: linear-gradient(#ffffff12, #0002), var(--vn-panel);
+  box-shadow: inset 1px 1px #ffffff22, inset -1px -1px #0008;
+}
+#live2d-widget .danmaku-audio button[aria-pressed="true"] {
+  color: var(--arcade-accent);
+  background: var(--classic-soft);
+  box-shadow: inset 1px 1px #0008;
+}
+#live2d-widget .danmaku-audio a { text-align: center; color: var(--vn-muted); font-size: 14px; text-decoration: none; }
+#live2d-widget .danmaku-audio a:hover { color: var(--arcade-accent); }
+#live2d-widget .danmaku-audio label { display: flex; align-items: center; gap: 4px; min-width: 0; margin: 0; }
+#live2d-widget .danmaku-audio label span { flex-shrink: 0; white-space: nowrap; color: var(--vn-muted); font: 8px monospace; }
+#live2d-widget .danmaku-audio input { width: 100%; min-width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var(--arcade-accent); cursor: pointer; }

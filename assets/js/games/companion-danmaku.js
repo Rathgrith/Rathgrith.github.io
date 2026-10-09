@@ -6,6 +6,7 @@
     hooks,
     game,
     renderer,
+    audio,
     canvas,
     raf = 0,
     previous = 0,
@@ -105,6 +106,7 @@
   function pause() {
     if (!active || !game || game.state.phase !== "playing") return;
     game.pause();
+    audio.setScene("paused");
     stop();
     renderer.draw(game.state);
     overlay();
@@ -133,6 +135,7 @@
       hudAt = now;
     }
     if (game.state.phase === "over") {
+      audio.setScene("over");
       save();
       stop();
       overlay();
@@ -152,12 +155,14 @@
       return;
     clearInput();
     game.resume();
+    audio.setScene("playing", game.state.enemyId);
     overlay();
     previous = accumulator = 0;
     canvas.focus({ preventScroll: true });
     raf = requestAnimationFrame(frame);
   }
   function lobby() {
+    audio.setScene("lobby", hooks.character());
     save();
     stop();
     game = null;
@@ -209,6 +214,7 @@
   }
   function close() {
     if (!active) return;
+    audio.setScene("closed");
     save();
     stop();
     game = null;
@@ -225,7 +231,8 @@
     var seed = window.crypto && window.crypto.getRandomValues
       ? window.crypto.getRandomValues(new Uint32Array(1))[0]
       : (Date.now() ^ Math.floor(Math.random() * 4294967296)) >>> 0;
-    game = DanmakuEngine.create(playerId, enemyId, seed);
+    audio.setScene("playing", enemyId, true);
+    game = DanmakuEngine.create(playerId, enemyId, seed, audio.play);
     game.setAuto(autoMode);
     view.dataset.enemy = enemyId;
     q("[data-danmaku-heading]").textContent =
@@ -326,6 +333,7 @@
       '<div class="danmaku-overlay" data-danmaku-overlay hidden><h3 data-danmaku-overlay-title></h3><p data-danmaku-result></p><button type="button" data-danmaku-resume>続ける</button><button type="button" data-danmaku-retry>もう一度</button><button type="button" data-danmaku-menu>相手を選ぶ</button></div></div>' +
       '<div class="danmaku-controls" data-danmaku-controls><button type="button" data-danmaku-slow aria-pressed="false">低速</button><button type="button" data-danmaku-bomb>霊撃 X</button><button type="button" data-danmaku-auto aria-pressed="false">自動</button><button type="button" data-danmaku-pause>一時停止</button></div></div><span class="visually-hidden" data-danmaku-announcement aria-live="polite" aria-atomic="true"></span>';
     root.querySelector("[data-companion-content]").appendChild(view);
+    audio = DanmakuAudio.create(view);
     canvas = q("[data-danmaku-canvas]");
     new ResizeObserver(function () {
       var box = q("[data-danmaku-canvas-wrap]").getBoundingClientRect();
@@ -366,7 +374,7 @@
       }
     });
     view.addEventListener("keydown", function (e) {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest(".danmaku-audio")) return;
       if (!game) {
         if (e.key === "Escape") {
           e.preventDefault();
@@ -477,6 +485,7 @@
     mount: mount,
     setVisible: function (value) {
       visible = value;
+      if (audio) audio.setVisible(value);
       if (!value) pause();
     },
   };
