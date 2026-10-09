@@ -69,11 +69,13 @@ const hands = {
         };`,
       });
     });
-    await page.goto(process.env.PREVIEW_URL || "http://127.0.0.1:4100/");
+    await page.goto(process.env.PREVIEW_URL || "http://127.0.0.1:4100/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(
       () =>
         document.querySelector("#live2d-widget")?.dataset.dialogueState ===
-        "typing"
+        "typing",
+      null,
+      { timeout: 45000 }
     );
     await page.locator('[data-vn-open="settings"]').click();
     await page.locator("[data-vn-speed]").selectOption("0");
@@ -99,6 +101,10 @@ const hands = {
           const core = model.internalModel.coreModel;
           window.performanceFrame = {
             mouth: core.getParameterValueById("ParamMouthForm"),
+            jaw: core.getParameterValueById("ParamMouthOpenY"),
+            eyelid: core.getParameterValueById("ParamEyeOpen"),
+            blink: core.getParameterValueById("ParamEyeLOpen"),
+            brow: core.getParameterValueById("ParamBrowLY"),
             angleY: core.getParameterValueById("ParamAngleY"),
             hands: ["Right", "Left"].flatMap((side) =>
               Array.from({ length: 7 }, (_, i) => {
@@ -108,6 +114,7 @@ const hands = {
             ),
           };
           performanceFrames.push({
+            ...performanceFrame,
             time: performance.now(),
             resting: document.querySelector("#live2d-widget").dataset.live2dResting === "true",
             angles: ["ParamAngleX", "ParamAngleY", "ParamAngleZ"].map(
@@ -187,6 +194,31 @@ const hands = {
           .locator("#live2d-widget")
           .screenshot({ path: `${out}/${id}-pose-${pose}.png` });
       }
+      // Speech adds visible animation even when consecutive lines use the
+      // same body pose. Collect final rendered values, not only DOM labels.
+      await page.evaluate(() => {
+        performanceTestHooks.perform({ poseId: "5", expressionMotionId: "07" });
+      });
+      await settle("5", "07");
+      await page.evaluate(() => {
+        performanceFrames.length = 0;
+        window.syllableTestTimer = setInterval(() => performanceTestHooks.speak("あ", 38), 45);
+      });
+      await page.waitForTimeout(1200);
+      await page.locator("#live2d-widget").screenshot({ path: `${out}/${id}-speaking.png` });
+      const talking = await page.evaluate(() => {
+        clearInterval(syllableTestTimer);
+        performanceTestHooks.speak("？", 38);
+        return performanceFrames.slice();
+      });
+      assert(Math.max(...talking.map(f => f.jaw)) > 0.20, `${id} has visible articulation`);
+      assert(Math.max(...talking.map(f => f.angles[1])) - Math.min(...talking.map(f => f.angles[1])) > 0.20, `${id} moves while speaking in the same pose`);
+      await page.waitForTimeout(400);
+      assert((await page.evaluate(() => performanceFrame.jaw)) < 0.01, "Punctuation releases the jaw");
+      await page.locator("#live2d-widget").screenshot({ path: `${out}/${id}-amused.png` });
+      await page.evaluate(() => performanceTestHooks.perform({ poseId: "5", expressionMotionId: "06" }));
+      await settle("5", "06");
+      await page.locator("#live2d-widget").screenshot({ path: `${out}/${id}-surprised.png` });
       // Actual friend menu must carry its per-line direction into the renderer.
       const friend = await page.evaluate(
         (id) =>

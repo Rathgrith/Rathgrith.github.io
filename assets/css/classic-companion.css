@@ -224,6 +224,19 @@
   filter: none;
   pointer-events: none;
 }
+
+/* Pixel-native finite effects: no fractional scaling, filters or opacity blur. */
+#live2d-widget .vn-reaction {
+  position: absolute;
+  z-index: 3;
+  width: 64px;
+  height: 64px;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+@media (prefers-reduced-motion: reduce) {
+  #live2d-widget .vn-reaction { display: none; }
+}
 #live2d-widget .vn-scene-light {
   position: absolute;
   z-index: 2;

@@ -1,7 +1,9 @@
 const assert = require("node:assert/strict");
 require("../assets/js/data/companion-dialogues.js");
+require("../assets/js/data/companion-readings.js");
 const d = globalThis.CompanionStories;
 function checkActing(line) {
+  assert(globalThis.CompanionReadings[line.text], "Every line needs a reviewed kana reading");
   assert.match(
     line.expressionMotionId,
     /^0[1-8]$/,

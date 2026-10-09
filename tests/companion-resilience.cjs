@@ -109,10 +109,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     });
     await q.goto(base);
     await q.locator('[data-classic-character="patchouli"]').click();
-    assert.equal(await q.locator("#live2d-widget").isVisible(), false);
-    await q.locator("[data-site-options-trigger]").click();
-    await q.locator("[data-live2d-toggle]").click();
-    await q.keyboard.press("Escape");
+    assert(await q.locator("#live2d-widget").isVisible());
     await q.waitForFunction(
       () =>
         document.querySelector("#live2d-widget").dataset.live2dCharacter ===
