@@ -3,6 +3,7 @@
 (function (root) {
   "use strict";
   var SIZE = 64, DURATION = 2.15;
+  var TYPES = ["sparkle", "surprise", "sweat", "anger", "sigh", "music", "question", "blush", "idea"];
   var bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   var inks = {
     alice: ["#f8fbeb", "#d5eff5", "#82bbd2", "#52728f"],
@@ -81,6 +82,20 @@
         if (span > 1) box(x - span + 1, y + row - 3, span * 2 - 1, 1, row < 3 ? bright : "#8facc5");
       });
     }
+    function sprite(rows, palette, x, y, scale) {
+      rows.forEach(function (row, yy) {
+        row.split("").forEach(function (p, xx) {
+          if (palette[p]) box(x + xx * scale, y + yy * scale, scale, scale, palette[p]);
+        });
+      });
+    }
+    function note(x, y, scale) {
+      sprite([
+        "....OOO..", "....OHL O.", "....OHHLO", "....OHDDO", "....OHO O.",
+        "....OHO..", "..OOOHO..", ".OHHHHO..", "OHWLLDO..", "OHLDDO...", ".OOOO....",
+      ].map(function (row) { return row.replace(/ /g, ""); }),
+      {O:rim,H:colors[1],W:colors[0],L:colors[2],D:colors[3]}, x,y,scale);
+    }
     var grow = pop(t), drift = Math.round(Math.max(0, t - 0.9) * 3);
     if (kind === "sparkle") {
       var leave = 1 - ease((t - 1.5) / 0.65);
@@ -134,6 +149,50 @@
       if (t > 0.14) puff(30 + flow * 13, 29 - flow * 6, 9 * Math.min(1,pop(t-0.14)), "#e8f0f5");
       if (t > 0.3) puff(35 + flow * 11, 34 - flow * 5, 7, "#c1d8e8");
       box(10 + flow * 6, 38, 3, 2, shade);
+    } else if (kind === "music") {
+      // Staggered notes rise along separate arcs, without a star-shaped accent.
+      var lift = ease(t / 1.65) * 12;
+      note(18 + Math.sin(t * 5) * 2, 22 - lift + (1 - grow) * 15, 2);
+      if (t > 0.24) note(43 + Math.sin(t * 5 + 1) * 3, 43 - lift * 1.5, 1);
+      box(12, 42 - lift, 2, 2, colors[2]);
+      if (t > 0.5) box(49, 17 - lift * 0.4, 2, 2, colors[0]);
+    } else if (kind === "question") {
+      var sway = Math.sin(t * 4) * 2, bob = (1 - grow) * 14 - drift;
+      sprite([
+        "...OOOOOO....", "..OHHHHHDO...", ".OHWWLLLDDO..", ".OHLOOOOLDO..",
+        ".OOO....OLDO.", "........OLDO.", ".......OLDO..", "......OLDO...",
+        ".....OLDO....", ".....ODO.....", ".....OOO.....", ".............",
+        ".....OOO.....", "....OHHDO....", "....OHLDO....", ".....OOO.....",
+      ], {O:rim,H:colors[1],W:colors[0],L:colors[2],D:colors[3]}, 19+sway,12+bob,2);
+      if (t > 0.25) { box(49, 22-drift, 2, 2, colors[2]); box(12, 39-drift, 2, 2, colors[0]); }
+    } else if (kind === "blush") {
+      // Three warm hatching strokes build in order, then gently contract.
+      var width = 1 + Math.sin(t * 5) * 0.07;
+      for (var b = 0; b < 3; b++) {
+        var age = t - b * 0.07;
+        if (age < 0) continue;
+        var length = 13 * Math.min(1, pop(age));
+        var bx = 19 + b * 10 * width, by = 24 - drift + (b === 1 ? -3 : 0);
+        pixelLine(bx+5,by,bx,by+length,rim,5);
+        pixelLine(bx+5,by+1,bx,by+length,"#b85f7d",3);
+        pixelLine(bx+5,by+1,bx,by+length-2,"#f6a9b8",2);
+        box(bx+5,by+2,1,3,"#ffe1d7");
+      }
+      if (t > 0.3) { box(12, 39-drift, 2, 2, "#d87896"); box(51, 18-drift, 2, 2, "#f6a9b8"); }
+    } else if (kind === "idea") {
+      var rise = (1 - grow) * 14 - drift;
+      sprite([
+        "....OOOOO....", "..OOHHHHHOO..", ".OHHWWLLLDDO.", ".OHWWLLLLDDO.",
+        "OHWWLLLLLDDDO", "OHWLLLLLLDDDO", "OHLLLLLLLDDDO", ".OLLLWLLLDDO.",
+        ".OLLLWLLLDDO.", "..OLLWLLDDO..", "...OLWLDDO...", "...OHHDDDO...",
+        "....OOOOO....", "....OHHDO....", "....OOOOO....", ".....OOO.....",
+      ], {O:rim,H:"#fff1b9",W:"#fffdf0",L:"#e6c66b",D:"#ae8154"},19,13+rise,2);
+      rays(t, "#e6c66b");
+      if (t > 0.5 && t < 1.5) {
+        var length = Math.round(2 + Math.sin(t * 8) * 1.5);
+        pixelLine(11,24,11-length,22,"#fff1b9",2);
+        pixelLine(51,24,51+length,22,"#e6c66b",2);
+      }
     }
     // Exit through individual opaque pixels, not a blurred CSS opacity fade.
     // The same ordered threshold on every frame makes dissolve monotonic.
@@ -176,7 +235,7 @@
       destroy: function () { observer.disconnect(); canvas.remove(); },
     };
   }
-  var api = {create:create, draw:draw, duration:DURATION};
+  var api = {create:create, draw:draw, duration:DURATION, types:TYPES};
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.CompanionReactions = api;
 })(typeof window === "undefined" ? globalThis : window);

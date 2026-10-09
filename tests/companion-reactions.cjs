@@ -7,11 +7,11 @@ fs.mkdirSync(out,{recursive:true});
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true});
  try {
-  const page=await browser.newPage({viewport:{width:728,height:540},deviceScaleFactor:2});
+  const page=await browser.newPage({viewport:{width:728,height:960},deviceScaleFactor:2});
   await page.setContent('<style>body{margin:16px;background:#141b2a;color:#cdd8ec;font:12px monospace}main{display:grid;grid-template-columns:repeat(7,96px);gap:3px}figure{margin:0;background:#232d40;padding:8px 16px}canvas{display:block;width:64px;height:64px;image-rendering:pixelated}figcaption{font-size:9px;white-space:nowrap;margin-top:8px}h1{font-size:14px}</style><h1>Companion FX · 24fps · entrance → settle → dissolve</h1><main></main>');
   await page.addScriptTag({path:path.join(__dirname,'../assets/js/core/companion-reactions.js')});
   const result=await page.evaluate(()=>{
-   const types=['sparkle','surprise','sweat','anger','sigh'];
+   const types=CompanionReactions.types;
    const times=[0.08,0.2,0.42,0.75,1.25,1.85,2.3];
    return types.map(kind=>{
     const frames=times.map(time=>{
@@ -38,6 +38,6 @@ fs.mkdirSync(out,{recursive:true});
    assert(frames[3].colors>=4,kind+' needs shaded pixel art');
    assert(frames[5].opaque<frames[4].opaque,kind+' must visibly dissolve');
   }
-  console.log('PASS: five distinct entrance/hold/exit sequences, shaded palettes, opaque pixel edges, dissolution and bounded lifetime at DPR 2');
+  console.log('PASS: nine distinct entrance/hold/exit sequences, shaded palettes, opaque pixel edges, dissolution and bounded lifetime at DPR 2');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

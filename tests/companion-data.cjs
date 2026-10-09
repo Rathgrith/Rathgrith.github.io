@@ -2,7 +2,11 @@ const assert = require("node:assert/strict");
 require("../assets/js/data/companion-dialogues.js");
 require("../assets/js/data/companion-readings.js");
 const d = globalThis.CompanionStories;
+const effectTypes = require('../assets/js/core/companion-reactions.js').types;
+const effects = {};
 function checkActing(line) {
+  assert(line.effect === 'none' || effectTypes.includes(line.effect), 'Every line needs explicit, supported effect direction');
+  effects[line.effect] = (effects[line.effect] || 0) + 1;
   assert(globalThis.CompanionReadings[line.text], "Every line needs a reviewed kana reading");
   assert.match(
     line.expressionMotionId,
@@ -111,6 +115,12 @@ for (const [id, entries] of Object.entries(originals)) {
   entries.forEach(checkActing);
 }
 assert.equal(lines + remarks + 18, 135);
+assert(effects.sparkle < 135 * 0.1, 'Stars are a rare accent, never a default for friendly speech');
+assert(effects.none >= 135 / 3, 'Ordinary conversation leaves room for the model acting');
+assert.equal(d.characters.alice.greetings[1].effect, 'none');
+assert.equal(d.characters.marisa.morning.effect, 'sweat', 'Her embarrassed excuse uses sweat despite the confident face');
+assert.equal(globalThis.CompanionRemarks.marisa.find(l => l.id === 'patchouli').effect, 'sweat');
+assert.equal(globalThis.CompanionRemarks.patchouli.find(l => l.id === 'marisa').effect, 'anger');
 console.log(
-  "PASS: all 135 dialogue lines have explicit expression and pose direction"
+  "PASS: all 135 lines have expression, pose and contextual effects; stars remain rare and normal conversation stays restrained"
 );

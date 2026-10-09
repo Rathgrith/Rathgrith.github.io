@@ -22,6 +22,7 @@
         source: "東方緋想天",
         poseId: "5",
         expressionMotionId: "02",
+        effect: "surprise",
         moods: ["confident", "cheerful"],
       },
       {
@@ -29,6 +30,7 @@
         source: "東方非想天則",
         poseId: "4",
         expressionMotionId: "07",
+        effect: "sparkle",
         moods: ["reflective", "confident", "mysterious"],
       },
       {
@@ -36,6 +38,7 @@
         source: "東方LostWord",
         poseId: "5",
         expressionMotionId: "02",
+        effect: "music",
         moods: ["cheerful", "curious"],
       },
       {
@@ -43,6 +46,7 @@
         source: "東方緋想天",
         poseId: "3",
         expressionMotionId: "03",
+        effect: "sigh",
         moods: ["cautious", "irritable"],
       },
       {
@@ -50,6 +54,7 @@
         source: "東方緋想天",
         poseId: "4",
         expressionMotionId: "01",
+        effect: "question",
         moods: ["curious", "reflective"],
       },
       {
@@ -57,6 +62,7 @@
         source: "東方緋想天",
         poseId: "5",
         expressionMotionId: "07",
+        effect: "idea",
         moods: ["cheerful", "curious"],
       },
     ],
@@ -66,6 +72,7 @@
         source: "東方緋想天",
         poseId: "4",
         expressionMotionId: "07",
+        effect: "music",
         moods: ["confident", "cheerful"],
       },
       {
@@ -73,6 +80,7 @@
         source: "東方非想天則",
         poseId: "5",
         expressionMotionId: "04",
+        effect: "sweat",
         moods: ["irritable", "quiet"],
         weatherPhases: ["clear", "heat"],
       },
@@ -81,6 +89,7 @@
         source: "東方LostWord",
         poseId: "3",
         expressionMotionId: "08",
+        effect: "sigh",
         moods: ["sleepy", "quiet"],
       },
       {
@@ -88,6 +97,7 @@
         source: "東方緋想天",
         poseId: "2",
         expressionMotionId: "02",
+        effect: "none",
         moods: ["mischievous", "confident"],
       },
       {
@@ -95,6 +105,7 @@
         source: "東方緋想天",
         poseId: "4",
         expressionMotionId: "07",
+        effect: "music",
         moods: ["mischievous", "cheerful", "mysterious"],
         weatherPhases: ["cloud", "rain", "storm"],
       },
@@ -103,6 +114,7 @@
         source: "東方緋想天",
         poseId: "5",
         expressionMotionId: "06",
+        effect: "surprise",
         moods: ["curious", "mischievous"],
         weatherPhases: ["rain", "storm"],
       },
@@ -113,6 +125,7 @@
         source: "東方緋想天",
         poseId: "4",
         expressionMotionId: "01",
+        effect: "none",
         moods: ["quiet", "detached"],
       },
       {
@@ -120,6 +133,7 @@
         source: "東方非想天則",
         poseId: "3",
         expressionMotionId: "01",
+        effect: "none",
         moods: ["curious", "reflective", "mysterious"],
       },
       {
@@ -127,6 +141,7 @@
         source: "東方LostWord",
         poseId: "2",
         expressionMotionId: "02",
+        effect: "idea",
         moods: ["cheerful", "quiet"],
       },
       {
@@ -134,6 +149,7 @@
         source: "東方非想天則",
         poseId: "2",
         expressionMotionId: "05",
+        effect: "anger",
         moods: ["irritable", "cautious"],
       },
       {
@@ -141,6 +157,7 @@
         source: "東方非想天則",
         poseId: "3",
         expressionMotionId: "01",
+        effect: "none",
         moods: ["curious", "reflective"],
       },
       {
@@ -148,6 +165,7 @@
         source: "東方緋想天",
         poseId: "2",
         expressionMotionId: "03",
+        effect: "none",
         moods: ["cautious", "reflective"],
         weatherPhases: ["clear", "heat"],
       },
