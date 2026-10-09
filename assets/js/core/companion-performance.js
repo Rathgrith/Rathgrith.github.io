@@ -29,13 +29,6 @@
     cl: { open: 0, form: 0, width: 0.4 },
     rest: { open: 0, form: 0, width: 0.4 },
   };
-  var symbols = {
-    sparkle: '<path d="M7 1h2v4h4v2H9v4H7V7H3V5h4zM2 11h2v2h2v2H4v2H2v-2H0v-2h2z"/>',
-    surprise: '<path d="M5 1h3v10H5zM5 13h3v3H5zM11 2h2v5h-2z"/>',
-    sweat: '<path d="M8 1h2v3h2v3h2v5h-2v2H7v-2H5V7h1V4h2z"/><path fill="#edf8ff" d="M8 6h1v5H7V8h1z"/>',
-    anger: '<path d="M5 1h2v4h4v2H5zM10 10h5v2h-3v4h-2zM1 10h6v6H5v-4H1z"/>',
-    sigh: '<path d="M1 8h2v2H1zM6 8h2v2H6zM11 8h2v2h-2z"/>',
-  };
   function clamp(n, low, high) { return Math.max(low, Math.min(high, n)); }
   function smooth(n) { n = clamp(n, 0, 1); return n * n * (3 - 2 * n); }
   function pulse(age, duration) {
@@ -62,13 +55,8 @@
     var repeatBlink = false, speaking = false;
     var reaction = null, reactionType = "", effectAt = -10;
     var stage = widget.querySelector && widget.querySelector("[data-companion-stage]");
-    if (stage) {
-      reaction = stage.ownerDocument.createElement("span");
-      reaction.className = "vn-reaction";
-      reaction.setAttribute("aria-hidden", "true");
-      reaction.hidden = true;
-      stage.appendChild(reaction);
-    }
+    if (stage && scope.CompanionReactions)
+      reaction = scope.CompanionReactions.create(stage, character);
     var offsets = { x: 0, y: 0, z: 0, brow: 0 };
     function attr(name, value) {
       var key = "data-live2d-" + name;
@@ -88,11 +76,7 @@
       effectAt = time;
       reactionType = line.effect === "none" ? "" :
         ({ "02": "sparkle", "04": "sweat", "05": "anger", "06": "surprise", "07": "sparkle", "08": "sigh" })[faceId] || "";
-      if (reaction) {
-        reaction.dataset.reaction = reactionType;
-        reaction.innerHTML = reactionType ? '<svg viewBox="0 0 16 18" width="32" height="36" shape-rendering="crispEdges" focusable="false">' + symbols[reactionType] + '</svg>' : "";
-        reaction.hidden = !reactionType || reduced();
-      }
+      if (reaction) reaction.draw(reactionType, 0, { x: 0, y: 0 }, reduced());
       nextAccent = time + 0.7;
       stopSpeaking();
       attr("expression-id", faceId);
@@ -211,13 +195,7 @@
       }
       if (character === "marisa" && faceId === "07")
         core.addParameterValueById("ParamMouthTooth", effect * mouth * 0.6);
-      if (reaction) {
-        reaction.hidden = !reactionType || effect <= 0.005 || quiet;
-        if (!reaction.hidden) {
-          reaction.style.opacity = String(effect * 0.90);
-          reaction.style.transform = "translate(" + Math.round(offsets.x) + "px, " + Math.round(-effectAge * 3 + offsets.y) + "px)";
-        }
-      }
+      if (reaction) reaction.draw(reactionType, effectAge, offsets, quiet);
       attr("breathing", quiet ? null : "true");
     }
     setLine({ expressionMotionId: "01" });
@@ -229,7 +207,7 @@
       destroy: function () {
         internal.off("beforeModelUpdate", frame);
         internal.eyeBlink = sdkBlink;
-        if (reaction) reaction.remove();
+        if (reaction) reaction.destroy();
         ["speaking", "viseme", "blinking", "blink-count", "breathing"].forEach(function (key) { attr(key, null); });
       },
     };

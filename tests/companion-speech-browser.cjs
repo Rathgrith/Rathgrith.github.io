@@ -74,6 +74,20 @@ fs.mkdirSync(out, {recursive:true});
     assert(await page.locator('[data-danmaku-lobby]').isVisible());
     await page.locator('[data-danmaku-exit]').click();
     assert(await page.locator('[data-companion-stage]').isVisible());
+    for(const width of [320,375,768,1440]) {
+      await page.setViewportSize({width,height:1000});
+      await page.waitForTimeout(150);
+      await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06'}));
+      await page.waitForTimeout(200);
+      const geometry=await page.locator('.vn-reaction').evaluate(el=>{
+        const r=el.getBoundingClientRect(),s=el.parentElement.getBoundingClientRect();
+        return {x:r.x,y:r.y,width:r.width,inside:r.left>=s.left&&r.right<=s.right,rendering:getComputedStyle(el).imageRendering};
+      });
+      assert(Math.abs(geometry.x-Math.round(geometry.x))<0.01&&Math.abs(geometry.y-Math.round(geometry.y))<0.01,JSON.stringify(geometry));
+      assert.equal(geometry.width,64);
+      assert(geometry.inside);
+      assert.equal(geometry.rendering,'pixelated');
+    }
     await page.emulateMedia({reducedMotion:'reduce'});
     await page.evaluate(()=>actingHooks.perform({poseId:'1',expressionMotionId:'06'}));
     await page.waitForTimeout(100);
