@@ -221,8 +221,7 @@ pre {
 .classic-credits p {
   margin: 10px 0 0;
 }
-.site-runtime__inner,
-.site-runtime__views {
+.site-runtime__inner {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -310,16 +309,6 @@ pre {
   pre {
     white-space: pre-wrap;
   }
-}
-
-/* The counter provider is read as data, never used as visible page chrome. */
-#site-visit-widget {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  pointer-events: none;
 }
 
 /* Unmodified Nostalgia template cursors; provenance is in the page credits. */
