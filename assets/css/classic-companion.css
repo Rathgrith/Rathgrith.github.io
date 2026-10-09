@@ -365,10 +365,6 @@
   padding: 2px 0 14px;
   cursor: pointer;
 }
-#live2d-widget .vn-voice-toolbar { display: flex; align-items: center; gap: 3px; margin: 0; padding: 0 3px; flex-shrink: 0; background: var(--vn-panel); }
-#live2d-widget .vn-voice-toolbar button { padding: 0 6px; min-height: 23px; font-size: 10px; line-height: 1.7; }
-#live2d-widget .vn-voice-credits { margin-top: 16px; font-size: 12px; }
-#live2d-widget[data-playground-layout="compact"] .vn-affinity meter { display: none; }
 #live2d-widget .live2d-dialogue__text {
   margin: 0;
   padding: 0;
@@ -378,6 +374,8 @@
   line-break: strict;
   overflow-wrap: anywhere;
 }
+#live2d-widget .vn-nameplate .vn-voice-toggle { flex-shrink: 0; padding: 0 6px; min-height: 23px; font-size: 10px; line-height: 1.7; background: var(--vn-panel); }
+#live2d-widget .vn-voice-credits { margin-top: 16px; font-size: 12px; }
 #live2d-widget .vn-next-mark {
   position: absolute;
   bottom: -1px;

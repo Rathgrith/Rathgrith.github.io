@@ -1,0 +1,77 @@
+{
+  "alice": {
+    "bank": "TohokuItako_Voice",
+    "actor": "木戸衣吹",
+    "source": "https://zunko.jp/sozai/utau/TohokuItako_Voice.zip",
+    "clips": {
+      "ack": {
+        "path": "挨拶・相槌/はい.wav"
+      },
+      "curious": {
+        "path": "文頭文尾/ふーん.wav"
+      },
+      "surprise": {
+        "path": "文頭文尾/え？.wav"
+      },
+      "warm": {
+        "path": "文頭文尾/うふふ.wav"
+      },
+      "sigh": {
+        "path": "ネガティブ/はあ…….wav"
+      },
+      "hmm": {
+        "path": "中立/もう….wav"
+      }
+    }
+  },
+  "patchouli": {
+    "bank": "TohokuKiritan_Voice",
+    "actor": "茜屋日海夏",
+    "source": "https://zunko.jp/sozai/utau/TohokuKiritan_Voice.zip",
+    "clips": {
+      "ack": {
+        "path": "挨拶・相槌/はい.wav"
+      },
+      "curious": {
+        "path": "文頭文尾/ふーん.wav"
+      },
+      "surprise": {
+        "path": "文頭文尾/え？.wav"
+      },
+      "warm": {
+        "path": "文頭文尾/えへへ…….wav"
+      },
+      "sigh": {
+        "path": "ネガティブ/はあ…….wav"
+      },
+      "hmm": {
+        "path": "中立/もう….wav"
+      }
+    }
+  },
+  "marisa": {
+    "bank": "あみたろの声素材工房",
+    "actor": "あみたろ",
+    "source": "https://amitaro.net/voice/voice_dl/",
+    "clips": {
+      "ack": {
+        "url": "https://amitaro.net/download/voice/101_henji/un_02.wav"
+      },
+      "curious": {
+        "url": "https://amitaro.net/download/voice/102_reaction/fuun_01.wav"
+      },
+      "surprise": {
+        "url": "https://amitaro.net/download/voice/101_henji/e_01.wav"
+      },
+      "warm": {
+        "url": "https://amitaro.net/download/voice/106_kanjou/ehehe_01.wav"
+      },
+      "sigh": {
+        "url": "https://amitaro.net/download/voice/195_serifu_others/haa_01.wav"
+      },
+      "hmm": {
+        "url": "https://amitaro.net/download/voice/102_reaction/ee_01.wav"
+      }
+    }
+  }
+}

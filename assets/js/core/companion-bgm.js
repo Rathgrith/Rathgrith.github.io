@@ -55,8 +55,7 @@
     var status = strip.querySelector("[data-bgm-status]");
     var announcement = strip.querySelector("[data-bgm-announcement]");
     var character = "", requested = false, visible = true, game = false;
-    var volume = .28, loading = false, failed = false, epoch = 0, frame = 0, ducked = false;
-    function targetVolume() { return volume * (ducked ? .3 : 1); }
+    var volume = .28, loading = false, failed = false, epoch = 0, frame = 0;
     try {
       var stored = localStorage.getItem("site-companion-bgm-volume");
       if (stored !== null && Number.isFinite(Number(stored))) volume = Math.max(0, Math.min(1, Number(stored)));
@@ -110,7 +109,7 @@
       cancelFade();
       if (!allowed() || !character) {
         audio.pause();
-        audio.volume = targetVolume();
+        audio.volume = volume;
         loading = false;
         update();
         return;
@@ -128,7 +127,7 @@
       audio.play().then(function () {
         if (token !== epoch) return;
         loading = false;
-        fade(targetVolume(), 320, token);
+        fade(volume, 320, token);
         update();
       }).catch(function (error) {
         if (token !== epoch) return;
@@ -159,7 +158,7 @@
     volumeInput.addEventListener("input", function () {
       cancelFade();
       volume = Number(volumeInput.value) / 100;
-      audio.volume = targetVolume();
+      audio.volume = volume;
       // Adjusting a slider on a fresh visit never starts playback.
       if (requested && volume) audio.muted = false;
       try { localStorage.setItem("site-companion-bgm-volume", String(volume)); } catch (_) {}
@@ -190,11 +189,6 @@
     window.addEventListener("pagehide", function () { ++epoch; cancelFade(); audio.pause(); });
     window.addEventListener("pageshow", function (event) { if (event.persisted) sync(); });
     instance = {
-      setDucked: function (value) {
-        if (ducked === value) return;
-        ducked = value;
-        if (!audio.paused) fade(targetVolume(), value ? 100 : 240, epoch);
-      },
       setCharacter: function (id) {
         if (!tracks[id] || character === id) return;
         character = id;

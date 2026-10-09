@@ -34,7 +34,7 @@ Gallery cards always crop to 4:3, with five columns at 1280px and above and thre
 - `classic-navigation.js` updates page tabs and reading/collection indexes.
 - `site-options.js` owns the header menu. `live2d-toggle.js` owns the single persisted companion visibility preference.
 - `companion-dialogue.js` owns the dialogue state machine and persistent preferences; `companion-dialogues.js` contains writing and pure story selection. See [the companion guide](companion-system.md).
-- `companion-voice.js` owns opt-in generated Japanese dialogue, phoneme-synchronized articulation and dialogue BGM ducking. All 135 lines are generated offline; no secret or synthesis endpoint is exposed. See [voice configuration](companion-voices.md).
+- `companion-voice-reactions.js` owns opt-in recorded interjections. Eighteen brief clips use emotion selection, a per-character cooldown and consecutive-repeat avoidance. Mouth articulation remains driven by the kana plan. See [voice sources](companion-voices.md).
 - `companion-bgm.js` owns one lazy `HTMLAudioElement`, three local ensemble tracks and a skeuomorphic cassette deck. Refresh always starts muted and paused; only volume is persisted. Character switches fade down/up; the same audio element survives page navigation. Close/minimize, background tabs and the arcade suspend playback. Source credits and the reproducible offline render are in `assets/music/companion/CREDITS.md`.
 - `live2d-loader.js` owns Cubism/PIXI model lifecycle, half-body framing, motion and window movement. Model requests use a generation token so rapid switches cannot replace the current character with a stale result. Gaze uses the original page-wide SDK coordinate mapping. Only the dialogue rectangle smoothly returns it to neutral; menu/music controls and the rest of the page keep following. Touch and reduced-motion mode do not track. Playground tracks size, position and maximize/restore state independently; ResizeObserver rerenders the stage and budgets compact height from actual controls.
 - `games/danmaku-engine.js`, `danmaku-renderer.js` and `companion-danmaku.js` separately own the arcade simulation, Canvas 2D view and UI/lifecycle. The game uses `danmaku-audio.js` for independent, silent-by-default battle BGM and effect mixing from deterministic event hooks. The mounted game pauses the conversation renderer, music and typewriter; local pixel sprites keep it independent of remote Live2D availability. See [the game guide](danmaku-game.md).
@@ -51,7 +51,7 @@ Build Jekyll and serve `_site` first. Audio seeking checks need a server with HT
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-bgm.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-gaze.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/playground-window.cjs
-PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-voice.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-voice-reactions.cjs
 node tests/companion-data.cjs
 node tests/danmaku-engine.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-audio.cjs
