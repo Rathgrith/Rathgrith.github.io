@@ -339,7 +339,7 @@
     var character = data.characters[id];
     root.dataset.vnCharacter = id;
     if (bgm) bgm.setCharacter(id);
-    q("[data-companion-name]").textContent = character.fullName;
+    q("[data-companion-name]").textContent = "Playground";
     q("[data-live2d-dialogue-name]").textContent = character.name;
     q("[data-vn-location]").textContent = character.location;
     root.querySelectorAll("[data-vn-character]").forEach(function (button) {

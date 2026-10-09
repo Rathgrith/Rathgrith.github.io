@@ -11,11 +11,11 @@ fs.mkdirSync(out, { recursive: true });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors = [], requests = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    page.on("request", (r) => { if (r.url().endsWith("-piano.mp3")) requests.push(r.url()); });
+    page.on("request", (r) => { if (r.url().endsWith("-ensemble.mp3")) requests.push(r.url()); });
     const audio = () => page.locator("[data-companion-audio]");
     const playing = (id) => page.waitForFunction((id) => {
       const a = document.querySelector("[data-companion-audio]");
-      return !a.paused && a.currentTime > .2 && Number.isFinite(a.duration) && (!id || a.src.endsWith(id + "-piano.mp3"));
+      return !a.paused && a.currentTime > .2 && Number.isFinite(a.duration) && (!id || a.src.endsWith(id + "-ensemble.mp3"));
     }, id);
     await page.goto(base);
     await page.locator(".vn-bgm").waitFor();
@@ -101,11 +101,11 @@ fs.mkdirSync(out, { recursive: true });
       }
     }
     // Broken media is recoverable and never affects conversation controls.
-    await page.route("**/patchouli-piano.mp3", route => route.fulfill({ status: 404, body: "missing" }));
+    await page.route("**/patchouli-ensemble.mp3", route => route.fulfill({ status: 404, body: "missing" }));
     await page.locator("[data-bgm-play]").click();
     await page.waitForFunction(() => document.querySelector(".vn-bgm").dataset.bgmState === "error");
     assert(await audio().evaluate(a => a.paused));
-    await page.unroute("**/patchouli-piano.mp3");
+    await page.unroute("**/patchouli-ensemble.mp3");
     await page.locator("[data-bgm-play]").click();
     await playing("patchouli");
     await page.locator("[data-bgm-play]").click();

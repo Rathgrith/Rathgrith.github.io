@@ -1,32 +1,46 @@
-# Companion piano BGM
+# Playground BGM
 
-These are unofficial Touhou Project piano arrangements, not recordings from the games.
+Original Touhou Project themes: **ZUN / 上海アリス幻樂団**.
+These are fan arrangements, not original game recordings. The cassette deck
+credits each arranger and links to their own distribution page.
 
-Original compositions: **ZUN / 上海アリス幻樂団**.
-Piano arrangements and source MIDI: **DMBN / [東方ピアノEasyモード](https://easypianoscore.jp/)**.
-The in-window player links to 東方ピアノEasyモード and includes the composer and arranger in its credit tooltip.
+| Character / output | Arrangement | Source and instrumentation |
+| --- | --- | --- |
+| Alice / `alice-ensemble.mp3` | **端国の唄**, based on 不思議の国のアリス | **巫月和音 / 望月幻奏楽団 (Luna Reverie)** — [catalog](https://lunareverie.iza-yoi.net/midi.html), [MIDI](https://lunareverie.iza-yoi.net/midi-a/tha13.mid). Original three-part arrangement, voiced here as music box, harp and bowed bass instead of music box and piano. |
+| Marisa / `marisa-ensemble.mp3` | **恋色マスタースパーク** (2005, SD-80 DEMO) | **干瓢碁 / Kanpyohgo**, [Kanpyo’s MIDI](https://kpmidi.net/). Full arrangement rendered by the author using the Roland SD-80, rather than a new piano reduction. |
+| Patchouli / `patchouli-ensemble.mp3` | **幽室魔術師**, based on ラクトガール ～ 少女密室 | **巫月和音 / 望月幻奏楽団 (Luna Reverie)** — [catalog](https://lunareverie.iza-yoi.net/midi.html), [MIDI](https://lunareverie.iza-yoi.net/midi-a/tha06.mid). Strings, piano, acoustic bass, trumpet, tubular bell and percussion, preserving all seven MIDI channels. |
 
-| Character / output | Original theme | DMBN source (Easy) | Tempo multiplier |
-| --- | --- | --- | --- |
-| Alice / `alice-piano.mp3` | 人形裁判 ～ 人の形弄びし少女 | [東方妖々夢](https://easypianoscore.jp/sheetList.php?titleid=youmu), [MIDI archive](https://easypianoscore.jp/download.php?ext=zip&inst=&musicLevel=easy&musicName=doll) | 0.78 |
-| Marisa / `marisa-piano.mp3` | 恋色マスタースパーク | [東方永夜抄](https://easypianoscore.jp/sheetList.php?titleid=eiya), [MIDI archive](https://easypianoscore.jp/download.php?ext=zip&inst=&musicLevel=easy&musicName=lms) | 0.68 |
-| Patchouli / `patchouli-piano.mp3` | ラクトガール ～ 少女密室 | [東方紅魔郷](https://easypianoscore.jp/sheetList.php?titleid=kouma), [MIDI archive](https://easypianoscore.jp/download.php?ext=zip&inst=&musicLevel=easy&musicName=girl) | 0.85 |
+## Permission and changes
 
-The unmodified MIDI files are retained in `source/` with these credits. DMBN's
-[usage policy](https://easypianoscore.jp/kenri.html) (dated 2024-08-05, checked
-2026-10-09) permits public use, modification and distribution with attribution
-to 東方ピアノEasyモード; noncommercial use does not require an application.
-Also subject to the [Touhou Project fan-work guidelines](https://touhou-project.news/guideline/).
-These works are not covered by the website template's software license.
+Checked 2026-10-09. Luna Reverie's catalog permits its MIDI arrangements in
+freely published, all-ages Touhou-related works without individual contact,
+and asks for attribution. They accompany this free Touhou conversation and
+danmakū fan game. Source MIDIs remain at the arranger's own site rather than
+being redistributed here. Alice's instrumentation is adapted as noted above;
+Patchouli retains the original GM programs. Original timing, velocities,
+controllers and pitch bend are retained. GS bank selection is mapped to GM.
 
-Rendering changes: softened MIDI velocity (bass slightly quieter), slower tempo,
-sampled acoustic piano, a restrained hall reverb and high-frequency shelf,
-approximately −21 LUFS with a −3 dBTP ceiling, natural release and short end fade.
-No original game audio or commercial arrangement recordings are included.
-The macOS-installed Apple piano is used only to render the performance; its
-soundbank is not included in this repository.
+Kanpyo's site's **Notes / ダウンロード可能なコンテンツのライセンス** section
+licenses downloadable music under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The Marisa recording comes from the author's linked
+[Legacy Musics archive](https://drive.google.com/file/d/0B9EWVKzlJdqEaDZKSGhROGQ2ZnM/view?resourcekey=0-b49CC-9LSQP2AjaQ2FbvWw),
+member `東方シリーズその他/kanpyo_2005_koiiro.mp3`.
+It is transcoded to 160 kbps MP3 and normalized to approximately −19 LUFS,
+with a −2 dBTP ceiling. The melody, tempo and arrangement are unchanged.
 
-To reproduce on macOS, install `mido` and `imageio-ffmpeg` in a Python environment
-and run `python scripts/render-companion-bgm.py` from the repository root.
-Xcode command-line tools are needed only to rebuild the audio. The published
-site plays the committed MP3s without runtime synthesis or external music services.
+Luna Reverie's MIDI performances are rendered with the installed macOS
+General MIDI bank at their original tempo, normalized to the same level, with
+a short release tail and fade. The soundbank is not redistributed.
+These music works are not covered by the website template's software license;
+Touhou derivatives also follow the [fan-work guidelines](https://touhou-project.news/guideline/).
+
+## Reproduction
+
+On macOS, install `mido` and `imageio-ffmpeg` into a Python environment and run
+`python scripts/render-companion-bgm.py`. This downloads and renders Alice
+and Patchouli in a temporary directory, retaining multitimbral MIDI events.
+Xcode command-line tools are required for the offline renderer. Marisa is the
+author's existing SD-80 recording; extract the member above and normalize with
+FFmpeg: `-af loudnorm=I=-19:TP=-2:LRA=10 -ar 44100 -codec:a libmp3lame -b:a 160k`.
+The website plays local MP3 renders so playback works without a runtime MIDI
+soundbank or third-party music player. Audio is loaded only after Play/Unmute.

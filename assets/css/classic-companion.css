@@ -213,7 +213,8 @@
   filter: blur(3px);
 }
 #live2d-widget #live2dcanvas {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
   display: block;
   max-width: 100%;
@@ -602,3 +603,61 @@ html body.live2d-is-hidden #live2d-widget {
   padding: 14px;
   background: var(--vn-panel);
 }
+
+/* Playground behaves like a desktop window once resized or maximized. */
+#live2d-widget.is-sized {
+  display: flex;
+  flex-direction: column;
+}
+#live2d-widget.is-sized .companion-titlebar { flex-shrink: 0; }
+#live2d-widget.is-sized [data-companion-content] {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+#live2d-widget .playground-sizebar {
+  display: flex;
+  justify-content: flex-end;
+  height: 16px;
+  flex: 0 0 16px;
+}
+#live2d-widget [data-companion-resize] {
+  display: grid;
+  place-items: end;
+  width: 26px;
+  height: 16px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+#live2d-widget [data-companion-resize] span {
+  display: block;
+  width: 12px;
+  height: 12px;
+  background: repeating-linear-gradient(135deg, transparent 0 2px, var(--vn-rule) 2px 3px, var(--vn-panel) 3px 4px);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+#live2d-widget.is-resizing { user-select: none; }
+#live2d-widget[data-playground-layout="wide"] .vn-main-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, .65fr);
+  grid-template-rows: auto minmax(160px, 1fr) auto auto auto auto;
+  grid-template-areas: "cast cast" "scene dialogue" "scene controls" "scene music" "scene arcade" "scene weather";
+  gap: 6px 10px;
+  overflow: auto;
+}
+#live2d-widget[data-playground-layout="wide"] .vn-cast { grid-area: cast; }
+#live2d-widget[data-playground-layout="wide"] .companion-stage { grid-area: scene; height: 100%; min-height: 0; }
+#live2d-widget[data-playground-layout="wide"] .companion-conversation { grid-area: dialogue; margin-top: 8px; display: flex; flex-direction: column; }
+#live2d-widget[data-playground-layout="wide"] .companion-footer { grid-area: controls; margin: 0; padding: 0; }
+#live2d-widget[data-playground-layout="wide"] .vn-bgm { grid-area: music; }
+#live2d-widget[data-playground-layout="wide"] .vn-arcade-entry { grid-area: arcade; margin: 0; }
+#live2d-widget[data-playground-layout="wide"] .vn-weather-strip { grid-area: weather; margin: 0; }
+#live2d-widget.is-sized .vn-danmaku-view { height: 100%; }
+
+#live2d-widget[data-playground-layout="wide"] #live2d-dialogue { flex: 1; display: flex; min-height: 0; }
+#live2d-widget[data-playground-layout="wide"] .vn-reading { flex: 1; overflow: auto; padding: 10px 8px 24px; }
+#live2d-widget[data-playground-layout="wide"] .live2d-dialogue__text { font-size: 16px; line-height: 2; }
+#live2d-widget[data-playground-layout="wide"] .vn-next-mark { bottom: 6px; right: 8px; }

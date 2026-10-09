@@ -3,9 +3,9 @@
   "use strict";
   var base = document.currentScript.dataset.audioBase;
   var tracks = {
-    alice: { title: "人形裁判", full: "人形裁判 ～ 人の形弄びし少女" },
-    marisa: { title: "恋色マスタースパーク", full: "恋色マスタースパーク" },
-    patchouli: { title: "ラクトガール", full: "ラクトガール ～ 少女密室" },
+    alice: { title: "端国の唄", full: "不思議の国のアリス · 室内楽 MIDI", credit: "望月幻奏楽団", author: "巫月和音", url: "https://lunareverie.iza-yoi.net/midi.html" },
+    marisa: { title: "恋色マスタースパーク", full: "恋色マスタースパーク · SD-80", credit: "Kanpyo’s MIDI", author: "干瓢碁", url: "https://kpmidi.net/" },
+    patchouli: { title: "幽室魔術師", full: "ラクトガール ～ 少女密室 · 合奏 MIDI", credit: "望月幻奏楽団", author: "巫月和音", url: "https://lunareverie.iza-yoi.net/midi.html" },
   };
   var instance;
   function icon(path) {
@@ -24,17 +24,21 @@
     strip.className = "vn-bgm";
     strip.setAttribute("aria-label", "背景音楽");
     strip.innerHTML =
-      '<div class="vn-bgm-main">' +
-        '<button type="button" class="vn-bgm-button" data-bgm-play aria-label="BGM を再生">' + icons.play + '</button>' +
-        '<div class="vn-bgm-track"><span class="vn-bgm-label">BGM：</span><span data-bgm-title></span></div>' +
-        '<button type="button" class="vn-bgm-button" data-bgm-mute aria-label="ミュートを解除" aria-pressed="true">' + icons.muted + '</button>' +
+      '<div class="vn-bgm-deck">' +
+        '<div class="vn-bgm-track"><span class="vn-bgm-label">BGM：</span><span data-bgm-title></span><span class="vn-bgm-type" aria-hidden="true">STEREO</span></div>' +
+        '<div class="vn-bgm-tape" aria-hidden="true"><span class="vn-bgm-reel"></span><span class="vn-bgm-tape-line"></span><span class="vn-bgm-reel"></span></div>' +
       '</div>' +
       '<div class="vn-bgm-transport">' +
         '<time data-bgm-time aria-hidden="true">0:00</time>' +
         '<input type="range" data-bgm-seek aria-label="再生位置" min="0" max="1000" value="0" disabled>' +
-        '<input type="range" class="vn-bgm-volume" data-bgm-volume aria-label="BGM の音量" min="0" max="100" step="1">' +
       '</div>' +
-      '<div class="vn-bgm-meta"><span data-bgm-status>消音</span><a href="https://easypianoscore.jp/" target="_blank" rel="noopener noreferrer" title="原曲：ZUN · MIDI・編曲：DMBN／東方ピアノEasyモード">東方ピアノEasyモード</a></div>' +
+      '<div class="vn-bgm-main">' +
+        '<button type="button" class="vn-bgm-button" data-bgm-play aria-label="BGM を再生">' + icons.play + '</button>' +
+        '<button type="button" class="vn-bgm-button" data-bgm-mute aria-label="ミュートを解除" aria-pressed="true">' + icons.muted + '</button>' +
+        '<span data-bgm-status>消音</span>' +
+        '<label class="vn-bgm-volume"><span aria-hidden="true">VOL</span><input type="range" data-bgm-volume aria-label="BGM の音量" min="0" max="100" step="1"></label>' +
+      '</div>' +
+      '<div class="vn-bgm-meta"><span aria-hidden="true">TYPE I · NORMAL</span><a data-bgm-credit target="_blank" rel="noopener noreferrer"></a></div>' +
       '<span class="visually-hidden" data-bgm-announcement role="status" aria-live="polite"></span>';
     root.querySelector(".vn-weather-strip").before(strip);
     var audio = document.createElement("audio");
@@ -110,7 +114,7 @@
         update();
         return;
       }
-      var src = new URL(character + "-piano.mp3", new URL(base, location.href)).href;
+      var src = new URL(character + "-ensemble.mp3", new URL(base, location.href)).href;
       if (audio.src !== src || failed) {
         audio.pause();
         audio.src = src;
@@ -158,7 +162,7 @@
       // Adjusting a slider on a fresh visit never starts playback.
       if (requested && volume) audio.muted = false;
       try { localStorage.setItem("site-companion-bgm-volume", String(volume)); } catch (_) {}
-      if (allowed() && !audio.src.endsWith("/" + character + "-piano.mp3")) sync();
+      if (allowed() && !audio.src.endsWith("/" + character + "-ensemble.mp3")) sync();
       update();
     });
     seek.addEventListener("input", function () {
@@ -190,8 +194,12 @@
         character = id;
         strip.dataset.bgmCharacter = id;
         title.textContent = tracks[id].title;
-        title.title = tracks[id].full + " · ピアノ";
-        title.setAttribute("aria-label", tracks[id].full + " · ピアノ");
+        title.title = tracks[id].full;
+        title.setAttribute("aria-label", tracks[id].full);
+        var credit = strip.querySelector("[data-bgm-credit]");
+        credit.textContent = tracks[id].credit;
+        credit.href = tracks[id].url;
+        credit.title = "原曲：ZUN · 編曲：" + tracks[id].author + (id === "alice" ? " · 音色変更" : "");
         failed = false;
         // No source is assigned until the first explicit play/unmute gesture.
         if (allowed() && !audio.paused) {
