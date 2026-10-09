@@ -1,0 +1,62 @@
+{
+  "alice": {
+    "ack": [
+      "alice-ack.mp3"
+    ],
+    "curious": [
+      "alice-curious.mp3"
+    ],
+    "surprise": [
+      "alice-surprise.mp3"
+    ],
+    "warm": [
+      "alice-warm.mp3"
+    ],
+    "sigh": [
+      "alice-sigh.mp3"
+    ],
+    "hmm": [
+      "alice-hmm.mp3"
+    ]
+  },
+  "patchouli": {
+    "ack": [
+      "patchouli-ack.mp3"
+    ],
+    "curious": [
+      "patchouli-curious.mp3"
+    ],
+    "surprise": [
+      "patchouli-surprise.mp3"
+    ],
+    "warm": [
+      "patchouli-warm.mp3"
+    ],
+    "sigh": [
+      "patchouli-sigh.mp3"
+    ],
+    "hmm": [
+      "patchouli-hmm.mp3"
+    ]
+  },
+  "marisa": {
+    "ack": [
+      "marisa-ack.mp3"
+    ],
+    "curious": [
+      "marisa-curious.mp3"
+    ],
+    "surprise": [
+      "marisa-surprise.mp3"
+    ],
+    "warm": [
+      "marisa-warm.mp3"
+    ],
+    "sigh": [
+      "marisa-sigh.mp3"
+    ],
+    "hmm": [
+      "marisa-hmm.mp3"
+    ]
+  }
+}
