@@ -225,11 +225,12 @@
         var x = character === "alice" ? 0.25 : 0.81;
         var y = kind === "sigh" ? 0.59 : character === "alice" ? 0.36 : 0.40;
         var bounds = stage.getBoundingClientRect();
+        var scale = bounds.width / stage.offsetWidth || 1;
         var left = Math.max(0, Math.min(size.width-SIZE, size.width*x-SIZE/2)) + offsets.x;
         var top = size.height*y-SIZE/2 + offsets.y;
         // Snap the final viewport position, including fractional grid columns.
-        canvas.style.left = (Math.round(bounds.left + left) - bounds.left) + "px";
-        canvas.style.top = (Math.round(bounds.top + top) - bounds.top) + "px";
+        canvas.style.left = (Math.round(bounds.left + left * scale) - bounds.left) / scale + "px";
+        canvas.style.top = (Math.round(bounds.top + top * scale) - bounds.top) / scale + "px";
         draw(canvas,kind,age,character);
       },
       destroy: function () { observer.disconnect(); canvas.remove(); },

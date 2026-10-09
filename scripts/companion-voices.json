@@ -1,0 +1,5 @@
+{
+  "alice": {"speaker": 2, "model": "0.vvm", "credit": "VOICEVOX:四国めたん", "provider": "田中小雪", "url": "https://voicevox.hiroshiba.jp/product/shikoku_metan/", "speed": 1.02, "pitch": -0.025, "intonation": 0.9},
+  "marisa": {"speaker": 8, "model": "0.vvm", "credit": "VOICEVOX:春日部つむぎ", "provider": "春日部つくし", "url": "https://voicevox.hiroshiba.jp/product/kasukabe_tsumugi/", "speed": 1.1, "pitch": -0.035, "intonation": 1.12},
+  "patchouli": {"speaker": 108, "model": "21.vvm", "credit": "VOICEVOX:東北きりたん", "provider": "茜屋日海夏", "url": "https://voicevox.hiroshiba.jp/product/tohoku_kiritan/", "speed": 0.95, "pitch": -0.055, "intonation": 0.72}
+}

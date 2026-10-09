@@ -461,18 +461,29 @@
     } else {
       restoredWindow = { position: companionPosition && Object.assign({}, companionPosition), size: companionSize && Object.assign({}, companionSize) };
       companionMaximized = true;
-      companionPosition = { x: 8, y: 8 };
-      companionSize = { width: innerWidth - 16, height: innerHeight - 16 };
+      companionSize = maximumCompanionSize();
+      companionPosition = { x: (innerWidth - companionSize.width) / 2, y: (innerHeight - companionSize.height) / 2 };
     }
     setCompanionMinimized(false);
+  }
+
+  function maximumCompanionSize() {
+    // A reading/game window, not a fullscreen surface. Small screens keep the
+    // available space; desktop leaves the homepage visible around the window.
+    if (innerWidth < 1000) return { width: innerWidth - 16, height: innerHeight - 16 };
+    return {
+      width: Math.round(Math.min(innerWidth - 16, Math.max(620, innerWidth * .75))),
+      height: Math.round(Math.min(innerHeight - 16, Math.max(540, innerHeight * .75))),
+    };
   }
 
   function bindCompanionResize(widget) {
     var grip = widget.querySelector("[data-companion-resize]"), start = null, frame = 0;
     function resize(width, height) {
+      var maximum = maximumCompanionSize();
       companionSize = {
-        width: Math.round(Math.max(Math.min(280, innerWidth - 16), Math.min(width, innerWidth - companionPosition.x - 8))),
-        height: Math.round(Math.max(Math.min(540, innerHeight - 16), Math.min(height, innerHeight - companionPosition.y - 8))),
+        width: Math.round(Math.max(Math.min(280, innerWidth - 16), Math.min(width, maximum.width, innerWidth - companionPosition.x - 8))),
+        height: Math.round(Math.max(Math.min(540, innerHeight - 16), Math.min(height, maximum.height, innerHeight - companionPosition.y - 8))),
       };
       if (!frame) frame = requestAnimationFrame(function () { frame = 0; applyResponsiveSize(); });
     }
@@ -516,6 +527,7 @@
     widget.setAttribute("role", "region");
     widget.setAttribute("aria-labelledby", "companion-title");
     widget.innerHTML = [
+      '<div class="playground-surface">',
       '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="ドラッグで移動・ダブルクリックで元の位置へ">',
       '<span id="companion-title" class="companion-title"><span data-companion-name>Playground</span></span>',
       '<div class="companion-controls">',
@@ -528,7 +540,7 @@
       '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">少女祈祷中…</span></div>',
       '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">……</p></div>',
       '<div class="companion-footer" data-companion-footer></div>',
-      '</div><div class="playground-sizebar"><button type="button" data-companion-resize aria-label="ウィンドウのサイズを変更" title="ドラッグ・矢印キーでサイズを変更"><span aria-hidden="true"></span></button></div>',
+      '</div><div class="playground-sizebar"><button type="button" data-companion-resize aria-label="ウィンドウのサイズを変更" title="ドラッグ・矢印キーでサイズを変更"><span aria-hidden="true"></span></button></div></div>',
     ].join("");
     widget
       .querySelector("[data-companion-reset-position]")
@@ -743,7 +755,8 @@
     if (!last || !main.clientHeight) return;
     // Budget from actual controls, fonts and branching choices, not a fixed
     // estimate that becomes stale when the music player or text changes.
-    var occupied = last.getBoundingClientRect().bottom - main.getBoundingClientRect().top + main.scrollTop - stage.offsetHeight;
+    var scale = Number(companionWidget.dataset.playgroundScale) || 1;
+    var occupied = (last.getBoundingClientRect().bottom - main.getBoundingClientRect().top) / scale + main.scrollTop - stage.offsetHeight;
     var height = Math.max(110, Math.floor(main.clientHeight - occupied));
     if (Math.abs(stage.offsetHeight - height) > 1) stage.style.height = height + "px";
   }
@@ -756,7 +769,9 @@
     var stage = companionWidget.querySelector("[data-companion-stage]");
     var width = stage.clientWidth, height = stage.clientHeight;
     if (!width || !height) return;
-    if (application.renderer.screen.width !== width || application.renderer.screen.height !== height) {
+    var resolution = Math.min(3, (window.devicePixelRatio || 1) * (Number(companionWidget.dataset.playgroundScale) || 1));
+    if (application.renderer.screen.width !== width || application.renderer.screen.height !== height || application.renderer.resolution !== resolution) {
+      application.renderer.resolution = resolution;
       application.renderer.resize(width, height);
       fitCurrentModel();
       schedulePointerFocus();
@@ -770,13 +785,19 @@
     var display = getDisplayConfig();
     var widget = elements.widget;
     if (companionSize) {
-      companionSize.width = companionMaximized ? innerWidth - 16 : Math.min(companionSize.width, innerWidth - 16);
-      companionSize.height = companionMaximized ? innerHeight - 16 : Math.min(companionSize.height, innerHeight - 16);
+      var maximum = maximumCompanionSize();
+      companionSize.width = companionMaximized ? maximum.width : Math.min(companionSize.width, maximum.width);
+      companionSize.height = companionMaximized ? maximum.height : Math.min(companionSize.height, maximum.height);
+      if (companionMaximized) companionPosition = { x: (innerWidth - companionSize.width) / 2, y: (innerHeight - companionSize.height) / 2 };
     }
     var sized = Boolean(companionSize && !companionMinimized);
     widget.classList.toggle("is-sized", sized);
     widget.classList.toggle("is-maximized", companionMaximized);
     widget.dataset.playgroundLayout = sized && companionSize.width >= 620 ? "wide" : "compact";
+    var wide = widget.dataset.playgroundLayout === "wide";
+    var scale = sized ? Math.max(1, Math.min(companionSize.width / (wide ? 720 : 352), companionSize.height / (wide ? 520 : 740))) : 1;
+    widget.dataset.playgroundScale = String(scale);
+    widget.style.setProperty("--playground-scale", scale);
     widget.style.setProperty("--vn-width", (companionSize ? companionSize.width : display.width + 10) + "px");
     widget.style.height = sized ? companionSize.height + "px" : "auto";
     var stage = widget.querySelector("[data-companion-stage]");
