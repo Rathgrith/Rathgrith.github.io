@@ -4,6 +4,7 @@
   var data = window.CompanionStories,
     root,
     hooks,
+    bgm,
     currentId = "",
     story,
     index = 0,
@@ -337,6 +338,7 @@
     cancel();
     var character = data.characters[id];
     root.dataset.vnCharacter = id;
+    if (bgm) bgm.setCharacter(id);
     q("[data-companion-name]").textContent = character.fullName;
     q("[data-live2d-dialogue-name]").textContent = character.name;
     q("[data-vn-location]").textContent = character.location;
@@ -382,6 +384,7 @@
   }
   function setGameActive(value) {
     gameActive = value;
+    if (bgm) bgm.setGameActive(value);
     closePanel();
     q(".vn-main-view").hidden = value;
     q(".vn-main-view").inert = value;
@@ -461,6 +464,8 @@
         mainView.appendChild(child);
       });
     content.prepend(mainView);
+    bgm = window.CompanionBGM.mount(root);
+    bgm.setVisible(visible);
     var weather = document.querySelector("[data-weather-widget]");
     if (weather) {
       weather.hidden = false;
@@ -557,6 +562,7 @@
     next: advance,
     setVisible: function (value) {
       visible = value;
+      if (bgm) bgm.setVisible(value);
       if (window.CompanionDanmaku) window.CompanionDanmaku.setVisible(value);
       if (!value) {
         clearTimeout(autoTimer);

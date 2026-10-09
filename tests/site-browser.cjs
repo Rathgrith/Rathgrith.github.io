@@ -36,7 +36,10 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     });
     await page.goto(base);
     await page.evaluate(() => document.fonts.ready);
-    assert.equal(await page.locator("audio,[data-music-player]").count(), 0);
+    await page.locator("[data-companion-audio]").waitFor({ state: "attached" });
+    assert.equal(await page.locator("audio").count(), 1);
+    assert.equal(await page.locator("[data-music-player]").count(), 0);
+    assert(await page.locator("[data-companion-audio]").evaluate((audio) => audio.paused && audio.muted && !audio.getAttribute("src")));
     let checks = 0;
     for (const id of ["alice", "marisa", "patchouli"]) {
       await page.locator(`[data-classic-character="${id}"]`).click();
