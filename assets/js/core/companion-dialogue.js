@@ -5,6 +5,7 @@
     root,
     hooks,
     bgm,
+    voice,
     currentId = "",
     story,
     index = 0,
@@ -58,6 +59,7 @@
     clearTimeout(timer);
     clearTimeout(autoTimer);
     timer = autoTimer = 0;
+    if (voice) voice.stop();
     if (hooks) hooks.stopSpeaking();
   }
   function setState(value) {
@@ -193,6 +195,7 @@
       document.hidden ||
       panel ||
       state !== "ready" ||
+      (voice && voice.isBusy()) ||
       !story ||
       index >= story.lines.length - 1
     )
@@ -204,7 +207,7 @@
     timer = 0;
     if (!line) return;
     q("[data-live2d-dialogue-text]").textContent = line.text;
-    hooks.stopSpeaking();
+    if (!voice || !voice.isBusy()) hooks.stopSpeaking();
     setState("ready");
     q("#live2d-interact").textContent =
       index < story.lines.length - 1
@@ -240,6 +243,7 @@
     root.classList.add("has-dialogue");
     setState("typing");
     hooks.perform(line);
+    if (voice) voice.play(currentId, line.text);
     if (speed === 0 || matchMedia("(prefers-reduced-motion: reduce)").matches) {
       complete();
       return;
@@ -258,7 +262,7 @@
         .slice(0, ++position)
         .join("");
       var duration = speech.duration(position - 1, speed);
-      if (speech.units[position - 1].length)
+      if (speech.units[position - 1].length && (!voice || !voice.isEnabled()))
         hooks.speak(chars[position - 1], duration, speech.units[position - 1]);
       if (position >= chars.length) {
         complete();
@@ -384,6 +388,7 @@
   }
   function setGameActive(value) {
     gameActive = value;
+    if (voice) voice.setGameActive(value);
     if (bgm) bgm.setGameActive(value);
     closePanel();
     q(".vn-main-view").hidden = value;
@@ -466,6 +471,13 @@
     content.prepend(mainView);
     bgm = window.CompanionBGM.mount(root);
     bgm.setVisible(visible);
+    voice = window.CompanionVoice.mount(root, {
+      replay: function () { if (line && visible && !gameActive) renderLine(); },
+      speak: hooks.speak,
+      stopSpeaking: hooks.stopSpeaking,
+      settled: scheduleAuto,
+      duck: function (value) { bgm.setDucked(value); },
+    });
     var weather = document.querySelector("[data-weather-widget]");
     if (weather) {
       weather.hidden = false;
@@ -562,6 +574,7 @@
     next: advance,
     setVisible: function (value) {
       visible = value;
+      if (voice) voice.setVisible(value);
       if (bgm) bgm.setVisible(value);
       if (window.CompanionDanmaku) window.CompanionDanmaku.setVisible(value);
       if (!value) {

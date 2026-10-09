@@ -336,10 +336,10 @@
     audio = DanmakuAudio.create(view);
     canvas = q("[data-danmaku-canvas]");
     new ResizeObserver(function () {
-      var box = q("[data-danmaku-canvas-wrap]").getBoundingClientRect();
+      var wrap = q("[data-danmaku-canvas-wrap]");
       var scale = Math.min(
-        box.width / DanmakuEngine.width,
-        box.height / DanmakuEngine.height
+        wrap.clientWidth / DanmakuEngine.width,
+        wrap.clientHeight / DanmakuEngine.height
       );
       if (scale > 0) {
         canvas.style.width = Math.floor(DanmakuEngine.width * scale) + "px";
