@@ -57,7 +57,15 @@ The companion and homepage share `_includes/prayer-loader.html` and `classic-loa
 
 All 135 lines have explicit `expressionMotionId` and `poseId`: 99 everyday/affinity/holiday lines, 18 acquaintance remarks and 18 existing quotations. Japanese text is unchanged. Directions were assigned after inspecting the three original rigs' eight faces and five body poses. These are rendered with the existing Cannonball models; no replacement model is installed.
 
-Expressions use the rigs' authored presets: 01 neutral, 02 gentle smile, 03 serious/firm, 04 troubled, 05 annoyed, 06 surprised, 07 amused/confident, 08 tired/downcast. Their intensity differs between characters. Expressions interpolate over about 260ms and remain with the current line through typing, choices and reading; there is no timed reset to an unrelated idle smile.
+Expressions use the rigs' authored presets: 01 neutral, 02 gentle smile, 03 serious/firm, 04 troubled, 05 annoyed, 06 surprised, 07 amused/confident, 08 tired/downcast. Their intensity differs between characters. Faces ease toward their target (180ms time constant, 320ms for the tired face) and remain with the current line through typing, choices and reading; there is no timed reset to an unrelated idle smile. If one preset fails to download, the other faces and the acting layer remain available.
+
+`companion-performance.js` adds small line-entry reactions, speech nods, restrained brow movement, and breathing over the authored pose. Questions receive a short head tilt; emphatic punctuation receives a nod. Marisa has the largest motion and mouth amplitude, Alice is more measured, and Patchouli is slower and quieter. These accents also work when consecutive lines use the same body pose. They do not choose another emotion or replace the existing pose direction.
+
+The typewriter and mouth share the actual line's Japanese reading. `companion-readings.js` contains all 135 lines as original-text/kana pairs, generated offline with [PyKakasi](https://pykakasi.readthedocs.io/en/latest/api.html) and reviewed with explicit vocabulary/proper-name corrections. `scripts/generate-companion-readings.py` rebuilds this table using `pykakasi==2.3.0` and Node on PATH. No pronunciation dictionary, audio or external speech service is loaded in the browser. `companion-speech.js` expands the kana into A/I/U/E/O, nasal and geminate mouth targets, handles contracted/long vowels, and aligns the morae back to the displayed characters. Kanji with several morae receive correspondingly longer display intervals; punctuation closes the mouth. Unknown future kanji safely stay closed until their reading is added.
+
+The three rigs expose jaw opening, mouth form and width rather than five dedicated vowel drawings. The acting layer approximates these vowel shapes through those parameters, blending with the directed emotion and smoothly closing at pauses. A single blink controller avoids the former double update during idle poses, keeps authored eyelid shapes intact, and occasionally schedules a second blink. All timing follows the model clock so hidden/paused renderers cannot fast-forward gestures. Reduced motion preserves the directed static face and body pose without these decorative movements. Additive offsets are applied after the pose overlay and never written into its saved baseline.
+
+Short emotional accents use the rigs' native cheek, eye-highlight-shake and (for Marisa's grin) tooth parameters. Original pixel sparkle, sweat, anger, surprise and sigh symbols complement these parameters; the rigs have no separate built-in symbol layers. Each appears once when its directed face starts, fades within two seconds, and never intercepts input. `effect: "none"` suppresses a line's symbol. Symbols follow the same paused model clock and are disabled for reduced motion. They neither loop nor change the dialogue's emotion.
 
 | Pose | Alice | Marisa | Patchouli |
 | --- | --- | --- | --- |
@@ -77,9 +85,11 @@ All three active portraits in `images/avatars/` are supplied by the site owner. 
 
 - `assets/js/data/companion-dialogues.js`: Japanese writing, tier selection, dates, weather and story construction. Pure selection functions allow deterministic date/tier tests.
 - `assets/js/data/companion-remarks.js`: per-speaker friend rosters and Japanese remarks.
+- `assets/js/data/companion-readings.js` and `assets/js/core/companion-speech.js`: offline kana readings and text-aligned mora/viseme timing.
 - `assets/js/core/companion-dialogue.js`: typing/ready/choice states, text completion, history, settings, auto advancement and panels. No user content is inserted as HTML.
 - `assets/js/core/companion-lighting.js`: alpha-preserving model light, scene palettes and weather/time response. Fragment precision must match PIXI's high-precision default vertex uniforms to compile on strict WebGL drivers.
-- `assets/js/core/live2d-loader.js`: model loading, cancellation by generation, half-body camera, expressions/poses, typewriter-linked mouth movement, drag/minimize/restore and rendering lifecycle.
+- `assets/js/core/live2d-loader.js`: model loading, cancellation by generation, half-body camera, authored face/pose data, drag/minimize/restore and rendering lifecycle.
+- `assets/js/core/companion-performance.js`: one model-frame listener for facial easing, blinking, text-paced articulation, character-specific small gestures and breathing; restores SDK state and removes its listener when replaced.
 - `assets/css/classic-companion.css`: window, scenery, dialogue, controls, natural docked height and bounded floating panels. `classic-weather.css` owns the integrated dial.
 - `assets/js/components/weather-widget.js`: original observation and cache pipeline, reused by the persistent companion instance.
 

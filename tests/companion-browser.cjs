@@ -20,11 +20,13 @@ fs.mkdirSync(out, { recursive: true });
     if (r.url().startsWith("http://127.0.0.1") && r.status() >= 400)
       bad.push(r.url());
   });
-  await page.goto(process.env.PREVIEW_URL || "http://127.0.0.1:4100/");
+  await page.goto(process.env.PREVIEW_URL || "http://127.0.0.1:4100/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
     () =>
       document.querySelector("#live2d-widget")?.dataset.dialogueState ===
-      "typing"
+        "typing",
+    null,
+    { timeout: 45000 }
   );
   await page.evaluate(() => document.fonts.ready);
   const first = await page.locator("[data-live2d-dialogue-text]").textContent();

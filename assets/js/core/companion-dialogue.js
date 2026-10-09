@@ -243,7 +243,8 @@
       complete();
       return;
     }
-    var chars = Array.from(line.text),
+    var speech = window.CompanionSpeech.plan(line.text),
+      chars = speech.chars,
       position = 0,
       run = generation;
     function tick() {
@@ -255,13 +256,14 @@
       q("[data-live2d-dialogue-text]").textContent = chars
         .slice(0, ++position)
         .join("");
+      var duration = speech.duration(position - 1, speed);
+      if (speech.units[position - 1].length)
+        hooks.speak(chars[position - 1], duration, speech.units[position - 1]);
       if (position >= chars.length) {
         complete();
         return;
       }
-      hooks.speak();
-      var punctuation = /[。、！？…]/.test(chars[position - 1]);
-      timer = setTimeout(tick, speed * (punctuation ? 4 : 1));
+      timer = setTimeout(tick, duration);
     }
     tick();
   }

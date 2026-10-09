@@ -15,11 +15,6 @@
     "07",
     "08",
   ];
-  var EXPRESSION_SEQUENCE = [
-    { motionId: "01", hold: 9500 },
-    { motionId: "02", hold: 1800 },
-    { motionId: "01", hold: 12500 },
-  ];
   var CHARACTER_INTERACTIONS = {
     alice: [
       {
@@ -173,22 +168,7 @@
   var currentCharacterId = "";
   var currentPoseId = "1";
   var modelLoadGeneration = 0;
-  var expressionTimer = 0;
-  var expressionModel = null;
-  var expressionHandler = null;
-  var expressionCurrentValues = {};
-  var expressionTargetValues = {};
-  var expressionStatesByMotionId = {};
-  var expressionSequenceIndex = 0;
-  var expressionLastUpdate = 0;
-  var eyeBlinkModel = null;
-  var eyeBlinkHandler = null;
-  var eyeBlinkLastUpdate = 0;
-  var eyeBlinkWasClosed = false;
-  var eyeBlinkCount = 0;
-  var breathModel = null;
-  var breathHandler = null;
-  var breathStartedAt = 0;
+  var performanceController = null;
   var partOpacityModel = null;
   var partOpacityHandler = null;
   var poseParameterHandler = null;
@@ -196,10 +176,6 @@
   var partOpacityActiveState = null;
   var partOpacityStateCache = {};
   var partOpacityRequestGeneration = 0;
-  var lipSyncModel = null;
-  var lipSyncHandler = null;
-  var lipSyncStartedAt = 0;
-  var lipSyncEndsAt = 0;
   var interactionMotionManager = null;
   var interactionMotionFinishHandler = null;
   var interactionMotionGeneration = 0;
@@ -554,12 +530,9 @@
       originals: CHARACTER_INTERACTIONS,
       perform: animateInteraction,
       stopSpeaking: stopLipSync,
-      speak: function () {
-        if (!currentModel || currentCharacterId !== getSelectedCharacterId())
-          return;
-        if (!lipSyncEndsAt) lipSyncStartedAt = window.performance.now();
-        lipSyncEndsAt = window.performance.now() + 180;
-        widget.setAttribute("data-live2d-speaking", "true");
+      speak: function (glyph, interval, phones) {
+        if (performanceController && currentCharacterId === getSelectedCharacterId())
+          performanceController.speak(glyph, interval, phones);
       },
       select: selectCharacter,
       lighting: function () {
@@ -831,28 +804,9 @@
     return application;
   }
 
-  function stopExpressionLoop() {
-    if (expressionTimer) {
-      window.clearTimeout(expressionTimer);
-      expressionTimer = 0;
-    }
-
-    if (
-      expressionModel &&
-      expressionHandler &&
-      expressionModel.internalModel &&
-      typeof expressionModel.internalModel.off === "function"
-    ) {
-      expressionModel.internalModel.off("beforeModelUpdate", expressionHandler);
-    }
-
-    expressionModel = null;
-    expressionHandler = null;
-    expressionCurrentValues = {};
-    expressionTargetValues = {};
-    expressionStatesByMotionId = {};
-    expressionSequenceIndex = 0;
-    expressionLastUpdate = 0;
+  function stopPerformance() {
+    if (performanceController) performanceController.destroy();
+    performanceController = null;
   }
 
   function isExpressionParameter(parameterId) {
@@ -912,264 +866,25 @@
       });
   }
 
-  function scheduleNextExpression() {
-    var currentStep = EXPRESSION_SEQUENCE[expressionSequenceIndex];
-    expressionTimer = window.setTimeout(function () {
-      if (!expressionModel || expressionModel !== currentModel) return;
-
-      expressionSequenceIndex =
-        (expressionSequenceIndex + 1) % EXPRESSION_SEQUENCE.length;
-      var nextStep = EXPRESSION_SEQUENCE[expressionSequenceIndex];
-      expressionTargetValues =
-        expressionStatesByMotionId[nextStep.motionId] ||
-        expressionStatesByMotionId["01"] ||
-        {};
-      var elements = ensureWidget();
-      if (elements) {
-        elements.widget.setAttribute(
-          "data-live2d-expression-id",
-          nextStep.motionId
-        );
-      }
-      scheduleNextExpression();
-    }, currentStep.hold);
-  }
-
-  function startExpressionLoop(model, character) {
-    stopExpressionLoop();
-
-    var motionIds =
-      character.expressionMotionIds || DEFAULT_EXPRESSION_MOTION_IDS;
-    return Promise.all(
-      motionIds.map(function (motionId) {
-        return loadExpressionState(model, motionId);
-      })
-    ).then(function (expressionStates) {
-      if (model !== currentModel || !expressionStates.length) return;
-
-      expressionModel = model;
-      expressionStatesByMotionId = {};
-      motionIds.forEach(function (motionId, index) {
-        expressionStatesByMotionId[motionId] = expressionStates[index];
-      });
-      expressionCurrentValues = Object.assign({}, expressionStates[0]);
-      expressionTargetValues = expressionStates[0];
-      expressionSequenceIndex = 0;
-      expressionLastUpdate = window.performance.now();
-
-      expressionHandler = function () {
-        if (!expressionModel || expressionModel !== currentModel) return;
-
-        var now = window.performance.now();
-        var elapsed = Math.min(now - expressionLastUpdate, 80);
-        var blend = prefersReducedMotion() ? 1 : 1 - Math.exp(-elapsed / 260);
-        expressionLastUpdate = now;
-
-        Object.keys(expressionTargetValues).forEach(function (parameterId) {
-          var currentValue = expressionCurrentValues[parameterId];
-          var targetValue = expressionTargetValues[parameterId];
-          if (typeof currentValue !== "number") currentValue = targetValue;
-          currentValue += (targetValue - currentValue) * blend;
-          expressionCurrentValues[parameterId] = currentValue;
-          expressionModel.internalModel.coreModel.setParameterValueById(
-            parameterId,
-            currentValue
-          );
-        });
-      };
-
-      model.internalModel.on("beforeModelUpdate", expressionHandler);
-      var elements = ensureWidget();
-      if (elements) {
-        elements.widget.setAttribute("data-live2d-expression-id", "01");
-      }
-      if (!prefersReducedMotion()) scheduleNextExpression();
+  function startPerformance(model, character) {
+    var motionIds = character.expressionMotionIds || DEFAULT_EXPRESSION_MOTION_IDS;
+    return Promise.all(motionIds.map(function (motionId) {
+      // One unavailable face must not disable every other face and articulation.
+      return loadExpressionState(model, motionId).catch(function () { return {}; });
+    })).then(function (states) {
+      if (model !== currentModel) return;
+      var expressions = {};
+      motionIds.forEach(function (id, index) { expressions[id] = states[index]; });
+      stopPerformance();
+      performanceController = window.CompanionPerformance.create(
+        model, character.id, companionWidget, expressions,
+        { reducedMotion: prefersReducedMotion }
+      );
     });
   }
 
-  function stopEyeBlinkLoop() {
-    if (
-      eyeBlinkModel &&
-      eyeBlinkHandler &&
-      eyeBlinkModel.internalModel &&
-      typeof eyeBlinkModel.internalModel.off === "function"
-    ) {
-      eyeBlinkModel.internalModel.off("beforeModelUpdate", eyeBlinkHandler);
-    }
-
-    eyeBlinkModel = null;
-    eyeBlinkHandler = null;
-    eyeBlinkLastUpdate = 0;
-    eyeBlinkWasClosed = false;
-    eyeBlinkCount = 0;
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.removeAttribute("data-live2d-blinking");
-      elements.widget.removeAttribute("data-live2d-blink-count");
-    }
-  }
-
-  function startEyeBlinkLoop(model) {
-    stopEyeBlinkLoop();
-    if (
-      prefersReducedMotion() ||
-      !model.internalModel ||
-      !model.internalModel.eyeBlink
-    ) {
-      return;
-    }
-
-    eyeBlinkModel = model;
-    eyeBlinkLastUpdate = window.performance.now();
-    eyeBlinkHandler = function () {
-      if (!eyeBlinkModel || eyeBlinkModel !== currentModel) return;
-
-      var now = window.performance.now();
-      var elapsed = Math.min(now - eyeBlinkLastUpdate, 100) / 1000;
-      eyeBlinkLastUpdate = now;
-      var internalModel = eyeBlinkModel.internalModel;
-      var coreModel = internalModel.coreModel;
-
-      // Keep blinking independent from body motions and static rest poses.
-      internalModel.eyeBlink.updateParameters(coreModel, elapsed);
-
-      var leftEye = coreModel.getParameterValueById("ParamEyeLOpen");
-      var rightEye = coreModel.getParameterValueById("ParamEyeROpen");
-      var isClosed = Math.min(leftEye, rightEye) < 0.72;
-      var elements = ensureWidget();
-      if (elements) {
-        if (isClosed) {
-          elements.widget.setAttribute("data-live2d-blinking", "true");
-          if (!eyeBlinkWasClosed) {
-            eyeBlinkCount += 1;
-            elements.widget.setAttribute(
-              "data-live2d-blink-count",
-              String(eyeBlinkCount)
-            );
-          }
-        } else {
-          elements.widget.removeAttribute("data-live2d-blinking");
-        }
-      }
-      eyeBlinkWasClosed = isClosed;
-    };
-
-    model.internalModel.on("beforeModelUpdate", eyeBlinkHandler);
-  }
-
-  function stopBreathingLoop() {
-    if (
-      breathModel &&
-      breathHandler &&
-      breathModel.internalModel &&
-      typeof breathModel.internalModel.off === "function"
-    ) {
-      breathModel.internalModel.off("beforeModelUpdate", breathHandler);
-    }
-    breathModel = null;
-    breathHandler = null;
-    breathStartedAt = 0;
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.removeAttribute("data-live2d-breathing");
-    }
-  }
-
-  function startBreathingLoop(model) {
-    stopBreathingLoop();
-    if (prefersReducedMotion() || !model || model !== currentModel) {
-      return;
-    }
-
-    breathModel = model;
-    breathStartedAt = window.performance.now();
-
-    breathHandler = function () {
-      if (!breathModel || breathModel !== currentModel) return;
-      var elapsed = (window.performance.now() - breathStartedAt) / 1000;
-      var phase = Math.sin((elapsed * Math.PI * 2) / 5.8);
-      var breathCoreModel = breathModel.internalModel.coreModel;
-      breathCoreModel.addParameterValueById("ParamBodyWeight", phase * 0.32);
-      breathCoreModel.addParameterValueById(
-        "ParamLeftShoulderUpDown",
-        phase * 0.12
-      );
-      breathCoreModel.addParameterValueById(
-        "ParamRightShoulderUpDown",
-        phase * 0.12
-      );
-    };
-
-    model.internalModel.on("beforeModelUpdate", breathHandler);
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.setAttribute("data-live2d-breathing", "true");
-    }
-  }
-
-  function stopLipSyncLoop() {
-    if (
-      lipSyncModel &&
-      lipSyncHandler &&
-      lipSyncModel.internalModel &&
-      typeof lipSyncModel.internalModel.off === "function"
-    ) {
-      lipSyncModel.internalModel.off("beforeModelUpdate", lipSyncHandler);
-    }
-    lipSyncModel = null;
-    lipSyncHandler = null;
-    lipSyncStartedAt = 0;
-    lipSyncEndsAt = 0;
-  }
-
-  function startLipSyncLoop(model) {
-    stopLipSyncLoop();
-    if (prefersReducedMotion()) return;
-
-    lipSyncModel = model;
-    lipSyncHandler = function () {
-      if (!lipSyncModel || lipSyncModel !== currentModel || !lipSyncEndsAt) {
-        return;
-      }
-
-      var now = window.performance.now();
-      if (now >= lipSyncEndsAt) {
-        lipSyncStartedAt = 0;
-        lipSyncEndsAt = 0;
-        var finishedElements = ensureWidget();
-        if (finishedElements) {
-          finishedElements.widget.removeAttribute("data-live2d-speaking");
-        }
-        return;
-      }
-
-      var elapsed = (now - lipSyncStartedAt) / 1000;
-      var remaining = (lipSyncEndsAt - now) / 1000;
-      var envelope = Math.min(1, elapsed / 0.16, remaining / 0.24);
-      var primaryPulse = Math.max(0, Math.sin(elapsed * Math.PI * 9.6));
-      var secondaryPulse = Math.max(0, Math.sin(elapsed * Math.PI * 6.4 + 0.8));
-      var mouthOpen =
-        envelope * (0.08 + primaryPulse * 0.48 + secondaryPulse * 0.18);
-      lipSyncModel.internalModel.coreModel.setParameterValueById(
-        "ParamMouthOpenY",
-        mouthOpen
-      );
-    };
-    model.internalModel.on("beforeModelUpdate", lipSyncHandler);
-  }
-
   function stopLipSync() {
-    lipSyncStartedAt = 0;
-    lipSyncEndsAt = 0;
-    if (lipSyncModel)
-      lipSyncModel.internalModel.coreModel.setParameterValueById(
-        "ParamMouthOpenY",
-        0
-      );
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.removeAttribute("data-live2d-speaking");
-    }
+    if (performanceController) performanceController.stopSpeaking();
   }
 
   function stopPartOpacityGuard() {
@@ -1524,21 +1239,6 @@
     }
   }
 
-  function setInteractionExpression(motionId) {
-    var expressionState = expressionStatesByMotionId[motionId];
-    if (!expressionModel || !expressionState) return;
-
-    if (expressionTimer) window.clearTimeout(expressionTimer);
-    expressionTargetValues = expressionState;
-    var elements = ensureWidget();
-    if (elements) {
-      elements.widget.setAttribute("data-live2d-expression-id", motionId);
-    }
-    // Keep this line's face throughout typing, choices and reading. The next
-    // line, rather than a wall-clock timeout, supplies its replacement.
-    expressionTimer = 0;
-  }
-
   function clearMotionFinishListener() {
     if (interactionMotionManager && interactionMotionFinishHandler) {
       interactionMotionManager.off("motionFinish", interactionMotionFinishHandler);
@@ -1565,7 +1265,7 @@
       !shouldRenderLive2D()
     )
       return;
-    setInteractionExpression(interaction.expressionMotionId || "01");
+    if (performanceController) performanceController.perform(interaction);
     requestedPoseId = /^[1-5]$/.test(interaction.poseId)
       ? interaction.poseId
       : "1";
@@ -1625,11 +1325,8 @@
     if (!currentModel) return;
     clearInteractionMotion();
     stopLipSync();
+    stopPerformance();
     stopPartOpacityGuard();
-    stopLipSyncLoop();
-    stopEyeBlinkLoop();
-    stopBreathingLoop();
-    stopExpressionLoop();
     if (application && currentModel.parent) {
       application.stage.removeChild(currentModel);
     }
@@ -1688,7 +1385,7 @@
         startPartOpacityGuard(model);
         var restPoseReady = applyStaticPose(model, "1");
         preloadPoseMotions(model, "1");
-        var expressionReady = startExpressionLoop(model, character).catch(
+        var expressionReady = startPerformance(model, character).catch(
           function () {
             // Keep the model usable if optional expression data fails to load.
           }
@@ -1698,9 +1395,6 @@
         return Promise.all([restPoseReady, expressionReady]).then(function () {
           if (model !== currentModel || generation !== modelLoadGeneration)
             return null;
-          startEyeBlinkLoop(model);
-          startLipSyncLoop(model);
-          startBreathingLoop(model);
           window.SiteCompanion.setReady("ready");
           return model;
         });

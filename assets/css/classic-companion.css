@@ -224,6 +224,28 @@
   filter: none;
   pointer-events: none;
 }
+
+/* Short, model-clock reactions; no looping CSS animation or hit target. */
+#live2d-widget .vn-reaction {
+  position: absolute;
+  left: 25%;
+  top: 34%;
+  z-index: 3;
+  width: 32px;
+  height: 36px;
+  pointer-events: none;
+  color: #f2da9b;
+  filter: drop-shadow(1px 1px 0 #182231);
+}
+#live2d-widget .vn-reaction svg { display: block; fill: currentColor; }
+#live2d-widget[data-live2d-character="marisa"] .vn-reaction { left: 76%; top: 38%; }
+#live2d-widget[data-live2d-character="patchouli"] .vn-reaction { left: 72%; top: 37%; }
+#live2d-widget .vn-reaction[data-reaction="sweat"] { color: #a8d9ed; }
+#live2d-widget .vn-reaction[data-reaction="anger"] { color: #edabb0; }
+#live2d-widget .vn-reaction[data-reaction="sigh"] { color: #c6c2de; }
+@media (prefers-reduced-motion: reduce) {
+  #live2d-widget .vn-reaction { display: none; }
+}
 #live2d-widget .vn-scene-light {
   position: absolute;
   z-index: 2;
