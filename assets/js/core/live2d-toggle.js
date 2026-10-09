@@ -23,7 +23,7 @@
     document
       .querySelectorAll("[data-live2d-toggle]")
       .forEach(function (button) {
-        var label = enabled ? "Live2D を閉じる" : "Live2D を開く";
+        var label = enabled ? "Playground を閉じる" : "Playground を開く";
         button.hidden = disabled;
         button.setAttribute("aria-pressed", String(enabled));
         button.setAttribute("aria-label", label);

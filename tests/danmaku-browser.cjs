@@ -305,9 +305,8 @@ fs.mkdirSync(out, { recursive: true });
       });
     });
     await mobile.goto(base);
-    await mobile.locator("[data-site-options-trigger]").click();
-    await mobile.locator("[data-live2d-toggle]").click();
-    await mobile.keyboard.press("Escape");
+    // Mobile is enabled by default, even when storage is blocked.
+    assert(await mobile.locator("#live2d-widget").isVisible());
     await mobile.locator("[data-danmaku-open]").click();
     await mobile.locator('[data-danmaku-player="marisa"]').click();
     await mobile.locator('[data-danmaku-challenge="alice"]').click();

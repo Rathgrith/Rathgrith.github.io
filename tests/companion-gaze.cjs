@@ -36,26 +36,30 @@ fs.mkdirSync(out, { recursive: true });
       await page.locator("#live2d-widget").scrollIntoViewIfNeeded();
       // Let the scroll event reset stale gaze before placing a new pointer target.
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      await page.evaluate(() => document.documentElement.dispatchEvent(new MouseEvent("mouseleave")));
       await centred();
       const rect = await page.locator("[data-companion-stage]").boundingBox();
       await page.mouse.move(rect.x + rect.width * .9, rect.y + rect.height * .25);
       await page.waitForFunction(() => gazeApp.stage.children[0].internalModel.focusController.x > .2);
       const right = await focus();
-      assert(right.x < .45 && Math.abs(right.y) < .22, JSON.stringify(right));
+      assert(right.tx > 0, JSON.stringify(right));
       // Follow eases back, rather than snapping when the pointer leaves the scene.
       await page.locator("[data-vn-reading]").hover();
       const returning = await focus();
       assert(Math.abs(returning.x) > .01, "return should be interpolated");
       await centred();
       await page.locator("[data-bgm-play]").hover();
-      await centred();
+      await page.waitForFunction(() => Math.abs(gazeApp.stage.children[0].internalModel.focusController.targetY) > .1);
       await page.locator("[data-vn-open='settings']").hover();
-      await centred();
+      await page.waitForFunction(() => Math.abs(gazeApp.stage.children[0].internalModel.focusController.targetY) > .1);
       await page.mouse.move(rect.x + rect.width * .1, rect.y + rect.height * .8);
       await page.waitForFunction(() => gazeApp.stage.children[0].internalModel.focusController.x < -.2);
       const left = await focus();
-      assert(left.x > -.45 && left.y > -.22, JSON.stringify(left));
-      await page.locator("[data-bgm-play]").focus();
+      assert(left.tx < 0, JSON.stringify(left));
+      // Outside the entire window still uses the unmodified SDK target mapping.
+      await page.mouse.move(1300, 100);
+      await page.waitForFunction(() => gazeApp.stage.children[0].internalModel.focusController.targetX > .5);
+      await page.locator("[data-vn-reading]").hover();
       await centred();
       await page.locator("#live2d-widget").screenshot({ path: `${out}/${id}-neutral.png` });
     }
@@ -64,6 +68,6 @@ fs.mkdirSync(out, { recursive: true });
     await page.mouse.move(rect.x + 10, rect.y + 10);
     await centred();
     assert.deepEqual(errors, []);
-    console.log("PASS: 3 real models, bounded portrait-only gaze, smooth neutral return over dialogue/menu/BGM, keyboard focus and reduced motion.");
+    console.log("PASS: 3 real models, page-wide cursor following, dialogue-only neutral return, active menu/BGM gaze and reduced motion.");
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exit(1); });

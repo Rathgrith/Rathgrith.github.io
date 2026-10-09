@@ -177,6 +177,8 @@
   var companionMinimized = false;
   var companionVisibilityChosen = false;
   var companionPosition = null;
+  var companionSize = null, companionMaximized = false, restoredWindow = null;
+  var stageObserver = null, stageFrame = 0;
   var resizeTimer = 0;
   var focusFrame = 0;
   var lastPointerPosition = null;
@@ -336,7 +338,7 @@
   }
 
   function getCompanionDock() {
-    if (companionPosition) return null;
+    if (companionPosition || companionSize) return null;
     return document.querySelector(
       window.innerWidth >= 1000
         ? "[data-companion-dock]"
@@ -443,8 +445,68 @@
   }
 
   function resetCompanionPosition() {
+    companionSize = null;
+    companionMaximized = false;
+    restoredWindow = null;
     companionPosition = null;
     applyResponsiveSize();
+  }
+
+  function toggleCompanionMaximized() {
+    if (companionMaximized) {
+      companionPosition = restoredWindow.position;
+      companionSize = restoredWindow.size;
+      companionMaximized = false;
+      restoredWindow = null;
+    } else {
+      restoredWindow = { position: companionPosition && Object.assign({}, companionPosition), size: companionSize && Object.assign({}, companionSize) };
+      companionMaximized = true;
+      companionPosition = { x: 8, y: 8 };
+      companionSize = { width: innerWidth - 16, height: innerHeight - 16 };
+    }
+    setCompanionMinimized(false);
+  }
+
+  function bindCompanionResize(widget) {
+    var grip = widget.querySelector("[data-companion-resize]"), start = null, frame = 0;
+    function resize(width, height) {
+      companionSize = {
+        width: Math.round(Math.max(Math.min(280, innerWidth - 16), Math.min(width, innerWidth - companionPosition.x - 8))),
+        height: Math.round(Math.max(Math.min(540, innerHeight - 16), Math.min(height, innerHeight - companionPosition.y - 8))),
+      };
+      if (!frame) frame = requestAnimationFrame(function () { frame = 0; applyResponsiveSize(); });
+    }
+    grip.addEventListener("pointerdown", function (event) {
+      if (event.button !== 0) return;
+      var bounds = widget.getBoundingClientRect();
+      companionSize = { width: bounds.width, height: Math.min(bounds.height, innerHeight - 16) };
+      companionPosition = { x: bounds.left, y: Math.max(8, Math.min(bounds.top, innerHeight - companionSize.height - 8)) };
+      companionMaximized = false;
+      restoredWindow = null;
+      applyResponsiveSize();
+      bounds = widget.getBoundingClientRect();
+      start = { x: event.clientX, y: event.clientY, width: bounds.width, height: bounds.height };
+      grip.setPointerCapture(event.pointerId);
+      widget.classList.add("is-resizing");
+      event.preventDefault();
+    });
+    grip.addEventListener("pointermove", function (event) {
+      if (start) resize(start.width + event.clientX - start.x, start.height + event.clientY - start.y);
+    });
+    function end() {
+      start = null;
+      widget.classList.remove("is-resizing");
+    }
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach(function (name) { grip.addEventListener(name, end); });
+    grip.addEventListener("keydown", function (event) {
+      var delta = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+      if (!delta) return;
+      event.preventDefault();
+      var bounds = widget.getBoundingClientRect(), step = event.shiftKey ? 1 : 16;
+      if (!companionPosition) companionPosition = { x: bounds.left, y: Math.max(8, Math.min(bounds.top, innerHeight - bounds.height - 8)) };
+      companionMaximized = false;
+      resize(bounds.width + delta[0] * step, bounds.height + delta[1] * step);
+    });
   }
 
   function ensureCompanionShell(widget) {
@@ -455,9 +517,10 @@
     widget.setAttribute("aria-labelledby", "companion-title");
     widget.innerHTML = [
       '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="ドラッグで移動・ダブルクリックで元の位置へ">',
-      '<span id="companion-title" class="companion-title"><span data-companion-name>幻想通信</span></span>',
+      '<span id="companion-title" class="companion-title"><span data-companion-name>Playground</span></span>',
       '<div class="companion-controls">',
       '<button type="button" data-companion-reset-position aria-label="元の位置へ" title="元の位置へ"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M1 1h6v2H4l6 6-1 1-6-6v3H1zM10 2h5v13H2v-5h2v3h9V4h-3z"/></svg></button>',
+      '<button type="button" data-companion-maximize aria-label="最大化" title="最大化" aria-pressed="false">□</button>',
       '<button type="button" data-companion-minimize aria-label="最小化" aria-expanded="true" aria-controls="companion-content" title="最小化">_</button>',
       '<button type="button" data-companion-close aria-label="閉じる" title="閉じる">×</button>',
       "</div></div>",
@@ -465,7 +528,7 @@
       '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">少女祈祷中…</span></div>',
       '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">……</p></div>',
       '<div class="companion-footer" data-companion-footer></div>',
-      "</div>",
+      '</div><div class="playground-sizebar"><button type="button" data-companion-resize aria-label="ウィンドウのサイズを変更" title="ドラッグ・矢印キーでサイズを変更"><span aria-hidden="true"></span></button></div>',
     ].join("");
     widget
       .querySelector("[data-companion-reset-position]")
@@ -482,10 +545,12 @@
         var options = document.querySelector("[data-site-options-trigger]");
         if (options) options.focus({ preventScroll: true });
       });
+    widget.querySelector("[data-companion-maximize]").addEventListener("click", toggleCompanionMaximized);
+    bindCompanionResize(widget);
     var titlebar = widget.querySelector("[data-companion-titlebar]");
     var drag = null;
     titlebar.addEventListener("pointerdown", function (event) {
-      if (event.button !== 0 || event.target.closest("button")) return;
+      if (event.button !== 0 || event.target.closest("button") || companionMaximized) return;
       var bounds = widget.getBoundingClientRect();
       drag = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
       titlebar.setPointerCapture(event.pointerId);
@@ -605,7 +670,7 @@
 
   function fitCurrentModel() {
     if (!application || !currentModel) return;
-    var display = getDisplayConfig();
+    var display = application.renderer.screen;
     currentModel.scale.set(1);
     var modelHeight = Math.max(currentModel.height || 1, 1);
     // Frame the upper half of the original model canvas; preserve its own motion rig.
@@ -624,88 +689,78 @@
 
   function applyPointerFocus() {
     focusFrame = 0;
-    if (
-      !application ||
-      !currentModel ||
-      companionGameActive
-    )
-      return;
-
+    if (!application || !currentModel || companionGameActive || prefersReducedMotion()) return;
     var elements = ensureWidget();
-    if (!elements) return;
-    if (prefersReducedMotion() || !lastPointerPosition || elements.widget.classList.contains("has-vn-panel")) {
+    if (!elements || !lastPointerPosition) return;
+    // Preserve page-wide SDK following. Only the dialogue rectangle is excluded.
+    var dialogue = elements.widget.querySelector("[data-companion-conversation]");
+    var blocked = dialogue.getBoundingClientRect();
+    var pointer = lastPointerPosition;
+    if (blocked.width && blocked.height && pointer.x >= blocked.left && pointer.x <= blocked.right && pointer.y >= blocked.top && pointer.y <= blocked.bottom) {
       focusModelAtRest(false);
       return;
     }
-
     var rect = elements.canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
-
-    var x = (lastPointerPosition.x - rect.left) / rect.width;
-    var y = (lastPointerPosition.y - rect.top) / rect.height;
-    if (x < 0 || x > 1 || y < 0 || y > 1) {
-      focusModelAtRest(false);
-      return;
-    }
-    // The portrait is a half-body crop: the SDK's full-model coordinate centre
-    // is below the visible face. Use small normalized offsets around eye level.
-    currentModel.internalModel.focusController.focus(
-      (x - 0.5) * 0.84,
-      Math.max(-0.20, Math.min(0.20, (0.42 - y) * 0.4)),
-      false
+    currentModel.focus(
+      ((pointer.x - rect.left) / rect.width) * application.renderer.screen.width,
+      ((pointer.y - rect.top) / rect.height) * application.renderer.screen.height
     );
   }
 
   function schedulePointerFocus() {
     if (focusFrame || prefersReducedMotion()) return;
-    focusFrame = window.requestAnimationFrame(applyPointerFocus);
+    focusFrame = requestAnimationFrame(applyPointerFocus);
   }
 
   function focusModelAtRest(instant) {
-    if (!currentModel) return;
-    currentModel.internalModel.focusController.focus(0, 0, Boolean(instant));
+    if (currentModel) currentModel.internalModel.focusController.focus(0, 0, Boolean(instant));
   }
 
   function bindFocusEvents() {
     if (window.__siteLive2DFocusBound) return;
     window.__siteLive2DFocusBound = true;
-
-    window.addEventListener(
-      "pointermove",
-      function (event) {
-        var inPortrait = event.pointerType !== "touch" && event.target instanceof Element &&
-          event.target.closest("#live2d-widget [data-companion-stage]");
-        if (!inPortrait && !lastPointerPosition) return;
-        lastPointerPosition = inPortrait ? { x: event.clientX, y: event.clientY } : null;
-        schedulePointerFocus();
-      },
-      { passive: true }
-    );
-
-    document.documentElement.addEventListener("mouseleave", function () {
-      lastPointerPosition = null;
-      focusModelAtRest(false);
-    });
-    window.addEventListener("blur", function () {
-      lastPointerPosition = null;
-      focusModelAtRest(false);
-    });
-    // Scrolling changes the portrait beneath a stationary pointer. Do not keep
-    // a stale off-centre target when reading or navigating the rest of the page.
-    window.addEventListener("scroll", function () {
-      if (!lastPointerPosition) return;
-      lastPointerPosition = null;
-      focusModelAtRest(false);
-    }, { passive: true, capture: true });
-    document.addEventListener("focusin", function (event) {
-      if (!lastPointerPosition || (event.target instanceof Element && event.target.closest("#live2d-widget [data-companion-stage]"))) return;
-      lastPointerPosition = null;
-      focusModelAtRest(false);
-    });
+    window.addEventListener("pointermove", function (event) {
+      if (event.pointerType === "touch") return;
+      lastPointerPosition = { x: event.clientX, y: event.clientY };
+      schedulePointerFocus();
+    }, { passive: true });
+    function rest() { lastPointerPosition = null; focusModelAtRest(false); }
+    document.documentElement.addEventListener("mouseleave", rest);
+    window.addEventListener("blur", rest);
+    window.addEventListener("scroll", schedulePointerFocus, { passive: true, capture: true });
     window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function () {
       lastPointerPosition = null;
       focusModelAtRest(true);
     });
+  }
+
+  function fitCompactStage() {
+    if (!companionSize || companionMinimized || !companionWidget || companionWidget.dataset.playgroundLayout !== "compact") return;
+    var main = companionWidget.querySelector(".vn-main-view");
+    var stage = companionWidget.querySelector("[data-companion-stage]");
+    var last = main && main.lastElementChild;
+    if (!last || !main.clientHeight) return;
+    // Budget from actual controls, fonts and branching choices, not a fixed
+    // estimate that becomes stale when the music player or text changes.
+    var occupied = last.getBoundingClientRect().bottom - main.getBoundingClientRect().top + main.scrollTop - stage.offsetHeight;
+    var height = Math.max(110, Math.floor(main.clientHeight - occupied));
+    if (Math.abs(stage.offsetHeight - height) > 1) stage.style.height = height + "px";
+  }
+
+  function syncStageRenderer() {
+    stageFrame = 0;
+    if (!companionWidget) return;
+    fitCompactStage();
+    if (!application) return;
+    var stage = companionWidget.querySelector("[data-companion-stage]");
+    var width = stage.clientWidth, height = stage.clientHeight;
+    if (!width || !height) return;
+    if (application.renderer.screen.width !== width || application.renderer.screen.height !== height) {
+      application.renderer.resize(width, height);
+      fitCurrentModel();
+      schedulePointerFocus();
+    }
   }
 
   function applyResponsiveSize() {
@@ -713,8 +768,34 @@
     if (!elements) return false;
 
     var display = getDisplayConfig();
-    elements.widget.style.setProperty("--vn-width", display.width + 10 + "px");
-    elements.widget.style.height = "auto";
+    var widget = elements.widget;
+    if (companionSize) {
+      companionSize.width = companionMaximized ? innerWidth - 16 : Math.min(companionSize.width, innerWidth - 16);
+      companionSize.height = companionMaximized ? innerHeight - 16 : Math.min(companionSize.height, innerHeight - 16);
+    }
+    var sized = Boolean(companionSize && !companionMinimized);
+    widget.classList.toggle("is-sized", sized);
+    widget.classList.toggle("is-maximized", companionMaximized);
+    widget.dataset.playgroundLayout = sized && companionSize.width >= 620 ? "wide" : "compact";
+    widget.style.setProperty("--vn-width", (companionSize ? companionSize.width : display.width + 10) + "px");
+    widget.style.height = sized ? companionSize.height + "px" : "auto";
+    var stage = widget.querySelector("[data-companion-stage]");
+    stage.style.height = widget.dataset.playgroundLayout === "wide" ? "" : (sized ? 110 : display.height + 2) + "px";
+    var maximize = widget.querySelector("[data-companion-maximize]");
+    maximize.setAttribute("aria-pressed", String(companionMaximized));
+    maximize.setAttribute("aria-label", companionMaximized ? "元のサイズに戻す" : "最大化");
+    maximize.title = companionMaximized ? "元のサイズに戻す" : "最大化";
+    maximize.textContent = companionMaximized ? "❐" : "□";
+    widget.querySelector(".playground-sizebar").hidden = companionMinimized;
+    if (!stageObserver) {
+      stageObserver = new ResizeObserver(function () {
+        if (!stageFrame) stageFrame = requestAnimationFrame(syncStageRenderer);
+      });
+      stageObserver.observe(stage);
+      var main = widget.querySelector(".vn-main-view");
+      stageObserver.observe(main);
+      Array.prototype.forEach.call(main.children, function (child) { stageObserver.observe(child); });
+    }
     elements.trigger.hidden = false;
     window.SiteCompanion.setVisible(
       !companionMinimized && !shouldDisableLive2D()
@@ -729,15 +810,11 @@
         application.stop();
       else application.start();
     }
-    elements.canvas.style.width = display.width + "px";
-    elements.canvas.style.height = display.height + "px";
-
-    if (application && application.renderer) {
-      application.renderer.resize(display.width, display.height);
-      fitCurrentModel();
-    }
+    elements.canvas.style.width = "100%";
+    elements.canvas.style.height = "100%";
     // Clamp after the stage has its new height, including after a rotation.
     constrainCompanionPosition(elements.widget);
+    syncStageRenderer();
 
     return true;
   }
@@ -758,6 +835,9 @@
     document.addEventListener("site:before-content-replace", function () {
       // Each page starts in its own dock, including after dragging on the previous page.
       companionPosition = null;
+      companionSize = null;
+      companionMaximized = false;
+      restoredWindow = null;
       if (companionWidget) document.body.appendChild(companionWidget);
     });
   }
