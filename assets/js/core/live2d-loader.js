@@ -627,22 +627,33 @@
     if (
       !application ||
       !currentModel ||
-      companionGameActive ||
-      prefersReducedMotion()
+      companionGameActive
     )
       return;
 
     var elements = ensureWidget();
-    if (!elements || !lastPointerPosition) return;
+    if (!elements) return;
+    if (prefersReducedMotion() || !lastPointerPosition || elements.widget.classList.contains("has-vn-panel")) {
+      focusModelAtRest(false);
+      return;
+    }
 
     var rect = elements.canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
 
-    var rendererWidth = application.renderer.screen.width;
-    var rendererHeight = application.renderer.screen.height;
-    var x = ((lastPointerPosition.x - rect.left) / rect.width) * rendererWidth;
-    var y = ((lastPointerPosition.y - rect.top) / rect.height) * rendererHeight;
-    currentModel.focus(x, y);
+    var x = (lastPointerPosition.x - rect.left) / rect.width;
+    var y = (lastPointerPosition.y - rect.top) / rect.height;
+    if (x < 0 || x > 1 || y < 0 || y > 1) {
+      focusModelAtRest(false);
+      return;
+    }
+    // The portrait is a half-body crop: the SDK's full-model coordinate centre
+    // is below the visible face. Use small normalized offsets around eye level.
+    currentModel.internalModel.focusController.focus(
+      (x - 0.5) * 0.84,
+      Math.max(-0.20, Math.min(0.20, (0.42 - y) * 0.4)),
+      false
+    );
   }
 
   function schedulePointerFocus() {
@@ -651,23 +662,21 @@
   }
 
   function focusModelAtRest(instant) {
-    if (!currentModel || !application) return;
-    currentModel.focus(
-      application.renderer.screen.width * 0.5,
-      application.renderer.screen.height * 0.48,
-      Boolean(instant)
-    );
+    if (!currentModel) return;
+    currentModel.internalModel.focusController.focus(0, 0, Boolean(instant));
   }
 
   function bindFocusEvents() {
-    if (window.__siteLive2DFocusBound || prefersReducedMotion()) return;
+    if (window.__siteLive2DFocusBound) return;
     window.__siteLive2DFocusBound = true;
 
     window.addEventListener(
       "pointermove",
       function (event) {
-        if (event.pointerType === "touch") return;
-        lastPointerPosition = { x: event.clientX, y: event.clientY };
+        var inPortrait = event.pointerType !== "touch" && event.target instanceof Element &&
+          event.target.closest("#live2d-widget [data-companion-stage]");
+        if (!inPortrait && !lastPointerPosition) return;
+        lastPointerPosition = inPortrait ? { x: event.clientX, y: event.clientY } : null;
         schedulePointerFocus();
       },
       { passive: true }
@@ -680,6 +689,22 @@
     window.addEventListener("blur", function () {
       lastPointerPosition = null;
       focusModelAtRest(false);
+    });
+    // Scrolling changes the portrait beneath a stationary pointer. Do not keep
+    // a stale off-centre target when reading or navigating the rest of the page.
+    window.addEventListener("scroll", function () {
+      if (!lastPointerPosition) return;
+      lastPointerPosition = null;
+      focusModelAtRest(false);
+    }, { passive: true, capture: true });
+    document.addEventListener("focusin", function (event) {
+      if (!lastPointerPosition || (event.target instanceof Element && event.target.closest("#live2d-widget [data-companion-stage]"))) return;
+      lastPointerPosition = null;
+      focusModelAtRest(false);
+    });
+    window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", function () {
+      lastPointerPosition = null;
+      focusModelAtRest(true);
     });
   }
 
