@@ -76,6 +76,7 @@ for (const clips of Object.values(manifest)) for (const names of Object.values(c
   let release;const gate=new Promise(r=>release=r);
   await mobile.route('**/audio/reactions/manifest.json*',async route=>{await gate;await route.continue()});
   await mobile.goto(base);
+  await mobile.waitForFunction(()=>document.querySelector('#live2d-widget')?.dataset.live2dCharacter==='alice');
   await mobile.locator('[data-voice-reactions]').click();
   await mobile.locator('[data-voice-reactions]').click();
   release();await mobile.waitForTimeout(300);
