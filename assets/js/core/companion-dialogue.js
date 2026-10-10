@@ -20,6 +20,7 @@
     gameActive = false;
   var history = [],
     originalIndices = {},
+    pick = data.createPicker(),
     lastTopic = "today";
   var key = "site-companion-v1",
     saved = {};
@@ -160,13 +161,19 @@
     )
       return;
     setState("choice");
-    story.choices.forEach(function (choice) {
+    story.choices.forEach(function (choice, choiceIndex) {
       var button = document.createElement("button");
       button.type = "button";
       button.textContent = "▸ " + choice.label;
       button.addEventListener("click", function () {
         if (state !== "choice") return;
-        var response = choice.responses[data.tier(affinity[currentId])];
+        var level = data.tier(affinity[currentId]),
+          response = pick(
+            currentId + ":choice:" + choiceIndex + ":" + level,
+            [choice.responses[level]].concat(
+              (choice.responseVariations || [])[level] || []
+            )
+          );
         affinity[currentId] = Math.min(
           100,
           Math.max(0, affinity[currentId] + choice.delta)
@@ -289,7 +296,7 @@
         return;
       }
       story = {
-        lines: [remark],
+        lines: [pick(currentId + ":friend:" + remark.id, [remark].concat(remark.variants || []))],
         label: remark.name,
       };
     } else if (lastTopic === "original") {
@@ -305,6 +312,7 @@
       story = data.story(currentId, lastTopic, affinity[currentId], {
         weather: window.__siteWeather,
         date: new Date(),
+        pick: pick,
       });
     }
     index = 0;

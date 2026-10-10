@@ -11,7 +11,7 @@ fs.mkdirSync(out, {recursive:true});
     page.on('pageerror', e=>errors.push(e.message));
     await page.route('**/companion-dialogue.js*', async route=>{
       const response=await route.fetch();
-      await route.fulfill({response,body:await response.text()+'; const savedMount=SiteCompanion.mount; SiteCompanion.mount=function(w,h){window.actingHooks=h;return savedMount(w,h)};'});
+      await route.fulfill({response,body:await response.text()+'; const savedMount=SiteCompanion.mount; SiteCompanion.mount=function(w,h){window.actingHooks=h;const perform=h.perform;h.perform=function(line){window.directedLine=line;return perform(line)};return savedMount(w,h)};'});
     });
     await page.route('**/companion-lighting.js*', async route=>{
       const response=await route.fetch();
@@ -43,14 +43,16 @@ fs.mkdirSync(out, {recursive:true});
       await page.waitForFunction(()=>document.querySelector('#live2d-widget').dataset.dialogueState==='ready',null,{timeout:25000});
       const frames=await page.evaluate(()=>actingFrames);
       const vowels=new Set(frames.map(f=>f.viseme));
-      for (const v of ['a','i','u','e','o']) assert(vowels.has(v), `${id}: the actual line drives ${v}`);
+      const expected = await page.evaluate(() => [...new Set(CompanionSpeech.plan(directedLine.text).units.flat())].filter(v => 'aiueo'.includes(v)));
+      for (const v of expected) assert(vowels.has(v), `${id}: the actual line drives ${v}`);
       assert(Math.max(...frames.map(f=>f.jaw))>0.25);
       await page.waitForTimeout(250);
       assert((await page.evaluate(()=>actingFrames.at(-1).jaw))<0.01);
       // Exercise the real next-line path, rather than only injecting expressions.
       await page.locator('#live2d-interact').click();
-      const directed = {alice:'question',marisa:'sparkle',patchouli:'question'}[id];
-      assert.equal(await page.locator('.vn-reaction').getAttribute('data-reaction'),directed);
+      const directed = await page.evaluate(() => directedLine.effect);
+      if (directed === 'none') assert.equal(await page.locator('.vn-reaction').isVisible(), false);
+      else assert.equal(await page.locator('.vn-reaction').getAttribute('data-reaction'),directed);
       await page.locator('#live2d-interact').click(); // Finish typing before isolated FX checks.
       for (const effect of [undefined, 'none', 'unsupported']) {
         await page.evaluate(effect=>actingHooks.perform({poseId:'1',expressionMotionId:'02',effect}),effect);

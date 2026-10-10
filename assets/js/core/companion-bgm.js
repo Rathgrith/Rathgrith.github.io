@@ -105,7 +105,8 @@
     var player, ready = false, connecting = false, selected = 0, character = "";
     var requested = false, opened = false, visible = true, game = false, tuned = false;
     var volume = .28, muted = false, loading = false, failed = false, needsLoad = true;
-    var pendingIntro = false, transitionTimer = 0, connectionTimer = 0, epoch = 0;
+    var pendingIntro = false, transitionTimer = 0, transitionEpoch = 0, connectionTimer = 0, epoch = 0;
+    var tuneBeforePlay = false, tuning = false, tuningSeconds = 1.06;
     var audioConfigured = false, desiredVolume = null, desiredMute = null, audioWriteUntil = 0;
     var programmaticPause = false, tuningContext, tuningNodes, tuningEpoch = 0;
     try {
@@ -159,6 +160,7 @@
     }
     function stopTuning() {
       ++tuningEpoch;
+      tuning = false;
       if (!tuningNodes) return;
       var nodes = tuningNodes;
       tuningNodes = null;
@@ -171,28 +173,47 @@
       var AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
       var token = tuningEpoch;
+      var deadline = performance.now() + tuningSeconds * 1000;
+      tuning = true;
       try {
         if (!tuningContext || tuningContext.state === "closed") tuningContext = new AudioContext();
         var context = tuningContext;
         Promise.resolve(context.resume()).then(function () {
           if (token !== tuningEpoch || context.state !== "running" || !allowed() || muted || !volume) return;
-          var source = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
-          var buffer = context.createBuffer(1, Math.ceil(context.sampleRate * .38), context.sampleRate);
+          // A slow resume must never spill noise over the next song. The
+          // transport owns this deadline and cancels even a suspended context.
+          var duration = (deadline - performance.now()) / 1000;
+          if (duration < .8) return;
+          var source = context.createBufferSource(), filter = context.createBiquadFilter();
+          var treble = context.createBiquadFilter(), gain = context.createGain();
+          var buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
           var samples = buffer.getChannelData(0);
-          for (var i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
+          for (var i = 0; i < samples.length; i++) {
+            var time = i / context.sampleRate, lock = time - duration * .9;
+            // A soft, damped lock-on click shares the same envelope and filter.
+            samples[i] = (Math.random() * 2 - 1) * .8 + (lock >= 0 && lock < .035 ? .45 * Math.sin(lock * 2 * Math.PI * 1050) * Math.exp(-lock * 140) : 0);
+          }
           source.buffer = buffer;
           filter.type = "bandpass";
-          filter.frequency.value = 1400;
-          filter.Q.value = .7;
+          filter.Q.value = .65;
+          treble.type = "lowpass";
+          treble.frequency.value = 3800;
+          treble.Q.value = .5;
           var now = context.currentTime;
-          gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(.055 * volume, now + .025);
-          gain.gain.exponentialRampToValueAtTime(.0001, now + .36);
-          source.connect(filter); filter.connect(gain); gain.connect(context.destination);
-          tuningNodes = [source, filter, gain];
-          source.onended = function () { if (tuningNodes && tuningNodes[0] === source) stopTuning(); };
+          filter.frequency.setValueAtTime(2600, now);
+          [[.27, 420], [.55, 1900], [.86, 850], [1, 1100]].forEach(function (point) {
+            filter.frequency.exponentialRampToValueAtTime(point[1], now + duration * point[0]);
+          });
+          // Three short reception bursts, separated by quiet gaps; a gradual
+          // final fade makes the following track enter without a hard edge.
+          [[0, 0], [.025, .30], [.2, .17], [.24, 0], [.29, 0], [.32, .26], [.5, .10], [.55, 0], [.62, 0], [.65, .20], [.85, .13], [.9, .21], [.95, .08], [.99, 0], [1, 0]].forEach(function (point, index) {
+            gain.gain[index ? "linearRampToValueAtTime" : "setValueAtTime"](point[1] * volume, now + duration * point[0]);
+          });
+          source.connect(filter); filter.connect(treble); treble.connect(gain); gain.connect(context.destination);
+          tuningNodes = [source, filter, treble, gain];
+          source.onended = function () { if (tuningNodes && tuningNodes[0] === source) { stopTuning(); update(); } };
           source.start(now);
-          source.stop(now + .38);
+          source.stop(now + duration);
         }).catch(function () { /* A blocked audio context must not block the radio. */ });
       } catch (_) { /* Audio is optional on browsers without a usable Web Audio context. */ }
     }
@@ -258,13 +279,14 @@
       var supported = available();
       var silent = muted || !volume || !requested;
       strip.dataset.bgmState = !supported ? "unavailable" : failed ? "error" : pendingIntro && allowed() ? "intermission" : loading && requested ? "loading" : playing ? "playing" : "paused";
+      strip.dataset.bgmTuning = String(tuning);
       receiver.dataset.state = strip.dataset.bgmState;
       play.innerHTML = failed ? icons.retry : requested ? icons.pause : icons.play;
       play.setAttribute("aria-label", failed ? "ラジオを再試行" : requested ? "ラジオを一時停止" : "ラジオを再生");
       mute.innerHTML = silent ? icons.muted : icons.sound;
       mute.setAttribute("aria-pressed", String(silent));
       mute.setAttribute("aria-label", silent ? "音声をオンにする" : "消音");
-      status.textContent = !supported ? mode === "audio" ? "PVのみ" : "RADIOのみ" : failed ? "接続不可" : pendingIntro && allowed() ? "曲紹介" : loading && requested ? "受信中…" : silent ? "消音" : playing ? "放送中" : "停止中";
+      status.textContent = !supported ? mode === "audio" ? "PVのみ" : "RADIOのみ" : failed ? "接続不可" : tuning ? "選局中…" : pendingIntro && allowed() ? "曲紹介" : loading && requested ? "受信中…" : silent ? "消音" : playing ? "放送中" : "停止中";
       play.disabled = mute.disabled = !supported;
       receiver.querySelector("[data-radio-start]").disabled = !supported;
       var duration = ready && !needsLoad ? player.getDuration() || 0 : 0;
@@ -273,14 +295,14 @@
       var onair = strip.querySelector("[data-bgm-intro]");
       onair.hidden = !(pendingIntro && allowed());
       onair.textContent = playlist[selected].intro;
-      seek.disabled = !duration || failed || pendingIntro;
+      seek.disabled = !duration || failed || pendingIntro || tuneBeforePlay;
       seek.value = duration ? Math.round(current / duration * 1000) : 0;
       seek.setAttribute("aria-valuetext", clock(current) + " / " + clock(duration));
       strip.querySelector("[data-bgm-time]").textContent = clock(current);
       volumeInput.setAttribute("aria-valuetext", Math.round(volume * 100) + "%");
       receiver.querySelector("[data-radio-start]").textContent = requested ? "一時停止 Ⅱ" : "再生 ▷";
     }
-    function stopTransition() { clearTimeout(transitionTimer); transitionTimer = 0; }
+    function stopTransition() { ++transitionEpoch; clearTimeout(transitionTimer); transitionTimer = 0; }
     function fail() {
       clearTimeout(connectionTimer);
       stopTransition();
@@ -330,12 +352,12 @@
               if (event.data === 0 && allowed()) { choose(nextAvailable(1), true); return; }
               if (event.data === 1) {
                 loading = false;
-                if (visible && !game && !document.hidden && (mode === "audio" || opened) && !pendingIntro && (requested || !programmaticPause)) requested = true;
+                if (visible && !game && !document.hidden && (mode === "audio" || opened) && !pendingIntro && !tuneBeforePlay && (requested || !programmaticPause)) requested = true;
                 else pausePlayer();
               }
               if (event.data === 2) {
                 loading = false;
-                if (!programmaticPause && allowed() && !pendingIntro) { requested = false; stopTuning(); }
+                if (!programmaticPause && allowed() && !pendingIntro && !tuneBeforePlay) { requested = false; stopTuning(); }
                 programmaticPause = false;
               }
               if (event.data === 3 && allowed()) loading = true;
@@ -357,24 +379,39 @@
     }
     function sync() {
       stopTransition();
+      stopTuning();
       showReceiver(opened && visible && !game && !document.hidden);
       if (!allowed()) {
-        stopTuning();
+        tuneBeforePlay = false;
         pausePlayer();
         update();
         return;
       }
       if (!ready) { connect(); update(); return; }
+      var token = transitionEpoch;
+      var withTuning = tuneBeforePlay && !muted && volume > 0;
+      function enterTrack() {
+        transitionTimer = 0;
+        if (token !== transitionEpoch || !allowed()) return;
+        stopTuning();
+        tuneBeforePlay = pendingIntro = false;
+        startTrack();
+      }
+      function tuneAndStart() {
+        transitionTimer = 0;
+        if (token !== transitionEpoch || !allowed()) return;
+        if (!withTuning) { enterTrack(); return; }
+        if (!muted && volume) playTuning();
+        loading = !pendingIntro;
+        update();
+        transitionTimer = setTimeout(enterTrack, tuningSeconds * 1000);
+      }
       if (pendingIntro) {
         pausePlayer();
-        transitionTimer = setTimeout(function () {
-          transitionTimer = 0;
-          if (!allowed()) return;
-          pendingIntro = false;
-          startTrack();
-        }, 4800);
+        // Keep the full Japanese introduction, with tuning in its last second.
+        transitionTimer = setTimeout(tuneAndStart, 4800 - (withTuning ? tuningSeconds * 1000 : 0));
         update();
-      } else startTrack();
+      } else tuneAndStart();
     }
     function destroyPlayer() {
       readNativeAudio();
@@ -395,7 +432,7 @@
         screen.prepend(slot);
       }
     }
-    function choose(index, introduce, explicit) {
+    function choose(index, introduce) {
       readNativeAudio();
       if (failed && !ready) destroyPlayer();
       tuned = true;
@@ -404,6 +441,7 @@
       needsLoad = true;
       failed = false;
       pendingIntro = !!introduce;
+      tuneBeforePlay = requested;
       loading = false;
       // Keep intent while pausing the preceding track for the station break.
       if (ready) { pendingIntro = requested; pausePlayer(); }
@@ -411,7 +449,6 @@
       intro.textContent = available() ? playlist[selected].intro : unavailableMessage();
       metadata();
       sync();
-      if (explicit) playTuning();
     }
     function start() {
       if (!available()) return;
@@ -419,9 +456,9 @@
       tuned = requested = true;
       if (mode === "pv") opened = true;
       if (failed) { destroyPlayer(); failed = false; }
+      tuneBeforePlay = true;
       intro.textContent = playlist[selected].intro;
       sync();
-      playTuning();
     }
     function close() {
       opened = false;
@@ -460,9 +497,9 @@
       button.addEventListener("click", function () { switchMode(button.dataset.radioMode); });
     });
     strip.querySelector("[data-radio-pv]").addEventListener("click", function () { switchMode("pv"); });
-    strip.querySelector("[data-bgm-prev]").addEventListener("click", function () { choose(nextAvailable(-1), requested, true); });
-    strip.querySelector("[data-bgm-next]").addEventListener("click", function () { choose(nextAvailable(1), requested, true); });
-    select.addEventListener("change", function () { choose(Number(select.value), requested, true); });
+    strip.querySelector("[data-bgm-prev]").addEventListener("click", function () { choose(nextAvailable(-1), requested); });
+    strip.querySelector("[data-bgm-next]").addEventListener("click", function () { choose(nextAvailable(1), requested); });
+    select.addEventListener("change", function () { choose(Number(select.value), requested); });
     receiver.querySelector("[data-radio-start]").addEventListener("click", function () { play.click(); });
     receiver.querySelector("[data-radio-close]").addEventListener("click", close);
     receiver.addEventListener("keydown", function (event) { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); } });

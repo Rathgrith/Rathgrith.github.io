@@ -70,6 +70,14 @@ function installSourceGapCatalog() {
 function installTuningAudioDouble() {
   const mock = window.__tuningMock = { contexts: [], sources: [], gains: [], filters: [], mode: "running", releases: [] };
   function node() { return { connect() {}, disconnect() {} }; }
+  function param() {
+    const events = [], values = [];
+    return { value: 0, events, values,
+      setValueAtTime(value, time) { values.push(value); events.push(["set", value, time]); },
+      linearRampToValueAtTime(value, time) { values.push(value); events.push(["linear", value, time]); },
+      exponentialRampToValueAtTime(value, time) { values.push(value); events.push(["exponential", value, time]); },
+    };
+  }
   window.AudioContext = class {
     constructor() { this.state = "suspended"; this.sampleRate = 48000; this.destination = node(); mock.contexts.push(this); }
     get currentTime() { return performance.now() / 1000; }
@@ -84,7 +92,7 @@ function installTuningAudioDouble() {
       let timer;
       const source = Object.assign(node(), {
         active: false, started: false,
-        start() { source.active = source.started = true; },
+        start(when) { source.active = source.started = true; source.startTime = when; },
         stop(when) {
           clearTimeout(timer);
           function finish() { source.active = false; if (source.onended) source.onended(); }
@@ -94,14 +102,54 @@ function installTuningAudioDouble() {
       });
       mock.sources.push(source); return source;
     }
-    createBiquadFilter() { const filter = Object.assign(node(), { frequency: { value: 0 }, Q: { value: 0 } }); mock.filters.push(filter); return filter; }
+    createBiquadFilter() { const filter = Object.assign(node(), { frequency: param(), Q: param() }); mock.filters.push(filter); return filter; }
     createGain() {
-      const values = [], gain = Object.assign(node(), { values, gain: {
-        setValueAtTime(v) { values.push(v); }, linearRampToValueAtTime(v) { values.push(v); }, exponentialRampToValueAtTime(v) { values.push(v); },
-      } });
+      const automation = param(), gain = Object.assign(node(), { values: automation.values, gain: automation });
       mock.gains.push(gain); return gain;
     }
   };
 }
 
-module.exports = { installYouTubeDouble, installTuningAudioDouble, installSourceGapCatalog };
+// Render the production Web Audio graph with Chrome's real DSP, without ever
+// connecting to a physical audio device. A fresh offline graph serves each tune.
+function installOfflineTuningAudio() {
+  window.__tuningRenders = [];
+  window.AudioContext = class {
+    constructor() { this.state = "suspended"; this.sampleRate = 48000; }
+    get currentTime() { return this.context.currentTime; }
+    get destination() { return this.context.destination; }
+    resume() {
+      this.context = new OfflineAudioContext(1, Math.ceil(this.sampleRate * 1.3), this.sampleRate);
+      this.state = "running";
+      return Promise.resolve();
+    }
+    createBuffer(...args) { return this.context.createBuffer(...args); }
+    createBiquadFilter() { return this.context.createBiquadFilter(); }
+    createGain() { return this.context.createGain(); }
+    createBufferSource() {
+      const context = this.context, source = context.createBufferSource(), stop = source.stop.bind(source);
+      let rendering = false;
+      source.stop = when => {
+        stop(when);
+        if (rendering) return;
+        rendering = true;
+        context.startRendering().then(buffer => {
+          const samples = buffer.getChannelData(0), rate = buffer.sampleRate;
+          const rms = (start, end) => {
+            const section = samples.subarray(Math.round(start * rate), Math.round(end * rate));
+            return Math.sqrt(section.reduce((sum, v) => sum + v * v, 0) / section.length);
+          };
+          let peak = 0, last = 0;
+          for (let i = 0; i < samples.length; i++) { peak = Math.max(peak, Math.abs(samples[i])); if (Math.abs(samples[i]) > .00001) last = i / rate; }
+          window.__tuningRenders.push({ rms: rms(0, 1.06), peak, duration: last,
+            bursts: [[.05, .18], [.35, .47], [.7, .85]].map(([a, b]) => rms(a, b)),
+            gaps: [[.26, .28], [.59, .61], [1.1, 1.25]].map(([a, b]) => rms(a, b)),
+          });
+        });
+      };
+      return source;
+    }
+  };
+}
+
+module.exports = { installYouTubeDouble, installTuningAudioDouble, installSourceGapCatalog, installOfflineTuningAudio };

@@ -131,10 +131,13 @@
 #live2d-widget [data-bgm-state="playing"] [data-bgm-status]::before { background: #c8df9b; box-shadow: 0 0 4px #c8df9b70; }
 #live2d-widget [data-bgm-state="loading"] [data-bgm-status]::before { animation: bgm-loading .8s steps(2, end) infinite; }
 #live2d-widget [data-bgm-state="error"] [data-bgm-status] { color: #ffd1b5; }
+#live2d-widget [data-bgm-tuning="true"] [data-bgm-status]::before { background: #edbb80; animation: bgm-tuning-lamp .26s steps(2, end) infinite; }
 
 @keyframes bgm-loading { 50% { background: #c8df9b; } }
+@keyframes bgm-tuning-lamp { 50% { background: #756247; } }
 @media (prefers-reduced-motion: reduce) {
-  #live2d-widget [data-bgm-state="loading"] [data-bgm-status]::before { animation: none; }
+  #live2d-widget [data-bgm-state="loading"] [data-bgm-status]::before,
+  #live2d-widget [data-bgm-tuning="true"] [data-bgm-status]::before { animation: none; }
   #live2d-widget .vn-radio-dial i { transition: none; }
   #live2d-widget .vn-bgm-button { transition: none; }
 }

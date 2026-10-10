@@ -83,8 +83,8 @@ Validated on 2026-10-08:
 - 45 combinations: three themes at 15 widths from 320 to 1920px; no page overflow, square portraits, 28px contained school emblems, single-row navigation, bounded footer.
 - Gallery at seven widths, all 110 thumbnail crops, full-size containment, keyboard navigation/focus, browser history, and useful static links with JavaScript disabled.
 - Companion at twelve widths plus 600×360 landscape: docked dialogue has no vertical overflow, text and primary action remain visible, dock placement and detached window bounds stay correct, short floating settings panels scroll independently.
-- All 99 Japanese everyday lines plus 18 acquaintance remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups.
-- Explicit directions on all 135 lines (including 18 existing quotations), all 15 rendered body poses and hand layers, Patchouli's reading angle, sustained facial expressions, and the latest-line motion queue. Desktop index/dock ordering also survives breakpoint changes.
+- All 228 Japanese everyday lines plus 102 acquaintance remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups; complete shuffle cycles, no adjacent repeats across cycles, independent contexts, and reachability of every added variant.
+- Explicit directions on all 348 lines (including 18 existing quotations), all 15 rendered body poses and hand layers, Patchouli's reading angle, sustained facial expressions, and the latest-line motion queue. Desktop index/dock ordering also survives breakpoint changes.
 - Saved affinity/text speed, per-character isolation, typewriter completion, minimized pause, auto stopping for choices, single instances across soft navigation, close/reopen and keyboard movement.
 - Fresh mobile visits show the companion by default; page-bottom/index order, separately saved desktop/mobile visibility, explicit closing, reload and soft-navigation retention are checked.
 - Simulated model/CDN and weather failure, model retry, rapid character switching, blocked localStorage, reduced motion and the Halloween branch in the UI.
