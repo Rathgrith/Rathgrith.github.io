@@ -1,36 +1,37 @@
-/* Static PC-98 still lifes: transparent ordered dithering, shared by all themes.
-   Keep artwork behind the surface content, never over text, focus or hit targets. */
+/* Original illustrated squadron insignia. A restrained full-resolution crest gives the
+   document a character identity without competing with its text or controls. */
 .classic-document {
-  --corner-size: 320px;
-  --corner-veil: 80%;
+  --corner-size: 240px;
+  --corner-veil: 78%;
   background-image:
     linear-gradient(
       color-mix(in srgb, var(--classic-document) var(--corner-veil), transparent),
       color-mix(in srgb, var(--classic-document) var(--corner-veil), transparent)
     ),
     var(--classic-corner-art);
-  background-position: right top;
-  background-size: var(--corner-size) var(--corner-size);
+  background-position: right 16px top 12px;
+  background-size: var(--corner-size) var(--corner-size), auto var(--corner-size);
   background-repeat: no-repeat;
 }
 
-/* Tint the illustration into the observation/menu surface. The header remains solid. */
+/* Keep the same insignia subtle inside the smaller observation/menu surface. */
 #live2d-widget .vn-panel {
   background-image:
     linear-gradient(
-      color-mix(in srgb, var(--vn-panel) 86%, transparent),
-      color-mix(in srgb, var(--vn-panel) 86%, transparent)
+      color-mix(in srgb, var(--vn-panel) 88%, transparent),
+      color-mix(in srgb, var(--vn-panel) 88%, transparent)
     ),
     var(--classic-corner-art);
-  background-position: right top;
-  background-size: 240px 240px;
+  background-position: right 8px top 8px;
+  background-size: 160px 160px, auto 160px;
   background-repeat: no-repeat;
 }
 
 @media (max-width: 599px) {
   .classic-document {
-    --corner-size: 224px;
-    --corner-veil: 86%;
+    --corner-size: 160px;
+    --corner-veil: 87%;
+    background-position: right 8px top 8px;
   }
 }
 @media print, (forced-colors: active) {

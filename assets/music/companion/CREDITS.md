@@ -1,8 +1,20 @@
-# Playground BGM
+# Local battle BGM
 
 Original Touhou Project themes: **ZUN / 上海アリス幻樂団**.
-These are fan arrangements, not original game recordings. The cassette deck
-credits each arranger and links to their own distribution page.
+These three local fan arrangements remain the soundtrack for the Playground
+danmakū challenge. They are not original game recordings and are independent
+of the radio queue. The arcade credits each arranger and links to their own
+distribution page.
+
+The FM receiver has one shared 16-item catalog: six native-audio previews/XFDs
+and thirteen official videos, with three XFD entries supporting both sources.
+The ten requested PV-only favorites remain available. Mode changes keep the same
+entry; unsupported modes are labelled and cannot play. Neither source loads
+before explicit playback, and PV additionally requires selecting that mode. See
+[AUDIO-RADIO.md](AUDIO-RADIO.md) and [RADIO.md](RADIO.md) for those sources and
+limitations. The radio’s quiet tuning noise is generated locally with Web Audio,
+not sampled from a music recording. These local battle permissions do not apply
+to the radio’s external previews or videos.
 
 | Character / output | Arrangement | Source and instrumentation |
 | --- | --- | --- |
@@ -14,8 +26,7 @@ credits each arranger and links to their own distribution page.
 
 Checked 2026-10-09. Luna Reverie's catalog permits its MIDI arrangements in
 freely published, all-ages Touhou-related works without individual contact,
-and asks for attribution. They accompany this free Touhou conversation and
-danmakū fan game. Source MIDIs remain at the arranger's own site rather than
+and asks for attribution. They accompany this free Touhou danmakū fan game. Source MIDIs remain at the arranger's own site rather than
 being redistributed here. Alice's instrumentation is adapted as noted above;
 Patchouli retains the original GM programs. Original timing, velocities,
 controllers and pitch bend are retained. GS bank selection is mapped to GM.
@@ -42,5 +53,7 @@ and Patchouli in a temporary directory, retaining multitimbral MIDI events.
 Xcode command-line tools are required for the offline renderer. Marisa is the
 author's existing SD-80 recording; extract the member above and normalize with
 FFmpeg: `-af loudnorm=I=-19:TP=-2:LRA=10 -ar 44100 -codec:a libmp3lame -b:a 160k`.
-The website plays local MP3 renders so playback works without a runtime MIDI
-soundbank or third-party music player. Audio is loaded only after Play/Unmute.
+The arcade plays these local MP3 renders without a runtime MIDI soundbank or
+third-party music player. Battle BGM and sound effects have separate switches,
+both off by default; their assets load only after the corresponding opt-in.
+Radio station changes do not alter these files or the opponent-based selection.

@@ -123,16 +123,16 @@ fs.mkdirSync(out, { recursive: true });
     assert(await docked());
     assert(!(await widget.evaluate(w => w.classList.contains('is-sized'))));
     await page.locator('[data-companion-maximize]').click();
-    // Soft navigation resets dimensions without recreating the audio/model DOM.
+    // Soft navigation resets dimensions without recreating the radio/model DOM.
     await page.evaluate(() => {
-      window.retainedAudio = document.querySelector('audio');
+      window.retainedRadio = document.querySelector('.vn-bgm');
       window.retainedCanvas = document.querySelector('#live2dcanvas');
       document.querySelector('[data-classic-page="gallery"]').click();
     });
     await page.waitForURL('**/gallery/');
     assert(await docked());
     assert(await widget.evaluate(w => !!w.closest('.classic-gallery-rail')));
-    assert(await page.evaluate(() => window.retainedAudio === document.querySelector('audio') && window.retainedCanvas === document.querySelector('#live2dcanvas')));
+    assert(await page.evaluate(() => window.retainedRadio && window.retainedRadio === document.querySelector('.vn-bgm') && window.retainedCanvas === document.querySelector('#live2dcanvas')));
     assert.deepEqual(errors, []);
     console.log('PASS: Playground pointer/keyboard resize, centered 75% cap, uniform sprite/effect scale, maximize/restore/minimize/reset, canvas aspect ratio, 8 desktop/narrow/landscape layouts, retained navigation.');
   } finally { await browser.close(); }

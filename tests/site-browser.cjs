@@ -29,17 +29,23 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
       viewport: { width: 1440, height: 1000 },
     });
     const errors = [],
-      bad = [];
+      bad = [],
+      radioRequests = [];
     page.on("pageerror", (e) => errors.push(e.message));
+    page.on("request", (r) => {
+      if (/(^|\.)(youtube\.com|youtube-nocookie\.com|youtu\.be|googlevideo\.com|ytimg\.com)$/.test(new URL(r.url()).hostname))
+        radioRequests.push(r.url());
+    });
     page.on("response", (r) => {
       if (r.url().startsWith(base) && r.status() >= 400) bad.push(r.url());
     });
     await page.goto(base);
     await page.evaluate(() => document.fonts.ready);
-    await page.locator("[data-companion-audio]").waitFor({ state: "attached" });
-    assert.equal(await page.locator("audio").count(), 1);
+    await page.locator(".vn-bgm").waitFor({ state: "attached" });
+    assert.equal(await page.locator("audio, iframe").count(), 0);
     assert.equal(await page.locator("[data-music-player]").count(), 0);
-    assert(await page.locator("[data-companion-audio]").evaluate((audio) => audio.paused && audio.muted && !audio.getAttribute("src")));
+    assert.equal(await page.locator("[data-bgm-mute]").getAttribute("aria-pressed"), "true");
+    assert.deepEqual(radioRequests, [], "Default radio must not contact YouTube before opt-in");
     let checks = 0;
     for (const id of ["alice", "marisa", "patchouli"]) {
       await page.locator(`[data-classic-character="${id}"]`).click();
@@ -205,6 +211,8 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     assert.deepEqual(galleryMembership(reloadedOrder), galleryMembership(firstOrder));
     assert.deepEqual(errors, []);
     assert.deepEqual(bad, []);
+    assert.deepEqual(radioRequests, [], "Theme changes, navigation and reload must not start the radio");
+    assert.equal(await page.locator("audio, iframe").count(), 0);
     // The static gallery remains useful when scripting is disabled.
     const plain = await browser.newPage({
       javaScriptEnabled: false,
@@ -222,7 +230,7 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
       false
     );
     console.log(
-      `PASS: ${checks} theme/width combinations, 8 gallery widths, per-visit shuffle, viewer order/keyboard/focus, publications, history navigation, and no-JS gallery`
+      `PASS: ${checks} theme/width combinations, 8 gallery widths, per-visit shuffle, viewer order/keyboard/focus, publications, history navigation, default radio with no media or YouTube requests, and no-JS gallery`
     );
   } finally {
     await browser.close();

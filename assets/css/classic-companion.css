@@ -654,8 +654,10 @@ html body.live2d-is-hidden #live2d-widget {
 }
 #live2d-widget.is-resizing { user-select: none; }
 #live2d-widget[data-playground-layout="wide"] .vn-main-view {
+  --vn-controls-width: max(250px, calc((100% - 10px) * .393939));
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, .65fr);
+  grid-template-columns: minmax(0, 1fr) var(--vn-controls-width);
   grid-template-rows: auto minmax(88px, 1fr) auto auto auto auto;
   grid-template-areas: "cast cast" "scene dialogue" "scene controls" "scene music" "scene arcade" "scene weather";
   gap: 6px 10px;
@@ -677,5 +679,4 @@ html body.live2d-is-hidden #live2d-widget {
 #live2d-widget[data-playground-layout="wide"] .vn-choices { flex-shrink: 0; margin-top: 0; max-height: 120px; overflow: auto; }
 #live2d-widget[data-playground-layout="wide"] #live2d-dialogue { overflow: hidden; }
 #live2d-widget[data-playground-layout="wide"][data-dialogue-state="choice"] #live2d-dialogue { min-height: 66px; }
-#live2d-widget[data-playground-layout="wide"][data-dialogue-state="choice"] .vn-bgm-tape { display: none; }
 #live2d-widget[data-playground-layout="wide"] .vn-next-mark { bottom: 6px; right: 8px; }
