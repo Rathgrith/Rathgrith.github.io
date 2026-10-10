@@ -63,6 +63,14 @@ audio source and remain `PVのみ`. The shared selector shows both labels;
 unsupported-mode playback is disabled, and previous/next or automatic queue
 advancement skips entries unavailable in the current mode. [Video provenance](RADIO.md).
 
+NetEase’s official external-player preview for miscalc played in one tested
+browser session, but a separate public-iframe check did not demonstrate
+playback. This does not verify a direct audio URL or stable visitor playback,
+and the differing results do not establish that authentication was the cause.
+The [platform verification notes](RADIO.md#official-iframe-follow-up) distinguish
+the official iframe from native audio and record the remaining limits. No
+NetEase source or iframe was added to this six-source audio queue by that audit.
+
 ## Rights and source limitations
 
 Public promotional availability is not a blanket redistribution license.

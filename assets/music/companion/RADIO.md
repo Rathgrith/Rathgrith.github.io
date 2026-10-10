@@ -121,11 +121,42 @@ Public song-page titles, artists and album metadata were checked. The canonical
 `application/json` error (`code: -460`, network-environment risk), not playable
 MP3 data. Requests using the `.mp3` suffix also returned NetEase’s HTML 404 page.
 Chrome native-audio checks for `22820952`, `26107975` and `869438` all failed with
-media error 4 / format error. An HTTP 200 player shell or catalog page is not
-proof that its audio can play. This verification was blocked in the current
-network environment; it does **not** establish that a track is paid-only or
-unlicensed. No login, cookies, proxy, encrypted/private API workaround, platform
-stream extraction or rehosting was used.
+media error 4 / format error. These direct-URL checks did not verify a usable
+native-audio source; they do **not** establish that a track is paid-only or
+unlicensed, or that its official iframe cannot play. The direct-URL probes used
+no authenticated cookies, proxy, encrypted/private API workaround, platform
+stream extraction or rehosting.
+
+### Official iframe follow-up
+
+A separate check on 2026-10-10 used NetEase’s own
+[external-player generator for miscalc](https://music.163.com/#/outchain/2/479764517/).
+In an existing authenticated Chrome session, its official preview’s countdown
+advanced to `-04:14` from a track length of `4:27`. Automatic playback was then
+disabled. The generated public iframe URL was
+[the official single-song player with `auto=0`](https://music.163.com/outchain/player?type=2&id=479764517&auto=0&height=66).
+This confirms playback in that tested preview session, not public playback for
+every visitor.
+
+In a separate browser without that authenticated session, clicking the public
+iframe’s Play control left the clock at `-00:00`; Play remained visible and
+Pause remained hidden. Playback was not demonstrated in that check. The two
+observations do not isolate the cause: authentication, browser settings,
+network conditions, and platform behavior were not independently controlled.
+Do not claim that signing in is either necessary or sufficient to make the
+embed work. No account identifiers, credentials, or session cookies were
+collected or added to the site.
+
+An official iframe is a platform-hosted player, not a directly usable MP3/OGG
+source. Its HTML loading successfully does not prove media playback, and a
+failed direct-audio URL does not disprove iframe playback. No public host-side
+playback-control or progress API was verified in the current
+[official outchain player script](https://s3.music.126.net/web/s/pt_outchain_player_20cd959855a3cca8205c911c4afeed97.js).
+Its internal media events do not establish support for the homepage’s custom
+transport, synchronized LRC, or end-of-track queue handling. Visitor playback
+and such integration remain unverified; no NetEase iframe or direct source was
+added to the runtime by this audit. The catalog continues to expose listening
+page links only.
 
 Catalog recordings and video presentations can differ in timing. NetEase lists
 miscalc on PARTICLE at 267.002 seconds and the Halozy track on Ultimate Synthesis
