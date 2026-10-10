@@ -43,13 +43,21 @@ const france = emission("alice", "france", 1);
 assert.equal(france.bullets.length, 6);
 const children = splitOnce(france.bullets[0]);
 assert.equal(children.length, 7);
+assert(
+  children.every((b) => b[4] === "#f0eefb"),
+  "white intermediate scales"
+);
+assert(
+  children.every((b) => Math.cos(b[2] - france.bullets[0][2]) < -0.8),
+  "the short intermediate arc folds inward instead of another outward ring"
+);
 assert.equal(children.flatMap(splitOnce).length, 49, "France 1→7→49 genealogy");
 const london = emission("alice", "london");
 assert.equal(patterns.emitters(london.s).length, 7);
 assert.equal(
   new Set(london.bullets.map((b) => b[4])).size,
-  3,
-  "blue then yellow/cyan"
+  4,
+  "green/blue then yellow/cyan"
 );
 assert.equal(
   new Set(emission("alice", "holland").bullets.map((b) => b[4])).size,
@@ -60,6 +68,11 @@ assert.equal(
   2
 );
 const shanghai = emission("alice", "shanghai");
+assert.equal(
+  patterns.emitters(shanghai.s).length,
+  4,
+  "four actual doll origins"
+);
 assert.equal(shanghai.lasers.length, 0);
 assert(
   shanghai.bullets.some((b) => b[5] === "darkorb") &&
@@ -90,8 +103,20 @@ assert.equal(
   17
 );
 const nd = emission("marisa", "nondirectional", 1);
+assert.equal(
+  patterns.emitters(nd.s).length,
+  10,
+  "two complete familiar groups"
+);
 assert.equal(nd.lasers.length, 5);
 assert(nd.lasers.every((l) => l[8]?.kind === "orbit"));
+const ndCycle = emission("marisa", "nondirectional", 12);
+assert.equal(ndCycle.lasers.length, 10);
+assert.equal(
+  new Set(ndCycle.lasers.map((l) => Math.sign(l[8].rate))).size,
+  2,
+  "both counter-rotating groups fire in one cycle"
+);
 assert(
   nd.bullets.some(
     (b) =>
@@ -112,9 +137,13 @@ const agni = emission("patchouli", "agni");
 assert.equal(patterns.emitters(agni.s).length, 0);
 assert(agni.bullets.every((b) => b[0] === 120 && b[6]?.decay > 0));
 const undine = emission("patchouli", "undine");
-assert.equal(undine.lasers.length, 6, "three lasers per 32-tick sequence");
+assert.equal(
+  undine.lasers.length,
+  18,
+  "three repeated three-way pulses per cycle"
+);
 assert(
-  undine.bullets.some((b) => b[5] === "bubble") &&
+  undine.bullets.some((b) => b[5] === "pellet") &&
     undine.bullets.some((b) => b[5] === "orb")
 );
 const earth = motion(emission("patchouli", "trilithon", 1).bullets[0]);

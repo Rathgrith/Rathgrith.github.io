@@ -184,7 +184,7 @@
   }
   // Motion changes are one-shot, deterministic and independent of frame rate.
   // A cleared parent can never produce invisible delayed children afterwards.
-  function advanceBullet(b, dt, spawn) {
+  function advanceBullet(b, dt, spawn, target) {
     b.age = (b.age || 0) + dt;
     if (Math.hypot(b.vx, b.vy) > 0.001) b.heading = Math.atan2(b.vy, b.vx);
     var m = b.motion || {},
@@ -210,10 +210,38 @@
     ) {
       var a = change.angle,
         v = change.speed;
-      b.vx = Math.cos(a) * v;
-      b.vy = Math.sin(a) * v;
+      // A formation can expand first, then aim as one body. Share this small
+      // latch across its bullets: sample once at the turn, never home each grain.
+      if (change.aim && target) {
+        if (change.aim.angle === undefined)
+          change.aim.angle = Math.atan2(
+            target.y - change.aim.y,
+            target.x - change.aim.x
+          );
+        a = change.aim.angle;
+      }
+      if (change.duration) {
+        b.redirectStart = change.y !== undefined ? b.age : change.at;
+        b.redirectHeading = b.heading || 0;
+        b.redirectSpeed = Math.hypot(b.vx, b.vy);
+        b.redirectTarget = a;
+      } else {
+        b.vx = Math.cos(a) * v;
+        b.vy = Math.sin(a) * v;
+      }
       b.curve = 0;
       b.redirected = true;
+    }
+    if (b.redirected && change.duration && !b.redirectComplete) {
+      var progress = Math.min(1, (b.age - b.redirectStart) / change.duration),
+        ease = progress * progress * (3 - 2 * progress),
+        delta = b.redirectTarget - b.redirectHeading,
+        arc = Math.atan2(Math.sin(delta), Math.cos(delta)),
+        a = b.redirectHeading + arc * ease,
+        v = b.redirectSpeed + (change.speed - b.redirectSpeed) * ease;
+      b.vx = Math.cos(a) * v;
+      b.vy = Math.sin(a) * v;
+      b.redirectComplete = progress >= 1;
     }
     if (m.release && !b.released && b.age >= m.release.at) {
       var a =
@@ -236,7 +264,7 @@
     b.y += b.vy * dt;
     if (m.split && b.age >= m.split.at) {
       var split = m.split,
-        base = Math.atan2(b.vy, b.vx);
+        base = Math.atan2(b.vy, b.vx) + (split.angleOffset || 0);
       for (var i = 0; i < split.count; i++)
         spawn(
           b.x,

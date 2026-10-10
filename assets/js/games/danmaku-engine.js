@@ -950,9 +950,14 @@
         children = [];
       state.bullets = state.bullets.filter(function (b) {
         if (
-          !patterns.advanceBullet(b, dt, function () {
-            children.push(Array.prototype.slice.call(arguments));
-          })
+          !patterns.advanceBullet(
+            b,
+            dt,
+            function () {
+              children.push(Array.prototype.slice.call(arguments));
+            },
+            state.player
+          )
         ) {
           spark(b.x, b.y, b.color, 2);
           return false;

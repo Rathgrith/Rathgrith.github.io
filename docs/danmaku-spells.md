@@ -16,22 +16,22 @@ No original sprites, audio or game-code assets were extracted from these referen
 
 | Card | Distinguishing structure |
 | --- | --- |
-| France | Six dolls; blue seeds split twice, 1 → 7 → 49, into red scale rosettes. |
-| London | Seven close dolls; blue rice circles, a pause, then yellow/cyan waves. |
-| Holland | Successive seven-spoke wheels of compact lilac/cyan six-grain packets. |
-| Russia | Opposite red/blue doll trains and six-spoke packet wheels. |
-| Shanghai | Linked gold/ochre scale necklaces, blue scale layers and large hollow purple orbs. |
+| France | Six dolls; blue seeds fold into white short arcs, then divide into red scales, 1 → 7 → 49. |
+| London | Seven close dolls; green/blue rice circles, a pause, then yellow/cyan waves. |
+| Holland | Six upper-rank dolls cast successive seven-spoke wheels of compact lilac/cyan six-grain packets. |
+| Russia | Upper-rank and flank doll sources, alternating red/blue formations and six-spoke packet wheels. |
+| Shanghai | Four dolls cast three-layer gold/ochre ribbons; the boss adds alternating two/four blue rings and nine hollow purple orbs. |
 | Tibet | Six close dolls and slightly bending green/blue/yellow/cyan scales. |
 | Stardust | Seven moving sources draw broad coloured curls; placed stars eventually leave on straight rays. |
 | Milky Way | Five moving options, fixed three-way side streams and nine-way radial red/blue stars. |
 | Asteroid Belt | The related seventeen-way foreground variant with stronger side pressure. |
-| Non-Directional | Five outward orbiting lasers, inward star rows and a separate aimed component. |
+| Non-Directional | Two counter-rotating five-source groups cast outward lasers and inward star rows; separate boss-origin aimed stars. |
 | Master Spark | Eleven-way full circles; first beam downward, subsequent beams lock aim on charging. |
-| Final Spark | Thirty-six eight-way red/blue spiral volleys, a wide sweeping beam and a relocation interval. |
+| Final Spark | Thirty-six eight-way red/blue spiral volleys, a full-circle aimed wide beam and a relocation interval. |
 | Agni Shine | Boss-centred red curved fire rings with two travel speeds. |
-| Princess Undine | Three thin opening lasers and blue small rings, then orb lines and slower triple streams. |
-| Lazy Trilithon | Yellow round rocks decelerate, stop and redirect separately. |
-| Sylphy Horn | Green rice from the boss and right edge, crossing down-left at different slopes. |
+| Princess Undine | Three repeated three-way aimed laser pulses and blue small rings, then even ten/two-way water streams during boss movement. |
+| Lazy Trilithon | Yellow rocks decelerate, stop and scatter independently; a separate blue aimed penalty fires only at players above the boss. |
+| Sylphy Horn | Boss needles spread broadly and bend into a steep down-left drift. The straight, shallower right-edge wind extends to the lower field, with a slower entrance for low sources. |
 | Royal Flare | Offset expanding loops of red round beads, visible lobes and crossing seams. |
 | Philosopher's Stone | Fixed five-source bank; five rice colours with independent, overlapping movement laws. |
 
@@ -43,11 +43,14 @@ The first allowed musical firing tick becomes local tick zero. A new phrase ther
 
 Recursive split motion belongs to each child projectile. Clearing a parent removes its future descendants. Earth and metal projectiles have continuous deceleration, a visible rest, then a one-time redirect; stationary rice preserves its last orientation. Broad cupped scales and a dark hollow orb make PCB projectile families legible without enlarging their collision cores.
 
+Projectile redirects can use a shared formation latch: the metal ring samples the player once when it changes direction, and its members then move in parallel without homing. A new ring owns a fresh latch. This sampling instant is an explicit interpretation of the observed formation change, not a recovered original script frame. Optional gradual redirects make the boss's wood needles turn continuously; the independent edge stream remains straight. Recursive splits can offset their direction relative to their parent, allowing France's inward intermediate arcs.
+
 Later rounds retain characteristic arm counts and add bounded cadence/spacing changes. Mean occupancy alone cannot rank a static ring, a streaming pattern and a rotating laser: forcing it to increase at every card was erasing the original patterns. The density audit instead reports lower-field pressure, travelling speed, open corridors and pool headroom separately.
 
 ## Verification
 
 - `tests/danmaku-spell-design.cjs`: all eighteen structures, arbitrary music-phase offsets, nested split/cancel lifecycle, fixed arm counts, star release, moving lasers, water sequence, stopped rocks and the five-element bank.
+- `tests/danmaku-aiming.cjs`: fixed-versus-aimed layers under moving targets, full-circle Spark luring, water pulse retargeting and movement, conditional upper-field punishment, formation-wide late locking, gradual wind turns, nine lower-right camping probes in rounds 1/7, and actual full-track laser emission counts.
 - `tests/danmaku-spell-visuals.cjs`: actual production rendering of every card at 4, 8, 14 and 22 seconds; 72 individual spell frames.
 - `tests/danmaku-density.cjs`: complete recordings at three aim positions, rounds 1, 2, 4 and 7; bounded live pools, sustained lower-field pressure and remaining corridors.
 - `tests/danmaku-score.cjs`, `danmaku-engine.cjs`, `danmaku-nonspells.cjs` and `danmaku-laser-ai.cjs`: timed phases, pressure clears, pickups, all pilots, pause, interludes and laser routes.

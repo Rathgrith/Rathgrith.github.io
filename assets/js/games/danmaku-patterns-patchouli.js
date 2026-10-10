@@ -63,10 +63,19 @@
 
   function bossPosition(s) {
     // EoSD's basic element spells originate at the boss, not from extra options.
-    // Undine relocates between volleys; do not drag a laser after it is aimed.
+    // Undine drifts while firing water; the earlier aimed lasers stay put.
     if (s.enemySpell.id === "undine") {
       var water = s.enemySpell.patchouli;
-      return { x: (water && water.waterTarget) || 120, y: 59 };
+      var x = 120;
+      if (water && water.waterMove) {
+        var move = water.waterMove;
+        var progress = Math.max(
+          0,
+          Math.min(1, (s.enemySpell.age - move.at) / move.duration)
+        );
+        x = move.from + (move.to - move.from) * progress;
+      }
+      return { x: x, y: 59 };
     }
     return { x: 120, y: 57 };
   }
@@ -119,22 +128,29 @@
 
     if (id === "undine") {
       var step = tick % 32;
-      if (step === 28)
-        state.waterTarget = [120, 148, 96, 132][
-          (Math.floor(tick / 32) + 1) % 4
-        ];
-      if (step === 0) {
+      if (step === 6 || step === 14 || step === 22) {
+        state.waterMove = {
+          from: b.x,
+          to: [150, 94, 132, 108][
+            (Math.floor(tick / 32) * 3 + (step - 6) / 8) % 4
+          ],
+          at: s.enemySpell.age,
+          duration: beat * 3.4,
+        };
+      }
+      if (step < 6 && step % 2 === 0) {
         state.waterAim = aim;
-        // The three thin lasers precede the large water waves, rather than
-        // alternating unrelated side lasers throughout the card.
+        // Normal repeats an aimed three-way laser volley. Each pulse samples
+        // the player once; moving during the burst spreads successive volleys.
+        // Three volleys cap this phase at nine simultaneous laser objects.
         for (i = -1; i <= 1; i++) {
           api.laser(
             b.x,
             b.y,
             aim + i * 0.24,
             2.5,
-            beat * 2.4 * level.warning,
-            beat * 2.8,
+            beat * 1.4 * level.warning,
+            beat * 1.2,
             "#9dd9ff",
             0
           );
@@ -153,24 +169,24 @@
           );
         }
       } else if (step < 28) {
-        // A locked odd aimed fan repeats long enough to encourage streaming.
-        // Re-aiming every bead would turn the original pattern into a trap.
+        // The Normal base card uses even ten-way medium and two-way small
+        // streams, leaving the central aiming line between neighbouring shots.
         if (step % 4 === 2) state.waterAim = aim;
         if (step % 2 === 0) {
-          n = 11 + Math.floor(round / 3) * 2;
+          n = 10 + Math.floor(round / 3) * 2;
           for (i = 0; i < n; i++) {
             a = state.waterAim + (i - (n - 1) / 2) * 0.196;
             api.bullet(b.x, b.y, a, speed * 0.86, "#9697ff", "orb");
           }
         }
-        for (i = -1; i <= 1; i++) {
+        for (i = -1; i <= 1; i += 2) {
           api.bullet(
             b.x,
             b.y,
-            aim + i * 0.19,
+            aim + i * 0.13,
             speed * 0.43,
             "#6792ff",
-            "bubble"
+            "pellet"
           );
         }
       }
@@ -179,37 +195,65 @@
 
     if (id === "sylphy") {
       // The Normal card has one wind direction: right to lower left. Its two
-      // crossing sheets come from the boss and the right edge, not both edges.
+      // sources behave differently: a broad curved bloom at the boss crosses
+      // the straight, shallower sheet entering from the right boundary.
       n = 5 + Math.floor(round / 3);
       for (i = 0; i < n; i++) {
-        a = -Math.PI / 2 + (unit(tick * 23 + i) - 0.5) * 2.3;
-        api.bullet(b.x, b.y, a, speed * 0.22, colours.wood, "rice", {
+        a = ((i + unit(tick * 23 + i)) * TAU) / n + tick * 0.31;
+        api.bullet(b.x, b.y, a, speed * 0.7, "#e3edb1", "rice", {
           redirect: {
-            at: 0.36 + unit(tick * 41 + i) * 0.18,
-            angle: 1.92 + unit(tick * 31 + i) * 0.38,
-            speed: speed * 0.8,
+            at: 0.45 + unit(tick * 41 + i) * 0.1,
+            duration: 0.85,
+            angle: 1.84 + unit(tick * 31 + i) * 0.22,
+            speed: speed * 0.78,
           },
         });
-        y = 18 + unit(tick * 17 + i * 7) * 222;
+        // The original side wind also enters near the bottom edge. Restricting
+        // its source to the upper two thirds creates a permanent lower-right
+        // shelter that the boss's down-left needles can never reach.
+        y = 18 + unit(tick * 17 + i * 7) * 330;
+        a = 2.55 + unit(tick * 19 + i) * 0.25;
+        v = speed * (0.8 + unit(tick * 29 + i) * 0.14);
+        var lowWind = y >= 240;
         api.bullet(
           246,
           y,
-          2.55 + unit(tick * 19 + i) * 0.25,
-          speed * (0.8 + unit(tick * 29 + i) * 0.14),
+          a,
+          lowWind ? 12 : v,
           colours.wood,
-          "rice"
+          "rice",
+          // Lower entries remain straight. A slow visible entrance gives the
+          // edge-hugging player time to react before the wind reaches speed.
+          lowWind
+            ? { redirect: { at: 0.75, duration: 0.75, angle: a, speed: v } }
+            : undefined
         );
       }
       return;
     }
 
     if (id === "trilithon") {
+      // Normal also has a conditional blue aimed barrage when the player
+      // hides above Patchouli. This is separate from Shake's large aimed orbs.
+      if (p.y < b.y - 6) {
+        for (i = -3; i <= 3; i++) {
+          api.bullet(
+            b.x,
+            b.y,
+            aim + i * 0.18,
+            speed * 1.35,
+            "#8fa8ff",
+            "pellet"
+          );
+        }
+      }
       // Normal's yellow rocks slow to a halt, then scatter with a fresh heading.
-      // Their changes happen at an age, not an artificial common y-coordinate.
+      // The yellow field initially spreads below the boss, leaving the region
+      // above her to the conditional barrage. The delayed scatter is not aimed.
       if (tick % 2) return;
       n = 20 + Math.floor(round / 2) * 2;
       for (i = 0; i < n; i++) {
-        a = (i * TAU) / n + tick * 0.27;
+        a = 0.08 + unit(tick * 43 + i * 17) * (Math.PI - 0.16);
         var scatter = Math.PI / 2 + (unit(tick * 67 + i * 19) - 0.5) * 2.9;
         api.bullet(
           b.x,
@@ -339,6 +383,9 @@
       var metal = stones[4];
       if (phaseTick === 6 || phaseTick === 14) {
         var metalAim = Math.atan2(p.y - metal.y, p.x - metal.x);
+        // The ring changes into one aimed formation after spreading. All
+        // members share a single late target sample, preserving its circle.
+        var metalTarget = { x: metal.x, y: metal.y };
         ring(
           metal.x,
           metal.y,
@@ -349,7 +396,12 @@
           "rice",
           {
             decelerate: { from: 0.3, to: 0.85, speed: 0 },
-            redirect: { at: 1.12, angle: metalAim, speed: speed * 0.7 },
+            redirect: {
+              at: 1.12,
+              angle: metalAim,
+              aim: metalTarget,
+              speed: speed * 0.7,
+            },
           }
         );
       }

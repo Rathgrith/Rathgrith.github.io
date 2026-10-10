@@ -12,36 +12,65 @@ hitboxes on three lower-field rows throughout each card.
 
 ## Results
 
-Values show round 1 → round 7. Gap is the mean widest horizontal gap in the
-comfort-margin scan, in logical pixels. Speed is mean lower-field projectile
-speed in pixels/second. Pool peak is the maximum observed across all four rounds.
+Coverage and gap columns list rounds **1 / 2 / 4 / 7** (cycles 0 / 1 / 3 / 6).
+Gap is the mean widest horizontal gap in the comfort-margin scan, in logical
+pixels. Speed shows round 1 → round 7 mean lower-field projectile speed in
+pixels/second. Pool peak is the maximum observed across all four rounds.
 
-| Card | Coverage | Gap | Speed | Pool peak |
+| Card | Coverage, rounds 1 / 2 / 4 / 7 | Gap, rounds 1 / 2 / 4 / 7 | Speed | Pool peak |
 | --- | --- | --- | --- | --- |
-| alice / france | 62.4 → 73.1% | 135.9 → 117.8 | 56.6 → 70.2 | 538 |
-| alice / london | 70.7 → 73.9% | 90.5 → 101.5 | 51.6 → 64.2 | 566 |
-| alice / holland | 67.4 → 58.6% | 86.7 → 102.0 | 50.8 → 62.9 | 445 |
-| alice / russia | 54.0 → 46.5% | 96.6 → 103.0 | 55.9 → 69.3 | 344 |
-| alice / shanghai | 85.4 → 87.1% | 58.0 → 57.4 | 43.4 → 52.6 | 517 |
-| alice / tibet | 67.7 → 71.6% | 68.4 → 60.5 | 60.1 → 74.5 | 401 |
-| marisa / stardust | 73.1 → 67.2% | 80.7 → 88.1 | 23.7 → 27.2 | 563 |
-| marisa / milky | 82.0 → 78.3% | 69.3 → 67.5 | 46.0 → 57.0 | 362 |
-| marisa / asteroid | 93.2 → 91.7% | 28.9 → 31.8 | 56.4 → 68.4 | 456 |
-| marisa / nondirectional | 56.0 → 52.3% | 94.3 → 98.9 | 60.8 → 75.4 | 259 |
-| marisa / master | 87.5 → 86.5% | 39.9 → 43.9 | 44.0 → 54.6 | 273 |
-| marisa / finalspark | 70.5 → 73.6% | 145.6 → 141.0 | 48.0 → 59.5 | 355 |
-| patchouli / agni | 66.8 → 71.3% | 83.4 → 65.2 | 45.7 → 56.5 | 310 |
-| patchouli / undine | ≈64 → 63% | ≈81 → 70 | ≈41 → 49 | <280 |
-| patchouli / trilithon | 65.0 → 71.3% | 86.2 → 72.1 | 62.9 → 77.8 | 312 |
-| patchouli / sylphy | 68.2 → 71.7% | 158.2 → 152.1 | 68.4 → 84.8 | 285 |
-| patchouli / flare | 78.7 → 73.5% | 66.4 → 76.0 | 77.4 → 95.9 | 290 |
-| patchouli / philosopher | 84.6 → 82.8% | 43.0 → 57.6 | 70.2 → 86.2 | 419 |
+| alice / france | 67.7 / 66.0 / 67.0 / 73.2% | 210.0 / 216.1 / 213.0 / 183.9 | 56.6 → 70.3 | 551 |
+| alice / london | 70.7 / 69.9 / 73.1 / 73.9% | 90.5 / 97.2 / 98.2 / 101.5 | 51.6 → 64.2 | 566 |
+| alice / holland | 70.0 / 68.1 / 64.2 / 58.6% | 106.2 / 109.5 / 113.8 / 126.0 | 50.8 → 63.0 | 430 |
+| alice / russia | 57.5 / 55.4 / 51.9 / 46.8% | 134.8 / 135.4 / 142.3 / 157.1 | 55.9 → 69.3 | 350 |
+| alice / shanghai | 69.8 / 69.3 / 72.9 / 74.3% | 96.5 / 97.5 / 93.7 / 98.4 | 43.8 → 52.8 | 586 |
+| alice / tibet | 67.7 / 67.0 / 68.6 / 71.6% | 68.4 / 66.9 / 63.3 / 60.5 | 60.1 → 74.5 | 401 |
+| marisa / stardust | 73.1 / 71.7 / 71.1 / 67.2% | 80.7 / 82.6 / 83.5 / 88.1 | 23.7 → 27.2 | 563 |
+| marisa / milky | 82.0 / 81.3 / 80.2 / 78.3% | 69.3 / 68.1 / 67.3 / 67.5 | 46.0 → 57.0 | 362 |
+| marisa / asteroid | 93.2 / 92.8 / 92.7 / 91.7% | 28.9 / 29.8 / 30.2 / 31.8 | 56.4 → 68.4 | 456 |
+| marisa / nondirectional | 70.1 / 69.8 / 68.6 / 66.3% | 76.2 / 75.7 / 75.1 / 77.0 | 62.6 → 77.6 | 488 |
+| marisa / master | 87.5 / 87.5 / 87.3 / 86.5% | 39.9 / 41.5 / 43.5 / 43.9 | 44.0 → 54.6 | 273 |
+| marisa / finalspark | 70.5 / 71.1 / 72.5 / 73.6% | 145.6 / 144.4 / 142.4 / 141.0 | 48.0 → 59.5 | 355 |
+| patchouli / agni | 66.8 / 66.2 / 71.6 / 71.3% | 83.4 / 82.7 / 71.9 / 65.2 | 45.7 → 56.5 | 310 |
+| patchouli / undine | 64.5 / 64.3 / 63.9 / 62.8% | 87.3 / 84.9 / 79.7 / 74.2 | 42.7 → 51.8 | 233 |
+| patchouli / trilithon | 71.5 / 71.1 / 73.6 / 77.7% | 77.9 / 77.5 / 73.8 / 61.3 | 63.0 → 77.9 | 302 |
+| patchouli / sylphy | 81.0 / 80.4 / 83.8 / 86.6% | 72.4 / 73.3 / 63.8 / 55.1 | 64.7 → 79.6 | 300 |
+| patchouli / flare | 78.7 / 77.4 / 75.9 / 73.5% | 66.4 / 67.3 / 70.0 / 76.0 | 77.4 → 95.9 | 290 |
+| patchouli / philosopher | 84.6 / 84.3 / 83.6 / 82.8% | 43.0 / 44.1 / 48.8 / 57.6 | 70.2 → 86.2 | 419 |
 
-No sampled round reached the 720-projectile limit. The tightest comfort scan is
-Asteroid Belt: first-round p90 coverage 96.4%, with a mean largest gap of 28.9px.
-That is a reason to inspect its real paths and laser-free gaps closely, not to
-make every later card exceed 96.4%. Master Spark also scores highly because its
-large beam occupies a broad continuous area.
+The final source-layer revision passes `tests/danmaku-density.cjs` across all
+72 card/round combinations. The following minima cover all eighteen cards in
+each round. A physical gap is the widest clear run found across the three test
+rows at a sample, then minimized over samples; it is not a guaranteed connected
+escape route. Physical clear space is measured independently across those rows.
+
+| Round | Largest projectile pool | Smallest mean comfort gap | Largest p90 comfort coverage | Smallest physical gap | Lowest physical clear space |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 541 (france) | 28.9px (asteroid) | 96.4% (asteroid) | 52px | 25.1% |
+| 2 | 513 (france) | 29.8px (asteroid) | 96.2% (asteroid) | 44px | 26.3% |
+| 4 | 563 (stardust) | 30.2px (asteroid) | 96.0% (asteroid) | 44px | 25.1% |
+| 7 | 586 (shanghai) | 31.8px (asteroid) | 95.2% (asteroid) | 52px | 26.9% |
+
+No sampled round reaches the 720-projectile limit. Asteroid Belt remains the
+tightest comfort scan: round 1 p90 coverage is 96.4%, with a mean largest gap of
+28.9px. Master Spark also scores highly because its large beam occupies a broad
+continuous area. These measurements call for visual and movement checks, not
+for increasing every later card to the same occupancy.
+
+The updated results include Non-Directional's two crossing source groups,
+France's reversed white branches, Shanghai's separate doll/boss bullet layers,
+and the revised wood and water layers. Undine now has exact measured values
+instead of the previous approximate row. The separate full-track aiming test
+also verifies that the changing music tempo does not drop laser requests at
+the engine's pool cap.
+
+After extending Sylphy's right-edge entries over the lower field and adding the
+slow entrance for low spawns, Patchouli's complete track was remeasured at all
+four cycles. Only the affected Sylphy row and its physical-hitbox probes were
+replaced; it still meets the same density, speed, clearance and pool criteria.
+Its mean comfort gap is now 72.4 / 73.3 / 63.8 / 55.1px, while its smallest
+physical-gap probe is 64px. The separate stationary-target regression covers
+the formerly safe lower-right corner.
 
 ## Regression rules
 

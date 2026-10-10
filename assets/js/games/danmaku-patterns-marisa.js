@@ -17,9 +17,6 @@
   function beat(s) {
     return (s.rhythm && s.rhythm.beatDuration) || 0.46;
   }
-  function clamp(value, low, high) {
-    return Math.max(low, Math.min(high, value));
-  }
   function source(x, y, color, angle) {
     return { x: x, y: y, color: color, angle: angle, kind: "familiar" };
   }
@@ -64,11 +61,23 @@
         );
       }
     } else if (id === "nondirectional") {
-      for (i = 0; i < 5; i++) {
-        a = (i * TAU) / 5 - t * 0.43 - Math.PI / 2;
-        result.push(
-          source(b.x + Math.cos(a) * 54, b.y + Math.sin(a) * 54, rainbow[i], a)
+      // Normal has ten familiars, in two crossing five-source groups. The
+      // white source glows overlap in pairs; treating each pair as one origin
+      // loses the counter-rotating half of the star/laser lattice.
+      for (i = 0; i < 10; i++) {
+        var group = Math.floor(i / 5);
+        var rate = group ? 0.37 : -0.43;
+        a =
+          ((i % 5) * TAU) / 5 + (group * Math.PI) / 5 + t * rate - Math.PI / 2;
+        var familiar = source(
+          b.x + Math.cos(a) * 54,
+          b.y + Math.sin(a) * 54,
+          rainbow[i % 5],
+          a
         );
+        familiar.group = group;
+        familiar.rate = rate;
+        result.push(familiar);
       }
     } else {
       result.push(source(b.x, b.y + 8, "#fff0a8", Math.PI / 2));
@@ -149,17 +158,43 @@
       return;
     }
     if (id === "nondirectional") {
-      // Five moving origins, outward lasers, inward star rows. Every geometry
-      // consumer sees the same circular origin through the shared orbit anchor.
-      if (tick % 12 === 0) {
+      // The two groups charge in turn, briefly overlapping during the handoff.
+      // A group's old five beams expire before its next charge, keeping the
+      // complete ten-source sequence inside the engine's twelve-laser pool.
+      var laserSchedule = s.enemySpell.nonDirectionalLasers;
+      if (!laserSchedule) {
+        laserSchedule = s.enemySpell.nonDirectionalLasers = {
+          available: [0, 0],
+          pending: [false, false],
+        };
+      }
+      if (tick % 6 === 0) {
+        laserSchedule.pending[Math.floor(tick / 6) % 2] = true;
+      }
+      for (var laserGroup = 0; laserGroup < 2; laserGroup++) {
+        if (
+          !laserSchedule.pending[laserGroup] ||
+          s.enemySpell.age < laserSchedule.available[laserGroup]
+        )
+          continue;
+        var laserWarning = Math.max(0.8, quarter * 2.1);
+        // Include the engine's 0.25-second fade in the slot budget.
+        var laserDuration = Math.max(0.05, quarter * 6 - laserWarning - 0.3);
+        laserSchedule.pending[laserGroup] = false;
+        // The next six beats may be shorter than these six beats. Reuse a
+        // group only after its *actual* lifetime, with a small update margin;
+        // otherwise a tempo change can leave fifteen beams competing for slots.
+        laserSchedule.available[laserGroup] =
+          s.enemySpell.age + laserWarning + laserDuration + 0.25 + 0.04;
         sources.forEach(function (familiar) {
+          if (familiar.group !== laserGroup) return;
           api.laser(
             familiar.x,
             familiar.y,
             familiar.angle,
             4.5,
-            Math.max(0.8, quarter * 2.1),
-            quarter * 3.5,
+            laserWarning,
+            laserDuration,
             familiar.color,
             0,
             {
@@ -169,7 +204,7 @@
               rx: 54,
               ry: 54,
               phase: familiar.angle,
-              rate: -0.43,
+              rate: familiar.rate,
             },
             0
           );
@@ -178,7 +213,7 @@
       for (i = 0; i < sources.length; i++) {
         for (j = 0; j < 2; j++) {
           var lag = (step * j) / 2;
-          a = sources[i].angle + lag * 0.43;
+          a = sources[i].angle - lag * sources[i].rate;
           var inward = a + Math.PI;
           var velocity = 65 * rank;
           api.bullet(
@@ -193,7 +228,14 @@
       }
       if (tick % 4 === 0) {
         for (i = -1; i <= 1; i++) {
-          api.bullet(b.x, b.y, aim + i * 0.2, 50 * rank, "#eec0f2", "star");
+          api.bullet(
+            b.x,
+            b.y,
+            aim + i * 0.2,
+            50 * rank,
+            rainbow[(Math.floor(tick / 4) + i + 1) % rainbow.length],
+            "star"
+          );
         }
       }
       return;
@@ -244,7 +286,9 @@
         api.laser(
           b.x,
           b.y,
-          clamp(aim - hand * 0.16, 0.48, 2.66),
+          // A charge locks in any direction, including above Marisa. Clamping
+          // to the lower half-plane invalidates the original over-boss lure.
+          aim - hand * 0.16,
           23,
           Math.max(1.05, quarter * 3),
           quarter * 6,
