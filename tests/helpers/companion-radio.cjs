@@ -12,7 +12,7 @@ function installYouTubeDouble() {
       options, videoId: null, destroyed: false,
       getIframe: () => iframe,
       getPlayerState: () => status,
-      getDuration: () => { const track = window.CompanionRadioTracks.find(t => t.videoId === p.videoId); return track?.videoDuration || track?.duration || 0; },
+      getDuration: () => { const track = window.CompanionRadioTracks.find(t => t.videoId === p.videoId); return track?.videoDuration || track?.duration || 240; },
       getCurrentTime: () => current + (status === 1 ? (performance.now() - started) / 1000 : 0),
       setVolume: n => { volume = n; state.calls.push(["volume", n]); },
       getVolume: () => volume,
@@ -45,6 +45,26 @@ function installYouTubeDouble() {
     return p;
   }
   window.YT = { Player, PlayerState: { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 } };
+}
+
+// Keep missing-source regressions independent of the production playlist. The
+// shipped library can contain only fully paired songs; these records exist only
+// inside the test page, before the player reads the shared catalog.
+function installSourceGapCatalog() {
+  let catalog;
+  Object.defineProperty(window, "CompanionRadioTracks", {
+    configurable: true,
+    get: () => catalog,
+    set: tracks => {
+      window.__radioProductionTracks = tracks;
+      const common = { artist: "Radio test fixture", kind: "SONG", duration: 240, intro: "受信テストの曲紹介です。" };
+      catalog = tracks.concat([
+        { ...common, id: "test-radio-pair", title: "Paired fixture", src: "/assets/music/radio/test-pair.mp3", videoId: "TestPair000", url: "https://www.youtube.com/watch?v=TestPair000" },
+        { ...common, id: "test-radio-audio-only", title: "Audio-only fixture", src: "/assets/music/radio/test-audio-only.mp3", url: "https://example.invalid/radio-fixture" },
+        { ...common, id: "test-radio-video-only", title: "PV-only fixture", videoId: "TestPVOnly0", url: "https://www.youtube.com/watch?v=TestPVOnly0" },
+      ]);
+    },
+  });
 }
 
 function installTuningAudioDouble() {
@@ -84,4 +104,4 @@ function installTuningAudioDouble() {
   };
 }
 
-module.exports = { installYouTubeDouble, installTuningAudioDouble };
+module.exports = { installYouTubeDouble, installTuningAudioDouble, installSourceGapCatalog };

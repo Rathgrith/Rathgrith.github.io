@@ -1,11 +1,11 @@
-/* Real HTMLAudioElement + radio adapter, with official URLs intercepted by a
- * local MP3 fixture. Provider availability is checked separately, never by
- * downloading or rehosting a remote preview in this regression suite. */
+/* Real HTMLAudioElement + radio adapter. Catalog MP3 requests use a small local
+ * fixture, while the shipped MP3/LRC paths and bundled lyric loading are checked
+ * separately. YouTube is a controlled API double, never a remote download. */
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/companion-radio.cjs");
+const { installYouTubeDouble, installTuningAudioDouble, installSourceGapCatalog } = require("./helpers/companion-radio.cjs");
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 const out = process.env.QA_OUTPUT || require("node:os").tmpdir() + "/companion-radio-audio";
 const fixture = fs.readFileSync(path.join(__dirname, "../assets/music/companion/alice-ensemble.mp3"));
@@ -17,17 +17,19 @@ fs.mkdirSync(out, { recursive: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     await context.addInitScript(installYouTubeDouble);
     await context.addInitScript(installTuningAudioDouble);
-    const musicRequests = [], forbiddenRequests = [], errors = [];
+    await context.addInitScript(installSourceGapCatalog);
+    const musicRequests = [], lyricsRequests = [], forbiddenRequests = [], errors = [];
     let failAudio = false, holdAudio = false, releaseAudio;
     context.on("page", page => page.on("pageerror", e => errors.push(e.message)));
     context.on("request", request => {
+      if (/\/assets\/music\/radio\/[^/]+\.lrc(?:\?.*)?$/.test(request.url())) lyricsRequests.push(request.url());
       if (/youtube(?:-nocookie)?\.com|ytimg\.com|googlevideo\.com|soundcloud\.com|google-analytics\.com|googletagmanager\.com|clustrmaps\.com/.test(request.url())) forbiddenRequests.push(request.url());
     });
     await context.route(/https:\/\/[^/]*(?:youtube(?:-nocookie)?\.com|ytimg\.com|googlevideo\.com|soundcloud\.com)\//, route => route.abort());
-    await context.route(/^https:\/\/(?:tamaonsen\.com|e-ns\.net)\/.*\.mp3(?:\?.*)?$/, async route => {
+    await context.route(/\/assets\/music\/radio\/[^/]+\.mp3(?:\?.*)?$/, async route => {
       musicRequests.push(route.request().url());
       if (holdAudio) await new Promise(resolve => { releaseAudio = resolve; });
-      if (failAudio) return route.fulfill({ status: 404, body: "Unavailable test preview" });
+      if (failAudio) return route.fulfill({ status: 404, body: "Unavailable test song" });
       const headers = { "access-control-allow-origin": "*", "accept-ranges": "bytes" };
       const range = /^bytes=(\d+)-(\d*)$/.exec(route.request().headers().range || "");
       if (range) {
@@ -47,6 +49,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.goto(base);
     await panel.waitFor();
     const catalog = await page.evaluate(() => CompanionRadioTracks);
+    const production = await page.evaluate(() => __radioProductionTracks);
     const playlist = catalog.filter(track => track.src);
     const indexOf = id => catalog.findIndex(track => track.id === id);
     const choose = id => page.locator("[data-radio-station]").selectOption(String(indexOf(id)));
@@ -57,8 +60,24 @@ fs.mkdirSync(out, { recursive: true });
       assert.equal(await audio.count(), 0);
       assert.equal(await receiver.locator("iframe").count(), 0);
     };
-    assert(playlist.length >= 3);
-    assert(playlist.every(track => /^https:\/\//.test(track.src) && /^(XFD|PREVIEW)$/.test(track.kind)), "native queue has explicit promotional-preview scope");
+    assert(production.length >= 3);
+    assert.equal(new Set(production.map(track => track.id)).size, production.length, "catalog IDs are unique");
+    assert.equal(new Set(production.map(track => track.videoId)).size, production.length, "each song has its own PV");
+    for (const track of production) {
+      assert(/^radio-[a-z0-9-]+$/.test(track.id));
+      const mediaURL = new URL(track.src, base);
+      assert.equal(mediaURL.origin, new URL(base).origin, `${track.id} audio is same-origin`);
+      assert(/\/assets\/music\/radio\/[a-z0-9-]+\.mp3$/.test(mediaURL.pathname), `${track.id} has a local MP3`);
+      assert.equal(track.lyrics, track.src.replace(/\.mp3$/, ".lrc"), `${track.id} has matching bundled lyrics`);
+      assert.equal(track.kind, "SONG");
+      assert(/^[A-Za-z0-9_-]{11}$/.test(track.videoId));
+      const sourcePath = path.join(__dirname, "../assets/music/radio", path.basename(mediaURL.pathname));
+      assert(fs.statSync(sourcePath).size > 1024, `${track.id} MP3 exists`);
+      const text = fs.readFileSync(sourcePath.replace(/\.mp3$/, ".lrc"), "utf8");
+      assert(/\[\d{1,4}:[0-5]?\d(?:[.:]\d{1,3})?\].*\S/.test(text), `${track.id} LRC contains timed text`);
+    }
+    await page.waitForFunction(() => document.querySelector(".vn-radio-lyrics").dataset.lyricsState === "ready");
+    assert(lyricsRequests.length > 0, "bundled lyrics load automatically without starting music");
     assert.equal(await panel.getAttribute("data-radio-mode"), "audio");
     assert.equal(await panel.getAttribute("data-bgm-state"), "paused");
     assert.equal(await audio.count(), 0);
@@ -125,7 +144,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.locator("[data-radio-station]").selectOption("0");
     await page.waitForFunction(() => document.querySelector(".vn-bgm").dataset.bgmState === "intermission");
     assert.equal((await page.locator("[data-bgm-intro]").textContent()).trim(), playlist[0].intro);
-    await page.waitForFunction(src => document.querySelector("[data-radio-audio]").src === src, playlist[0].src);
+    await page.waitForFunction(src => document.querySelector("[data-radio-audio]").getAttribute("src") === src, playlist[0].src);
     await playing();
     await page.locator('button[data-vn-character="patchouli"]').click();
     assert.equal(await panel.getAttribute("data-radio-track"), playlist[0].id, "explicit audio selection survives themes");
@@ -133,7 +152,7 @@ fs.mkdirSync(out, { recursive: true });
     await audio.evaluate(a => { a.currentTime = a.duration - .05; });
     await page.waitForFunction(() => document.querySelector(".vn-bgm").dataset.bgmState === "intermission");
     assert.equal(await panel.getAttribute("data-radio-track"), playlist[1].id);
-    await page.waitForFunction(src => document.querySelector("[data-radio-audio]").src === src, playlist[1].src);
+    await page.waitForFunction(src => document.querySelector("[data-radio-audio]").getAttribute("src") === src, playlist[1].src);
     await playing();
     assert.equal(await page.evaluate(() => __tuningMock.sources.length), endedNoise);
     await page.locator("[data-radio-close]").click();
@@ -154,7 +173,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.locator("[data-radio-open]").click();
     await choose(audioOnly.id);
     if (await panel.getAttribute("data-bgm-state") === "intermission") {
-      await page.waitForFunction(src => document.querySelector("[data-radio-audio]").src === src, audioOnly.src);
+      await page.waitForFunction(src => document.querySelector("[data-radio-audio]").getAttribute("src") === src, audioOnly.src);
       await playing();
     }
     await audio.evaluate(a => { window.audioBeforePV = a; });
@@ -166,8 +185,8 @@ fs.mkdirSync(out, { recursive: true });
     assert.deepEqual(await optionLabels(), sharedOptions, "both modes show the same catalog in the same order");
     assert.equal(musicRequests.length, beforeUnavailableRequests);
 
-    // Three verified album XFDs align by stable catalog ID across both modes.
-    const pairs = [["tos003-weg-xfd", "Ob4suUHQY74"], ["tos001-lss-xfd", "Bfb5xYpQras"], ["ens0078-xfd", "PiFXNHg8W8s"]];
+    // Real catalog songs retain their identity and source across both modes.
+    const pairs = production.slice(0, 3).map(track => [track.id, track.videoId]);
     for (const [id, videoId] of pairs) {
       const track = catalog[indexOf(id)];
       assert.equal(track.videoId, videoId);
@@ -213,22 +232,23 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(await panel.getAttribute("data-bgm-state"), "paused");
 
     // Previous/next skip unavailable entries instead of changing to another mode.
-    await choose(pairs[0][0]);
+    await choose("test-radio-pair");
     await page.locator("[data-bgm-next]").click();
-    assert.equal(await panel.getAttribute("data-radio-track"), pairs[1][0], "PV Next skips the three audio-only entries");
+    assert.equal(await panel.getAttribute("data-radio-track"), videoOnly.id, "PV Next skips the injected audio-only entry");
     await page.locator("[data-bgm-prev]").click();
-    assert.equal(await panel.getAttribute("data-radio-track"), pairs[0][0]);
+    assert.equal(await panel.getAttribute("data-radio-track"), "test-radio-pair", "PV Previous also skips the audio-only entry");
     await page.locator('button[data-radio-mode="audio"]').click();
+    await choose(production[0].id);
     await page.locator("[data-bgm-prev]").click();
     assert.equal(await panel.getAttribute("data-radio-track"), playlist.at(-1).id, "RADIO Previous skips PV-only entries at catalog end");
     await page.locator("[data-radio-start]").click(); await playing();
     await audio.evaluate(a => { a.currentTime = a.duration - .05; });
     await page.waitForFunction(() => document.querySelector(".vn-bgm").dataset.bgmState === "intermission");
     assert.equal(await panel.getAttribute("data-radio-track"), playlist[0].id, "RADIO auto-advance skips every PV-only entry");
-    await page.waitForFunction(src => document.querySelector("[data-radio-audio]").src === src, playlist[0].src);
+    await page.waitForFunction(src => document.querySelector("[data-radio-audio]").getAttribute("src") === src, playlist[0].src);
     await playing();
 
-    // Audio and video previews have different timelines: LRC files and offsets stay separate.
+    // Audio and video versions can have different timelines: LRC files and offsets stay separate.
     await page.locator("[data-lyrics-file]").setInputFiles({ name: "aligned-audio.lrc", mimeType: "text/plain", buffer: Buffer.from("[00:01]音声版のテスト。") });
     await page.waitForFunction(() => document.querySelector(".vn-radio-lyrics").dataset.lyricsState === "ready");
     await page.locator("[data-lyrics-later]").click();
@@ -295,6 +315,6 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(await panel.getAttribute("data-bgm-state"), "paused");
     assert.deepEqual(forbiddenRequests, []);
     assert.deepEqual(errors, []);
-    console.log("PASS: real HTMLAudio adapter, opt-in/default audio, recommendations, no iframe/third-party widget, transport, mute/noise, LRC, queue, lifecycle, softnav, shared catalog and three exact video pairings, unavailable-mode silence, source-aware queue, separate LRC clocks, 4 widths, reload silence, source-error recovery, and pending-play cancellation (local MP3 fixture; remote availability smoke separate).");
+    console.log("PASS: real HTMLAudio adapter, opt-in/default audio, recommendations, no iframe/third-party widget, transport, mute/noise, LRC, queue, lifecycle, softnav, local MP3/LRC catalog and paired songs, unavailable-mode silence, source-aware queue, separate LRC clocks, 4 widths, reload silence, source-error recovery, and pending-play cancellation (local MP3 fixture and controlled missing-source records).");
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exit(1); });

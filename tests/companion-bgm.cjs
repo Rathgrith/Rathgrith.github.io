@@ -22,7 +22,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     const errors = [], mediaRequests = [];
     page.on("pageerror", e => errors.push(e.message));
     page.on("request", r => {
-      if (/youtube(?:-nocookie)?\.com|ytimg\.com|googlevideo\.com|google-analytics\.com|googletagmanager\.com|clustrmaps\.com|music\.163\.com|music\.126\.net|-ensemble\.mp3/.test(r.url())) mediaRequests.push(r.url());
+      if (/youtube(?:-nocookie)?\.com|ytimg\.com|googlevideo\.com|google-analytics\.com|googletagmanager\.com|clustrmaps\.com|music\.163\.com|music\.126\.net|\/assets\/music\/(?:radio\/[^/]+|companion\/[^/]+-ensemble)\.mp3/.test(r.url())) mediaRequests.push(r.url());
     });
     // Fail closed if the implementation accidentally bypasses the opt-in mock.
     await context.route(/https:\/\/[^/]*(?:youtube(?:-nocookie)?\.com|ytimg\.com|googlevideo\.com)\//, route => route.abort());
@@ -50,6 +50,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     const playlist = await page.evaluate(() => CompanionRadioTracks);
     const nativeTracks = playlist.filter(t => t.src);
     const pvTracks = playlist.filter(t => t.videoId);
+    const firstPV = pvTracks[0];
     const indexOf = id => playlist.findIndex(t => t.id === id);
     const nextPV = index => {
       for (let offset = 1; offset <= playlist.length; offset++) {
@@ -64,7 +65,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     }
     await page.locator("[data-radio-pv]").click();
     assert.equal(await selected(), nativeTracks[0].id, "opening PV retains the same shared selection");
-    await page.locator("[data-radio-station]").selectOption(String(indexOf("AhA--es6CLg")));
+    await page.locator("[data-radio-station]").selectOption(String(indexOf(firstPV.id)));
     await page.locator("[data-bgm-volume]").fill("36");
     assert.equal(await frame().count(), 0);
     await page.locator("[data-radio-open]").click();
@@ -74,10 +75,9 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     assert.equal(await page.evaluate(() => __tuningMock.contexts.length), 0, "browsing stations must not create audio");
     assert(nativeTracks.length >= 3 && pvTracks.length >= 3);
     assert.equal(await page.locator("[data-radio-station] option").count(), playlist.length);
-    assert(playlist.every(t => t.src || t.videoId), "every shared entry supports at least one mode");
-    assert.equal(await page.locator("[data-bgm-credit]").getAttribute("href"), "https://www.youtube.com/watch?v=AhA--es6CLg");
+    assert(playlist.every(t => t.src && t.lyrics && t.videoId), "every shipped song has local audio, bundled lyrics, and a paired PV");
+    assert.equal(await page.locator("[data-bgm-credit]").getAttribute("href"), firstPV.url);
     const listeningTracks = playlist.filter(t => t.listen);
-    assert.equal(listeningTracks.length, 10, "all ten PV favorites expose the verified external listening pages");
     for (const track of listeningTracks) {
       assert(track.videoId && track.listen.name);
       const url = new URL(track.listen.url);
@@ -92,13 +92,16 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
       assert((await listen.getAttribute("rel")).includes("noreferrer"));
       assert.equal(await frame().count(), 0, "showing an external listening link never loads its provider");
     }
-    await page.locator("[data-radio-station]").selectOption(String(indexOf("tos003-weg-xfd")));
-    assert(!(await page.locator("[data-radio-listen]").isVisible()), "official audio previews have no leftover single-song listening link");
-    assert.equal(await page.locator("[data-radio-listen]").getAttribute("href"), null);
-    await page.locator("[data-radio-station]").selectOption(String(indexOf("AhA--es6CLg")));
+    const withoutListeningLink = playlist.find(track => !track.listen);
+    if (withoutListeningLink) {
+      await page.locator("[data-radio-station]").selectOption(String(indexOf(withoutListeningLink.id)));
+      assert(!(await page.locator("[data-radio-listen]").isVisible()), "songs without extra platform links do not retain the previous link");
+      assert.equal(await page.locator("[data-radio-listen]").getAttribute("href"), null);
+    }
+    await page.locator("[data-radio-station]").selectOption(String(indexOf(firstPV.id)));
     assert.deepEqual(mediaRequests, [], "default and browsing do not contact NetEase or video providers");
     await page.locator("[data-radio-start]").click();
-    await playing("AhA--es6CLg");
+    await playing(firstPV.videoId);
     assert.equal(await frame().count(), 1);
     assert.equal(await page.evaluate(() => __radioMock.active.options.host), "https://www.youtube-nocookie.com");
     assert.equal(await page.evaluate(() => __radioMock.active.getVolume()), 36);
@@ -114,7 +117,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await page.locator("[data-bgm-play]").click();
     await paused();
     await page.locator("[data-bgm-play]").click();
-    await playing("AhA--es6CLg");
+    await playing(firstPV.videoId);
 
     // Native controls and deliberate silence survive both transport and lifecycle changes.
     await page.evaluate(() => { __radioMock.active.mute(); __radioMock.active.setVolume(8); });
@@ -145,7 +148,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await page.locator("[data-bgm-play]").click(); await playing();
 
     // Explicit queue selections survive character/theme switches.
-    const targetIndex = indexOf("tos001-lss-xfd");
+    const targetIndex = indexOf(pvTracks[1].id);
     const afterTarget = nextPV(targetIndex), afterNext = nextPV(afterTarget);
     const oldLoads = await page.evaluate(() => __radioMock.calls.filter(c => c[0] === "load").length);
     const oldNoise = await page.evaluate(() => __tuningMock.sources.length);
@@ -234,7 +237,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     assert.equal(await frame().count(), 0, "a full reload is silent even after a playing session");
     assert.equal(await page.locator("[data-bgm-volume]").inputValue(), "36");
     await page.locator("[data-radio-pv]").click();
-    await page.locator("[data-radio-station]").selectOption(String(indexOf("AhA--es6CLg")));
+    await page.locator("[data-radio-station]").selectOption(String(indexOf(firstPV.id)));
     await page.locator("[data-radio-close]").click();
 
     for (const width of [320, 375, 768, 1440]) {
@@ -266,7 +269,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await recovery.goto(base);
     await recovery.locator(".vn-bgm").waitFor();
     await recovery.locator("[data-radio-pv]").click();
-    await recovery.locator("[data-radio-station]").selectOption(String(indexOf("AhA--es6CLg")));
+    await recovery.locator("[data-radio-station]").selectOption(String(indexOf(firstPV.id)));
     await recovery.evaluate(() => { __radioMock.holdReady = true; });
     await recovery.locator("[data-bgm-play]").click();
     await recovery.waitForFunction(() => __radioMock.active);
@@ -303,7 +306,7 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await blockedAudio.goto(base);
     await blockedAudio.locator(".vn-bgm").waitFor();
     await blockedAudio.locator("[data-radio-pv]").click();
-    await blockedAudio.locator("[data-radio-station]").selectOption(String(indexOf("AhA--es6CLg")));
+    await blockedAudio.locator("[data-radio-station]").selectOption(String(indexOf(firstPV.id)));
     await blockedAudio.evaluate(() => { __tuningMock.mode = "reject"; });
     await blockedAudio.locator("[data-bgm-play]").click();
     await blockedAudio.waitForFunction(() => __radioMock.active?.getPlayerState() === 1);
@@ -323,11 +326,11 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await blocked.goto(base);
     await blocked.locator(".vn-bgm").waitFor();
     await blocked.locator("[data-radio-pv]").click();
-    await blocked.locator("[data-radio-station]").selectOption(String(indexOf("AhA--es6CLg")));
+    await blocked.locator("[data-radio-station]").selectOption(String(indexOf(firstPV.id)));
     assert.equal(await blocked.locator(".vn-radio-receiver iframe").count(), 0);
     await blocked.locator("[data-bgm-play]").click();
     await blocked.waitForFunction(() => __radioMock.active?.getPlayerState() === 1);
     assert.deepEqual(errors, []);
-    console.log("PASS: shared radio catalog and external listening links, silent/network-free default, 3 recommendations, mode-aware PV queue persistence, DJ transitions, native/custom audio controls, buffering pause, local LRC sync/offset, lifecycle, retained player, unready retry, stale callbacks, bounded/cancellable opt-in tuning noise, blocked audio/storage, and 4 responsive widths (documented YT mock; real provider smoke separate).");
+    console.log("PASS: paired local-song/PV catalog and optional external listening links, silent/network-free default, 3 recommendations, mode-aware PV queue persistence, DJ transitions, native/custom audio controls, buffering pause, local LRC sync/offset, lifecycle, retained player, unready retry, stale callbacks, bounded/cancellable opt-in tuning noise, blocked audio/storage, and 4 responsive widths (documented YT mock; real provider smoke separate).");
   } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exit(1); });
