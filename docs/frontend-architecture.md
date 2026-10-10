@@ -1,6 +1,6 @@
 # Frontend structure and regression checks
 
-The site has one active visual system: the dark Nostalgia desktop, with Alice, Marisa and Patchouli palettes. It no longer loads Minimal Mistakes layout/reset styles, the earlier paper/glass redesign, the old standalone-gallery rules, jQuery navigation/lightbox plugins, or the old standalone music player. The companion has its own opt-in BGM component.
+The site has one active visual system: the dark Nostalgia desktop, with Alice, Marisa and Patchouli palettes. It no longer loads Minimal Mistakes layout/reset styles, the earlier paper/glass redesign, the old standalone-gallery rules, jQuery navigation/lightbox plugins, or the old standalone music player. The companion has an opt-in FM receiver with native audio and optional PV sources in one shared catalog.
 
 ## Style ownership
 
@@ -17,25 +17,29 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 | `classic-pages.css` | Gallery collections, cards and archive layout |
 | `classic-gallery-viewer.css` | Modal, original-image containment, controls and filmstrip |
 | `classic-weather.css` | Integrated observation dial; no independent mobile/global hiding rules |
-| `classic-bgm.css` | Compact companion audio controls, pixel transport icons and range sliders |
+| `classic-bgm.css` | Physical FM controls, optional station/PV window and synced local LRC panel |
 | `classic-companion.css` | Floating window, scene, dialogue, panels, loading and viewport behavior |
 | `classic-danmaku.css` | Companion arcade lobby, score HUD, playfield and pause/result screens |
-| `classic-ornaments.css` | Static character corner art in documents and companion panels |
+| `classic-ornaments.css` | Full-resolution flat squadron insignia in document corners and companion panels |
 
 The native `hidden` attribute wins globally. The active styles do not depend on increasing `html.classic-root body.classic-site` specificity to defeat another template. Site options, companion, previews, modal and loading layers are ordered through theme variables. Each component uses small local layers within its own stacking context.
 
-At 1000px the profile becomes a rail. Below that it sits above the document, and below 600px contacts move under the portrait. Desktop rails share `--classic-rail-width` (270–292px) inside the 1760px frame: the homepage companion sits below the left in-page index, and Gallery's sits below Collections in the right rail. The remaining width goes to the document or photographs. A gallery rail containing an expanded companion stays in page flow so tall dialogue is accessible; the collection index can stick when the companion is hidden or detached. Compact screens show the companion by default in the bottom dock. Independent compact/desktop visibility preferences survive resize and reload. Publication rows and education use container queries for their available content width.
+At 1000px the profile becomes a rail. Below that it sits above the document, and below 600px contacts move under the portrait. Desktop rails share `--classic-rail-width` (270–292px) inside the 1760px frame: the homepage companion sits below the left in-page index, and Gallery's sits below Collections in the right rail. The remaining width goes to the document or photographs. The entire homepage rail uses direction-aware sticky positioning: tall content scrolls into view before bottom-pinning and moves back toward its top when scrolling upward. ResizeObserver recalculates its bounds after Playground changes, while the page grid keeps it above the footer. A gallery rail containing an expanded companion stays in page flow so tall dialogue is accessible; the collection index can stick when the companion is hidden or detached. Compact screens show the companion by default in the bottom dock. Independent compact/desktop visibility preferences survive resize and reload. Publication rows and education use container queries for their available content width.
 
 Gallery cards always crop to 4:3, with five columns at 1280px and above and three/two/one columns on narrower screens. Each page load or soft navigation shuffles photographs within their collections in the browser before initializing the viewer; data files stay in their original order and no randomized order is persisted. Resizing preserves the current order, and the viewer follows the displayed sequence. The viewer and its placeholder always contain the original aspect ratio. The filmstrip eagerly loads its bounded thirteen-image neighborhood. Hover previews use fixed positioning clamped to the viewport, and do not participate in page overflow while hidden.
 
 ## Runtime ownership
 
 - `page-transition.js` replaces `#main`, updates metadata/history and dispatches `site:content-updated`. Page swapping is immediate; the retired paper animation and its artificial wait are removed.
-- `classic-navigation.js` updates page tabs and reading/collection indexes.
+- `classic-navigation.js` updates page tabs and reading/collection indexes, and measures the desktop homepage rail for its direction-aware sticky position. Compact placement is unchanged.
 - `site-options.js` owns the header menu. `live2d-toggle.js` owns the single persisted companion visibility preference.
 - `companion-dialogue.js` owns the dialogue state machine and persistent preferences; `companion-dialogues.js` contains writing and pure story selection. See [the companion guide](companion-system.md).
 - `companion-voice-reactions.js` owns opt-in recorded interjections. Eighteen brief clips use emotion selection, a per-character cooldown and consecutive-repeat avoidance. Mouth articulation remains driven by the kana plan. See [voice sources](companion-voices.md).
-- `companion-bgm.js` owns one lazy `HTMLAudioElement`, three local ensemble tracks and a skeuomorphic cassette deck. Refresh always starts muted and paused; only volume is persisted. Character switches fade down/up; the same audio element survives page navigation. Close/minimize, background tabs and the arcade suspend playback. Source credits and the reproducible offline render are in `assets/music/companion/CREDITS.md`.
+- `companion-bgm.js` owns the opt-in FM receiver and one shared 16-item catalog assembled by `data/companion-radio.js`: six native-audio previews, ten requested PV-only favorites, and three matching official XFD videos attached to existing preview entries (thirteen videos total). Default RADIO plays creator-hosted MP3s from `data/companion-radio-audio.js` through the native `core/companion-radio-audio.js` adapter. No media source loads until Play/Unmute, and starting audio does not open another window. Character defaults suggest an opening item; the listener’s selection survives character and page changes.
+- RADIO/PV mode changes keep the same catalog entry, stop the previous source and wait for another Play. Entries lacking that mode display `PVのみ` or `RADIOのみ` with playback disabled; previous/next and automatic advancement skip unsupported entries. The optional PV mode uses each entry’s `videoId`. Only an explicit Play then loads the YouTube API and privacy-enhanced iframe; the video stays visible in its nonmodal window at a minimum 200×200 pixels. Closing that window stops and destroys the PV player. Closing the station window during native audio leaves playback running. Minimize, hidden tabs and the arcade pause either provider; no play intent persists across visits. Errors keep the official source link available. Optional `listen` metadata adds click-only NetEase, Apple Music or publisher-distribution links; no platform page/API or audio is fetched automatically, and a catalog link does not enable native playback.
+- Original Japanese station introductions separate tracks. Brief, low-volume tuning noise is synthesized locally with Web Audio after a playback/selection action, obeys mute and volume, and is cancelled on pause, hiding, mode changes or game entry. It downloads no sound sample and is independent of battle sound effects.
+- `companion-radio-lyrics.js` accepts local UTF-8 LRC files for the selected audio/PV item and follows the active provider’s clock, with per-track half-second timing adjustment. Audio and PV have separate LRC keys because official video intros/outros can change timing; switching modes does not transfer a playback timestamp. Imports are limited to 200KB each and persisted browser storage to 100KB total. No lyrics are bundled, uploaded or fetched; YouTube captions remain available when the publisher provides them. Source scopes and checks are in `assets/music/companion/AUDIO-RADIO.md` and `RADIO.md`.
+- The `CompanionBGM.getTrack` interface still returns the same three local ensemble MP3s exclusively for `danmaku-audio.js`; radio song selection never changes battle music. Offline render credits remain in `assets/music/companion/CREDITS.md`.
 - `live2d-loader.js` owns Cubism/PIXI model lifecycle, half-body framing, motion and window movement. Model requests use a generation token so rapid switches cannot replace the current character with a stale result. Gaze uses the original page-wide SDK coordinate mapping. Only the dialogue rectangle smoothly returns it to neutral; menu/music controls and the rest of the page keep following. Touch and reduced-motion mode do not track. Playground tracks size, position and maximize/restore state independently; ResizeObserver rerenders the stage and budgets compact height from actual controls.
 - `games/danmaku-engine.js`, `danmaku-renderer.js` and `companion-danmaku.js` separately own the arcade simulation, Canvas 2D view and UI/lifecycle. The game uses `danmaku-audio.js` for independent, silent-by-default battle BGM and effect mixing from deterministic event hooks. The mounted game pauses the conversation renderer, music and typewriter; local pixel sprites keep it independent of remote Live2D availability. See [the game guide](danmaku-game.md).
 - Before replacing `#main`, page navigation emits `site:before-content-replace`. The companion clears its dragged position and custom size and temporarily reparents to `body`, then moves to the destination page's dock. This retains the same canvas and weather instance. Weather refresh/location/cache behavior remains in `components/weather-widget.js`.
@@ -49,6 +53,8 @@ Build Jekyll and serve `_site` first. Audio seeking checks need a server with HT
 
 ```sh
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-bgm.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-radio-audio.cjs
+node tests/companion-radio-lyrics.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-gaze.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/playground-window.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-voice-reactions.cjs
@@ -69,6 +75,8 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-performance.cjs
 
 Screenshots go to the system temporary directory by default; set `QA_OUTPUT` to retain them elsewhere. Software Chrome rendering is used for consistent captures on the development Mac.
 
+Radio update validated on 2026-10-10: the native-audio suite uses real HTML audio with a local MP3 fixture served through the official-source request routes; the PV suite uses a documented YouTube API double. Both cover playback, mode changes, mute, errors, local LRC, lifecycle and 320/375/768/1440px layouts. Separate live smoke checks verified the official audio previews and a publisher PV. The full 45-theme/width homepage check, eight gallery widths and eight Playground resize layouts also passed.
+
 Validated on 2026-10-08:
 
 - 45 combinations: three themes at 15 widths from 320 to 1920px; no page overflow, square portraits, 28px contained school emblems, single-row navigation, bounded footer.
@@ -77,7 +85,7 @@ Validated on 2026-10-08:
 - All 99 Japanese everyday lines plus 18 acquaintance remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups.
 - Explicit directions on all 135 lines (including 18 existing quotations), all 15 rendered body poses and hand layers, Patchouli's reading angle, sustained facial expressions, and the latest-line motion queue. Desktop index/dock ordering also survives breakpoint changes.
 - Saved affinity/text speed, per-character isolation, typewriter completion, minimized pause, auto stopping for choices, single instances across soft navigation, close/reopen and keyboard movement.
-- Fresh mobile visits do not load a model; opt-in, page-bottom/index order, separate desktop/mobile visibility, reload and soft-navigation retention are checked.
+- Fresh mobile visits show the companion by default; page-bottom/index order, separately saved desktop/mobile visibility, explicit closing, reload and soft-navigation retention are checked.
 - Simulated model/CDN and weather failure, model retry, rapid character switching, blocked localStorage, reduced motion and the Halloween branch in the UI.
 - Nine endless arcade matchups, three distinct shot types and patterns, growing density, collision/graze/strike rules, actual canvas output, keyboard/touch controls, result/retry/records, short landscape and seven playfield widths. Leaving the game restores the existing conversation.
 - Browser checks observed no uncaught JavaScript errors or missing local assets. Remote models, weather and original photos still depend on their existing providers; failure behavior is tested separately from successful loading.

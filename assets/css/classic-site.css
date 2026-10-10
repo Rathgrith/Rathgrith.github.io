@@ -1098,18 +1098,17 @@ body.live2d-is-hidden .classic-companion-dock {
   display: none;
 }
 
-/* Keep the reading index available once the profile has scrolled away. */
+/* The entire desktop rail follows the document. Tall rails scroll through before
+   resting at the viewport edge; the main grid keeps them above the footer. */
 @media (min-width: 1000px) {
   .profile_box .author__avatar {
     width: 100%;
     max-width: 260px;
   }
-  html[data-weather-visible="false"] .classic-profile-rail {
-    align-self: stretch;
-  }
-  html[data-weather-visible="false"] .classic-page-index {
+  .classic-profile-rail {
     position: sticky;
-    top: 24px;
+    top: var(--classic-rail-top, 16px);
+    align-self: start;
   }
 }
 

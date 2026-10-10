@@ -1,4 +1,4 @@
-/* A miniature cassette deck: physical controls, tinted metal and an inset tape. */
+/* A small FM receiver with physical controls and a separate, visible video screen. */
 #live2d-widget .vn-bgm {
   --deck-metal: color-mix(in srgb, var(--vn-panel) 65%, #737574);
   margin: 3px 0 0;
@@ -32,6 +32,7 @@
 #live2d-widget .vn-bgm-deck::before { left: 5px; }
 #live2d-widget .vn-bgm-deck::after { right: 5px; }
 #live2d-widget .vn-bgm-track {
+  width: 100%; text-align: left; border-radius: 0; border: 0; box-shadow: none; font: inherit; cursor: pointer;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -46,46 +47,28 @@
 #live2d-widget .vn-bgm-label { flex: 0 0 auto; }
 #live2d-widget [data-bgm-title] { overflow: hidden; text-overflow: ellipsis; }
 #live2d-widget .vn-bgm-type { margin-left: auto; padding-left: 5px; font: 7px/1 monospace; letter-spacing: .4px; }
-#live2d-widget .vn-bgm-tape {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  width: 68%;
-  max-width: 190px;
-  height: 30px;
-  padding: 0 8px;
-  margin: 5px auto 0;
-  border: 1px solid #090b0e;
-  border-radius: 14px;
-  background: linear-gradient(165deg, #ffffff14, transparent 50%), #101216;
-  box-shadow: inset 0 2px 3px #000a, 0 1px 0 #ffffff20;
+#live2d-widget .vn-radio-dial {
+  display: flex; justify-content: space-between; position: relative;
+  height: 23px; margin: 6px 1px 0; padding: 0 2px;
+  color: #b5b2a2; font: 7px/1 monospace;
+  background: repeating-linear-gradient(90deg, #b5b2a250 0 1px, transparent 1px 7px) left bottom / 100% 9px no-repeat;
+  border-bottom: 1px solid #a4a18560;
 }
-#live2d-widget .vn-bgm-reel {
-  position: relative;
-  z-index: 1;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  border: 4px solid #50443c;
-  border-radius: 50%;
-  background: repeating-conic-gradient(#aaa89c 0deg 30deg, #353942 30deg 60deg);
-  box-shadow: 0 0 0 1px #05070a, inset 0 0 0 1px #ded6bb70;
-  animation: bgm-reel 2.5s linear infinite paused;
+#live2d-widget .vn-radio-dial i {
+  position: absolute; height: 18px; bottom: -1px; left: var(--radio-frequency, 8%);
+  border-left: 2px solid #edae85; box-shadow: 0 0 3px #ef8e5860;
+  transition: left .45s cubic-bezier(.2,.8,.3,1);
 }
-#live2d-widget .vn-bgm-reel::after { content: ""; position: absolute; inset: 4px; background: #101216; border-radius: 50%; }
-#live2d-widget .vn-bgm-tape-line { position: absolute; inset: 6px 20px; border-top: 1px solid #736354; border-bottom: 1px solid #736354; }
-#live2d-widget [data-bgm-state="playing"] .vn-bgm-reel { animation-play-state: running; }
 #live2d-widget .vn-bgm-main {
   display: grid;
-  grid-template-columns: 30px 30px minmax(34px, 1fr) 66px;
+  grid-template-columns: repeat(4, 28px) minmax(48px, 1fr);
   align-items: center;
   gap: 4px;
 }
 #live2d-widget .vn-bgm-button {
   display: grid;
   place-items: center;
-  width: 30px;
+  width: 28px;
   height: 26px;
   padding: 0;
   border: 1px solid #12151b;
@@ -95,8 +78,8 @@
   box-shadow: inset 1px 1px 0 #ffffff60, inset -1px -2px 0 #0008, 0 1px 1px #0008;
   transition: filter .12s, box-shadow .12s;
 }
-#live2d-widget .vn-bgm-button:hover { color: #fff7df; filter: brightness(1.18); }
-#live2d-widget .vn-bgm-button:active,
+#live2d-widget .vn-bgm-button:hover:not(:disabled) { color: #fff7df; filter: brightness(1.18); }
+#live2d-widget .vn-bgm-button:active:not(:disabled),
 #live2d-widget [data-bgm-state="playing"] [data-bgm-play],
 #live2d-widget .vn-bgm-button[aria-pressed="true"] {
   background: linear-gradient(#303339, #53534f);
@@ -140,7 +123,7 @@
 #live2d-widget .vn-bgm input:disabled { opacity: .4; cursor: default; }
 #live2d-widget .vn-bgm :focus-visible { outline: 1px dashed var(--vn-light); outline-offset: 2px; }
 #live2d-widget .vn-bgm-meta { display: flex; justify-content: space-between; gap: 6px; margin-top: 4px; color: #c7c4ba; font-size: 9px; }
-#live2d-widget .vn-bgm-meta > span { font: 7px/1.8 monospace; letter-spacing: .5px; }
+#live2d-widget .vn-bgm-meta > span { flex-shrink: 0; }
 #live2d-widget .vn-bgm-meta a { color: #ddd6c7; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #live2d-widget .vn-bgm-meta a:hover { color: #fff; text-decoration: underline; }
 #live2d-widget [data-bgm-status] { display: flex; gap: 4px; align-items: center; justify-content: center; white-space: nowrap; font-size: 10px; color: #ddd6c7; }
@@ -148,9 +131,109 @@
 #live2d-widget [data-bgm-state="playing"] [data-bgm-status]::before { background: #c8df9b; box-shadow: 0 0 4px #c8df9b70; }
 #live2d-widget [data-bgm-state="loading"] [data-bgm-status]::before { animation: bgm-loading .8s steps(2, end) infinite; }
 #live2d-widget [data-bgm-state="error"] [data-bgm-status] { color: #ffd1b5; }
-@keyframes bgm-reel { to { transform: rotate(360deg); } }
+
 @keyframes bgm-loading { 50% { background: #c8df9b; } }
 @media (prefers-reduced-motion: reduce) {
-  #live2d-widget .vn-bgm-reel, #live2d-widget [data-bgm-state="loading"] [data-bgm-status]::before { animation: none; }
+  #live2d-widget [data-bgm-state="loading"] [data-bgm-status]::before { animation: none; }
+  #live2d-widget .vn-radio-dial i { transition: none; }
   #live2d-widget .vn-bgm-button { transition: none; }
 }
+
+.vn-radio-receiver {
+  position: fixed; inset: auto; margin: 0; padding: 0;
+  width: min(430px, calc(100vw - 20px)); max-height: calc(100dvh - 20px); overflow: auto;
+  color: var(--vn-ink); background: var(--vn-panel);
+  border: 2px solid var(--vn-rule); border-radius: 2px;
+  box-shadow: 0 12px 36px #0008, inset 1px 1px #ffffff25;
+  font: 12px/1.6 var(--vn-font); z-index: 15000;
+}
+.vn-radio-receiver[hidden] { display: none; }
+.vn-radio-receiver .vn-radio-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 6px 8px; background: var(--vn-rule); color: var(--vn-light);
+  font-size: 14px; border-bottom: 1px solid #0007;
+}
+.vn-radio-receiver .vn-radio-header small { font: 8px monospace; opacity: .7; margin-left: 8px; }
+.vn-radio-receiver .vn-radio-header button {
+  width: 26px; height: 24px; padding: 0; border: 1px solid var(--vn-light);
+  color: inherit; background: #0003; font: 18px/1 monospace;
+}
+.vn-radio-receiver .vn-radio-body { padding: 10px; }
+.vn-radio-receiver .vn-radio-station { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; white-space: nowrap; }
+.vn-radio-receiver .vn-radio-station select {
+  min-width: 0; width: 100%; height: 30px; padding: 2px 6px; margin: 0;
+  color: var(--vn-ink); background: var(--vn-panel); border: 1px solid var(--vn-rule); font: inherit;
+}
+.vn-radio-receiver .vn-radio-screen {
+  position: relative; height: 225px; background: #080b12;
+  border: 1px solid #000; box-shadow: 0 1px 0 #fff2;
+  display: grid; place-items: center;
+}
+.vn-radio-receiver .vn-radio-screen iframe { display: block; width: 100%; height: 100%; border: 0; }
+.vn-radio-receiver [data-radio-player]:not(iframe) { display: none; }
+.vn-radio-receiver [data-radio-start] {
+  padding: 8px 14px; border: 1px solid var(--vn-rule); color: var(--vn-light); background: var(--vn-panel); font: inherit;
+}
+.vn-radio-receiver [data-radio-start][hidden] { display: none; }
+.vn-radio-receiver .vn-radio-host {
+  display: grid; grid-template-columns: 40px 1fr; gap: 8px;
+  margin: 10px 0; min-height: 58px; padding: 8px;
+  background: #0002; border: 1px solid var(--vn-rule); font-size: 12px; overflow-wrap: anywhere;
+}
+.vn-radio-receiver .vn-radio-host > span:first-child { font: 8px/2 monospace; letter-spacing: 1px; color: var(--vn-light); }
+.vn-radio-receiver[data-state="intermission"] .vn-radio-host { border-color: var(--vn-light); }
+.vn-radio-receiver .vn-radio-footer { display: flex; align-items: baseline; gap: 8px; justify-content: space-between; font-size: 10px; }
+.vn-radio-receiver .vn-radio-footer > span { min-width: 0; overflow-wrap: anywhere; }
+.vn-radio-receiver .vn-radio-footer a { flex-shrink: 0; color: var(--vn-light); }
+.vn-radio-receiver :focus-visible { outline: 1px dashed var(--vn-light); outline-offset: 2px; }
+#live2d-widget[data-playground-layout="wide"][data-dialogue-state="choice"] .vn-radio-dial { display: none; }
+@media (max-width: 480px) {
+  .vn-radio-receiver .vn-radio-screen { height: 202px; }
+  .vn-radio-receiver .vn-radio-body { padding: 8px; }
+}
+
+.vn-radio-receiver .vn-radio-lyrics { margin-top: 10px; border-top: 1px solid var(--vn-rule); padding-top: 8px; }
+.vn-radio-receiver .vn-radio-lyrics-header { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.vn-radio-receiver .vn-radio-lyrics button { color: var(--vn-ink); background: #0002; border: 1px solid var(--vn-rule); font: inherit; padding: 2px 7px; min-height: 26px; }
+.vn-radio-receiver .vn-radio-lyrics-lines { padding: 5px 0; text-align: center; min-height: 70px; }
+.vn-radio-receiver .vn-radio-lyrics-lines p { margin: 0; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-line; }
+.vn-radio-receiver .vn-radio-lyrics-previous, .vn-radio-receiver .vn-radio-lyrics-next { color: color-mix(in srgb, var(--vn-ink), transparent 40%); font-size: 10px; min-height: 16px; }
+.vn-radio-receiver .vn-radio-lyrics-current { color: var(--vn-light); font-size: 13px; min-height: 22px; }
+.vn-radio-receiver .vn-radio-lyrics-timing { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.vn-radio-receiver .vn-radio-lyrics-status { font-size: 10px; margin: 5px 0 0; color: var(--vn-light); }
+
+.vn-radio-receiver [hidden] { display: none !important; }
+
+#live2d-widget [data-radio-pv] { flex-shrink: 0; min-width: 24px; min-height: 20px; padding: 0 4px; border: 1px solid #b4b2a34d; color: #ded4bc; background: #0002; font: 8px/1.6 monospace; }
+#live2d-widget .vn-bgm-onair { margin: 5px 0 0; padding-top: 4px; border-top: 1px solid #a4a18540; color: var(--vn-light); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+#live2d-widget .vn-bgm-onair[hidden] { display: none; }
+/* A scene caption preserves the expanded window's dialogue and control space. */
+#live2d-widget[data-playground-layout="wide"] .vn-bgm-onair {
+  position: absolute;
+  z-index: 5;
+  inset: auto calc(var(--vn-controls-width) + 20px) 10px 10px;
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--vn-rule);
+  background: color-mix(in srgb, var(--vn-panel) 94%, transparent);
+  box-shadow: inset 0 0 0 2px #0005, 0 2px 8px #0005;
+  color: var(--vn-ink);
+  font: 12px/1.75 var(--vn-font);
+  pointer-events: none;
+}
+#live2d-widget[data-playground-layout="wide"] .vn-bgm-onair::before {
+  content: "ON AIR";
+  display: block;
+  margin-bottom: 3px;
+  color: var(--vn-light);
+  font: 8px/1.5 monospace;
+  letter-spacing: 1.5px;
+}
+.vn-radio-receiver[data-radio-mode="audio"] .vn-radio-screen { display: none; }
+.vn-radio-receiver .vn-radio-modes { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+.vn-radio-receiver .vn-radio-modes button { padding: 3px 10px; min-height: 28px; border: 1px solid var(--vn-rule); background: #0002; color: var(--vn-ink); font: inherit; }
+.vn-radio-receiver .vn-radio-modes button[aria-pressed="true"] { color: var(--vn-light); background: #fff1; box-shadow: inset 0 -2px var(--vn-light); }
+.vn-radio-receiver .vn-radio-modes [data-radio-start] { margin-left: auto; }
+#live2d-widget .vn-bgm button:disabled,
+.vn-radio-receiver [data-radio-start]:disabled { opacity: .45; cursor: default; filter: none; }
+.vn-radio-receiver[data-source-available="false"] .vn-radio-screen { display: none; }
