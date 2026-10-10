@@ -35,10 +35,11 @@ for (const player of Object.keys(engine.cast))
     early.state.player.invulnerable = late.state.player.invulnerable = Infinity;
     tick(early, 4.5);
     tick(late, 4.5);
-    // Compare sixteen beats, covering alternating/syncopated firing intervals.
+    // Compare sixty-four beats so long original-pattern cycles are included.
     function volley(g) {
       const bullets = [];
-      for (let tick = 0; tick < 32; tick++)
+      delete g.state.enemySpell.firstPatternTick;
+      for (let tick = 0; tick < 128; tick++)
         require("../assets/js/games/danmaku-patterns.js").emit(g.state, tick, {
           bullet: (...b) => bullets.push(b),
           laser: () => {},
@@ -48,12 +49,13 @@ for (const player of Object.keys(engine.cast))
     const earlyVolley = volley(early),
       lateVolley = volley(late);
     assert(
-      lateVolley.length > earlyVolley.length,
-      "Later volleys must be denser"
+      lateVolley.length >= earlyVolley.length,
+      "Later rounds retain the original arm count or add bounded volleys"
     );
+    const releasedSpeed = (shot) => shot[6]?.release?.speed || shot[3];
     assert(
-      lateVolley[0][3] > earlyVolley[0][3],
-      "Later volleys must move faster"
+      releasedSpeed(lateVolley[0]) > releasedSpeed(earlyVolley[0]),
+      "Later volleys move faster after any authored placement delay"
     );
   }
 const alice = ready("alice"),

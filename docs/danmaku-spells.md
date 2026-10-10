@@ -1,46 +1,56 @@
-# Spell motifs and adaptation
+# Original-game spell reconstruction
 
-These are compact adaptations of Touhou patterns for a 240×360, music-timed score attack, not frame-exact game reproductions. Timing follows the supplied dBu recordings; the timed invulnerable boss, repeatable durability clear, scoring and nonspell transitions stay intact.
+All eighteen score-attack cards now have character-specific choreography modules. Source placement, colour sequences, projectile families and movement phases take precedence over the previous shared fan/ring density multipliers. These are reconstructions for the 240×360 music-timed arena, not recovered game scripts or frame-exact ports. The timed invulnerable boss, repeatable durability clear, scoring and nonspell rules remain unchanged.
 
-## Reference material
+## Footage and per-card audit
 
-Original-game recordings inspected for silhouette, spacing and source placement:
+Each character's reference notes distinguish directly viewed gameplay from secondary descriptions, record playback timestamps, and state the remaining approximation:
 
-- ZPS, [Perfect Cherry Blossom Lunatic](https://www.youtube.com/watch?v=T7XRsckGaPM), Alice around 09:30–10:15.
-- ZPS, [Imperishable Night Lunatic, Border Team](https://www.youtube.com/watch?v=nNkkkvm0XXE), Marisa around 15:30 onward.
-- ZPS, [Embodiment of Scarlet Devil Extra](https://www.youtube.com/watch?v=PNU2EpXtjis), Patchouli around 01:28–02:08.
+- [Alice / Perfect Cherry Blossom](danmaku-alice-reference.md): France, London, Holland, Russia, Shanghai and Tibet.
+- [Marisa / Imperishable Night](danmaku-marisa-reference.md): Stardust, Milky Way, Asteroid Belt, Non-Directional Laser, Master Spark and Final Spark.
+- [Patchouli / Embodiment of Scarlet Devil](danmaku-patchouli-reference.md): Agni Shine, Princess Undine, Lazy Trilithon, Sylphy Horn, Royal Flare and Philosopher's Stone.
 
-Pattern identities and difficulty variants were cross-checked against the Japanese community strategy descriptions for [PCB stage 3](https://wikiwiki.jp/thk/%E5%A6%96/3), [IN stage 4B](https://wikiwiki.jp/thk/%E6%B0%B8/4B), [EoSD stage 4](https://wikiwiki.jp/thk/%E7%B4%85/4) and [EoSD Extra](https://wikiwiki.jp/thk/%E7%B4%85/EX). No video, sprite or game-code assets were extracted from those sources.
+No original sprites, audio or game-code assets were extracted from these references. Normal, Hard and Extra variants are identified in the notes rather than mixed under the wrong spell name.
 
-## Distinct mechanics
+## Corrected structures
 
-| Character / card | Implemented motif and main difference |
+| Card | Distinguishing structure |
 | --- | --- |
-| Alice / France | Four dolls send blue parent scales that divide in flight into five-way daughter fans. |
-| London | Six distributed dolls release separate concentric rice wreaths. |
-| Holland | A right-bank procession sends bundled scale petals with an oscillating aim. |
-| Russia | Opposite banks alternate red and blue clusters with a counter-volley. |
-| Shanghai | Yellow scale necklaces: angle and speed vary together to form linked moving loops. No fighting-game-style laser. |
-| Tibet | Six orbiting dolls cast counter-curving scale sheets over a much wider formation. |
-| Marisa / Stardust | Five moving familiars lay coloured stars briefly, then release them outward; no permanent circular orbit. |
-| Milky Way | Sparse fixed three-way side currents and slower medium-star rings. |
-| Asteroid Belt | Layered crossing star belts, more simultaneous side emitters and a denser central volley. This harder related motif now follows Milky Way. |
-| Non-Directional | Four orbiting familiars emit outward beams and inward star columns, overlaid with aimed boss stars. The laser origin follows its familiar in render, collision and AI prediction. |
-| Master Spark | Downward opening beam, then locked aim, wide cone and slow eleven-way star curtains. |
-| Final Spark | Longer, broader sweeping cones and faster layered large-star curtains, separated by recovery intervals. |
-| Patchouli / Agni | Opposed wavering flame ribbons, leaving shifting lateral channels. |
-| Undine | Aimed thin lasers, large blue bubbles and slow water pellets. |
-| Trilithon | Gold/earth columns change direction in the lower arena. |
-| Sylphy | Staggered oblique green sheets from opposite sides. |
-| Royal Flare | Regular counter-curving red/orange lattices with stable gaps, rather than random circular gaps. |
-| Philosopher’s Stone | Fire: two radial shells; water: fast aimed fans; wood: scatter then diagonal drift; metal: delayed divergent turn; earth: ring then collective locked-direction turn. |
+| France | Six dolls; blue seeds split twice, 1 → 7 → 49, into red scale rosettes. |
+| London | Seven close dolls; blue rice circles, a pause, then yellow/cyan waves. |
+| Holland | Successive seven-spoke wheels of compact lilac/cyan six-grain packets. |
+| Russia | Opposite red/blue doll trains and six-spoke packet wheels. |
+| Shanghai | Linked gold/ochre scale necklaces, blue scale layers and large hollow purple orbs. |
+| Tibet | Six close dolls and slightly bending green/blue/yellow/cyan scales. |
+| Stardust | Seven moving sources draw broad coloured curls; placed stars eventually leave on straight rays. |
+| Milky Way | Five moving options, fixed three-way side streams and nine-way radial red/blue stars. |
+| Asteroid Belt | The related seventeen-way foreground variant with stronger side pressure. |
+| Non-Directional | Five outward orbiting lasers, inward star rows and a separate aimed component. |
+| Master Spark | Eleven-way full circles; first beam downward, subsequent beams lock aim on charging. |
+| Final Spark | Thirty-six eight-way red/blue spiral volleys, a wide sweeping beam and a relocation interval. |
+| Agni Shine | Boss-centred red curved fire rings with two travel speeds. |
+| Princess Undine | Three thin opening lasers and blue small rings, then orb lines and slower triple streams. |
+| Lazy Trilithon | Yellow round rocks decelerate, stop and redirect separately. |
+| Sylphy Horn | Green rice from the boss and right edge, crossing down-left at different slopes. |
+| Royal Flare | Offset expanding loops of red round beads, visible lobes and crossing seams. |
+| Philosopher's Stone | Fixed five-source bank; five rice colours with independent, overlapping movement laws. |
 
-The closely related Normal/Hard variants retain their shared identity, but formations, side pressure and timing differ. Projectile quantities are reduced to fit the smaller arena. The daughter count of France is deliberately much smaller than the original. Later rounds increase bounded pressure without adding infinite homing or untelegraphed lasers.
+## Integration
 
-## Checks
+`danmaku-patterns.js` owns card metadata, unchanged nonspell logic, local attack-clock normalization and shared projectile motion. The three `danmaku-patterns-{alice,marisa,patchouli}.js` modules own spell formations, boss positions and emissions. Both CommonJS tests and the browser load the same modules.
 
-`danmaku-spell-design.cjs` covers splitting and cancellation, necklaces, two-sided dolls, laid-star release, familiar laser origins, water bubbles/lasers, lower-field earth turns and distinct elemental motion laws. Split children enter the next simulation step; cancelling a parent removes its pending split. `danmaku-laser-ai.cjs` checks complete routes, delayed ignition, expiry, sweeps, expanding cones and orbiting origins in addition to all three pilot variants.
+The first allowed musical firing tick becomes local tick zero. A new phrase therefore cannot begin halfway through a laser or colour sequence. Boss movement interpolates between card-specific and nonspell positions; active boss/orbit beams retain their existing position lock. The renderer, collisions and autoplay use the same moving laser geometry.
 
-`danmaku-spell-visuals.cjs` renders all eighteen production patterns at 7, 11 and 16 seconds after their musical phrase starts. Full-track density measurements at three aim positions supplement these screenshots. Coverage includes an enlarged movement margin, so it is a relative pressure measure, not a percentage of lethal pixels or a complete model of human difficulty.
+Recursive split motion belongs to each child projectile. Clearing a parent removes its future descendants. Earth and metal projectiles have continuous deceleration, a visible rest, then a one-time redirect; stationary rice preserves its last orientation. Broad cupped scales and a dark hollow orb make PCB projectile families legible without enlarging their collision cores.
 
-Validation on 2026-10-10: all eighteen cards rendered at three elapsed times; full-track pressure remained ascending within every character at rounds 1, 2, 4 and 7, with no pool saturation. The mechanics, score/timing, nonspell and laser-AI suites passed, as did all nine automatic two-field matchups and both renderers. Difficulty coverage uses three aim positions and at least 200 samples per card.
+Later rounds retain characteristic arm counts and add bounded cadence/spacing changes. Mean occupancy alone cannot rank a static ring, a streaming pattern and a rotating laser: forcing it to increase at every card was erasing the original patterns. The density audit instead reports lower-field pressure, travelling speed, open corridors and pool headroom separately.
+
+## Verification
+
+- `tests/danmaku-spell-design.cjs`: all eighteen structures, arbitrary music-phase offsets, nested split/cancel lifecycle, fixed arm counts, star release, moving lasers, water sequence, stopped rocks and the five-element bank.
+- `tests/danmaku-spell-visuals.cjs`: actual production rendering of every card at 4, 8, 14 and 22 seconds; 72 individual spell frames.
+- `tests/danmaku-density.cjs`: complete recordings at three aim positions, rounds 1, 2, 4 and 7; bounded live pools, sustained lower-field pressure and remaining corridors.
+- `tests/danmaku-score.cjs`, `danmaku-engine.cjs`, `danmaku-nonspells.cjs` and `danmaku-laser-ai.cjs`: timed phases, pressure clears, pickups, all pilots, pause, interludes and laser routes.
+- Browser checks cover real audio-clock synchronization and the shared score/Flower presentation.
+
+Exact original RNG, per-frame acceleration constants and spawn/despawn scripts remain outside this reconstruction. Music quantization, smaller coordinates, score-attack lifecycle and some fitted source paths are explicit adaptations.

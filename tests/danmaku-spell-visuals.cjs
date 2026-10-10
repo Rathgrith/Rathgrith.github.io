@@ -22,6 +22,9 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     await p.goto(base + "spell-design-test");
     for (const name of [
       "score",
+      "patterns-alice",
+      "patterns-marisa",
+      "patterns-patchouli",
       "patterns",
       "scroll",
       "engine",
@@ -56,7 +59,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           window.qaCards.push({ game, renderer, start: s.time });
         }
       }, enemy);
-      for (const seconds of [7, 11, 16]) {
+      for (const seconds of [4, 8, 14, 22]) {
         const states = await p.evaluate(
           (seconds) =>
             window.qaCards.map(({ game, renderer, start }) => {
@@ -84,7 +87,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           path: `${out}/${enemy}-${seconds}.png`,
           fullPage: true,
         });
-        if (seconds === 11)
+        if (seconds === 14)
           await p.evaluate((enemy) => {
             const index = { alice: 4, marisa: 3, patchouli: 5 }[enemy],
               figure = document.querySelectorAll("figure")[index];
