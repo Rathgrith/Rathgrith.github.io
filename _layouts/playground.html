@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ja" class="no-js classic-root playground-root" data-theme="dark" data-live2d-character="alice">
+  <head>
+    {% include head.html %}
+    {% include head/custom.html %}
+    <link rel="stylesheet" href="{{ '/assets/css/classic-playground.css' | relative_url }}?v={{ asset_version | url_encode }}">
+  </head>
+  <body class="classic-site playground-page" data-playground-standalone="true" data-disable-mouse-firework="true">
+    <main id="main" class="playground-host" aria-label="Playground">
+      <div id="live2d-widget"></div>
+      <noscript><p>Playground には JavaScript が必要です。<a href="{{ '/' | relative_url }}">ホームへ</a></p></noscript>
+    </main>
+    {% include companion-runtime.html %}
+    {% include scripts.html %}
+  </body>
+</html>

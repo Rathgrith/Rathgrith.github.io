@@ -27,7 +27,7 @@ Short original Japanese introductions provide station breaks. Starting playback 
 
 Audio/PV have separate lyric keys because video introductions, edits and reissues can differ. Bundled lyrics belong to the local recording and are not automatically applied to PV; PV accepts its own LRC and timing adjustment. Mode changes restart rather than claim a time-aligned handoff. Available publisher captions remain part of the optional YouTube player.
 
-See [radio files, credits and version notes](../assets/music/radio/README.md). The arcade keeps its three existing local arrangements and independent music/effect switches; radio selection never changes its soundtrack. [Battle-music credits](../assets/music/companion/CREDITS.md) remain separate.
+See [radio files, credits and version notes](../assets/music/radio/README.md). The arcade uses its three supplied dBu recordings and independent music/effect switches; radio selection never changes its soundtrack. [Battle-music credits](../assets/music/danmaku/README.md) remain separate.
 
 ## Scene and dialogue design
 

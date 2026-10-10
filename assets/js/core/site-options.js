@@ -1,4 +1,5 @@
 (function () {
+  if (document.body.dataset.playgroundStandalone === "true") return;
   function ensureFloatingOptions() {
     if (!document.body) return null;
 

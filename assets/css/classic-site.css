@@ -1289,13 +1289,13 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
     gap: 2px;
   }
   .classic-theme-button {
-    flex-basis: 28px;
-    width: 28px;
-    height: 30px;
+    flex-basis: 36px;
+    width: 36px;
+    height: 34px;
   }
   .classic-theme-button img {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
   }
   .classic-toolbar {
     padding: 7px 4px 0;

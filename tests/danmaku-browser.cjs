@@ -141,7 +141,7 @@ fs.mkdirSync(out, { recursive: true });
       assert(
         (await page.evaluate(
           (key) =>
-            JSON.parse(localStorage.getItem("site-danmaku-records-v1"))[key],
+            JSON.parse(localStorage.getItem("site-danmaku-records-v3"))[key],
           player + ":" + enemy
         )) > 50
       );
@@ -152,10 +152,13 @@ fs.mkdirSync(out, { recursive: true });
     }
     // Auto records stay separate even after manual takeover; pickups update the HUD.
     await page.locator('[data-danmaku-player="alice"]').click();
-    const manualBest = await page.evaluate(() =>
-      JSON.parse(localStorage.getItem("site-danmaku-records-v1"))["alice:marisa"]
+    const manualBest = await page.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("site-danmaku-records-v3"))[
+          "alice:marisa"
+        ]
     );
-    await page.locator('.danmaku-lobby [data-danmaku-auto]').click();
+    await page.locator(".danmaku-lobby [data-danmaku-auto]").click();
     await page.locator('[data-danmaku-challenge="marisa"]').click();
     assert(await page.evaluate(() => gameForQA.state.auto));
     await page.evaluate(() => {
@@ -167,38 +170,68 @@ fs.mkdirSync(out, { recursive: true });
     await page.evaluate(() => {
       const s = gameForQA.state;
       for (const type of ["life", "clear"])
-        s.items.push({ type, x: s.player.x, y: s.player.y, vx: 0, vy: 0, age: 0 });
+        s.items.push({
+          type,
+          x: s.player.x,
+          y: s.player.y,
+          vx: 0,
+          vy: 0,
+          age: 0,
+        });
     });
     await page.waitForFunction(() => gameForQA.state.pickups.clear > 0);
-    await page.waitForFunction(() =>
-      document.querySelector('[data-danmaku-power]').textContent === "2/4" &&
-      document.querySelector('[data-danmaku-lives]').textContent === "4" &&
-      document.querySelector('[data-danmaku-bombs]').textContent === "3"
+    await page.waitForFunction(
+      () =>
+        document.querySelector("[data-danmaku-power]").textContent === "2/8" &&
+        document.querySelector("[data-danmaku-lives]").textContent === "4" &&
+        document.querySelector("[data-danmaku-bombs]").textContent === "3"
     );
-    assert.equal(await page.locator('[data-danmaku-record-mode]').textContent(), "自動記録");
+    assert.equal(
+      await page.locator("[data-danmaku-record-mode]").textContent(),
+      "自動記録"
+    );
     await page.keyboard.press("p");
-    const pausedItems = await page.evaluate(() => JSON.stringify(gameForQA.state.items));
+    const pausedItems = await page.evaluate(() =>
+      JSON.stringify(gameForQA.state.items)
+    );
     await page.waitForTimeout(120);
-    assert.equal(await page.evaluate(() => JSON.stringify(gameForQA.state.items)), pausedItems);
-    await page.locator('[data-danmaku-resume]').click();
+    assert.equal(
+      await page.evaluate(() => JSON.stringify(gameForQA.state.items)),
+      pausedItems
+    );
+    await page.locator("[data-danmaku-resume]").click();
     await page.keyboard.press("ArrowLeft");
     assert.equal(await page.evaluate(() => gameForQA.state.auto), false);
     assert.equal(await page.evaluate(() => gameForQA.state.assisted), true);
     await page.keyboard.press("t");
     assert.equal(await page.evaluate(() => gameForQA.state.auto), true);
-    await page.locator('.danmaku-controls [data-danmaku-auto]').click();
+    await page.locator(".danmaku-controls [data-danmaku-auto]").click();
     assert.equal(await page.evaluate(() => gameForQA.state.auto), false);
     await page.evaluate((best) => {
       const s = gameForQA.state;
-      s.countdown = 0; s.spell = s.clearPulse = null; s.items = [];
-      s.lives = 1; s.player.invulnerable = 0; s.score = best + 5000;
-      s.bullets.push({ x: s.player.x, y: s.player.y, vx: 0, vy: 0, radius: 3, shape: "orb", color: "#fff" });
+      s.countdown = 0;
+      s.spell = null;
+      s.items = [];
+      s.lives = 1;
+      s.player.invulnerable = 0;
+      s.score = best + 5000;
+      s.bullets.push({
+        x: s.player.x,
+        y: s.player.y,
+        vx: 0,
+        vy: 0,
+        radius: 3,
+        shape: "orb",
+        color: "#fff",
+      });
     }, manualBest);
     await page.waitForFunction(() => gameForQA.state.phase === "over");
-    const autoRecords = await page.evaluate(() => JSON.parse(localStorage.getItem("site-danmaku-records-v1")));
+    const autoRecords = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("site-danmaku-records-v3"))
+    );
     assert.equal(autoRecords["alice:marisa"], manualBest);
     assert(autoRecords["alice:marisa:auto"] >= manualBest + 5000);
-    await page.locator('[data-danmaku-menu]').click();
+    await page.locator("[data-danmaku-menu]").click();
     await page.locator('[data-danmaku-challenge="patchouli"]').click();
     assert.equal(
       await page.locator("[data-live2d-dialogue-text]").textContent(),
@@ -310,6 +343,7 @@ fs.mkdirSync(out, { recursive: true });
     await mobile.locator("[data-danmaku-open]").click();
     await mobile.locator('[data-danmaku-player="marisa"]').click();
     await mobile.locator('[data-danmaku-challenge="alice"]').click();
+    await mobile.waitForFunction(() => touchGame.state.countdown <= 0);
     const box = await mobile.locator("[data-danmaku-canvas]").boundingBox();
     const cdp = await mobile.context().newCDPSession(mobile);
     await cdp.send("Input.dispatchTouchEvent", {

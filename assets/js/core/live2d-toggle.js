@@ -1,5 +1,10 @@
 /* Live2D starts enabled; phone/tablet and desktop keep separate saved preferences. */
 (function () {
+  // Opening the dedicated app never overwrites the homepage visibility preference.
+  if (document.body.dataset.playgroundStandalone === "true") {
+    document.documentElement.dataset.live2dEnabled = "true";
+    return;
+  }
   var mobile = matchMedia("(max-width: 999px)");
   var preferences = { desktop: true, mobile: true };
   var keys = {

@@ -62,5 +62,4 @@ to video edits or reissues.
 The former crossfade/preview queue has been removed. RADIO and PV now share the
 same 13 tracks, with both sources present for each entry. The receiver stays
 silent on a fresh visit and does not fetch MP3 data or contact YouTube before
-explicit playback. Battle music is independent; its existing
-[credits and permissions](../companion/CREDITS.md) remain unchanged.
+explicit playback. Battle music is independent; the current dBu recording [provenance and beat analysis](../danmaku/README.md) are separate.
