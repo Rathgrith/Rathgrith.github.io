@@ -1,0 +1,11 @@
+World map: Natural Earth, 1:110m land polygons.
+Source: https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson
+Data downloaded: 2026-10-10.
+License: Public domain. Natural Earth permits modification and redistribution for personal, educational, and commercial purposes.
+Terms: https://www.naturalearthdata.com/about/terms-of-use/
+
+Adaptation: Simplified to 0.25 degree tolerance, projected as equirectangular
+(longitude + 180, 90 - latitude) into a 360 x 180 SVG viewBox, with a
+monochrome dot-matrix land fill. No political borders are represented.
+For overlays, x = (longitude + 180) / 360 * width and
+y = (90 - latitude) / 180 * height.

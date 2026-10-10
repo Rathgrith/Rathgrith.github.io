@@ -1,12 +1,14 @@
-/* A compact weather instrument using the companion's own theme and type. */
+/* An inset, theme-tinted field display. Keep its contrast below the dialogue. */
 #live2d-widget .weather-dial {
-  --weather-needle-angle: 0deg;
+  --lcd-paper: color-mix(in srgb, var(--vn-panel) 72%, #070b10);
+  --lcd-ink: color-mix(in srgb, var(--vn-light) 72%, var(--vn-ink));
+  --lcd-rule: color-mix(in srgb, var(--vn-rule) 32%, transparent);
   display: block;
   width: 100%;
   min-width: 0;
   margin: 0;
   color: var(--vn-ink);
-  font: 12px/1.75 var(--vn-font);
+  font: 12px/1.6 var(--vn-font);
 }
 .weather-dial__symbols {
   position: absolute;
@@ -14,19 +16,18 @@
   height: 0;
   overflow: hidden;
 }
+#live2d-widget.classic-companion .vn-panel[data-vn-panel="weather"] {
+  width: min(480px, calc(100% - 24px));
+}
 #live2d-widget .vn-weather-title {
   margin: 0;
   color: var(--classic-accent);
-  font: 400 16px/1.5 var(--vn-font);
-  letter-spacing: 2px;
+  font: 16px/1.5 var(--vn-font);
+  letter-spacing: 1px;
 }
 #live2d-widget .vn-panel[data-vn-panel="weather"] > header {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   padding-block: 10px;
-}
-/* The hidden conversation must not leave a tall empty area below the weather. */
-#live2d-widget.has-vn-panel:has([data-vn-panel="weather"]:not([hidden])) .vn-main-view {
-  display: none;
 }
 #live2d-widget .vn-weather-brand {
   flex-shrink: 0;
@@ -35,163 +36,377 @@
 #live2d-widget .vn-weather-strip [data-vn-weather-summary] {
   text-align: right;
 }
-.weather-dial__location {
+.weather-terminal__header {
   display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.weather-dial__location svg {
-  flex: 0 0 14px;
-  margin-top: 2px;
-  color: var(--classic-accent);
-}
-.weather-dial__observation {
-  display: flex;
+  align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 2px 8px;
-  margin: 4px 0 12px;
+  gap: 10px;
+  padding: 0 1px 7px;
   color: var(--vn-muted);
   font-size: 11px;
+  letter-spacing: 0.5px;
 }
-.weather-dial__instrument {
+.weather-terminal__signal {
+  color: var(--classic-accent);
+  white-space: nowrap;
+}
+.weather-terminal__signal::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 5px;
+  background: currentColor;
+}
+.weather-dial[aria-busy="true"] .weather-terminal__signal::before {
+  animation: weather-receive 1.2s steps(2, end) infinite;
+}
+.weather-terminal__lcd {
+  padding: 10px;
+  border: 1px solid var(--lcd-rule);
+  color: var(--lcd-ink);
+  background: var(--lcd-paper);
+  box-shadow: inset 0 1px 5px #0004;
+}
+.weather-terminal__station {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--lcd-rule);
+}
+.weather-terminal__station > span:first-child {
+  font-size: 12px;
+}
+.weather-terminal__station > span:last-child {
+  font: 10px/1.8 monospace;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+.weather-terminal__overview {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 94px;
   align-items: center;
   gap: 10px;
-  padding: 12px 8px;
-  border-block: 1px solid var(--vn-rule);
-  background: repeating-linear-gradient(
-    transparent 0 3px,
-    color-mix(in srgb, var(--vn-rule) 6%, transparent) 3px 4px
-  );
+  padding-block: 8px;
 }
-.weather-dial__compass {
+.weather-map {
   position: relative;
-  width: 88px;
-  height: 88px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
 }
-.weather-dial__ring {
+/* The image retains intrinsic 2:1 sizing; the mask tints the same artwork. */
+.weather-map > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+}
+.weather-map::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 2;
+  background: var(--lcd-ink);
+  opacity: 0.48;
+  mask: url("../images/classic/weather/world-map.svg") center / contain
+    no-repeat;
+  pointer-events: none;
+}
+.weather-map__overlay {
   position: absolute;
   inset: 0;
-  border: 1px solid color-mix(in srgb, var(--vn-rule) 55%, transparent);
-  background:
-    radial-gradient(circle, var(--vn-panel) 0 55%, transparent 56% 69%, var(--vn-panel) 70%),
-    repeating-conic-gradient(var(--vn-rule) 0 2deg, transparent 2deg 30deg);
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: var(--lcd-ink);
+  stroke-width: 1.25;
 }
-.weather-dial__needle {
-  position: absolute;
-  left: calc(50% - 1px);
-  top: 6px;
-  width: 2px;
-  height: 37px;
-  transform-origin: center bottom;
-  transform: rotate(var(--weather-needle-angle));
-  background: var(--classic-accent);
-  transition: transform 0.6s ease;
+.weather-map__crosshair {
+  stroke-width: 0.65;
+  stroke-dasharray: 2 3;
+  opacity: 0.3;
+}
+.weather-map__point {
+  fill: var(--lcd-ink);
+  stroke: none;
+}
+.weather-map figcaption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.weather-terminal__reading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: 4px;
+  padding-left: 10px;
+  border-left: 1px solid var(--lcd-rule);
+}
+.weather-terminal__condition {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
 }
 .weather-dial__icon {
-  position: absolute;
-  inset: 24px;
-  width: 40px;
-  height: 40px;
-  padding: 5px;
-  background: var(--vn-panel);
-  fill: none;
-  stroke: var(--classic-accent);
-  stroke-width: 1.75;
-  stroke-linecap: square;
-  stroke-linejoin: miter;
-}
-.weather-dial__reading {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  text-align: center;
-}
-.weather-dial__name {
-  color: var(--classic-accent);
-  font-size: 14px;
-  overflow-wrap: anywhere;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
 }
 .weather-dial__temperature {
-  font-size: 26px;
-  line-height: 1.25;
-  white-space: nowrap;
+  font:
+    30px/1.1 "W95FA",
+    monospace;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: -1px;
+  color: var(--vn-ink);
+}
+.weather-terminal__range {
+  font-size: 10px;
+}
+.weather-terminal__observed {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 6px;
+  font-size: 9px;
+  opacity: 0.75;
 }
 .weather-dial__description {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: var(--vn-muted);
-  overflow-wrap: anywhere;
-}
-.weather-dial__metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 12px 0;
-  padding: 0;
-  border: 1px solid var(--vn-rule);
-  background: color-mix(in srgb, var(--vn-rule) 7%, var(--vn-panel));
-}
-.weather-dial__metrics > div {
-  min-width: 0;
-  padding: 7px 8px;
-  text-align: center;
-}
-.weather-dial__metrics > div:first-child {
-  border-right: 1px solid var(--vn-rule);
-}
-.weather-dial__metrics dt {
-  margin: 0;
-  color: var(--vn-muted);
+  margin: 0 0 8px;
+  padding: 5px 0;
+  border-block: 1px solid var(--lcd-rule);
   font-size: 11px;
-  font-weight: 400;
-}
-.weather-dial__metrics dd {
-  margin: 2px 0 0;
-  font-size: 14px;
+  text-align: center;
   overflow-wrap: anywhere;
 }
-.weather-dial__metrics .weather-dial__range {
-  grid-column: 1 / -1;
+.weather-terminal__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+}
+.weather-terminal__metrics > div {
+  min-width: 0;
+  padding: 2px 6px;
+  text-align: center;
+  border-right: 1px solid var(--lcd-rule);
+}
+.weather-terminal__metrics > div:first-child {
+  padding-left: 0;
+}
+.weather-terminal__metrics > div:last-child {
+  padding-right: 0;
+  border: 0;
+}
+.weather-terminal__metrics dt {
+  margin: 0;
+  font-size: 10px;
+  opacity: 0.85;
+}
+.weather-terminal__metrics dd {
+  margin: 2px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.weather-terminal__metrics span {
+  display: block;
+  font-size: 9px;
+  line-height: 1.5;
+}
+#live2d-widget .weather-terminal__metrics meter {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 3px;
+  margin-top: 5px;
+  border: 0;
+  border-radius: 0;
+  background: var(--lcd-rule);
+}
+#live2d-widget .weather-terminal__metrics meter::-webkit-meter-bar {
+  height: 3px;
+  border: 0;
+  border-radius: 0;
+  background: var(--lcd-rule);
+}
+#live2d-widget .weather-terminal__metrics meter::-webkit-meter-optimum-value {
+  background: var(--lcd-ink);
+  opacity: 0.6;
+}
+#live2d-widget .weather-terminal__metrics meter::-moz-meter-bar {
+  background: var(--lcd-ink);
+  opacity: 0.6;
+}
+.weather-trend {
+  margin: 8px 0 0;
+  padding-top: 7px;
+  border-top: 1px solid var(--lcd-rule);
+}
+.weather-trend figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  font-size: 10px;
+}
+.weather-trend__key {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.8;
+}
+.weather-trend__key i {
+  width: 4px;
+  height: 7px;
+  display: inline-block;
+  background: var(--lcd-ink);
+  opacity: 0.45;
+}
+.weather-trend__plot {
+  position: relative;
+  height: 52px;
+  margin-top: 5px;
+}
+.weather-trend__plot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.weather-trend__grid {
+  stroke: var(--lcd-ink);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 4;
+  opacity: 0.25;
+  fill: none;
+}
+.weather-trend__temperature {
+  stroke: var(--lcd-ink);
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+  fill: none;
+  stroke-linejoin: bevel;
+}
+.weather-trend__rain {
+  fill: var(--lcd-ink);
+  opacity: 0.4;
+}
+.weather-trend__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0.6;
+  font-size: 11px;
+}
+.weather-trend__axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.weather-calendar {
+  margin-top: 10px;
+  border: 1px solid var(--lcd-rule);
+  background: #0001;
+}
+.weather-calendar > header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  border-top: 1px solid var(--vn-rule);
+  padding: 5px 8px;
+  color: var(--classic-accent);
+  border-bottom: 1px solid var(--lcd-rule);
 }
-.weather-dial__range dd {
+.weather-calendar > header > time {
+  margin-left: 4px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vn-muted);
+}
+.weather-calendar dl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0;
+  padding: 8px;
+}
+.weather-calendar dl > div {
+  min-width: 0;
+  padding-left: 8px;
+  border-left: 1px solid var(--lcd-rule);
+}
+.weather-calendar dl > div:first-child {
+  padding-left: 0;
+  border: 0;
+}
+.weather-calendar dt,
+.weather-calendar__gensokyo small {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.weather-calendar dd {
+  margin: 0;
+  font-size: 12px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.weather-calendar__gensokyo dd > span {
+  color: var(--classic-accent);
 }
 .weather-dial__actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
+  margin-top: 12px;
 }
 #live2d-widget .weather-dial__button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 34px;
+  min-height: 36px;
   padding: 5px;
+  background: linear-gradient(#ffffff07, transparent), var(--vn-panel);
+  box-shadow:
+    inset 1px 1px #ffffff0b,
+    inset -1px -1px #0005;
 }
-.weather-dial__button svg {
-  flex: 0 0 16px;
+#live2d-widget .weather-dial__button:hover {
+  background: var(--classic-soft);
 }
-.weather-dial__button:disabled svg {
-  opacity: 0.5;
+#live2d-widget .weather-dial__button:active {
+  box-shadow: inset 1px 1px #0008;
+}
+.weather-dial__button > span {
+  font:
+    16px/1 "W95FA",
+    sans-serif;
+  vertical-align: -1px;
 }
 .weather-dial__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: 8px;
-  text-align: right;
   font-size: 10px;
+  color: var(--vn-muted);
 }
 #live2d-widget .weather-dial__footer a {
-  color: var(--vn-muted);
+  color: inherit;
 }
 #live2d-widget .weather-dial .weather-dial__status {
   margin: 10px 0 0;
@@ -202,11 +417,32 @@
 }
 #live2d-widget .vn-weather-talk {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 6px;
 }
+@container vn-menu (min-width: 390px) {
+  .weather-terminal__overview {
+    grid-template-columns: minmax(0, 1fr) 120px;
+    gap: 16px;
+  }
+  .weather-terminal__reading {
+    gap: 6px;
+    padding-left: 16px;
+  }
+  .weather-dial__temperature {
+    font-size: 36px;
+  }
+  .weather-trend__plot {
+    height: 60px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .weather-dial__needle {
-    transition: none;
+  .weather-dial[aria-busy="true"] .weather-terminal__signal::before {
+    animation: none;
+  }
+}
+@keyframes weather-receive {
+  50% {
+    opacity: 0.25;
   }
 }

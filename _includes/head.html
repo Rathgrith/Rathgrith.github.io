@@ -28,10 +28,15 @@
 {% assign asset_version = site.github.build_revision | append: "-" | append: build_timestamp %}
 <!-- Start the local UI fonts before optional remote widgets request their assets. -->
 <link rel="preload" href="{{ '/assets/fonts/classic/w95fa.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+{% if page.layout == 'playground' %}
+<link rel="preload" href="{{ '/assets/fonts/fusion-pixel/fusion-pixel-12px-proportional-ja.ttf.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+{% else %}
 <link rel="preload" href="{{ '/assets/fonts/fa-solid-900.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{{ '/assets/fonts/fa-brands-400.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+{% endif %}
 <!-- Explicit order: tokens, reset, layout, independent components. No legacy theme bundle. -->
 {% assign stylesheets = 'icons.css,classic-theme.css,classic-base.css,classic-site.css,classic-widgets.css,classic-pages.css,classic-gallery-viewer.css,classic-weather.css,classic-companion.css,classic-bgm.css,classic-danmaku.css,classic-loading.css,classic-ornaments.css' | split: ',' %}
+{% if page.layout == 'playground' %}{% assign stylesheets = 'classic-theme.css,classic-base.css,classic-weather.css,classic-companion.css,classic-bgm.css,classic-danmaku.css,classic-loading.css' | split: ',' %}{% endif %}
 {% for stylesheet in stylesheets %}<link rel="stylesheet" href="{{ '/assets/css/' | append: stylesheet | relative_url }}?v={{ asset_version | url_encode }}">
 {% endfor %}
 <meta http-equiv="cleartype" content="on">

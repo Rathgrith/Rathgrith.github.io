@@ -1,10 +1,7 @@
-# Local battle BGM
+# Previous ensemble BGM
 
 Original Touhou Project themes: **ZUN / 上海アリス幻樂団**.
-These three local fan arrangements remain the soundtrack for the Playground
-danmakū challenge. They are not original game recordings and are independent
-of the radio queue. The arcade credits each arranger and links to their own
-distribution page.
+These three fan arrangements are retained as archived assets and test fixtures. The current battle soundtrack uses [the separately credited dBu recordings](../danmaku/README.md). These are not original game recordings and are independent of the radio queue.
 
 The FM receiver has a separate 13-song local library paired with official
 YouTube videos. See [radio provenance and version notes](../radio/README.md).
@@ -48,7 +45,6 @@ and Patchouli in a temporary directory, retaining multitimbral MIDI events.
 Xcode command-line tools are required for the offline renderer. Marisa is the
 author's existing SD-80 recording; extract the member above and normalize with
 FFmpeg: `-af loudnorm=I=-19:TP=-2:LRA=10 -ar 44100 -codec:a libmp3lame -b:a 160k`.
-The arcade plays these local MP3 renders without a runtime MIDI soundbank or
-third-party music player. Battle BGM and sound effects have separate switches,
+These archived MP3 renders need no runtime MIDI soundbank or third-party player. Battle BGM and sound effects have separate switches,
 both off by default; their assets load only after the corresponding opt-in.
 Radio station changes do not alter these files or the opponent-based selection.

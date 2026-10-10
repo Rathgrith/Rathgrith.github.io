@@ -66,6 +66,7 @@ include:
   - _pages
   - files
 exclude:
+  - scripts
   - tests
   - assets/images/classic/scenes/PROMPTS.md
   - assets/fonts/classic/NOTICE.md

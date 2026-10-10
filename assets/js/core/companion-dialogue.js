@@ -112,6 +112,11 @@
     if (panel) {
       var focus = q('[data-vn-panel="' + panel + '"] button');
       if (focus) focus.focus({ preventScroll: true });
+      if (root.classList.contains("is-docked"))
+        q('[data-vn-panel="' + panel + '"]').scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+        });
     } else scheduleAuto();
   }
   function closePanel() {
@@ -132,18 +137,22 @@
     return (window.CompanionBranches || {})[currentId];
   }
   function renderTopics() {
-    var list = q("[data-vn-topic-list]"), tree = branches();
+    var list = q("[data-vn-topic-list]"),
+      tree = branches();
     var topics = [
       { id: "today", label: "今日のこと" },
       { id: "craft", label: "魔法の話" },
-    ].concat((tree ? tree.topics : []).map(function (topic) {
-      return { id: "branch:" + topic.id, label: topic.label };
-    }), [
-      { id: "friends", label: "友人のこと" },
-      { id: "rest", label: "お茶にしましょう" },
-      { id: "weather", label: "窓の向こう" },
-      { id: "original", label: "思い出" },
-    ]);
+    ].concat(
+      (tree ? tree.topics : []).map(function (topic) {
+        return { id: "branch:" + topic.id, label: topic.label };
+      }),
+      [
+        { id: "friends", label: "友人のこと" },
+        { id: "rest", label: "お茶にしましょう" },
+        { id: "weather", label: "窓の向こう" },
+        { id: "original", label: "思い出" },
+      ]
+    );
     list.replaceChildren();
     topics.forEach(function (topic) {
       var button = document.createElement("button");
@@ -154,10 +163,17 @@
     });
   }
   function startBranchNode(id, level) {
-    var tree = branches(), node = tree && tree.nodes[id];
+    var tree = branches(),
+      node = tree && tree.nodes[id];
     if (!node || !branchTopic) return;
     story = {
-      lines: node.affinityLines ? [node.affinityLines[level === undefined ? data.tier(affinity[currentId]) : level]] : node.lines.slice(),
+      lines: node.affinityLines
+        ? [
+            node.affinityLines[
+              level === undefined ? data.tier(affinity[currentId]) : level
+            ],
+          ]
+        : node.lines.slice(),
       choices: node.choices,
       label: branchTopic.label,
     };
@@ -195,12 +211,7 @@
   function renderChoices() {
     var target = q("[data-vn-choices]");
     target.replaceChildren();
-    if (
-      !story ||
-      index < story.lines.length - 1 ||
-      state === "typing"
-    )
-      return;
+    if (!story || index < story.lines.length - 1 || state === "typing") return;
     if (!story.choices || !story.choices.length) {
       renderFollowups(target);
       return;
@@ -213,7 +224,15 @@
       button.textContent = "▸ " + choice.label;
       if (choice.next) button.setAttribute("data-vn-choice-next", choice.next);
       button.addEventListener("click", function () {
-        if (state !== "choice" || story !== offeredStory || !button.isConnected || panel || !visible || gameActive) return;
+        if (
+          state !== "choice" ||
+          story !== offeredStory ||
+          !button.isConnected ||
+          panel ||
+          !visible ||
+          gameActive
+        )
+          return;
         var level = data.tier(affinity[currentId]);
         affinity[currentId] = Math.min(
           100,
@@ -231,7 +250,9 @@
         }
         var response = pick(
           currentId + ":choice:" + choiceIndex + ":" + level,
-          [choice.responses[level]].concat((choice.responseVariations || [])[level] || [])
+          [choice.responses[level]].concat(
+            (choice.responseVariations || [])[level] || []
+          )
         );
         story = { lines: [response], label: "返事" };
         index = 0;
@@ -250,23 +271,41 @@
       button.textContent = label;
       button.setAttribute(attribute, "");
       button.addEventListener("click", function () {
-        if (story === offeredStory && state === "ready" && button.isConnected && !panel && visible && !gameActive) callback();
+        if (
+          story === offeredStory &&
+          state === "ready" &&
+          button.isConnected &&
+          !panel &&
+          visible &&
+          !gameActive
+        )
+          callback();
       });
       target.appendChild(button);
     }
     if (branchTopic) {
       var topicId = branchTopic.id;
-      action("別のことも聞く", "data-vn-return-topic", function () { start("branch:" + topicId); });
-      action("話題を変える", "data-vn-return-topics", function () { panelOpen("topics"); });
+      action("別のことも聞く", "data-vn-return-topic", function () {
+        start("branch:" + topicId);
+      });
+      action("話題を変える", "data-vn-return-topics", function () {
+        panelOpen("topics");
+      });
     } else if (lastTopic.indexOf("friend:") === 0) {
       var friendTopic = lastTopic;
-      action("もう少し聞かせて", "data-vn-friend-more", function () { start(friendTopic); });
-      action("別の人のこと", "data-vn-friend-back", function () { panelOpen("friends"); });
+      action("もう少し聞かせて", "data-vn-friend-more", function () {
+        start(friendTopic);
+      });
+      action("別の人のこと", "data-vn-friend-back", function () {
+        panelOpen("friends");
+      });
     } else if (["today", "rest", "weather", "craft"].indexOf(lastTopic) >= 0) {
       var tree = branches();
       (tree ? tree.topics : []).forEach(function (topic) {
         // Suggestions continue a finished line; auto mode never activates one.
-        action(topic.label + " ▸", "data-vn-suggest-topic", function () { start("branch:" + topic.id); });
+        action(topic.label + " ▸", "data-vn-suggest-topic", function () {
+          start("branch:" + topic.id);
+        });
       });
     }
   }
@@ -318,6 +357,7 @@
     line = story.lines[index];
     if (!line) return;
     q("[data-vn-choices]").replaceChildren();
+    q("[data-vn-dialogue-body]").scrollTop = 0;
     q("[data-live2d-dialogue-text]").textContent = "";
     q("#live2d-interact").textContent = "次へ ▸";
     q("#live2d-interact").disabled = false;
@@ -366,7 +406,11 @@
     delete root.dataset.vnBranchNode;
     if (lastTopic.indexOf("branch:") === 0) {
       var tree = branches();
-      branchTopic = tree && tree.topics.find(function (topic) { return topic.id === lastTopic.slice(7); });
+      branchTopic =
+        tree &&
+        tree.topics.find(function (topic) {
+          return topic.id === lastTopic.slice(7);
+        });
       if (branchTopic) startBranchNode(branchTopic.entry);
       else panelOpen("topics");
       return;
@@ -382,7 +426,12 @@
         return;
       }
       story = {
-        lines: [pick(currentId + ":friend:" + remark.id, [remark].concat(remark.variants || []))],
+        lines: [
+          pick(
+            currentId + ":friend:" + remark.id,
+            [remark].concat(remark.variants || [])
+          ),
+        ],
         label: remark.name,
       };
     } else if (lastTopic === "original") {
@@ -541,7 +590,7 @@
         "</div>"
     );
     q("[data-companion-conversation]").innerHTML =
-      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-label="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
+      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" data-vn-dialogue-body><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-label="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div></div><span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
     q("[data-companion-footer]").innerHTML =
       '<button type="button" data-vn-open="topics" aria-expanded="false">話題</button><button type="button" data-vn-auto aria-pressed="false">自動</button><button type="button" data-vn-open="history" aria-expanded="false">履歴</button><button type="button" data-vn-open="settings" aria-expanded="false">設定</button><button type="button" id="live2d-interact" class="live2d-interact">次へ ▸</button>';
     q("[data-companion-content]").insertAdjacentHTML(
@@ -567,7 +616,9 @@
     bgm = window.CompanionBGM.mount(root);
     bgm.setVisible(visible);
     voiceReactions = window.CompanionVoiceReactions.mount(root, {
-      current: function () { return { character: currentId, line: line }; },
+      current: function () {
+        return { character: currentId, line: line };
+      },
     });
     var weather = document.querySelector("[data-weather-widget]");
     if (weather) {
@@ -608,12 +659,70 @@
       }
     });
     root.addEventListener("keydown", function (event) {
+      var choice = event.target.closest(".vn-choices button");
+      if (
+        choice &&
+        ["ArrowUp", "ArrowDown", "Home", "End"].indexOf(event.key) !== -1
+      ) {
+        var options = Array.from(
+          q(".vn-choices").querySelectorAll("button:not(:disabled)")
+        );
+        var at = options.indexOf(choice),
+          next =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? options.length - 1
+                : (at + (event.key === "ArrowDown" ? 1 : -1) + options.length) %
+                  options.length;
+        event.preventDefault();
+        options[next].focus();
+      }
+      if (event.key === "Tab" && panel) {
+        var activePanel = q('[data-vn-panel="' + panel + '"]');
+        var stops = Array.from(
+          activePanel.querySelectorAll(
+            'button, input, select, a[href], summary, [tabindex="0"]'
+          )
+        ).filter(function (element) {
+          return (
+            !element.disabled &&
+            element.getClientRects().length &&
+            element.checkVisibility({ visibilityProperty: true })
+          );
+        });
+        var first = stops[0],
+          last = stops[stops.length - 1];
+        if (
+          first &&
+          ((event.shiftKey && document.activeElement === first) ||
+            (!event.shiftKey && document.activeElement === last))
+        ) {
+          event.preventDefault();
+          (event.shiftKey ? last : first).focus();
+        }
+      }
       if (event.key === "Escape" && panel) {
         event.preventDefault();
+        event.stopPropagation();
         var previous = panel;
         closePanel();
         panelOpener(previous).focus();
       }
+    });
+    // Keep long choices discoverable without changing the fixed dialogue size.
+    var body = q(".vn-dialogue-body");
+    body.setAttribute("aria-label", "会話と選択肢");
+    function syncDialogueScroll() {
+      q(".companion-conversation").classList.toggle(
+        "has-more-dialogue",
+        body.scrollHeight - body.scrollTop - body.clientHeight > 3
+      );
+    }
+    body.addEventListener("scroll", syncDialogueScroll, { passive: true });
+    var dialogueObserver = new ResizeObserver(syncDialogueScroll);
+    [body, q("#live2d-dialogue"), q(".vn-choices")].forEach(function (element) {
+      dialogueObserver.observe(element);
     });
     q("[data-vn-affinity-input]").addEventListener("input", function (event) {
       affinity[currentId] = number(event.target.value, 35, 0, 100);
@@ -638,8 +747,7 @@
     document.addEventListener("site:weather-updated", syncWeather);
     document.addEventListener("site:weather-error", function () {
       q("[data-vn-weather-summary]").textContent = window.__siteWeather
-        ? window.__siteWeather.temperature +
-          "°C · 更新できませんでした"
+        ? window.__siteWeather.temperature + "°C · 更新できませんでした"
         : "天気を取得できません";
     });
     document.addEventListener("visibilitychange", function () {

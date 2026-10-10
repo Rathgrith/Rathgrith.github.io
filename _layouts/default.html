@@ -41,34 +41,7 @@
     {% include site-runtime-footer.html %}
     {% include classic-credits.html %}
     </div>
-    <script>
-      window.__siteLive2DConfig = window.__siteLive2DConfig || {
-        defaultCharacter: "alice",
-        sourceRepository: "https://github.com/n0099/TouhouCannonBall-Live2d-Models",
-        characters: [
-          {
-            id: "marisa",
-            name: "Marisa",
-            expressionMotionIds: ["01", "02", "03", "04", "05", "06", "07", "08"],
-            modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Marisa/object_live2d_002_101.asset.model3.json"
-          },
-          {
-            id: "alice",
-            name: "Alice",
-            expressionMotionIds: ["01", "02", "03", "04", "05", "06", "07", "08"],
-            modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Alice/object_live2d_014_101.asset.model3.json"
-          },
-          {
-            id: "patchouli",
-            name: "Patchouli",
-            expressionMotionIds: ["01", "02", "03", "04", "05", "06", "07", "08"],
-            modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Patchouli/object_live2d_008_101.asset.model3.json"
-          }
-        ]
-      };
-    </script>
-    <template id="prayer-loader-template">{% include prayer-loader.html %}</template>
-    <div hidden data-companion-weather-source>{% include weather-widget.html %}</div>
+    {% include companion-runtime.html %}
     {% include scripts.html %}
   </body>
 

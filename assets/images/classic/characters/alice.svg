@@ -12,10 +12,12 @@
   <path fill="#f1cf7c" d="M10 10h7v2h-3v2h-1v-2h-3zM18 10h4v2h-4z"/>
   <path fill="#4b3e47" d="M11 17h3v3h-3zM19 17h3v3h-3z"/>
   <path fill="#6b97ad" d="M12 18h2v2h-2zM20 18h2v2h-2z"/>
+  <path fill="#46647e" d="M12 18h1v2h-1zM20 18h1v2h-1z"/>
   <path fill="#fff4e5" d="M11 17h1v1h-1zM19 17h1v1h-1z"/>
   <path fill="#e8a3a0" d="M10 20h3v1h-3zM20 20h3v1h-3z"/>
   <path fill="#b66d70" d="M15 22h3v1h-3z"/>
   <path fill="#4c6e94" d="M9 26h5v1h4v-1h5v2h3v2H6v-2h3z"/>
   <path fill="#f8efdc" d="M11 25h3v1h4v-1h3v2h-2v1h-6v-1h-2z"/>
   <path fill="#bb454d" d="M12 27h3v1h2v-1h3v3h-3v-1h-2v1h-3z"/>
+  <path fill="#e67673" d="M12 27h2v1h-2zM18 27h2v1h-2z"/>
 </svg>

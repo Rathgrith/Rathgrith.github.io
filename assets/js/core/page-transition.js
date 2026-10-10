@@ -1,4 +1,5 @@
 (function () {
+  if (document.body.dataset.playgroundStandalone === "true") return;
   if (window.__sitePageTransitionBootstrapped) return;
   window.__sitePageTransitionBootstrapped = true;
 
@@ -46,7 +47,11 @@
 
   function isInternalPageLink(anchor, event) {
     if (isModifiedClick(event)) return false;
-    if (anchor.hasAttribute("download")) return false;
+    if (
+      anchor.hasAttribute("download") ||
+      anchor.hasAttribute("data-full-navigation")
+    )
+      return false;
 
     var target = (anchor.getAttribute("target") || "").toLowerCase();
     if (target && target !== "_self") return false;
@@ -259,6 +264,13 @@
         var parser = new DOMParser();
         var nextDoc = parser.parseFromString(html, "text/html");
 
+        // A standalone app has its own shell; never transplant it into the homepage.
+        if (
+          nextDoc.body.dataset.playgroundStandalone !==
+          document.body.dataset.playgroundStandalone
+        ) {
+          throw new Error("Page shell changed");
+        }
         updateDocumentMeta(nextDoc);
         applyBodyClass(nextDoc.body);
 
