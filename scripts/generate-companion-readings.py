@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 source = r"""
 require('./assets/js/data/companion-dialogues.js');
 require('./assets/js/data/companion-remarks.js');
+require('./assets/js/data/companion-branches.js');
 const fs = require('node:fs'), vm = require('node:vm');
 const loader = fs.readFileSync('assets/js/core/live2d-loader.js', 'utf8');
 const originals = vm.runInNewContext('(' + loader.split('var CHARACTER_INTERACTIONS = ')[1].split(';\n  var preferenceStorageKey')[0] + ')');
@@ -22,7 +23,7 @@ function collect(value) {
  if (typeof value.text === 'string') lines.add(value.text);
  Object.values(value).forEach(collect);
 }
-[CompanionStories.characters, CompanionRemarks, originals].forEach(collect);
+[CompanionStories.characters, CompanionRemarks, CompanionBranches, originals].forEach(collect);
 process.stdout.write(JSON.stringify([...lines]));
 """
 lines = json.loads(subprocess.check_output(["node", "-e", source], cwd=ROOT))
@@ -127,6 +128,54 @@ overrides = {
     "後の方": "あとのほう",
     "後から": "あとから",
     "この間の衣装": "このあいだのいしょう",
+    # Multi-turn branch vocabulary; phrases avoid ambiguous single-kanji replacements.
+    "その後。": "そのあと。",
+    "人に見てもらう": "ひとにみてもらう",
+    "淹れたり": "いれたり",
+    "窓を開けたり": "まどをあけたり",
+    "淹れている間に": "いれているあいだに",
+    "増える分": "ふえるぶん",
+    "見本通り": "みほんどおり",
+    "知らない茸": "しらないきのこ",
+    "客席の端": "きゃくせきのはし",
+    "幕の陰": "まくのかげ",
+    "動いた後": "うごいたあと",
+    "飛んできた弾": "とんできたたま",
+    "弾の流れ": "たまのながれ",
+    "近い弾": "ちかいたま",
+    "弾を出さず": "たまをださず",
+    "二体の間": "にたいのあいだ",
+    "この間の速さ": "このあいだのはやさ",
+    "空の瓶": "からのびん",
+    "分け方": "わけかた",
+    "窓を開けて": "まどをあけて",
+    "切り上げ時": "きりあげどき",
+    "空の袋": "からのふくろ",
+    "通り過ぎ": "とおりすぎ",
+    "日が落ちる": "ひがおちる",
+    "避け方": "よけかた",
+    "避ける方": "よけるほう",
+    "動く前": "うごくまえ",
+    "弾に二回": "たまににかい",
+    "小さく避ける": "ちいさくよける",
+    "先の弾": "さきのたま",
+    "避けられた理由": "よけられたりゆう",
+    "避けたのは": "よけたのは",
+    "弾なし": "たまなし",
+    "撃ち方": "うちかた",
+    "何頁": "なんぺーじ",
+    "この束": "このたば",
+    "一段落": "いちだんらく",
+    "その間に一頁": "そのあいだにいちぺーじ",
+    "重ねず": "かさねず",
+    "歩き回った末": "あるきまわったすえ",
+    "表の白さ": "おもてのしろさ",
+    "出かけ方": "でかけかた",
+    "少し開けて": "すこしあけて",
+    "広がり方": "ひろがりかた",
+    "始め方": "はじめかた",
+    "弾の配置": "たまのはいち",
+    "並ぶ弾": "ならぶたま",
 }
 pattern = re.compile("(" + "|".join(map(re.escape, sorted(overrides, key=len, reverse=True))) + ")")
 converter = kakasi()

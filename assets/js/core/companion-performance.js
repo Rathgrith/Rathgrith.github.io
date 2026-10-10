@@ -3,9 +3,9 @@
 (function (scope) {
   "use strict";
   var profiles = {
-    alice: { energy: 0.78, mouth: 0.65, blink: 4.2, tilt: 1, breath: 5.8 },
-    marisa: { energy: 1.15, mouth: 0.82, blink: 3.6, tilt: -1, breath: 4.9 },
-    patchouli: { energy: 0.48, mouth: 0.48, blink: 5.1, tilt: 0.7, breath: 6.7 },
+    alice: { energy: 0.78, mouth: 0.65, blink: 4.2, tilt: 1, breath: 5.8, smile: 0.78, face: 1.14 },
+    marisa: { energy: 1.15, mouth: 0.82, blink: 3.6, tilt: -1, breath: 4.9, smile: 0.92, face: 1.20 },
+    patchouli: { energy: 0.48, mouth: 0.48, blink: 5.1, tilt: 0.7, breath: 6.7, smile: 0.72, face: 1.10 },
   };
   // Each directed face keeps its meaning throughout a line. These accents
   // never cycle to a different emotion while the visitor is reading.
@@ -18,6 +18,14 @@
     "06": { nod: -2.4, tilt: -0.6, brow: 0.14 },
     "07": { nod: 1.7, tilt: 2.2, brow: 0.09 },
     "08": { nod: 0.4, tilt: 1.2, brow: -0.035 },
+  };
+  // EyeSmile changes the closed-eye drawing, not the open-eye expression.
+  // Keep an emotional lid opening underneath the independent blink. The
+  // original always-open lids hid the smiles at the small docked scale.
+  var lids = {
+    "01": [1, 1], "02": [0.82, 0.82], "03": [0.94, 0.94],
+    "04": [0.88, 0.92], "05": [0.88, 0.88], "06": [1, 1],
+    "07": [0.64, 0.68], "08": [0.79, 0.83],
   };
   var visemes = {
     a: { open: 0.95, form: 0.15, width: 0.85 },
@@ -46,6 +54,7 @@
     // overlay advanced it a second time. Blink timing must not depend on pose.
     internal.eyeBlink = undefined;
     var faceId = "01", face = {}, current = {};
+    var eyeLeft = 1, eyeRight = 1;
     var time = 0, lastTime = model.elapsedTime, lineAt = -10;
     var syllableAt = -10, syllableLength = 0.1, phones = ["rest"];
     var mouthForm = 0, mouthWidth = 0.6;
@@ -70,7 +79,25 @@
     }
     function setLine(line) {
       faceId = accents[line.expressionMotionId] ? line.expressionMotionId : "01";
-      face = Object.assign({}, expressions["01"] || {}, expressions[faceId] || {});
+      face = Object.assign({ ParamMouthForm: 0, ParamMouthFormScale: 1 }, expressions["01"] || {}, expressions[faceId] || {});
+      // Amplify the authored direction, never guess a different emotion from
+      // the text. Every adjusted value stays inside these three rigs' ranges.
+      Object.keys(face).forEach(function (id) {
+        if (!/^ParamBrow/.test(id)) return;
+        var neutral = (expressions["01"] || {})[id] || 0;
+        face[id] = clamp(neutral + (face[id] - neutral) * profile.face, -1, 1);
+      });
+      if (faceId === "02") {
+        face.ParamMouthForm = Math.max(face.ParamMouthForm || 0, 0.88);
+        face.ParamMouthFormScale = Math.max(face.ParamMouthFormScale || 0, profile.smile);
+      } else if (faceId === "05") {
+        face.ParamMouthForm = Math.min(face.ParamMouthForm || 0, -0.86);
+        face.ParamMouthFormScale = Math.max(face.ParamMouthFormScale || 0, 0.72);
+      } else if (faceId === "06") {
+        // Alice's source width is 0.04: a surprised mouth becomes a single
+        // pixel unless the width and a small resting jaw are retained.
+        face.ParamMouthFormScale = Math.max(face.ParamMouthFormScale || 0, 0.38);
+      }
       lineAt = time;
       phraseAt = -10;
       effectAt = time;
@@ -124,14 +151,15 @@
       var phoneTime = Math.max(0, time - syllableAt);
       var phoneIndex = Math.min(phones.length - 1, Math.floor(phoneTime / syllableLength));
       var shape = visemes[phones[phoneIndex]] || visemes.rest;
-      var jaw = saying ? shape.open * profile.mouth * (0.55 + 0.45 * pulse(phoneTime % syllableLength, syllableLength)) : 0;
+      var restJaw = faceId === "06" ? profile.mouth * 0.22 : 0;
+      var jaw = saying ? shape.open * profile.mouth * (0.55 + 0.45 * pulse(phoneTime % syllableLength, syllableLength)) : restJaw;
       mouth += (jaw - mouth) * (quiet ? 1 : 1 - Math.exp(-dt / 0.038));
       core.setParameterValueById("ParamMouthOpenY", mouth);
       // The rigs expose shape/width rather than separate A/I/U/E/O drawings.
       // Blend the viseme over, not instead of, the line's emotional mouth.
       mouthForm += (shape.form - mouthForm) * ease;
       mouthWidth += (shape.width - mouthWidth) * ease;
-      var articulation = mouth * 0.55;
+      var articulation = mouth * talk * 0.55;
       var baseForm = current.ParamMouthForm || 0;
       var baseWidth = current.ParamMouthFormScale === undefined ? 1 : current.ParamMouthFormScale;
       core.setParameterValueById("ParamMouthForm", baseForm * (1 - articulation) + mouthForm * articulation);
@@ -153,8 +181,14 @@
         open = blinkAge < 0.085 ? 1 - smooth(blinkAge / 0.085)
           : blinkAge < 0.125 ? 0 : smooth((blinkAge - 0.125) / 0.175);
       }
-      core.setParameterValueById("ParamEyeLOpen", open);
-      core.setParameterValueById("ParamEyeROpen", open);
+      var eyelids = lids[faceId];
+      eyeLeft += (eyelids[0] - eyeLeft) * blend;
+      eyeRight += (eyelids[1] - eyeRight) * blend;
+      // A brief closed-eye smile on arrival reads clearly, then settles back
+      // into the sustained amused expression; no repeating wink loop.
+      var smileEntry = !quiet && faceId === "07" ? pulse(time - lineAt, 1.05) * 0.68 : 0;
+      core.setParameterValueById("ParamEyeLOpen", eyeLeft * open * (1 - smileEntry));
+      core.setParameterValueById("ParamEyeROpen", eyeRight * open * (1 - smileEntry));
       attr("blinking", open < 0.72 ? "true" : null);
       if (quiet) {
         nextBlink = time + profile.blink;
@@ -168,8 +202,8 @@
       var breathe = Math.sin(time * Math.PI * 2 / profile.breath);
       var target = {
         x: energy * (Math.sin(time * 0.67) * 0.5 + speechBeat * 0.35),
-        y: energy * (breathe * 0.4 + accent.nod * entry + speechBeat * 0.65 + phrase * (phraseKind === "emphasis" ? 1.7 : 0.7)),
-        z: energy * profile.tilt * (Math.sin(time * 0.44) * 0.65 + accent.tilt * entry + phrase * (phraseKind === "question" ? 2.6 : 0.25)),
+        y: energy * (breathe * 0.4 + accent.nod * entry * 1.45 + speechBeat * 0.65 + phrase * (phraseKind === "emphasis" ? 1.7 : 0.7)),
+        z: energy * profile.tilt * (Math.sin(time * 0.44) * 0.65 + accent.tilt * entry * 1.35 + phrase * (phraseKind === "question" ? 2.6 : 0.25)),
         brow: energy * (accent.brow * entry + Math.max(0, speechBeat) * 0.045 + phrase * (phraseKind === "question" ? 0.10 : 0.025)),
       };
       Object.keys(offsets).forEach(function (id) {
@@ -180,8 +214,8 @@
       core.addParameterValueById("ParamAngleX", offsets.x);
       core.addParameterValueById("ParamAngleY", offsets.y);
       core.addParameterValueById("ParamAngleZ", offsets.z);
-      core.addParameterValueById("ParamBrowLY", offsets.brow);
-      core.addParameterValueById("ParamBrowRY", offsets.brow * 0.88);
+      core.setParameterValueById("ParamBrowLY", clamp((current.ParamBrowLY || 0) + offsets.brow, -1, 1));
+      core.setParameterValueById("ParamBrowRY", clamp((current.ParamBrowRY || 0) + offsets.brow * 0.88, -1, 1));
       if (!quiet) {
         core.addParameterValueById("ParamBodyWeight", breathe * 0.30);
         core.addParameterValueById("ParamLeftShoulderUpDown", breathe * 0.11);

@@ -232,12 +232,15 @@ const hands = {
         .locator("[data-vn-friends-list] button")
         .filter({ hasText: friend.name })
         .click();
-      await settle(friend.poseId, friend.expressionMotionId);
-      assert.equal(
-        await page.locator("[data-live2d-dialogue-text]").textContent(),
-        friend.text
-      );
+      const spokenText = await page.locator("[data-live2d-dialogue-text]").textContent();
+      const directed = [friend].concat(friend.variants || []).find(line => line.text === spokenText);
+      assert(directed, "Friend dialogue uses one of that acquaintance's directed variants");
+      await settle(directed.poseId, directed.expressionMotionId);
       if (id === "patchouli") {
+        // Independently test the long-held annoyed face. The visitor-facing
+        // acquaintance selection above deliberately rotates its own variants.
+        await page.evaluate(() => performanceTestHooks.perform({ poseId: "2", expressionMotionId: "05" }));
+        await settle("2", "05");
         assert(
           (await page.evaluate(() => performanceFrame.mouth)) < -0.9,
           "Marisa's book remark actually uses the annoyed face"
