@@ -10,7 +10,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 const out = process.env.QA_OUTPUT || require("node:os").tmpdir() + "/companion-bgm";
 fs.mkdirSync(out, { recursive: true });
 
-const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/companion-radio.cjs");
+const { installYouTubeDouble, installTuningAudioDouble, installOfflineTuningAudio } = require("./helpers/companion-radio.cjs");
 
 (async () => {
   const browser = await chromium.launch({ channel: "chrome", headless: true, args: ["--disable-gpu"] });
@@ -101,13 +101,18 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await page.locator("[data-radio-station]").selectOption(String(indexOf(firstPV.id)));
     assert.deepEqual(mediaRequests, [], "default and browsing do not contact NetEase or video providers");
     await page.locator("[data-radio-start]").click();
+    await page.waitForFunction(() => __tuningMock.sources.some(s => s.active));
+    assert.equal(await page.evaluate(() => __radioMock.calls.filter(c => c[0] === "load").length), 0, "initial tuning has exclusive airtime before the song");
+    assert.equal(await panel.getAttribute("data-bgm-tuning"), "true");
+    assert.equal(await page.locator("[data-bgm-status]").textContent(), "選局中…");
     await playing(firstPV.videoId);
     assert.equal(await frame().count(), 1);
     assert.equal(await page.evaluate(() => __radioMock.active.options.host), "https://www.youtube-nocookie.com");
     assert.equal(await page.evaluate(() => __radioMock.active.getVolume()), 36);
     assert.equal(await page.evaluate(() => __radioMock.active.isMuted()), false);
     assert.equal(await page.evaluate(() => __tuningMock.sources.filter(s => s.started).length), 1);
-    assert(await page.evaluate(() => __tuningMock.sources[0].buffer.duration <= .45 && __tuningMock.filters[0].type === "bandpass" && Math.max(...__tuningMock.gains[0].values) <= .055 * .36 + .0001), "tuning noise is short, band-limited, and volume-scaled");
+    assert(await page.evaluate(() => __tuningMock.sources[0].buffer.duration >= .8 && __tuningMock.sources[0].buffer.duration <= 1.2 && __tuningMock.filters[0].type === "bandpass" && __tuningMock.filters[0].frequency.events.length >= 3 && Math.max(...__tuningMock.gains[0].values) <= .3 * .36 + .0001), "tuning has a bounded sweep and volume-scaled envelope");
+    assert(await page.evaluate(() => !__tuningMock.sources.some(s => s.active)), "static finishes before playback");
     await page.locator("[data-bgm-mute]").click();
     assert(await page.evaluate(() => __radioMock.active.isMuted()));
     await page.locator("[data-bgm-mute]").click();
@@ -156,8 +161,8 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await page.waitForFunction(() => document.querySelector(".vn-bgm").dataset.bgmState === "intermission");
     assert.equal((await page.locator("[data-radio-intro]").textContent()).trim(), playlist[targetIndex].intro);
     assert.equal(await selected(), playlist[targetIndex].id);
-    assert.equal(await page.evaluate(() => __tuningMock.sources.length), oldNoise + 1, "explicit tuning creates a static burst");
-    await page.waitForTimeout(4100);
+    await page.waitForFunction(count => __tuningMock.sources.length === count + 1 && __tuningMock.sources.some(s => s.active), oldNoise);
+    assert.equal(await panel.getAttribute("data-bgm-tuning"), "true", "manual changes tune in the final second of the introduction");
     assert.equal(await page.evaluate(() => __radioMock.calls.filter(c => c[0] === "load").length), oldLoads, "DJ break must not overlap the next track");
     await playing(playlist[targetIndex].videoId);
     const automaticNoise = await page.evaluate(() => __tuningMock.sources.length);
@@ -169,7 +174,8 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     assert.equal(await selected(), playlist[afterTarget].id);
     assert.equal((await page.locator("[data-radio-intro]").textContent()).trim(), playlist[afterTarget].intro);
     await playing(playlist[afterTarget].videoId);
-    assert.equal(await page.evaluate(() => __tuningMock.sources.length), automaticNoise, "automatic queue advance does not create static");
+    assert.equal(await page.evaluate(() => __tuningMock.sources.length), automaticNoise + 1, "automatic queue advance also tunes before playback");
+    assert(await page.evaluate(() => !__tuningMock.sources.some(s => s.active)));
     await page.locator("[data-bgm-next]").click();
     assert.equal(await selected(), playlist[afterNext].id);
     await playing(playlist[afterNext].videoId);
@@ -282,22 +288,52 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await recovery.waitForFunction(() => __radioMock.active.getPlayerState() === 1);
 
     // Every visibility stop cancels a live burst; restoring never creates another.
-    for (const stop of ["pause", "hidden", "game", "close"]) {
+    for (const stop of ["pause", "hidden", "game", "minimize", "close"]) {
       await recovery.evaluate(() => { __radioMock.holdReady = false; document.querySelector("[data-radio-close]").click(); });
       await recovery.locator("[data-bgm-play]").click();
-      await recovery.waitForFunction(() => __radioMock.active.getPlayerState() === 1);
+      await recovery.waitForFunction(() => __tuningMock.sources.some(s => s.active));
       const stopped = await recovery.evaluate(stop => {
         const hadNoise = __tuningMock.sources.some(s => s.active), count = __tuningMock.sources.length;
         if (stop === "pause") document.querySelector("[data-bgm-play]").click();
         if (stop === "hidden") { Object.defineProperty(document, "hidden", { configurable: true, value: true }); document.dispatchEvent(new Event("visibilitychange")); }
         if (stop === "game") CompanionBGM.mount().setGameActive(true);
+        if (stop === "minimize") CompanionBGM.mount().setVisible(false);
         if (stop === "close") document.querySelector("[data-radio-close]").click();
         const canceled = !__tuningMock.sources.some(s => s.active);
         if (stop === "hidden") { delete document.hidden; document.dispatchEvent(new Event("visibilitychange")); }
         if (stop === "game") CompanionBGM.mount().setGameActive(false);
+        if (stop === "minimize") CompanionBGM.mount().setVisible(true);
         return { hadNoise, canceled, noNewNoise: count === __tuningMock.sources.length };
       }, stop);
       assert(stopped.hadNoise && stopped.canceled && stopped.noNewNoise, `${stop}: ${JSON.stringify(stopped)}`);
+      await recovery.waitForTimeout(1200);
+      assert(await recovery.evaluate(() => !__tuningMock.sources.some(s => s.active)), `${stop} cannot resurrect a delayed source`);
+    }
+
+    // Replacing a station during the tuning tail cancels both its noise and load.
+    await recovery.locator("[data-bgm-play]").click();
+    await recovery.waitForFunction(() => __tuningMock.sources.some(s => s.active));
+    const skipped = await recovery.evaluate(() => {
+      const previous = __tuningMock.sources.at(-1), loads = __radioMock.calls.filter(c => c[0] === "load").length;
+      document.querySelector("[data-bgm-next]").click();
+      document.querySelector("[data-bgm-next]").click();
+      return { canceled: !previous.active, loads, selected: document.querySelector("[data-radio-station]").value };
+    });
+    assert(skipped.canceled, "rapid Next cancels the previous tune synchronously");
+    await recovery.waitForFunction(id => __radioMock.active?.getPlayerState() === 1 && __radioMock.active.videoId === id, playlist[Number(skipped.selected)].videoId);
+    assert.equal(await recovery.evaluate(() => __radioMock.calls.filter(c => c[0] === "load").length), skipped.loads + 1, "rapid Next only loads the last station");
+    assert.equal(await recovery.evaluate(() => __tuningMock.sources.filter(s => s.active).length), 0);
+    for (const silence of ["mute", "zero"]) {
+      await recovery.locator("[data-bgm-play]").click();
+      await recovery.locator("[data-bgm-play]").click();
+      await recovery.waitForFunction(() => __tuningMock.sources.some(s => s.active));
+      if (silence === "mute") await recovery.locator("[data-bgm-mute]").click();
+      else await recovery.locator("[data-bgm-volume]").fill("0");
+      assert(await recovery.evaluate(() => !__tuningMock.sources.some(s => s.active)), `${silence} cancels tuning immediately`);
+      await recovery.waitForFunction(() => __radioMock.active?.getPlayerState() === 1);
+      assert(await recovery.evaluate(() => __radioMock.active.isMuted() || __radioMock.active.getVolume() === 0), `${silence} remains silent when the song enters`);
+      if (silence === "mute") await recovery.locator("[data-bgm-mute]").click();
+      else await recovery.locator("[data-bgm-volume]").fill("36");
     }
     await recovery.close();
 
@@ -318,7 +354,35 @@ const { installYouTubeDouble, installTuningAudioDouble } = require("./helpers/co
     await blockedAudio.evaluate(() => __tuningMock.releases.splice(0).forEach(release => release()));
     await blockedAudio.waitForTimeout(50);
     assert.equal(await blockedAudio.evaluate(() => __tuningMock.sources.length), 0, "late audio resume after Pause cannot emit a burst");
+    await blockedAudio.locator("[data-bgm-play]").click();
+    await blockedAudio.waitForFunction(() => __radioMock.active?.getPlayerState() === 1);
+    await blockedAudio.evaluate(() => __tuningMock.releases.splice(0).forEach(release => release()));
+    await blockedAudio.waitForTimeout(50);
+    assert.equal(await blockedAudio.evaluate(() => __tuningMock.sources.length), 0, "resume after the tuning deadline cannot play noise over music");
     await blockedAudio.close();
+
+    const rendered = await context.newPage();
+    await rendered.addInitScript(installOfflineTuningAudio);
+    await rendered.goto(base);
+    await rendered.locator(".vn-bgm").waitFor();
+    await rendered.locator("[data-radio-pv]").click();
+    for (const volume of [28, 100]) {
+      await rendered.locator("[data-bgm-volume]").fill(String(volume));
+      await rendered.locator("[data-bgm-play]").click();
+      await rendered.waitForFunction(() => __radioMock.active?.getPlayerState() === 1);
+      await rendered.locator("[data-bgm-play]").click();
+    }
+    const audioMetrics = await rendered.evaluate(() => __tuningRenders);
+    assert.equal(audioMetrics.length, 2);
+    for (const metrics of audioMetrics) {
+      assert(metrics.duration >= .8 && metrics.duration <= 1.2, JSON.stringify(metrics));
+      assert(metrics.rms > .006 && metrics.rms < .10 && metrics.peak < .4, "recognizable, bounded actual DSP output: " + JSON.stringify(metrics));
+      assert(metrics.bursts.every(rms => rms > .004));
+      assert(metrics.gaps.every(rms => rms < .0002), "static has quiet gaps and a silent tail: " + JSON.stringify(metrics));
+    }
+    assert(Math.abs(audioMetrics[0].rms / audioMetrics[1].rms - .28) < .035, "real output follows the radio volume");
+    fs.writeFileSync(`${out}/tuning-audio-metrics.json`, JSON.stringify(audioMetrics, null, 2));
+    await rendered.close();
 
     const blocked = await context.newPage();
     blocked.on("pageerror", e => errors.push(e.message));

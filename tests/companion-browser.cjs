@@ -76,15 +76,15 @@ fs.mkdirSync(out, { recursive: true });
     await page.locator("#live2d-interact").click();
     assert.equal(await page.locator("[data-vn-choices] button").count(), 2);
     await page.screenshot({ path: out + "/" + id + "-choices.png" });
-    const response = await page.evaluate(
-      (id) => CompanionStories.characters[id].choices[0].responses[3].text,
+    const responses = await page.evaluate(
+      (id) => {
+        const choice = CompanionStories.characters[id].choices[0];
+        return [choice.responses[3], ...choice.responseVariations[3]].map(line => line.text);
+      },
       id
     );
     await page.locator("[data-vn-choices] button").first().click();
-    assert.equal(
-      await page.locator("[data-live2d-dialogue-text]").textContent(),
-      response
-    );
+    assert(responses.includes(await page.locator("[data-live2d-dialogue-text]").textContent()));
     assert.equal(
       await page.locator("[data-vn-affinity]").textContent(),
       "内緒話"
@@ -105,12 +105,16 @@ fs.mkdirSync(out, { recursive: true });
       remarks.length
     );
     await page.screenshot({ path: out + "/" + id + "-friends.png" });
-    await page.locator("[data-vn-friends-list] button").last().click();
-    assert.equal(
-      await page.locator("[data-live2d-dialogue-text]").textContent(),
-      remarks.at(-1).text
-    );
-    await page.locator("#live2d-interact").click();
+    const friend = remarks.at(-1), friendLines = [friend, ...friend.variants].map(line => line.text);
+    const seen = new Set();
+    for (let visit = 0; visit < friendLines.length; visit++) {
+      await page.locator("[data-vn-friends-list] button").last().click();
+      const text = await page.locator("[data-live2d-dialogue-text]").textContent();
+      assert(friendLines.includes(text));
+      assert(!seen.has(text), 'Each remark plays once before its pool repeats');
+      seen.add(text);
+      await page.locator("#live2d-interact").click();
+    }
     assert(await page.locator('[data-vn-panel="friends"]').isVisible());
     await page.keyboard.press("Escape");
     assert(

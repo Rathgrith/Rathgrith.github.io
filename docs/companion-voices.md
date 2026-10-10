@@ -2,8 +2,8 @@
 
 The Playground uses 18 short recordings, not TTS or cloned voices. **声：入**
 enables occasional interjections; volume and credits are in **設定**. New visits
-start silent. The 135 written lines and their kana-driven mouth animation are
-unchanged. Full-line generated speech, its generator and all 135 MP3s were removed.
+start silent. All 348 written lines use kana-driven mouth animation independently of these
+optional recordings. Full-line generated speech, its generator and all 135 MP3s were removed.
 
 | Character | Recorded source | Direction |
 | --- | --- | --- |

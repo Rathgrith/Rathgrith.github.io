@@ -82,7 +82,7 @@ assert(peaks.marisa > peaks.alice && peaks.alice > peaks.patchouli);
 const speech = CompanionSpeech;
 assert.deepEqual(speech.morae('あいうえおんっ'), ['a','i','u','e','o','n','cl']);
 assert.deepEqual(speech.morae('きゃきゅきょコーヒー'), ['a','u','o','o','o','i','i']);
-assert.equal(Object.keys(CompanionReadings).length, 135);
+assert(Object.keys(CompanionReadings).length >= 300, 'Expanded dialogue must have kana coverage');
 for (const [text, tokens] of Object.entries(CompanionReadings)) {
   assert.equal(tokens.map(t => t[0]).join(''), text);
   assert(tokens.every(t => !/[一-龯]/.test(t[1])), 'Every kanji token needs its actual reading');
@@ -91,6 +91,19 @@ for (const [text, tokens] of Object.entries(CompanionReadings)) {
   assert(plan.units.flat().some(p => p !== 'rest'));
   const marisa = tokens.find(t => t[0] === '魔理沙');
   if (marisa) assert.equal(marisa[1], 'まりさ');
+}
+// Context-limited name corrections must not rewrite ordinary words that share
+// the same kanji, and counters/inflections need their actual spoken reading.
+for (const [surface, reading] of [
+  ['紫の話は', 'ゆかりのはなしは'], ['空の火力は', 'うつほのかりょくは'],
+  ['文の新聞に', 'あやのしんぶんに'], ['本文へ', 'ほんぶんへ'],
+  ['空模様が', 'そらもようが'], ['そこの間隔', 'そこのかんかく'],
+  ['頁数は', 'ぺーじすうは'], ['柄の雪', 'えのゆき'],
+  ['雪明かりは', 'ゆきあかりは'], ['沸いたところ', 'わいたところ'],
+]) {
+  const entries = Object.entries(CompanionReadings).filter(([text]) => text.includes(surface));
+  assert(entries.length, `Missing pronunciation fixture: ${surface}`);
+  for (const [, tokens] of entries) assert(tokens.map(t => t[1]).join('').includes(reading), `${surface}: expected ${reading}`);
 }
 const mouthShapes = {};
 for (const phone of ['a','i','u','e','o','n','cl']) {
@@ -105,4 +118,4 @@ assert(mouthShapes.i.form > 0 && mouthShapes.u.form < 0 && mouthShapes.o.form < 
 assert.equal(mouthShapes.n.jaw, 0);
 assert.equal(mouthShapes.cl.jaw, 0);
 console.log('PASS: differentiated acting, punctuation articulation, held emotion, independent blinks, no drift, paused clock, reduced motion and cleanup');
-console.log('PASS: 135 aligned Japanese readings, contracted/long vowels, distinct A/I/U/E/O shapes and closed nasal/geminate sounds');
+console.log(`PASS: ${Object.keys(CompanionReadings).length} aligned Japanese readings, contracted/long vowels, distinct A/I/U/E/O shapes and closed nasal/geminate sounds`);
