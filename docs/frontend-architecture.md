@@ -47,6 +47,8 @@ Gallery cards always crop to 4:3, with five columns at 1280px and above and thre
 
 Auxiliary conversation panels share a grid cell with the scene; inactive content is inert. Docked windows grow to fit dialogue, choices and panels, avoiding a nested scrollbar within the page. Detached windows use a bounded viewport where only the active view scrolls. Panel headers remain available in short floating windows, and opening settings cannot scroll the whole window past its titlebar. History retains a bounded list; the arcade uses its own height budget.
 
+The wide Playground grid sizes its dialogue row from the full reading and all choices, including the three suggestions shown after an ordinary conversation. Its shared scale reserves a 600px logical height before enlarging the UI. Long text and wrapping options increase that row's minimum size; short windows scroll the main view as a whole, so choices cannot overlap the footer or be clipped into a separate list scrollbar. `tests/playground-dialogue-layout.cjs` checks these boundaries during branch transitions, character changes, maximization and resizing across the compact/wide breakpoint.
+
 ## Running checks
 
 Build Jekyll and serve `_site` first. Audio seeking checks need a server with HTTP byte-range support (Jekyll/WEBrick and GitHub Pages support this; Python’s basic `http.server` does not). Tests require Node and an installed Playwright module plus Chrome. `PLAYWRIGHT_MODULE` can point to an existing Playwright installation; otherwise Node resolves the regular `playwright` package. No Node tooling is required for the published site.

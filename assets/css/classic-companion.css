@@ -658,7 +658,9 @@ html body.live2d-is-hidden #live2d-widget {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--vn-controls-width);
-  grid-template-rows: auto minmax(88px, 1fr) auto auto auto auto;
+  /* The reading and every option define the minimum dialogue height. Short
+     windows scroll this whole view, never paint options over the controls. */
+  grid-template-rows: auto minmax(min-content, 1fr) auto auto auto auto;
   grid-template-areas: "cast cast" "scene dialogue" "scene controls" "scene music" "scene arcade" "scene weather";
   gap: 6px 10px;
   overflow: auto;
@@ -673,10 +675,8 @@ html body.live2d-is-hidden #live2d-widget {
 #live2d-widget[data-playground-layout="wide"] .vn-weather-strip { grid-area: weather; margin: 0; }
 #live2d-widget.is-sized .vn-danmaku-view { height: 100%; }
 
-#live2d-widget[data-playground-layout="wide"] #live2d-dialogue { flex: 1; display: flex; min-height: 0; }
-#live2d-widget[data-playground-layout="wide"] .vn-reading { flex: 1; min-height: 0; overflow: auto; padding: 4px 8px 14px; }
+#live2d-widget[data-playground-layout="wide"] #live2d-dialogue { flex: 1 0 auto; display: flex; min-height: 66px; }
+#live2d-widget[data-playground-layout="wide"] .vn-reading { flex: 1; min-height: 0; padding: 4px 8px 14px; }
 #live2d-widget[data-playground-layout="wide"] .vn-nameplate { flex-shrink: 0; }
-#live2d-widget[data-playground-layout="wide"] .vn-choices { flex-shrink: 0; margin-top: 0; max-height: 120px; overflow: auto; }
-#live2d-widget[data-playground-layout="wide"] #live2d-dialogue { overflow: hidden; }
-#live2d-widget[data-playground-layout="wide"][data-dialogue-state="choice"] #live2d-dialogue { min-height: 66px; }
+#live2d-widget[data-playground-layout="wide"] .vn-choices { flex-shrink: 0; margin-top: 0; }
 #live2d-widget[data-playground-layout="wide"] .vn-next-mark { bottom: 6px; right: 8px; }

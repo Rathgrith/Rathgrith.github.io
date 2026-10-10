@@ -42,7 +42,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.waitForTimeout(150);
     assert(await widget.evaluate(w => {
       const scale=Number(w.dataset.playgroundScale), icon=w.querySelector('.vn-cast img'), reaction=w.querySelector('.vn-reaction');
-      return scale>1.3 && Math.abs(icon.getBoundingClientRect().width/icon.offsetWidth-scale)<.02 &&
+      return scale>1 && Math.abs(icon.getBoundingClientRect().width/icon.offsetWidth-scale)<.02 &&
         reaction && Math.abs(reaction.getBoundingClientRect().width/reaction.offsetWidth-scale)<.02;
     }), 'cast sprites and reaction canvas share the font/control scale');
     await widget.screenshot({ path: out + '/maximized.png' });

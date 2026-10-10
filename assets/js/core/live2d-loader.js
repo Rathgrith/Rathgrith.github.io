@@ -795,7 +795,10 @@
     widget.classList.toggle("is-maximized", companionMaximized);
     widget.dataset.playgroundLayout = sized && companionSize.width >= 620 ? "wide" : "compact";
     var wide = widget.dataset.playgroundLayout === "wide";
-    var scale = sized ? Math.max(1, Math.min(companionSize.width / (wide ? 720 : 352), companionSize.height / (wide ? 520 : 740))) : 1;
+    // Leave room for the radio, a full reading and three choices before
+    // enlarging the shared surface. CSS handles longer content by scrolling
+    // the main view; individual choices and dialogue are never clipped.
+    var scale = sized ? Math.max(1, Math.min(companionSize.width / (wide ? 720 : 352), companionSize.height / (wide ? 600 : 740))) : 1;
     widget.dataset.playgroundScale = String(scale);
     widget.style.setProperty("--playground-scale", scale);
     widget.style.setProperty("--vn-width", (companionSize ? companionSize.width : display.width + 10) + "px");
