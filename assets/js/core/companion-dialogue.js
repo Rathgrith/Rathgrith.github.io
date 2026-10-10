@@ -21,6 +21,7 @@
   var history = [],
     originalIndices = {},
     pick = data.createPicker(),
+    branchTopic = null,
     lastTopic = "today";
   var key = "site-companion-v1",
     saved = {};
@@ -106,6 +107,7 @@
     clearTimeout(autoTimer);
     if (panel === "history") renderHistory();
     if (panel === "friends") renderFriends();
+    if (panel === "topics") renderTopics();
     if (panel === "settings") renderSettings();
     if (panel) {
       var focus = q('[data-vn-panel="' + panel + '"] button');
@@ -125,6 +127,46 @@
       button.setAttribute("data-vn-topic-start", "friend:" + remark.id);
       list.appendChild(button);
     });
+  }
+  function branches() {
+    return (window.CompanionBranches || {})[currentId];
+  }
+  function renderTopics() {
+    var list = q("[data-vn-topic-list]"), tree = branches();
+    var topics = [
+      { id: "today", label: "今日のこと" },
+      { id: "craft", label: "魔法の話" },
+    ].concat((tree ? tree.topics : []).map(function (topic) {
+      return { id: "branch:" + topic.id, label: topic.label };
+    }), [
+      { id: "friends", label: "友人のこと" },
+      { id: "rest", label: "お茶にしましょう" },
+      { id: "weather", label: "窓の向こう" },
+      { id: "original", label: "思い出" },
+    ]);
+    list.replaceChildren();
+    topics.forEach(function (topic) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = topic.label;
+      button.setAttribute("data-vn-topic-start", topic.id);
+      list.appendChild(button);
+    });
+  }
+  function startBranchNode(id, level) {
+    var tree = branches(), node = tree && tree.nodes[id];
+    if (!node || !branchTopic) return;
+    story = {
+      lines: node.affinityLines ? [node.affinityLines[level === undefined ? data.tier(affinity[currentId]) : level]] : node.lines.slice(),
+      choices: node.choices,
+      label: branchTopic.label,
+    };
+    root.dataset.vnBranchNode = id;
+    index = 0;
+    renderLine();
+    // The clicked option is replaced; keep keyboard focus in the conversation
+    // so Enter can finish typing and Tab reaches the new set of choices.
+    q("[data-vn-reading]").focus({ preventScroll: true });
   }
   function panelOpener(name) {
     return q('[data-vn-open="' + name + '"]') || q('[data-vn-open="topics"]');
@@ -156,24 +198,23 @@
     if (
       !story ||
       index < story.lines.length - 1 ||
-      !story.choices ||
       state === "typing"
     )
       return;
+    if (!story.choices || !story.choices.length) {
+      renderFollowups(target);
+      return;
+    }
+    var offeredStory = story;
     setState("choice");
     story.choices.forEach(function (choice, choiceIndex) {
       var button = document.createElement("button");
       button.type = "button";
       button.textContent = "▸ " + choice.label;
+      if (choice.next) button.setAttribute("data-vn-choice-next", choice.next);
       button.addEventListener("click", function () {
-        if (state !== "choice") return;
-        var level = data.tier(affinity[currentId]),
-          response = pick(
-            currentId + ":choice:" + choiceIndex + ":" + level,
-            [choice.responses[level]].concat(
-              (choice.responseVariations || [])[level] || []
-            )
-          );
+        if (state !== "choice" || story !== offeredStory || !button.isConnected || panel || !visible || gameActive) return;
+        var level = data.tier(affinity[currentId]);
         affinity[currentId] = Math.min(
           100,
           Math.max(0, affinity[currentId] + choice.delta)
@@ -184,6 +225,14 @@
           character: currentId,
           text: "▸ " + choice.label,
         });
+        if (choice.next) {
+          startBranchNode(choice.next, level);
+          return;
+        }
+        var response = pick(
+          currentId + ":choice:" + choiceIndex + ":" + level,
+          [choice.responses[level]].concat((choice.responseVariations || [])[level] || [])
+        );
         story = { lines: [response], label: "返事" };
         index = 0;
         renderLine();
@@ -192,6 +241,34 @@
     });
     q("#live2d-interact").textContent = "選択";
     q("#live2d-interact").disabled = true;
+  }
+  function renderFollowups(target) {
+    var offeredStory = story;
+    function action(label, attribute, callback) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.setAttribute(attribute, "");
+      button.addEventListener("click", function () {
+        if (story === offeredStory && state === "ready" && button.isConnected && !panel && visible && !gameActive) callback();
+      });
+      target.appendChild(button);
+    }
+    if (branchTopic) {
+      var topicId = branchTopic.id;
+      action("別のことも聞く", "data-vn-return-topic", function () { start("branch:" + topicId); });
+      action("話題を変える", "data-vn-return-topics", function () { panelOpen("topics"); });
+    } else if (lastTopic.indexOf("friend:") === 0) {
+      var friendTopic = lastTopic;
+      action("もう少し聞かせて", "data-vn-friend-more", function () { start(friendTopic); });
+      action("別の人のこと", "data-vn-friend-back", function () { panelOpen("friends"); });
+    } else if (["today", "rest", "weather", "craft"].indexOf(lastTopic) >= 0) {
+      var tree = branches();
+      (tree ? tree.topics : []).forEach(function (topic) {
+        // Suggestions continue a finished line; auto mode never activates one.
+        action(topic.label + " ▸", "data-vn-suggest-topic", function () { start("branch:" + topic.id); });
+      });
+    }
   }
   function scheduleAuto() {
     clearTimeout(autoTimer);
@@ -280,9 +357,18 @@
   }
   function start(topic) {
     closePanel();
-    lastTopic = topic || "today";
-    if (lastTopic === "friends") {
+    if (topic === "friends") {
       panelOpen("friends");
+      return;
+    }
+    lastTopic = topic || "today";
+    branchTopic = null;
+    delete root.dataset.vnBranchNode;
+    if (lastTopic.indexOf("branch:") === 0) {
+      var tree = branches();
+      branchTopic = tree && tree.topics.find(function (topic) { return topic.id === lastTopic.slice(7); });
+      if (branchTopic) startBranchNode(branchTopic.entry);
+      else panelOpen("topics");
       return;
     }
     if (lastTopic.indexOf("friend:") === 0) {
@@ -333,6 +419,8 @@
     if (!root) return;
     clearTimers();
     story = null;
+    branchTopic = null;
+    delete root.dataset.vnBranchNode;
     line = null;
     index = 0;
     setState("idle");
@@ -459,7 +547,7 @@
     q("[data-companion-content]").insertAdjacentHTML(
       "beforeend",
       '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span class="vn-weather-brand">非想天則</span><span data-vn-weather-summary>観測中…</span><span aria-hidden="true">▴</span></button>' +
-        '<section class="vn-panel" data-vn-panel="topics" hidden aria-label="話題"><header>話題<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list"><button type="button" data-vn-topic-start="today">今日のこと</button><button type="button" data-vn-topic-start="craft">魔法の話</button><button type="button" data-vn-topic-start="friends">友人のこと</button><button type="button" data-vn-topic-start="rest">お茶にしましょう</button><button type="button" data-vn-topic-start="weather">窓の向こう</button><button type="button" data-vn-topic-start="original">思い出</button></div></section>' +
+        '<section class="vn-panel" data-vn-panel="topics" hidden aria-label="話題"><header>話題<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list" data-vn-topic-list></div></section>' +
         '<section class="vn-panel" data-vn-panel="friends" hidden aria-label="友人のこと"><header>友人のこと<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-friends-list" data-vn-friends-list></div></section>' +
         '<section class="vn-panel" data-vn-panel="settings" hidden aria-label="設定"><header>設定<button type="button" data-vn-close aria-label="閉じる">×</button></header><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光</label><label for="vn-light-strength">光の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
         '<section class="vn-panel" data-vn-panel="history" hidden aria-label="履歴"><header>履歴<button type="button" data-vn-close aria-label="閉じる">×</button></header><ol class="vn-history" data-vn-history-list></ol></section>' +

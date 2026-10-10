@@ -136,7 +136,15 @@ for (const [id, entries] of Object.entries(originals)) {
   assert.equal(entries.length, 6);
   entries.forEach(checkActing);
 }
-const total = lines + remarks + 18;
+require("../assets/js/data/companion-branches.js");
+let branchLines = 0;
+function checkBranchLines(value) {
+  if (!value || typeof value !== 'object') return;
+  if (value.text) { branchLines++; checkActing(value); }
+  Object.values(value).forEach(checkBranchLines);
+}
+checkBranchLines(CompanionBranches);
+const total = lines + remarks + branchLines + 18;
 assert(total >= 300, 'The expanded corpus must remain substantially larger than the original 135 lines');
 assert.equal(corpus.size, total);
 assert.deepEqual(new Set(Object.keys(CompanionReadings)), corpus, 'Pronunciation coverage must exactly match the current dialogue corpus');

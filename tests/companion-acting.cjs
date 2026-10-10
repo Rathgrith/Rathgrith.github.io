@@ -21,7 +21,9 @@ function setup(character) {
   let reduced = false;
   const act = create(model, character, widget, {
     '01': { ParamMouthForm: 0, ParamEyeOpen: 0, ParamBrowLY: 0, ParamBrowRY: 0 },
+    '02': { ParamMouthForm: 0.7, ParamMouthFormScale: 0.3, ParamEyeOpen: 0.25, ParamBrowLY: 0.29, ParamBrowRY: 0.29 },
     '05': { ParamMouthForm: -1, ParamEyeOpen: -0.26, ParamBrowLY: -0.64, ParamBrowRY: -0.64 },
+    '06': { ParamMouthForm: -1, ParamMouthFormScale: 0.04, ParamEyeOpen: 1, ParamBrowLY: 0.6, ParamBrowRY: 0.6 },
     '07': { ParamMouthForm: 1, ParamEyeOpen: -0.43, ParamBrowLY: 0.1, ParamBrowRY: 0.1 },
   }, { random: () => 0.5, reducedMotion: () => reduced });
   function tick(seconds, talking) {
@@ -58,7 +60,8 @@ for (const character of ['alice', 'marisa', 'patchouli']) {
   const before = t.tick(8);
   assert(before.every(f => f.ParamMouthForm < -0.99), 'Reading must keep the directed emotion');
   assert(before.every(f => Math.abs(f.ParamEyeOpen + 0.26) < 0.001), 'Blink must preserve authored eyelid shape');
-  assert(before.some(f => f.ParamEyeLOpen < 0.05) && before.some(f => f.ParamEyeLOpen > 0.99));
+  assert(before.some(f => f.ParamEyeLOpen < 0.05) && before.some(f => f.ParamEyeLOpen > 0.85));
+  assert(before.every(f => f.ParamEyeLOpen < 0.9), 'A blink reopens to the emotional lid, not a fully neutral eye');
   assert(before.every(f => Math.abs(f.ParamAngleY) < 4), 'Offsets must not accumulate');
   // A paused model's clock never advances: repeated render callbacks cannot
   // fast-forward a gesture or blink just because wall time has passed.
@@ -72,13 +75,42 @@ for (const character of ['alice', 'marisa', 'patchouli']) {
   assert.deepEqual(t.values, last);
   t.reduce();
   const still = t.tick(1, true);
-  assert(still.every(f => f.ParamMouthOpenY === 0 && f.ParamAngleX === 0 && f.ParamAngleY === 0 && f.ParamAngleZ === 0 && f.ParamEyeLOpen === 1));
+  assert(still.every(f => f.ParamMouthOpenY === 0 && f.ParamAngleX === 0 && f.ParamAngleY === 0 && f.ParamAngleZ === 0));
+  assert(still.every(f => f.ParamEyeLOpen > 0.8 && f.ParamEyeLOpen < 0.95), 'Reduced motion retains the static emotion');
   assert.equal(still.at(-1).ParamMouthForm, -1);
   t.act.destroy();
   assert.equal(t.internal.listenerCount('beforeModelUpdate'), 0);
   assert.equal(t.internal.eyeBlink, t.blink);
 }
 assert(peaks.marisa > peaks.alice && peaks.alice > peaks.patchouli);
+for (const character of ['alice', 'marisa', 'patchouli']) {
+  const t = setup(character);
+  t.act.perform({ expressionMotionId: '02' });
+  const smile = t.tick(2).at(-1);
+  assert(smile.ParamMouthForm > 0.8 && smile.ParamMouthFormScale > 0.7, 'A gentle smile must survive a small docked rendering');
+  assert(smile.ParamEyeLOpen < 0.9 && smile.ParamEyeLOpen > 0.7);
+  t.act.perform({ expressionMotionId: '07' });
+  const arrival = t.tick(0.9);
+  assert(Math.min(...arrival.map(f => f.ParamEyeLOpen)) < 0.35, 'Amused arrival has one visible closed-eye smile');
+  const amused = t.tick(0.7).at(-1);
+  assert(amused.ParamEyeLOpen > 0.5 && amused.ParamEyeLOpen < smile.ParamEyeLOpen - 0.1, 'Smiling eyes settle without returning to neutral');
+  t.act.perform({ expressionMotionId: '06' });
+  const surprise = t.tick(1.5).at(-1);
+  assert(surprise.ParamMouthOpenY > 0.10 && surprise.ParamMouthOpenY < 0.2);
+  assert(surprise.ParamMouthFormScale > 0.35, 'Surprise must not collapse into a closed one-pixel mouth');
+  t.act.speak('ん', 600, ['n']);
+  const nasal = t.tick(0.4).at(-1);
+  assert(nasal.ParamMouthOpenY < 0.001, 'A real closed consonant overrides the emotional resting jaw');
+  t.act.perform({ expressionMotionId: '01' });
+  t.reduce();
+  const neutral = t.tick(0.1).at(-1);
+  assert.equal(neutral.ParamEyeLOpen, 1);
+  assert.equal(neutral.ParamMouthOpenY, 0);
+  assert.equal(neutral.ParamMouthForm, 0);
+  assert(t.frames.every(f => f.ParamEyeLOpen >= 0 && f.ParamEyeLOpen <= 1 && f.ParamEyeROpen >= 0 && f.ParamEyeROpen <= 1));
+  assert(t.frames.every(f => Math.abs(f.ParamBrowLY) <= 1 && Math.abs(f.ParamBrowRY) <= 1), 'Entry accents stay inside the rig range');
+  t.act.destroy();
+}
 const speech = CompanionSpeech;
 assert.deepEqual(speech.morae('あいうえおんっ'), ['a','i','u','e','o','n','cl']);
 assert.deepEqual(speech.morae('きゃきゅきょコーヒー'), ['a','u','o','o','o','i','i']);
@@ -96,6 +128,7 @@ for (const [text, tokens] of Object.entries(CompanionReadings)) {
 // the same kanji, and counters/inflections need their actual spoken reading.
 for (const [surface, reading] of [
   ['紫の話は', 'ゆかりのはなしは'], ['空の火力は', 'うつほのかりょくは'],
+  ['空の瓶', 'からのびん'], ['空の袋', 'からのふくろ'],
   ['文の新聞に', 'あやのしんぶんに'], ['本文へ', 'ほんぶんへ'],
   ['空模様が', 'そらもようが'], ['そこの間隔', 'そこのかんかく'],
   ['頁数は', 'ぺーじすうは'], ['柄の雪', 'えのゆき'],

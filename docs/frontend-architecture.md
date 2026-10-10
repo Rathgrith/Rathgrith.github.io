@@ -84,7 +84,7 @@ Validated on 2026-10-08:
 - Gallery at seven widths, all 110 thumbnail crops, full-size containment, keyboard navigation/focus, browser history, and useful static links with JavaScript disabled.
 - Companion at twelve widths plus 600×360 landscape: docked dialogue has no vertical overflow, text and primary action remain visible, dock placement and detached window bounds stay correct, short floating settings panels scroll independently.
 - All 228 Japanese everyday lines plus 102 acquaintance remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups; complete shuffle cycles, no adjacent repeats across cycles, independent contexts, and reachability of every added variant.
-- Explicit directions on all 348 lines (including 18 existing quotations), all 15 rendered body poses and hand layers, Patchouli's reading angle, sustained facial expressions, and the latest-line motion queue. Desktop index/dock ordering also survives breakpoint changes.
+- Explicit per-line directions (including 18 existing quotations), all 15 rendered body poses and hand layers, Patchouli's reading angle, sustained facial expressions, and the latest-line motion queue. Desktop index/dock ordering also survives breakpoint changes.
 - Saved affinity/text speed, per-character isolation, typewriter completion, minimized pause, auto stopping for choices, single instances across soft navigation, close/reopen and keyboard movement.
 - Fresh mobile visits show the companion by default; page-bottom/index order, separately saved desktop/mobile visibility, explicit closing, reload and soft-navigation retention are checked.
 - Simulated model/CDN and weather failure, model retry, rapid character switching, blocked localStorage, reduced motion and the Halloween branch in the UI.
@@ -92,3 +92,9 @@ Validated on 2026-10-08:
 - Browser checks observed no uncaught JavaScript errors or missing local assets. Remote models, weather and original photos still depend on their existing providers; failure behavior is tested separately from successful loading.
 
 Manual review includes desktop views of all three characters, tablet/phone profile layouts, gallery cards and viewer, weather, settings, choices and short-window scrolling. These checks document tested coverage rather than a guarantee about every browser or third-party outage.
+
+### Branching conversation checks
+
+`tests/companion-branches.cjs` checks tree destinations, reachability, both question levels, affinity conclusions and kana coverage. `tests/companion-branches-browser.cjs` follows every authored path through the real UI and checks return controls, friend follow-ups, preserved context across menus, keyboard/auto behavior, stale-button cancellation and compact layouts.
+
+`tests/companion-acting.cjs` checks facial persistence, emotional eyelids, speech articulation and paused/reduced-motion behavior. `tests/companion-expressions.cjs` captures all eight faces on each actual rig, checks parameter bounds and neutral restoration, and verifies that a closed consonant overrides the surprised resting mouth. Its screenshots provide a contact sheet for visual review at the docked scale.
