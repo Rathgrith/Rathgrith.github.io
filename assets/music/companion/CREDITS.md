@@ -6,15 +6,10 @@ danmakū challenge. They are not original game recordings and are independent
 of the radio queue. The arcade credits each arranger and links to their own
 distribution page.
 
-The FM receiver has one shared 16-item catalog: six native-audio previews/XFDs
-and thirteen official videos, with three XFD entries supporting both sources.
-The ten requested PV-only favorites remain available. Mode changes keep the same
-entry; unsupported modes are labelled and cannot play. Neither source loads
-before explicit playback, and PV additionally requires selecting that mode. See
-[AUDIO-RADIO.md](AUDIO-RADIO.md) and [RADIO.md](RADIO.md) for those sources and
-limitations. The radio’s quiet tuning noise is generated locally with Web Audio,
-not sampled from a music recording. These local battle permissions do not apply
-to the radio’s external previews or videos.
+The FM receiver has a separate 13-song local library paired with official
+YouTube videos. See [radio provenance and version notes](../radio/README.md).
+The radio's tuning noise is synthesized locally with Web Audio. The permissions
+for the three battle arrangements below do not apply to the separate radio library.
 
 | Character / output | Arrangement | Source and instrumentation |
 | --- | --- | --- |

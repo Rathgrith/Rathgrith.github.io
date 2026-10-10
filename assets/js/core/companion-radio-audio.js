@@ -1,4 +1,4 @@
-/* HTML audio adapter for creator-hosted previews. No source until explicit play. */
+/* Native audio adapter for the local radio library. No source until explicit play. */
 (function () {
   "use strict";
   function Player(slot, options) {
@@ -42,7 +42,7 @@
       seekTo: function (seconds) { if (Number.isFinite(audio.duration)) audio.currentTime = Math.max(0, Math.min(seconds, audio.duration)); },
       loadVideoById: function (id) {
         var track = window.CompanionRadioTracks.find(function (entry) { return entry.id === id && entry.src; });
-        if (!track) { events.onError({ target: api, data: "Missing preview" }); return; }
+        if (!track) { events.onError({ target: api, data: "Missing audio source" }); return; }
         audio.src = track.src;
         state = -1;
         play();

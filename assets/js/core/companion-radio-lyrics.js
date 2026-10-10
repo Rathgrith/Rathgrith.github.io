@@ -1,4 +1,4 @@
-/* Optional, browser-local LRC display. No lyrics or files leave the visitor's device. */
+/* Bundled same-origin lyrics with optional browser-local overrides. Imported files never leave the device. */
 (function (global) {
   "use strict";
   var FILE_LIMIT = 200 * 1024, STORE_LIMIT = 100 * 1024;
@@ -44,18 +44,22 @@
     if (!container || !container.ownerDocument) throw new TypeError("A lyrics container is required");
     if (container._companionRadioLyrics) return container._companionRadioLyrics;
     var document = container.ownerDocument, records = Object.create(null);
-    var track = "", lines = [], delay = 0, time = 0, shown = -2, generation = 0, destroyed = false, picker = null;
+    var track = "", source = "", lines = [], delay = 0, time = 0, shown = -2, generation = 0;
+    var destroyed = false, picker = null, pending = null;
     try {
       var raw = global.localStorage.getItem(STORE_KEY);
       var stored = raw && bytes(raw) <= STORE_LIMIT ? JSON.parse(raw) : null;
       if (stored && stored.version === 1 && stored.tracks && typeof stored.tracks === "object") {
         Object.keys(stored.tracks).forEach(function (id) {
           var entry = stored.tracks[id];
-          if (entry && typeof entry.lrc === "string" && bytes(entry.lrc) <= FILE_LIMIT) records[id] = {
-            lrc: entry.lrc,
+          if (!entry) return;
+          var imported = typeof entry.lrc === "string";
+          if (imported ? bytes(entry.lrc) > FILE_LIMIT : !Number.isFinite(entry.delay)) return;
+          records[id] = {
             delay: Number.isFinite(entry.delay) ? Math.max(-30, Math.min(30, entry.delay)) : 0,
             saved: Number.isFinite(entry.saved) ? entry.saved : 0,
           };
+          if (imported) records[id].lrc = entry.lrc;
         });
       }
     } catch (_) {}
@@ -106,23 +110,73 @@
         return Object.prototype.hasOwnProperty.call(saved, track);
       } catch (_) { return false; }
     }
-    function setTrack(id) {
+    function sourceURL(value) {
+      if (typeof value !== "string" || !value.trim()) return "";
+      try {
+        var url = new URL(value, document.baseURI);
+        if (!/^https?:$/.test(url.protocol) || url.origin !== document.location.origin || url.username || url.password) return "";
+        url.hash = "";
+        return url.href;
+      } catch (_) { return ""; }
+    }
+    function abortPending() {
+      if (pending) pending.abort();
+      pending = null;
+    }
+    async function loadBundled(url, token) {
+      var request = pending = new AbortController();
+      status.textContent = "歌詞を読み込み中…";
+      try {
+        var response = await global.fetch(url, { signal: request.signal, mode: "same-origin", redirect: "error" });
+        if (!response.ok || Number(response.headers.get("Content-Length")) > FILE_LIMIT || !response.body) throw new Error("Invalid lyrics response");
+        var reader = response.body.getReader(), decoder = new TextDecoder("utf-8", { fatal: true }), size = 0, text = "";
+        try {
+          while (true) {
+            var chunk = await reader.read();
+            if (chunk.done) break;
+            size += chunk.value.byteLength;
+            if (size > FILE_LIMIT) throw new RangeError("LRC exceeds 200 KB");
+            text += decoder.decode(chunk.value, { stream: true });
+          }
+          text += decoder.decode();
+        } finally { reader.releaseLock(); }
+        var parsed = parse(text);
+        if (destroyed || token !== generation || url !== source) return;
+        if (!parsed.lines.length) throw new Error("No timed lyrics");
+        lines = parsed.lines;
+        shown = -2;
+        status.textContent = "";
+        render();
+      } catch (_) {
+        request.abort();
+        if (!destroyed && token === generation && url === source) status.textContent = "歌詞を読み込めませんでした。LRCファイルを選ぶこともできます。";
+      } finally {
+        if (pending === request) pending = null;
+      }
+    }
+    function setTrack(id, sourceUrl) {
       if (destroyed) return;
       id = typeof id === "string" ? id.slice(0, 200) : "";
-      if (id === track) return;
+      var nextSource = id ? sourceURL(sourceUrl) : "";
+      if (id === track && nextSource === source) return;
       generation++;
+      abortPending();
       track = id;
+      source = nextSource;
       time = 0;
       var record = records[track];
-      lines = record ? parse(record.lrc).lines : [];
+      var imported = record && typeof record.lrc === "string";
+      lines = imported ? parse(record.lrc).lines : [];
       delay = record ? record.delay : 0;
       shown = -2;
       status.textContent = "";
       file.value = "";
       render();
+      if (source && !imported) loadBundled(source, generation);
     }
     function adjust(amount) {
-      if (!lines.length || !records[track]) return;
+      if (!lines.length) return;
+      if (!records[track]) records[track] = {};
       delay = Math.max(-30, Math.min(30, amount));
       records[track].delay = delay;
       records[track].saved = Date.now();
@@ -145,8 +199,9 @@
         status.textContent = "曲が切り替わりました。LRCファイルを選び直してください。";
         return;
       }
-      var target = selection ? selection.track : track, token = ++generation;
       if (selected.size > FILE_LIMIT) { status.textContent = "200KB以内のLRCファイルを選んでください。"; return; }
+      var target = selection ? selection.track : track, token = ++generation;
+      abortPending();
       try {
         var buffer = await selected.arrayBuffer();
         var text = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
@@ -176,6 +231,7 @@
       destroy: function () {
         destroyed = true;
         generation++;
+        abortPending();
         panel.remove();
         delete container._companionRadioLyrics;
       },

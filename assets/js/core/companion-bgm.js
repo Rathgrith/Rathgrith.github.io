@@ -122,9 +122,9 @@
       return selected;
     }
     function unavailableMessage() {
-      if (mode === "pv") return "この試聴音源に対応する公式PVは未登録です。RADIOでお聴きください。";
+      if (mode === "pv") return "この曲のPVは未登録です。RADIOでお聴きください。";
       var listen = playlist[selected].listen;
-      return listen ? "RADIO用の音源は未登録です。" + listen.name + "の配信ページ、またはPVでお聴きください。" : "この曲はPVで聴けます。公式の音声試聴は未登録です。";
+      return listen ? "RADIO用の音源は未登録です。" + listen.name + "の配信ページ、またはPVでお聴きください。" : "RADIO用の音源は未登録です。PVでお聴きください。";
     }
     function allowed() { return requested && available() && (mode === "audio" || opened) && visible && !game && !document.hidden; }
     function saveVolume() {
@@ -234,13 +234,13 @@
       strip.dataset.radioMode = mode;
       receiver.dataset.radioMode = mode;
       receiver.dataset.sourceAvailable = String(available());
-      receiver.querySelector("[data-radio-source]").textContent = (mode === "pv" && track.videoId) || !track.src ? "YouTube ↗" : "公式試聴 ↗";
+      receiver.querySelector("[data-radio-source]").textContent = "YouTube ↗";
       receiver.querySelector("[data-radio-close]").setAttribute("aria-label", mode === "audio" ? "選局窓を閉じる" : "ラジオの窓を閉じて停止");
-      strip.querySelector(".vn-bgm-type").textContent = mode === "pv" || !track.src ? "PV" : track.kind === "XFD" ? "XFD" : "試聴";
+      strip.querySelector(".vn-bgm-type").textContent = mode === "pv" || !track.src ? "PV" : track.kind === "SONG" ? "MP3" : track.kind === "XFD" ? "XFD" : "試聴";
       title.textContent = track.title;
       title.title = track.title + " · " + track.artist;
       select.value = selected;
-      lyrics.setTrack(mode === "pv" ? track.videoId || track.id + "-pv" : track.id);
+      lyrics.setTrack(mode === "pv" ? track.videoId || track.id + "-pv" : track.id, mode === "audio" ? track.lyrics : "");
       strip.style.setProperty("--radio-frequency", (8 + selected / (playlist.length - 1) * 84) + "%");
       strip.dataset.radioTrack = track.id;
       var source = mode === "pv" && track.videoId ? "https://www.youtube.com/watch?v=" + track.videoId : track.url;
