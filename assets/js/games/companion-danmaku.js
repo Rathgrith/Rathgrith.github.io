@@ -681,7 +681,12 @@
         if (!e.repeat) setAuto(!autoMode);
         return;
       }
-      if ((/^(Arrow|[wasd]$)/.test(key) || key === "z") && autoMode)
+      // Focus is manual movement input too: hand over before the next AI step
+      // can dodge or spend a Bomb, just like the on-screen low-speed button.
+      if (
+        (/^(Arrow|[wasd]$)/.test(key) || key === "Shift" || key === "z") &&
+        autoMode
+      )
         setAuto(false);
       keys[key] = true;
       if ((key === "x" || key === "b") && !e.repeat) bomb();
