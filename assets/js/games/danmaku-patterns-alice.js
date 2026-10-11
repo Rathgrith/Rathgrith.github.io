@@ -22,33 +22,86 @@
       y: 77 + Math.sin(t * 0.24) * 6,
     };
   }
+  function beatClock(s) {
+    var spell = s.enemySpell,
+      beat = spell.aliceClockBeat || (s.rhythm && s.rhythm.beatDuration) || 0.5;
+    return spell.aliceClockTick === undefined
+      ? Math.max(-0.8, Math.min(0, ((spell.age || 0) - 2.15) / beat))
+      : spell.aliceClockTick / 2 +
+          Math.max(
+            0,
+            Math.min(0.5, ((spell.age || 0) - spell.aliceClockAge) / beat)
+          );
+  }
+  function packetDolls(s) {
+    var id = s.enemySpell.id,
+      sourceCount = id === "russia" ? 9 : 6,
+      clock = beatClock(s),
+      out = [];
+    // These are successive summons, not one rank teleported and recoloured.
+    // A doll arrives before its own shot and overlaps the next generation while
+    // retiring. Interpolate only the current half-beat, since the score changes
+    // tempo; dividing total spell age by the current beat would skip sources.
+    // Deriving the small live set from this clock bounds its lifetime even
+    // after bombs/HP clears; no hidden growing array is retained on the spell.
+    for (
+      var cast = Math.max(0, Math.floor(clock - sourceCount - 0.7));
+      cast <= Math.floor(clock + 0.8);
+      cast++
+    ) {
+      var elapsed = clock - cast,
+        enter = Math.max(0, Math.min(1, (elapsed + 0.8) / 0.8)),
+        leave = Math.max(0, Math.min(1, (elapsed - sourceCount + 0.3) / 0.7));
+      if (enter <= 0 || leave >= 1) continue;
+      var wave = Math.floor(cast / sourceCount),
+        index = cast % sourceCount,
+        flank = index >= 6,
+        x = flank ? (wave % 2 ? 27 : 213) : 25 + index * 38,
+        y = flank
+          ? 108 + (index - 6) * 43
+          : 42 + Math.sin(index * 1.7 + wave * 1.1) * 17,
+        color =
+          id === "russia" ? (wave % 2 ? RED : BLUE) : wave % 2 ? LILAC : CYAN;
+      out.push({
+        id: id + ":" + cast,
+        generation: wave,
+        cast: cast,
+        x: x,
+        y: y - (1 - enter) * (1 - enter) * 10 - leave * leave * 8,
+        color: color,
+        kind: "doll",
+        deployed: true,
+        opacity: enter * (1 - leave),
+        scale: 0.8 + enter * 0.2,
+      });
+    }
+    return out;
+  }
   function emitters(s) {
     var id = s.enemySpell.id,
       t = age(s),
       b = s.boss,
       out = [];
     function doll(x, y, color) {
-      out.push({ x: x, y: y, color: color, kind: "doll" });
+      out.push({
+        id: id + ":orbit:" + out.length,
+        x: x,
+        y: y,
+        color: color,
+        kind: "doll",
+      });
     }
     if (id === "holland" || id === "russia") {
-      // Dutch dolls form a staggered upper rank, not an orbit around Alice.
-      // Russia retains that rank and adds a flank; it is not two flank trains.
-      var sourceCount = id === "russia" ? 9 : 6;
-      var cast = Math.floor((s.enemySpell.aliceCastTick || 0) / 2);
-      var wave = Math.floor(cast / sourceCount);
-      var color =
-        id === "russia" ? (wave % 2 ? RED : BLUE) : wave % 2 ? LILAC : CYAN;
-      for (var i = 0; i < 6; i++) {
-        doll(25 + i * 38, 42 + Math.sin(i * 1.7 + wave * 1.1) * 17, color);
-      }
-      if (id === "russia") {
-        var sideX = wave % 2 ? 27 : 213;
-        for (var row = 0; row < 3; row++) doll(sideX, 108 + row * 43, color);
-      }
-      return out;
+      return packetDolls(s);
     }
     var count = id === "london" ? 7 : id === "shanghai" ? 4 : 6;
     var radius = id === "tibet" ? 39 : 34;
+    // London/Tibet open out and gather again between colour pairs. This is
+    // motion of the same ring, not an extra set of invisible firing centres.
+    if (id === "london" || id === "tibet") {
+      var opening = (1 - Math.cos((Math.max(0, beatClock(s)) * TAU) / 10)) / 2;
+      radius = (id === "tibet" ? 29 : 26) + opening * 20;
+    }
     for (var d = 0; d < count; d++) {
       var angle =
         (d * TAU) / count -
@@ -64,7 +117,9 @@
   }
 
   function emit(s, tick, api, level) {
-    s.enemySpell.aliceCastTick = tick;
+    s.enemySpell.aliceClockTick = tick;
+    s.enemySpell.aliceClockAge = s.enemySpell.age || 0;
+    s.enemySpell.aliceClockBeat = (s.rhythm && s.rhythm.beatDuration) || 0.5;
     var id = s.enemySpell.id,
       b = s.boss,
       sources = emitters(s);
@@ -125,11 +180,13 @@
     if (id === "holland" || id === "russia") {
       if (tick % 2 !== 0) return;
       var cast = Math.floor(tick / 2),
-        index = cast % sources.length;
+        d = sources.find(function (source) {
+          return source.cast === cast;
+        });
+      if (!d || d.opacity <= 0) return;
       // Successive dolls cast a fixed right-facing wheel. A wheel consists of
       // compact six-grain packets, with open sectors between the spokes.
-      var d = sources[index],
-        rays = id === "holland" ? 7 : 6;
+      var rays = id === "holland" ? 7 : 6;
       var color = d.color;
       for (var ray = 0; ray < rays; ray++) {
         var a = (ray * TAU) / rays;

@@ -18,8 +18,46 @@
     return n - Math.floor(n);
   }
 
-  // The Extra stones form a fixed five-point bank. They do not orbit Patchouli.
+  function flareGeneration(number) {
+    return {
+      generation: number,
+      ageBeats: 0,
+      radius: 6,
+      rotation: -Math.PI / 2 + number * 0.24,
+      shotBeats: 0,
+    };
+  }
+
+  function flareSources(s) {
+    var state = s.enemySpell.patchouli;
+    var flare = state && state.flare;
+    if (!flare) return [];
+    var sources = [];
+    flare.generations.forEach(function (group) {
+      var opacity = Math.min(1, 0.3 + group.ageBeats / 0.75);
+      if (group.ageBeats > 13.5) opacity = (14 - group.ageBeats) / 0.5;
+      for (var i = 0; i < 3; i++) {
+        var angle = group.rotation + (i * TAU) / 3;
+        sources.push({
+          id: "flare-" + group.generation + "-" + i,
+          generation: group.generation,
+          x: 120 + Math.cos(angle) * group.radius,
+          y: 174 + Math.sin(angle) * group.radius,
+          angle: angle,
+          color: colours.fire,
+          kind: "flare",
+          deployed: true,
+          opacity: Math.max(0, opacity),
+          scale: 0.9,
+        });
+      }
+    });
+    return sources;
+  }
+
   function emitters(s) {
+    if (s.enemySpell.id === "flare") return flareSources(s);
+    // The Extra stones form a fixed five-point bank. They do not orbit Patchouli.
     if (s.enemySpell.id !== "philosopher") return [];
     var b = s.boss;
     return [
@@ -276,31 +314,14 @@
     }
 
     if (id === "flare") {
-      // Royal Flare's red beads describe offset expanding loops. A velocity
-      // circle with a moving centre makes the broad lobes and crossing seams;
-      // ordinary equal-speed concentric rings lose those distinctive pockets.
-      if (tick % 4) return;
-      var loop = tick / 4;
-      var direction = Math.PI / 2 + Math.sin(loop * 0.62) * 0.65;
-      n = 28 + Math.floor(round / 3) * 2;
-      for (j = 0; j < 2; j++) {
-        var centreAngle = direction + (j ? 0.47 : -0.47);
-        var cx = Math.cos(centreAngle) * speed * 0.9;
-        var cy = Math.sin(centreAngle) * speed * 0.9;
-        for (i = 0; i < n; i++) {
-          a = (i * TAU) / n + loop * 0.084 + j * 0.09;
-          var vx = cx + Math.cos(a) * speed * 0.31;
-          var vy = cy + Math.sin(a) * speed * 0.31;
-          api.bullet(
-            b.x,
-            b.y,
-            Math.atan2(vy, vx),
-            Math.hypot(vx, vy),
-            colours.fire,
-            "orb",
-            { turn: j ? -0.036 : 0.036, decay: 0.35 }
-          );
-        }
+      // Royal Flare has three moving red heads, not complete rings emitted by
+      // the boss. The continuous hook leaves beads at their actual positions.
+      if (!state.flare) {
+        state.flare = {
+          spawnBeats: 0,
+          nextGeneration: 1,
+          generations: [flareGeneration(0)],
+        };
       }
       return;
     }
@@ -408,5 +429,53 @@
     }
   }
 
-  return { emitters: emitters, emit: emit, bossPosition: bossPosition };
+  function update(s, dt, api, level) {
+    if (s.enemySpell.id !== "flare") return;
+    var state = s.enemySpell.patchouli;
+    var flare = state && state.flare;
+    if (!flare || dt <= 0) return;
+    var beatStep = dt / Math.max(0.12, s.rhythm.beatDuration);
+    var radialSpeed = level.speed * 0.36;
+    flare.spawnBeats += beatStep;
+    if (flare.spawnBeats >= 10) {
+      flare.spawnBeats %= 10;
+      flare.generations.push(flareGeneration(flare.nextGeneration++));
+    }
+    flare.generations.forEach(function (group) {
+      group.ageBeats += beatStep;
+      group.radius += radialSpeed * dt;
+      group.rotation += beatStep * 0.48;
+      group.shotBeats += beatStep;
+    });
+    flare.generations = flare.generations.filter(function (group) {
+      return group.ageBeats < 14;
+    });
+    // Integrate musical time instead of dividing total age by a changing tempo.
+    // Only the current step can fire: a paused/cleared field never catches up a
+    // backlog of beads at one point. Fading heads retire before they turn dark.
+    var sources = flareSources(s);
+    flare.generations.forEach(function (group) {
+      if (group.shotBeats < 0.125) return;
+      group.shotBeats %= 0.125;
+      if (group.ageBeats < 0.75 || group.ageBeats >= 13.5) return;
+      sources.forEach(function (source) {
+        if (source.generation !== group.generation) return;
+        api.bullet(
+          source.x,
+          source.y,
+          source.angle + Math.PI,
+          radialSpeed * 1.6,
+          colours.fire,
+          "orb"
+        );
+      });
+    });
+  }
+
+  return {
+    emitters: emitters,
+    emit: emit,
+    bossPosition: bossPosition,
+    update: update,
+  };
 });

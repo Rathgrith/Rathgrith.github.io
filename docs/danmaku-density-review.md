@@ -20,11 +20,11 @@ pixels/second. Pool peak is the maximum observed across all four rounds.
 | Card | Coverage, rounds 1 / 2 / 4 / 7 | Gap, rounds 1 / 2 / 4 / 7 | Speed | Pool peak |
 | --- | --- | --- | --- | --- |
 | alice / france | 67.7 / 66.0 / 67.0 / 73.2% | 210.0 / 216.1 / 213.0 / 183.9 | 56.6 → 70.3 | 551 |
-| alice / london | 70.7 / 69.9 / 73.1 / 73.9% | 90.5 / 97.2 / 98.2 / 101.5 | 51.6 → 64.2 | 566 |
+| alice / london | 70.6 / 69.9 / 72.8 / 74.7% | 93.1 / 96.9 / 100.6 / 97.9 | 51.6 → 64.2 | 571 |
 | alice / holland | 70.0 / 68.1 / 64.2 / 58.6% | 106.2 / 109.5 / 113.8 / 126.0 | 50.8 → 63.0 | 430 |
 | alice / russia | 57.5 / 55.4 / 51.9 / 46.8% | 134.8 / 135.4 / 142.3 / 157.1 | 55.9 → 69.3 | 350 |
 | alice / shanghai | 69.8 / 69.3 / 72.9 / 74.3% | 96.5 / 97.5 / 93.7 / 98.4 | 43.8 → 52.8 | 586 |
-| alice / tibet | 67.7 / 67.0 / 68.6 / 71.6% | 68.4 / 66.9 / 63.3 / 60.5 | 60.1 → 74.5 | 401 |
+| alice / tibet | 68.5 / 67.5 / 70.2 / 72.1% | 69.8 / 72.2 / 64.0 / 61.9 | 60.1 → 74.5 | 405 |
 | marisa / stardust | 73.1 / 71.7 / 71.1 / 67.2% | 80.7 / 82.6 / 83.5 / 88.1 | 23.7 → 27.2 | 563 |
 | marisa / milky | 82.0 / 81.3 / 80.2 / 78.3% | 69.3 / 68.1 / 67.3 / 67.5 | 46.0 → 57.0 | 362 |
 | marisa / asteroid | 93.2 / 92.8 / 92.7 / 91.7% | 28.9 / 29.8 / 30.2 / 31.8 | 56.4 → 68.4 | 456 |
@@ -35,7 +35,7 @@ pixels/second. Pool peak is the maximum observed across all four rounds.
 | patchouli / undine | 64.5 / 64.3 / 63.9 / 62.8% | 87.3 / 84.9 / 79.7 / 74.2 | 42.7 → 51.8 | 233 |
 | patchouli / trilithon | 71.5 / 71.1 / 73.6 / 77.7% | 77.9 / 77.5 / 73.8 / 61.3 | 63.0 → 77.9 | 302 |
 | patchouli / sylphy | 81.0 / 80.4 / 83.8 / 86.6% | 72.4 / 73.3 / 63.8 / 55.1 | 64.7 → 79.6 | 300 |
-| patchouli / flare | 78.7 / 77.4 / 75.9 / 73.5% | 66.4 / 67.3 / 70.0 / 76.0 | 77.4 → 95.9 | 290 |
+| patchouli / flare | 67.8 / 67.3 / 65.9 / 63.9% | 131.9 / 129.3 / 122.6 / 119.7 | 51.1 → 63.3 | 462 |
 | patchouli / philosopher | 84.6 / 84.3 / 83.6 / 82.8% | 43.0 / 44.1 / 48.8 / 57.6 | 70.2 → 86.2 | 419 |
 
 The final source-layer revision passes `tests/danmaku-density.cjs` across all
@@ -71,6 +71,24 @@ replaced; it still meets the same density, speed, clearance and pool criteria.
 Its mean comfort gap is now 72.4 / 73.3 / 63.8 / 55.1px, while its smallest
 physical-gap probe is 64px. The separate stationary-target regression covers
 the formerly safe lower-right corner.
+
+The source-lifecycle revision was remeasured over complete tracks at all four
+cycles. London and Tibet now expand and contract their existing doll rings;
+their updated rows above include that moving source geometry. Holland and
+Russia summon successive visible dolls and retire the previous generation,
+without changing their packet count or measured density. Their animation
+clock follows the current musical half-beat rather than dividing total spell
+age by a changing beat duration.
+
+Royal Flare now repeatedly summons three moving red cores. Each generation
+lasts fourteen beats and a new generation begins every ten beats, so at most
+six cores coexist. Beads travel inward from the visible cores at 1.6 times
+their outward expansion speed; this produces crossing arcs instead of the
+previous complete rings fired by the boss. Mean lower-field projectile count
+is 230.0 / 219.7 / 201.3 / 177.1, and p90 comfort coverage is
+74.5 / 73.6 / 72.6 / 71.4%. The revised pattern retains sustained pressure
+with larger moving gaps. Its peak pool is 462, below the 720-projectile limit.
+The all-card physical-clearance and extremum summary above remains unchanged.
 
 ## Regression rules
 

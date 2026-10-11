@@ -453,6 +453,12 @@
           state.wave++;
         }
       }
+      if (
+        !state.enemySpell.nonspell &&
+        state.enemySpell.firstPatternTick !== undefined &&
+        state.time >= state.attackReadyAt
+      )
+        patterns.update(state, dt, { bullet: bullet, laser: laser });
     }
     function fire() {
       sound("shot");

@@ -49,11 +49,12 @@ colour changes and emitter positions across successive states:
 ## Adaptation limits
 
 Upper-row heights are deterministically staggered rather than using the original
-spawn RNG. Row/flank formations change once per full cast; source sprites and
-projectile origins share the same formation. Dolls are not destructible in this
-time-attack mode. Source count reductions, radii, speeds and musical timing are
-local choices. France's short white fan and Shanghai's short curl preserve the
-observed intermediate shapes but are not exact original trajectories.
+spawn RNG. Each Dutch/Russian cast now creates a distinct doll; the next batch
+overlaps the retiring previous batch. Source sprites and projectile origins use
+the same current coordinates. Dolls are not destructible in this time-attack
+mode. Source count reductions, radii, speeds and musical timing are local
+choices. France's short white fan and Shanghai's short curl preserve the observed
+intermediate shapes but are not exact original trajectories.
 
 In particular, Shanghai's multi-turn source motion and the precise targeting of
 late London/Tibet rings still need stronger evidence before they can be called
@@ -61,7 +62,43 @@ faithful reproductions. A stationary-player recording alone cannot distinguish
 a fixed-angle ring from an aimed ring with a gap on the player axis. No new
 claim of universal odd-way aim or even-way avoidance is made by this change.
 
-## Checks after the source-layer changes
+## Follow-up: source lifecycle, not just a crowded snapshot
+
+The following timestamps were checked again in continuous playback, with pauses
+across the transitions. This audit changes lifecycle and ring motion, not packet
+counts or shot timing.
+
+| Card                | Additional footage and conclusion                                                                                                                                                                                                                                                 | Change                                                                                                                                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| France / Normal     | MrAmbil 0:43.14 → 0:50.84: six nearby doll sprites remain distinguishable from the outward white split arcs. The formation changes size/position, but these views do not establish a new entity batch or an increasing source count.                                              | No speculative new summons; keep six sources. Exact regrouping remains an approximation.                                                                                                                           |
+| Holland / Normal    | MrAmbil 1:17.04 → 1:21.55 → 1:24.29 → 1:27.04: dolls progressively appear across the field. Fresh lilac firing centres on the left coexist with cyan remnants and dolls on the right. Recolouring and teleporting one entire row loses this overlap.                              | Each successive packet has a new stable source ID. A doll enters before firing, stays through the following cast sequence, then fades away. The following generation arrives before the old one has fully retired. |
+| Russia / Hard-based | Ythundyth **Lunatic** 0:54.93 → 1:00.56: new upper and flank dolls appear while previous blue/red packets and sources are still present. This confirms staggered replacement rather than a simultaneous side swap; it does not establish the exact Hard source lifetime or count. | Same finite per-cast lifecycle as Holland, retaining the compact six-upper/three-flank arrangement and alternating flank colours. No extra shots were added.                                                       |
+| London / Normal     | MrAmbil 2:25.50 → 2:43.88 → 2:52.83, covering later green/blue and yellow/cyan transitions: the ring expands and gathers closer to Alice. The source glows alone do not prove additional simultaneous doll batches.                                                               | Seven persistent identified sources now expand and gather smoothly between colour pairs.                                                                                                                           |
+| Tibet / Hard        | Niko6454 0:05.94 → 0:10.79 → 0:12.87 → 0:19.06: compact coloured firing circles alternate with visibly wider arrangements in the next cycle. Old coloured scales must not be counted as dolls.                                                                                    | Six persistent identified sources now expand and gather smoothly; no invented additional ring was stacked on top.                                                                                                  |
+| Shanghai / Normal   | MrAmbil 3:08.32 → 3:12.61 → 3:17.46: four inner ribbon origins persist across repeated casts; the nine large purple bubbles travel outward as projectiles. No additional independent source family was established.                                                               | Retain four dolls and the already restored boss layers. Bubbles never become emitters.                                                                                                                             |
+
+The Holland/Russia implementation uses `id`, `generation` and `cast` to identify
+each summon. It begins entering 0.8 beat before its shot, is fully visible at
+that shot, and retires over 0.7 beat after roughly one batch. These durations and
+the short entry/exit displacement are compact-field animation choices, not
+measured PCB frame timings. A finite time window computes the live sources;
+there is no accumulating emitter array and clearing bullets does not reset the
+summon sequence. The renderer receives `deployed: true`, `opacity` and `scale`,
+so it does not replay the spell-opening deployment at a different coordinate.
+
+The clock anchors to the latest actual half-beat callback and interpolates only
+until the next half-beat. It does **not** divide total spell age by the current
+beat duration: that would skip or repeat sources as the music tempo changes.
+London/Tibet use the same continuous beat phase for a bounded 20-pixel radius
+change. Shot counts, colours and callback cadence remain unchanged.
+
+The recordings are low-resolution and the code here is not a decompilation.
+In particular, identity replacement of visually identical orbiting dolls cannot
+be proved by glow overlap. The confirmed missing lifetime behavior is repaired
+for Holland/Russia; the other cards are not claimed to have exact original
+entity scripts.
+
+## Checks after the earlier source-layer changes
 
 The production density harness was run for complete Alice music rounds at
 cycles 0, 1, 3 and 6, with the player fixed at each of x=60/120/180. Damage clears
@@ -77,6 +114,8 @@ pressure/overflow check, not proof that every human route is reachable. An early
 Shanghai draft reached the pool cap; reducing grains within each of its three
 ribbon layers fixed that without removing any source family.
 
-Recursive splits remain attached to the parent bullet: clearing that parent
+These measurements predate the lifecycle/radius follow-up; the shared release
+checks rerun the production music timeline after it. Recursive splits remain
+attached to the parent bullet: clearing that parent
 cancels all future descendants. Later cycles adjust speed and limited ring
 counts without replacing the card's sources with a generic aimed spread.

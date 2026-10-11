@@ -11,10 +11,15 @@ function emission(enemy, id, ticks = 64, offset = 0) {
   for (let tick = 0; tick < ticks; tick++) {
     s.enemySpell.age = 2.2 + tick * 0.2;
     s.boss = patterns.bossPosition(s) || s.boss;
-    patterns.emit(s, tick + offset, {
+    const api = {
       bullet: (...args) => bullets.push(args),
       laser: (...args) => lasers.push(args),
-    });
+    };
+    patterns.emit(s, tick + offset, api);
+    for (let frame = 0; frame < 12; frame++) {
+      s.enemySpell.age = 2.2 + tick * 0.2 + frame / 60;
+      patterns.update(s, 1 / 60, api);
+    }
   }
   return { s, bullets, lasers };
 }

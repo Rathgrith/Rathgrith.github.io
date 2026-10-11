@@ -17,11 +17,11 @@ No original sprites, audio or game-code assets were extracted from these referen
 | Card | Distinguishing structure |
 | --- | --- |
 | France | Six dolls; blue seeds fold into white short arcs, then divide into red scales, 1 → 7 → 49. |
-| London | Seven close dolls; green/blue rice circles, a pause, then yellow/cyan waves. |
-| Holland | Six upper-rank dolls cast successive seven-spoke wheels of compact lilac/cyan six-grain packets. |
-| Russia | Upper-rank and flank doll sources, alternating red/blue formations and six-spoke packet wheels. |
+| London | Seven dolls contract and expand; green/blue rice circles, a pause, then yellow/cyan waves. |
+| Holland | Successive upper-rank dolls enter, cast seven-spoke wheels of compact lilac/cyan six-grain packets and retire individually; adjacent generations overlap. |
+| Russia | Upper-rank and flank dolls refresh individually, alternating red/blue formations and six-spoke packet wheels. |
 | Shanghai | Four dolls cast three-layer gold/ochre ribbons; the boss adds alternating two/four blue rings and nine hollow purple orbs. |
-| Tibet | Six close dolls and slightly bending green/blue/yellow/cyan scales. |
+| Tibet | Six dolls contract and expand while casting slightly bending green/blue/yellow/cyan scales. |
 | Stardust | Seven moving sources draw broad coloured curls; placed stars eventually leave on straight rays. |
 | Milky Way | Five moving options, fixed three-way side streams and nine-way radial red/blue stars. |
 | Asteroid Belt | The related seventeen-way foreground variant with stronger side pressure. |
@@ -32,7 +32,7 @@ No original sprites, audio or game-code assets were extracted from these referen
 | Princess Undine | Three repeated three-way aimed laser pulses and blue small rings, then even ten/two-way water streams during boss movement. |
 | Lazy Trilithon | Yellow rocks decelerate, stop and scatter independently; a separate blue aimed penalty fires only at players above the boss. |
 | Sylphy Horn | Boss needles spread broadly and bend into a steep down-left drift. The straight, shallower right-edge wind extends to the lower field, with a slower entrance for low sources. |
-| Royal Flare | Offset expanding loops of red round beads, visible lobes and crossing seams. |
+| Royal Flare | Recurring trios of moving red cores leave continuous bead chains; new and retiring generations overlap. |
 | Philosopher's Stone | Fixed five-source bank; five rice colours with independent, overlapping movement laws. |
 
 ## Integration
@@ -40,6 +40,8 @@ No original sprites, audio or game-code assets were extracted from these referen
 `danmaku-patterns.js` owns card metadata, unchanged nonspell logic, local attack-clock normalization and shared projectile motion. The three `danmaku-patterns-{alice,marisa,patchouli}.js` modules own spell formations, boss positions and emissions. Both CommonJS tests and the browser load the same modules.
 
 The first allowed musical firing tick becomes local tick zero. A new phrase therefore cannot begin halfway through a laser or colour sequence. Boss movement interpolates between card-specific and nonspell positions; active boss/orbit beams retain their existing position lock. The renderer, collisions and autoplay use the same moving laser geometry.
+
+Recurring sources own stable identities, their entry/retirement opacity and their actual firing positions. Holland/Russia use a half-beat-anchored clock so changes in the recorded music tempo cannot rewind a doll's cast. Royal Flare advances its cores and continuous emissions through a per-frame update hook, gated by the same pause and attack-ready conditions as the engine. These source poses bypass the generic one-time opening deployment animation. Fixed banks such as Philosopher's Stone are not artificially respawned.
 
 Recursive split motion belongs to each child projectile. Clearing a parent removes its future descendants. Earth and metal projectiles have continuous deceleration, a visible rest, then a one-time redirect; stationary rice preserves its last orientation. Broad cupped scales and a dark hollow orb make PCB projectile families legible without enlarging their collision cores.
 
@@ -51,6 +53,7 @@ Later rounds retain characteristic arm counts and add bounded cadence/spacing ch
 
 - `tests/danmaku-spell-design.cjs`: all eighteen structures, arbitrary music-phase offsets, nested split/cancel lifecycle, fixed arm counts, star release, moving lasers, water sequence, stopped rocks and the five-element bank.
 - `tests/danmaku-aiming.cjs`: fixed-versus-aimed layers under moving targets, full-circle Spark luring, water pulse retargeting and movement, conditional upper-field punishment, formation-wide late locking, gradual wind turns, nine lower-right camping probes in rounds 1/7, and actual full-track laser emission counts.
+- `tests/danmaku-emitter-lifecycle.cjs`: recorded-tempo doll casts, bounded source generations, visible emission positions, contracting formations and recurring Royal Flare cores.
 - `tests/danmaku-spell-visuals.cjs`: actual production rendering of every card at 4, 8, 14 and 22 seconds; 72 individual spell frames.
 - `tests/danmaku-density.cjs`: complete recordings at three aim positions, rounds 1, 2, 4 and 7; bounded live pools, sustained lower-field pressure and remaining corridors.
 - `tests/danmaku-score.cjs`, `danmaku-engine.cjs`, `danmaku-nonspells.cjs` and `danmaku-laser-ai.cjs`: timed phases, pressure clears, pickups, all pilots, pause, interludes and laser routes.

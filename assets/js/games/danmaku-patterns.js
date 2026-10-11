@@ -279,6 +279,11 @@
     }
     return true;
   }
+  function update(s, dt, api) {
+    var pattern = spellPatterns[s.enemyId];
+    if (!s.enemySpell.nonspell && pattern.update)
+      pattern.update(s, dt, api, difficulty(s));
+  }
   function emit(s, tick, api) {
     var b = s.boss,
       p = s.player,
@@ -620,6 +625,7 @@
     emitters: emitters,
     bossPosition: bossPosition,
     emit: emit,
+    update: update,
     advanceBullet: advanceBullet,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

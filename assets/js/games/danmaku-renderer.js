@@ -879,7 +879,8 @@
             index,
             reduced ? 0 : t,
             point.scale,
-            e.color
+            e.color,
+            e.kind
           );
           ctx.restore();
         });
