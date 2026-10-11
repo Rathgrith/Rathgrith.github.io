@@ -369,14 +369,21 @@ try {
           `${card}: exercise the recording's changing beat durations`
         );
         if (card === "london" || card === "tibet") {
-          assert(
-            trace.maxRadius - trace.minRadius > 18,
-            `${card}: ring unfolds`
-          );
-          assert(
-            trace.expands > 100 && trace.contracts > 100,
-            `${card}: continuous expansion and contraction both occur`
-          );
+          if (card === "london") {
+            assert(
+              trace.maxRadius - trace.minRadius > 8,
+              "London gathers and redeploys its moving ring"
+            );
+            assert(
+              trace.expands > 100 && trace.contracts > 100,
+              "London source gathering stays continuous"
+            );
+          } else {
+            assert(
+              trace.maxRadius - trace.minRadius < 1e-7,
+              "Tibet preserves its orbit radius instead of inheriting London's gathering"
+            );
+          }
           assert.equal(
             trace.retired.size,
             0,

@@ -52,7 +52,11 @@
           });
         })
     );
-    ready = Promise.all([ready, DanmakuBossSprites.load()]);
+    ready = Promise.all([
+      ready,
+      DanmakuBossSprites.load(),
+      window.DanmakuPlayerSprites && DanmakuPlayerSprites.load(),
+    ]);
     function rect(x, y, w, h, color) {
       ctx.fillStyle = color;
       ctx.fillRect(Math.round(x), Math.round(y), w, h);
@@ -64,6 +68,21 @@
       ctx.stroke();
     }
     function witch(id, x, y, width, rear, pose, time) {
+      if (
+        rear &&
+        window.DanmakuPlayerSprites &&
+        DanmakuPlayerSprites.draw(
+          ctx,
+          id,
+          x,
+          y,
+          time,
+          pose,
+          reduced,
+          (width * 4) / 3
+        )
+      )
+        return;
       var atlas = rear && images[id + "-flight"];
       if (atlas) {
         var col = Math.max(

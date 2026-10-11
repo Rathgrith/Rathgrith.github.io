@@ -37,7 +37,11 @@
         });
       })
     );
-    ready = Promise.all([ready, DanmakuBossSprites.load()]);
+    ready = Promise.all([
+      ready,
+      DanmakuBossSprites.load(),
+      scope.DanmakuPlayerSprites && scope.DanmakuPlayerSprites.load(),
+    ]);
     function dimensions(width, height) {
       compact = width < 480 && width / Math.max(1, height) < 1.25;
       var d = { width: compact ? 348 : 496, height: 412 };
@@ -88,22 +92,22 @@
       ctx.save();
       if (p.invulnerable > 0)
         ctx.globalAlpha = 0.45 + (Math.floor(time * 12) % 2) * 0.5;
-      if (img) {
+      var drawn =
+        scope.DanmakuPlayerSprites &&
+        scope.DanmakuPlayerSprites.draw(
+          ctx,
+          f.id,
+          p.x,
+          p.y,
+          time,
+          p.facing,
+          reduced,
+          32
+        );
+      if (!drawn && img) {
         var col = Math.max(
           0,
-          [
-            "idle",
-            "n",
-            "ne",
-            "e",
-            "se",
-            "s",
-            "sw",
-            "w",
-            "nw",
-            "n",
-            "ne",
-          ].indexOf(p.facing)
+          ["idle", "n", "ne", "e", "se", "s", "sw", "w", "nw"].indexOf(p.facing)
         );
         ctx.drawImage(
           img,
@@ -116,7 +120,7 @@
           30,
           36
         );
-      } else star(p.x, p.y, 10, cast[f.id].color);
+      } else if (!drawn) star(p.x, p.y, 10, cast[f.id].color);
       ctx.restore();
       if (f.focus || f.charging) {
         line(p.x, p.y, 5, "#eef6ff");

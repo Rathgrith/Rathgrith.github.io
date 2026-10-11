@@ -29,6 +29,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       "scroll",
       "engine",
       "boss-sprites",
+      "player-sprites",
       "renderer",
     ])
       await p.addScriptTag({
