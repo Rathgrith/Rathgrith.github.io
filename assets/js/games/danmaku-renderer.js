@@ -239,16 +239,33 @@
         block(0, -4, 1, 5, "#fff9ec");
         block(-1, 3, 2, 1, "#e9e3d2");
       } else if (shape === "scale") {
+        // Broad, white-centred scale with a cupped trailing edge (PCB), rather
+        // than a tiny triangular arrow that disappears inside dense necklaces.
         polygon(
           [
-            [0, -5],
+            [0, -4],
+            [2, -3],
+            [4, 0],
             [4, 3],
+            [2, 3],
             [0, 1],
+            [-2, 3],
             [-4, 3],
+            [-4, 0],
+            [-2, -3],
           ],
           color
         );
-        block(-1, -1, 2, 2, "#fff8e9");
+        paint.fillStyle = "#fff8e9";
+        paint.beginPath();
+        paint.moveTo(0, -2);
+        paint.lineTo(2, 0);
+        paint.lineTo(2, 1);
+        paint.lineTo(0, 0);
+        paint.lineTo(-2, 1);
+        paint.lineTo(-2, 0);
+        paint.closePath();
+        paint.fill();
       } else if (shape === "amulet") {
         block(-4, -6, 8, 12, "#1d2034");
         block(-3, -5, 6, 10, color);
@@ -284,6 +301,23 @@
         block(-1, -3, 2, 6, "#fff3ea");
         block(-4, -2, 2, 2, "#f8e4f5");
         block(3, -2, 2, 2, "#f8e4f5");
+      } else if (shape === "darkorb") {
+        // PCB's large hollow orb has a small bright collision core. Keep its
+        // dark translucent body distinct from the small water bullets.
+        paint.beginPath();
+        paint.arc(0, 0, 10, 0, Math.PI * 2);
+        paint.fillStyle = "#241435dd";
+        paint.fill();
+        paint.strokeStyle = color;
+        paint.lineWidth = 2;
+        paint.stroke();
+        paint.beginPath();
+        paint.arc(0, 0, 8, 0, Math.PI * 2);
+        paint.strokeStyle = "#f1d5ffb0";
+        paint.lineWidth = 1;
+        paint.stroke();
+        block(-2, -2, 4, 4, "#f8e7ff");
+        block(-1, -1, 2, 2, "#ffffff");
       } else if (shape === "bubble") {
         paint.beginPath();
         paint.arc(0, 0, 6, 0, Math.PI * 2);
@@ -845,7 +879,8 @@
             index,
             reduced ? 0 : t,
             point.scale,
-            e.color
+            e.color,
+            e.kind
           );
           ctx.restore();
         });
@@ -974,14 +1009,18 @@
             "amulet",
             "butterfly",
             "bubble",
+            "darkorb",
             "flame",
             "pellet",
           ].indexOf(b.shape) >= 0
         ) {
           ctx.save();
           ctx.translate(x, y);
-          if (["bubble", "pellet"].indexOf(b.shape) < 0)
-            ctx.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
+          if (["bubble", "darkorb", "pellet"].indexOf(b.shape) < 0)
+            ctx.rotate(
+              (b.heading === undefined ? Math.atan2(b.vy, b.vx) : b.heading) +
+                Math.PI / 2
+            );
           ctx.drawImage(bulletSprite(b.shape, b.color), -12, -12);
           ctx.restore();
         } else if (b.shape === "diamond") {

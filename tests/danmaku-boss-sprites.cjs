@@ -64,6 +64,34 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       const still = DanmakuBossSprites.deploy(boss, emitter, 0, 4, true);
       if (still.x !== emitter.x || still.y !== emitter.y)
         throw Error("reduced motion skips deployment");
+      const recurring = {
+        x: 39,
+        y: 42,
+        deployed: true,
+        opacity: 0.4,
+        scale: 0.8,
+      };
+      for (const reduced of [false, true]) {
+        const pose = DanmakuBossSprites.deploy(boss, recurring, 18, 9, reduced);
+        if (
+          pose.x !== recurring.x ||
+          pose.y !== recurring.y ||
+          pose.opacity !== 0.4 ||
+          pose.scale !== 0.8 ||
+          pose.progress !== 1
+        )
+          throw Error("a recurring source must keep its actual firing pose");
+      }
+      if (
+        DanmakuBossSprites.deploy(
+          boss,
+          { ...recurring, opacity: 0 },
+          18,
+          9,
+          false
+        ).opacity !== 0
+      )
+        throw Error("zero-opacity retirement must not reveal a stale source");
       return results;
     });
     results.forEach((r) => assert(r.unique >= 7, JSON.stringify(r)));

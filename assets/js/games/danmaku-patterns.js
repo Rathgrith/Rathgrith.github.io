@@ -1,6 +1,20 @@
 /* Recognizable spell motifs, adapted for the 240×360 score-attack arena. */
 (function (scope) {
   "use strict";
+  var spellPatterns = {
+    alice:
+      typeof module !== "undefined" && module.exports
+        ? require("./danmaku-patterns-alice.js")
+        : scope.DanmakuAlicePatterns,
+    marisa:
+      typeof module !== "undefined" && module.exports
+        ? require("./danmaku-patterns-marisa.js")
+        : scope.DanmakuMarisaPatterns,
+    patchouli:
+      typeof module !== "undefined" && module.exports
+        ? require("./danmaku-patterns-patchouli.js")
+        : scope.DanmakuPatchouliPatterns,
+  };
   var TAU = Math.PI * 2;
   var cards = {
     alice: [
@@ -48,28 +62,6 @@
     trilithon: "石柱の回廊",
     flare: "陽光の環",
     philosopher: "五色の調律",
-  };
-  // Per-pattern tuning from lower-arena coverage, not nominal projectile counts.
-  // Aimed walls, radial rings and lasers put very different pressure on that area.
-  var counts = {
-    france: 1,
-    london: 0.96,
-    holland: 1,
-    russia: 1,
-    shanghai: 1,
-    tibet: 1,
-    stardust: 1,
-    milky: 0.7,
-    asteroid: 0.7,
-    nondirectional: 1.25,
-    master: 1.2,
-    finalspark: 1.4,
-    agni: 0.8,
-    undine: 0.9,
-    sylphy: 0.7,
-    trilithon: 1,
-    flare: 1,
-    philosopher: 1,
   };
   function difficulty(s) {
     var stage = Math.max(
@@ -182,113 +174,35 @@
   // this function so a volley always begins at the sprite that produced it.
   function emitters(s) {
     if (s.enemySpell.nonspell) return interludeEmitters(s);
-    var id = s.enemySpell.id,
-      b = s.boss,
-      t = s.enemySpell.age || 0,
-      list = [];
-    function source(x, y, color, kind, glyph) {
-      list.push({ x: x, y: y, color: color, kind: kind, glyph: glyph });
-    }
-    if (s.enemyId === "alice") {
-      var n = id === "france" ? 4 : id === "shanghai" ? 4 : 6;
-      for (var i = 0; i < n; i++) {
-        var x,
-          y,
-          a = (i * TAU) / n;
-        if (id === "france") {
-          x = 36 + i * 56;
-          y = 48 + (i % 2) * 20;
-        } else if (id === "london") {
-          x = 30 + (i % 3) * 90 + Math.sin(t * 0.65 + i) * 10;
-          y = 45 + Math.floor(i / 3) * 50;
-        } else if (id === "holland") {
-          x = 202 - (i % 3) * 20;
-          y = 40 + Math.floor(i / 3) * 50 + (i % 3) * 9;
-        } else if (id === "russia") {
-          x = i < 3 ? 28 : 212;
-          y = 40 + (i % 3) * 25;
-        } else if (id === "shanghai") {
-          x = 36 + i * 56;
-          y = 55 + Math.sin(t * 0.5 + i) * 20;
-        } else {
-          a += t * 0.42;
-          x = 120 + Math.cos(a) * 78;
-          y = 80 + Math.sin(a) * 45;
-        }
-        source(x, y, i < n / 2 ? "#93c8fa" : "#f0a2b9", "doll");
-      }
-    } else if (s.enemyId === "marisa") {
-      if (id === "stardust")
-        for (var i = 0; i < 5; i++) {
-          var a = (i * TAU) / 5 + t * 0.65;
-          source(
-            120 + Math.cos(a) * 78,
-            78 + Math.sin(a) * 42,
-            elements[i],
-            "familiar"
-          );
-        }
-      else if (id === "milky" || id === "asteroid")
-        for (var i = 0; i < 4; i++) {
-          var side = i < 2 ? -1 : 1;
-          source(
-            120 + side * (66 + (i % 2) * 22),
-            48 + (i % 2) * 42 + Math.sin(t * 0.5 + i) * 7,
-            elements[i],
-            "familiar"
-          );
-        }
-      else if (id === "nondirectional")
-        for (var i = 0; i < 4; i++) {
-          var a = (i * TAU) / 4 + t * 0.32;
-          source(
-            b.x + Math.cos(a) * 48,
-            b.y + Math.sin(a) * 35,
-            elements[i],
-            "familiar"
-          );
-        }
-      else source(b.x, b.y + 15, "#f6e4a5", "familiar");
-    } else if (id === "philosopher")
-      for (var i = 0; i < 5; i++) {
-        var a = (i * TAU) / 5 + t * 0.22;
-        source(
-          b.x + Math.cos(a) * 46,
-          b.y + Math.sin(a) * 30,
-          elements[i],
-          "element",
-          ["火", "水", "木", "金", "土"][i]
-        );
-      }
-    else if (id === "undine") {
-      source(53, 67, "#8cdcf6", "water");
-      source(187, 67, "#b4b3f0", "water");
-    } else if (id === "agni" || id === "sylphy") {
-      source(
-        30,
-        60,
-        id === "agni" ? "#f5a084" : "#b3df97",
-        "element",
-        id === "agni" ? "火" : "木"
-      );
-      source(
-        210,
-        60,
-        id === "agni" ? "#ef839c" : "#92dfc5",
-        "element",
-        id === "agni" ? "火" : "木"
-      );
-    } else if (id === "trilithon")
-      for (var i = 0; i < 3; i++)
-        source(40 + i * 80, 50, "#f4d883", "element", "土");
-    return list;
+    return spellPatterns[s.enemyId].emitters(s);
+  }
+  function bossPosition(s) {
+    var pattern = spellPatterns[s.enemyId];
+    return !s.enemySpell.nonspell && pattern.bossPosition
+      ? pattern.bossPosition(s)
+      : null;
   }
   // Motion changes are one-shot, deterministic and independent of frame rate.
   // A cleared parent can never produce invisible delayed children afterwards.
-  function advanceBullet(b, dt, spawn) {
+  function advanceBullet(b, dt, spawn, target) {
     b.age = (b.age || 0) + dt;
+    if (Math.hypot(b.vx, b.vy) > 0.001) b.heading = Math.atan2(b.vy, b.vx);
     var m = b.motion || {},
-      change = m.redirect;
+      change = m.redirect,
+      ramp = m.decelerate;
+    if (ramp && !b.rampComplete && b.age >= ramp.from) {
+      if (b.rampStartSpeed === undefined)
+        b.rampStartSpeed = Math.hypot(b.vx, b.vy);
+      var progress = Math.min(
+          1,
+          (b.age - ramp.from) / Math.max(0.001, ramp.to - ramp.from)
+        ),
+        heading = Math.atan2(b.vy, b.vx),
+        speed = b.rampStartSpeed + (ramp.speed - b.rampStartSpeed) * progress;
+      b.vx = Math.cos(heading) * speed;
+      b.vy = Math.sin(heading) * speed;
+      b.rampComplete = progress >= 1;
+    }
     if (
       change &&
       !b.redirected &&
@@ -296,10 +210,38 @@
     ) {
       var a = change.angle,
         v = change.speed;
-      b.vx = Math.cos(a) * v;
-      b.vy = Math.sin(a) * v;
+      // A formation can expand first, then aim as one body. Share this small
+      // latch across its bullets: sample once at the turn, never home each grain.
+      if (change.aim && target) {
+        if (change.aim.angle === undefined)
+          change.aim.angle = Math.atan2(
+            target.y - change.aim.y,
+            target.x - change.aim.x
+          );
+        a = change.aim.angle;
+      }
+      if (change.duration) {
+        b.redirectStart = change.y !== undefined ? b.age : change.at;
+        b.redirectHeading = b.heading || 0;
+        b.redirectSpeed = Math.hypot(b.vx, b.vy);
+        b.redirectTarget = a;
+      } else {
+        b.vx = Math.cos(a) * v;
+        b.vy = Math.sin(a) * v;
+      }
       b.curve = 0;
       b.redirected = true;
+    }
+    if (b.redirected && change.duration && !b.redirectComplete) {
+      var progress = Math.min(1, (b.age - b.redirectStart) / change.duration),
+        ease = progress * progress * (3 - 2 * progress),
+        delta = b.redirectTarget - b.redirectHeading,
+        arc = Math.atan2(Math.sin(delta), Math.cos(delta)),
+        a = b.redirectHeading + arc * ease,
+        v = b.redirectSpeed + (change.speed - b.redirectSpeed) * ease;
+      b.vx = Math.cos(a) * v;
+      b.vy = Math.sin(a) * v;
+      b.redirectComplete = progress >= 1;
     }
     if (m.release && !b.released && b.age >= m.release.at) {
       var a =
@@ -317,11 +259,12 @@
       b.vy = vx * Math.sin(a) + b.vy * Math.cos(a);
       if (b.curveDecay) b.curve *= Math.exp(-b.curveDecay * dt);
     }
+    if (Math.hypot(b.vx, b.vy) > 0.001) b.heading = Math.atan2(b.vy, b.vx);
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     if (m.split && b.age >= m.split.at) {
       var split = m.split,
-        base = Math.atan2(b.vy, b.vx);
+        base = Math.atan2(b.vy, b.vx) + (split.angleOffset || 0);
       for (var i = 0; i < split.count; i++)
         spawn(
           b.x,
@@ -329,11 +272,17 @@
           base + (i - (split.count - 1) / 2) * split.spread,
           split.speed,
           split.color || b.color,
-          split.shape || b.shape
+          split.shape || b.shape,
+          split.motion
         );
       return false;
     }
     return true;
+  }
+  function update(s, dt, api) {
+    var pattern = spellPatterns[s.enemyId];
+    if (!s.enemySpell.nonspell && pattern.update)
+      pattern.update(s, dt, api, difficulty(s));
   }
   function emit(s, tick, api) {
     var b = s.boss,
@@ -375,16 +324,7 @@
     }
     function fan(x, y, a, n, spread, v, color, shape, curve) {
       var original = n;
-      n = Math.max(
-        3,
-        Math.round(
-          n *
-            (s.enemySpell.nonspell ? 1 : counts[id]) *
-            (1 + level.cycle * 0.04)
-        )
-      );
-      if (id === "master" && !s.enemySpell.nonspell)
-        n = Math.min(14 + Math.floor(level.cycle / 5), n);
+      n = Math.max(3, Math.round(n * (1 + level.cycle * 0.04)));
       spread *= (original - 1) / (n - 1);
       for (var j = 0; j < n; j++)
         api.bullet(
@@ -398,18 +338,7 @@
         );
     }
     function ring(x, y, n, a, v, color, shape, curve, gap) {
-      if (id === "asteroid" && !s.enemySpell.nonspell)
-        n *= 1 - level.cycle * 0.02;
-      if (id === "london" && !s.enemySpell.nonspell)
-        n *= (1 + level.cycle * 0.015) / (1 + level.cycle * 0.04);
-      n = Math.max(
-        6,
-        Math.round(
-          n *
-            (s.enemySpell.nonspell ? 1 : counts[id]) *
-            (1 + level.cycle * 0.04)
-        )
-      );
+      n = Math.max(6, Math.round(n * (1 + level.cycle * 0.04)));
       for (var j = 0; j < n; j++) {
         var angle = a + (j * TAU) / n;
         if (
@@ -679,469 +608,24 @@
       }
       return;
     }
-    // PCB: splitting scales, clustered doll volleys and linked yellow chains.
-    if (id === "france") {
-      if (local % 8 === 0)
-        sources
-          .filter(function (_, i) {
-            return i % 2 === (beat / 4) % 2;
-          })
-          .forEach(function (d) {
-            fan(
-              d.x,
-              d.y,
-              Math.atan2(p.y - d.y, p.x - d.x),
-              3,
-              0.34,
-              speed * 0.68,
-              "#91cffa",
-              "scale",
-              {
-                split: {
-                  at: 0.85,
-                  count: 5,
-                  spread: 0.18,
-                  speed: speed * 0.9,
-                  shape: "scale",
-                },
-              }
-            );
-          });
-    } else if (id === "london") {
-      if (whole) {
-        var d = sources[beat % 6];
-        // Small concentric rice wreaths leave separate moving pockets of fog.
-        for (var layer = 0; layer < 2; layer++)
-          ring(
-            d.x,
-            d.y,
-            12 + density,
-            beat * 0.23,
-            speed * (0.62 + layer * 0.16),
-            layer ? "#bca8ed" : "#e0d0f3",
-            "rice"
-          );
-      }
-    } else if (id === "holland" || id === "russia") {
-      if (whole) {
-        var d = sources[beat % 6],
-          pack = (id === "russia" ? 6 : 8) + Math.floor(level.cycle / 3);
-        var base =
-          Math.atan2(p.y - d.y, p.x - d.x) +
-          (id === "russia"
-            ? beat % 2
-              ? 0.28
-              : -0.28
-            : Math.sin(beat * 0.2) * (0.5 + level.cycle * 0.015));
-        // Each petal is a tight bundle, not a filled circle. Russia pinches
-        // from both sides; Holland sends a procession from the right.
-        for (var arm = 0; arm < pack; arm++)
-          for (var layer = 0; layer < 3; layer++)
-            api.bullet(
-              d.x,
-              d.y,
-              base +
-                (arm - (pack - 1) / 2) *
-                  0.32 *
-                  ((id === "russia" ? 5 : 7) / (pack - 1)) +
-                (layer - 1) * 0.043,
-              speed * (0.75 + layer * 0.08),
-              id === "russia"
-                ? beat % 6 < 3
-                  ? "#9ccdf9"
-                  : "#f1a2b7"
-                : "#b4dbee",
-              "scale"
-            );
-        if (id === "russia" && local % 4 === 0) {
-          var other = sources[(beat + 3) % 6];
-          fan(
-            other.x,
-            other.y,
-            Math.atan2(p.y - other.y, p.x - other.x),
-            6,
-            0.32,
-            speed * 0.72,
-            "#ddd9f5",
-            "rice"
-          );
-        }
-      }
-    } else if (id === "shanghai") {
-      if (whole)
-        sources
-          .filter(function (_, i) {
-            return i % 2 === beat % 2;
-          })
-          .forEach(function (d, i) {
-            // An offset ring of scales forms a necklace carried down the screen.
-            var direction = Math.atan2(p.y - d.y, p.x - d.x),
-              n = 9 + Math.floor(density / 2);
-            for (var bead = 0; bead < n; bead++) {
-              var a = (bead * TAU) / n + tick * 0.08;
-              api.bullet(
-                d.x,
-                d.y,
-                direction + Math.sin(a) * 0.42,
-                speed * (0.88 + Math.cos(a) * 0.27),
-                "#ffe291",
-                "scale"
-              );
-            }
-          });
-    } else if (id === "tibet") {
-      if (whole)
-        sources
-          .filter(function (_, i) {
-            return i % 2 === beat % 2;
-          })
-          .forEach(function (d, i) {
-            var n = 16 + Math.floor(density / 2),
-              a = beat * 0.13 + i * 0.4;
-            ring(
-              d.x,
-              d.y,
-              n,
-              a,
-              speed * 0.66,
-              i % 2 ? "#b4e8d0" : "#c8b7f3",
-              "scale",
-              { turn: beat % 2 ? 0.38 : -0.38, decay: 0.6 }
-            );
-          });
-      // IN: laid stars, side currents, orbiting laser familiars and giant beams.
-    } else if (id === "stardust") {
-      if (whole)
-        sources
-          .filter(function (_, i) {
-            return i % 2 === beat % 2;
-          })
-          .forEach(function (d, i) {
-            var arms = 8 + Math.floor(level.cycle / 2);
-            for (var arm = 0; arm < arms; arm++) {
-              var a = (arm * TAU) / arms + beat * 0.21;
-              api.bullet(
-                d.x,
-                d.y,
-                a,
-                15 * (1 + level.cycle * 0.04),
-                d.color,
-                arm % 2 ? "smallstar" : "star",
-                { release: { at: 0.5, speed: speed * 0.9, angle: a } }
-              );
-            }
-          });
-    } else if (id === "milky") {
-      if (local % 4 === 0)
-        sources
-          .filter(function (_, i) {
-            return i % 2 === (beat / 2) % 2;
-          })
-          .forEach(function (d) {
-            fan(
-              d.x,
-              d.y,
-              Math.PI / 2 + (d.x < 120 ? -0.18 : 0.18),
-              3,
-              0.32,
-              speed * 0.92,
-              d.color,
-              "star"
-            );
-          });
-      if (level.cycle >= 2 && local % 8 === 2)
-        sources
-          .filter(function (_, i) {
-            return i % 2 === Math.floor(beat / 4) % 2;
-          })
-          .forEach(function (d) {
-            fan(
-              d.x,
-              d.y,
-              Math.PI / 2 + (d.x < 120 ? -0.18 : 0.18),
-              3,
-              0.32,
-              speed * 0.92,
-              d.color,
-              "star"
-            );
-          });
-      if (local % 4 === 0)
-        ring(b.x, b.y, 18, beat * 0.27, speed * 0.72, "#eab6e4", "bigstar");
-    } else if (id === "asteroid") {
-      if (whole)
-        sources
-          .filter(function (_, i) {
-            return i !== beat % 4;
-          })
-          .forEach(function (d, i) {
-            // Layered belts cross from the two banks instead of a second Milky ring.
-            fan(
-              d.x,
-              d.y,
-              Math.PI / 2 +
-                (d.x < 120 ? -0.42 : 0.42) +
-                Math.sin(beat * 0.18) * 0.22,
-              3,
-              0.22,
-              speed * (0.78 + (i % 2) * 0.26),
-              d.color,
-              "star"
-            );
-          });
-      if (local % 4 === 0)
-        ring(b.x, b.y, 25, -beat * 0.18, speed * 0.82, "#d6bcf2", "bigstar");
-    } else if (id === "nondirectional") {
-      if (local % 8 === 0)
-        sources.forEach(function (d, i) {
-          var outward = Math.atan2(d.y - b.y, d.x - b.x);
-          beam(d.x, d.y, outward, 5, quarter * 3, quarter * 6, d.color, 0, {
-            kind: "orbit",
-            cx: b.x,
-            cy: b.y,
-            rx: 48,
-            ry: 35,
-            phase: (i * TAU) / 4 + (s.enemySpell.age || 0) * 0.32,
-            rate: 0.32,
-          });
-        });
-      if (whole)
-        sources.forEach(function (d) {
-          fan(
-            d.x,
-            d.y,
-            Math.atan2(b.y - d.y, b.x - d.x),
-            5,
-            0.09,
-            speed,
-            d.color,
-            "bigstar"
-          );
-        });
-      if (whole) fan(b.x, b.y, aim, 9, 0.22, speed * 0.92, "#eec5e4", "star");
-    } else if (id === "master") {
-      if (local % 16 === 0)
-        beam(
-          b.x,
-          b.y,
-          s.enemySpell.age < 8 ? Math.PI / 2 : aim,
-          14,
-          quarter * 4,
-          quarter * 5,
-          "#ffe7a5",
-          0,
-          "boss",
-          0.13
-        );
-      if (whole)
-        fan(
-          b.x,
-          b.y,
-          Math.PI / 2 + (beat % 2 ? 0.12 : -0.12),
-          11,
-          0.24,
-          speed * 0.64,
-          elements[beat % 5],
-          "star"
-        );
-    } else if (id === "finalspark") {
-      if (local % 24 === 0) {
-        var turn = Math.floor(tick / 24) % 2 ? 1 : -1;
-        beam(
-          b.x,
-          b.y,
-          Math.max(0.85, Math.min(2.29, aim - turn * 0.22)),
-          18,
-          quarter * 5,
-          quarter * 8,
-          "#d8d9ff",
-          turn * 0.18,
-          "boss",
-          0.18
-        );
-      }
-      if (whole) {
-        fan(
-          b.x,
-          b.y,
-          Math.PI / 2 + Math.sin(beat * 0.14) * 0.2,
-          13,
-          0.24,
-          speed * 0.82,
-          elements[beat % 5],
-          "bigstar"
-        );
-        if (local % 4 === 2)
-          for (var side = -1; side <= 1; side += 2)
-            fan(
-              b.x + side * 24,
-              b.y,
-              Math.PI / 2 + side * 0.7,
-              4,
-              0.16,
-              speed,
-              "#b9ddfb",
-              "smallstar"
-            );
-      }
-      // EoSD: each element has a different motion law, not just a palette.
-    } else if (id === "agni") {
-      if (whole)
-        sources.forEach(function (d, i) {
-          var a =
-            Math.PI / 2 +
-            (i ? -0.38 : 0.38) +
-            Math.sin(beat * 0.38 + i * Math.PI) * 0.32;
-          fan(d.x, d.y, a, 5, 0.16, speed * 0.84, d.color, "flame", {
-            turn: i ? 0.4 : -0.4,
-            decay: 0.9,
-          });
-        });
-    } else if (id === "undine") {
-      if (local % 12 === 0) {
-        var d = sources[Math.floor(beat / 6) % 2];
-        beam(
-          d.x,
-          d.y,
-          Math.atan2(p.y - d.y, p.x - d.x),
-          4,
-          quarter * 4,
-          quarter * 3,
-          d.color,
-          0
-        );
-      }
-      if (whole) {
-        var d = sources[beat % 2];
-        fan(
-          d.x,
-          d.y,
-          Math.atan2(p.y - d.y, p.x - d.x),
-          5,
-          0.3,
-          speed * 0.7,
-          d.color,
-          "bubble"
-        );
-      }
-      if (local % 4 === 0)
-        ring(b.x, b.y, 16, beat * 0.17, speed * 0.55, "#a3d9ed", "pellet");
-    } else if (id === "sylphy") {
-      if (whole) {
-        var side = beat % 2,
-          d = sources[side];
-        for (var row = 0; row < 2; row++)
-          fan(
-            d.x,
-            d.y - row * 8,
-            Math.PI / 2 + (side ? 0.55 : -0.55),
-            9,
-            0.115,
-            speed * (0.8 + row * 0.1),
-            d.color,
-            "scale"
-          );
-      }
-    } else if (id === "trilithon") {
-      if (whole)
-        sources.forEach(function (d, i) {
-          var lanes = 5 + Math.ceil(level.cycle * 0.65);
-          for (var lane = -(lanes - 1) / 2; lane <= (lanes - 1) / 2; lane++) {
-            var a = Math.PI / 2 + lane * 0.07,
-              sign = (beat + i) % 2 ? 1 : -1;
-            api.bullet(
-              d.x + lane * 6,
-              d.y,
-              a,
-              speed * 0.95,
-              i % 2 ? "#d8c0f0" : "#f0d68c",
-              "amulet",
-              {
-                redirect: {
-                  y: 180 + (beat % 3) * 18,
-                  angle: Math.PI / 2 + sign * 0.72,
-                  speed: speed * 0.7,
-                },
-              }
-            );
-          }
-        });
-      if (local % 8 === 4)
-        fan(b.x, b.y, aim, 7, 0.25, speed, "#f1dbaa", "rice");
-    } else if (id === "flare") {
-      if (whole)
-        for (var layer = 0; layer < 2; layer++) {
-          // Fixed counter-curving lattices with stable gaps between their arms.
-          ring(
-            b.x,
-            b.y,
-            30,
-            beat * 0.045 + layer * 0.07,
-            speed * (0.7 + layer * 0.08),
-            layer ? "#ffcf96" : "#ed929b",
-            "pellet",
-            { turn: layer ? 0.18 : -0.18, decay: 0.32 }
-          );
-        }
-    } else if (id === "philosopher") {
-      {
-        var element = tick % 5,
-          d = sources[element],
-          a = Math.atan2(p.y - d.y, p.x - d.x);
-        if (element === 0)
-          for (var layer = 0; layer < 2; layer++)
-            ring(
-              d.x,
-              d.y,
-              28,
-              beat * 0.37 + layer * 0.13,
-              speed * (0.8 + layer * 0.14),
-              d.color,
-              "flame"
-            );
-        if (element === 1)
-          fan(d.x, d.y, a, 13, 0.18, speed * 1.2, d.color, "bubble");
-        if (element === 2)
-          for (var j = 0; j < 22; j++)
-            api.bullet(
-              d.x,
-              d.y,
-              (j * TAU) / 22,
-              speed * 0.6,
-              d.color,
-              "scale",
-              { redirect: { at: 0.95, angle: 2.12, speed: speed * 0.9 } }
-            );
-        if (element === 3)
-          for (var j = 0; j < 19; j++) {
-            var a2 = a + (j - 9) * 0.13;
-            api.bullet(d.x, d.y, a2, speed * 0.68, d.color, "amulet", {
-              redirect: {
-                at: 1.15,
-                angle: a2 + (j % 2 ? 0.5 : -0.5),
-                speed: speed,
-              },
-            });
-          }
-        if (element === 4)
-          for (var j = 0; j < 24; j++)
-            api.bullet(
-              d.x,
-              d.y,
-              (j * TAU) / 24,
-              speed * 0.65,
-              "#e1d4f7",
-              "rice",
-              { redirect: { at: 1.15, angle: a, speed: speed * 1.05 } }
-            );
-      }
-    }
+    // Start each declaration at the beginning of its own choreography, even
+    // when a musical phrase begins between beats in the source recording.
+    if (s.enemySpell.firstPatternTick === undefined)
+      s.enemySpell.firstPatternTick = tick;
+    spellPatterns[s.enemyId].emit(
+      s,
+      tick - s.enemySpell.firstPatternTick,
+      api,
+      level
+    );
   }
   var api = {
     cards: cards,
     nonspells: nonspells,
     emitters: emitters,
+    bossPosition: bossPosition,
     emit: emit,
+    update: update,
     advanceBullet: advanceBullet,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

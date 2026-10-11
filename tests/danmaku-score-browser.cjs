@@ -17,7 +17,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.route(base + "score-test", (r) =>
       r.fulfill({
         contentType: "text/html",
-        body: `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"><style>body{margin:20px;background:#111a28;color:#ddd;font:14px 'Fusion Pixel';}#cards{display:grid;grid-template-columns:repeat(3,320px);gap:18px;}figure{margin:0}canvas{width:320px;height:480px}figcaption{height:38px;line-height:18px}#flights{margin-top:28px}#flights img{width:1080px;height:288px;image-rendering:pixelated}header{display:flex;width:1080px;}header span{width:120px;text-align:center}</style><div id="cards"></div><div id="flights"></div><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script>`,
+        body: `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"><style>body{margin:20px;background:#111a28;color:#ddd;font:14px 'Fusion Pixel';}#cards{display:grid;grid-template-columns:repeat(3,320px);gap:18px;}figure{margin:0}canvas{width:320px;height:480px}figcaption{height:38px;line-height:18px}#flights{margin-top:28px}#flights img{width:1080px;height:288px;image-rendering:pixelated}header{display:flex;width:1080px;}header span{width:120px;text-align:center}</style><div id="cards"></div><div id="flights"></div><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns-alice.js"></script><script src="/assets/js/games/danmaku-patterns-marisa.js"></script><script src="/assets/js/games/danmaku-patterns-patchouli.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script>`,
       })
     );
     await page.goto(base + "score-test");
@@ -250,9 +250,19 @@ fs.mkdirSync(out, { recursive: true });
     );
     await p.locator("[data-danmaku-resume]").click();
     assert(
-      await p.locator("[data-danmaku-audio]").evaluate((a) => a.paused),
-      "resume countdown must hold music"
+      await p
+        .locator("[data-danmaku-audio]")
+        .evaluate((a) => a.paused || a.muted || a.volume === 0),
+      "resume countdown must remain silent, including gesture priming"
     );
+    // The trusted resume gesture may briefly prime an inaudible media element.
+    // It must settle paused before the countdown ends, not advance the song.
+    await p.waitForFunction(
+      () => document.querySelector("[data-danmaku-audio]").paused,
+      null,
+      { timeout: 1000 }
+    );
+    assert.equal(await p.evaluate(() => scoreGame.state.time), held.game);
     await aligned();
     await p.evaluate(() => {
       scoreGame.state.time = DanmakuScore.getTrack("marisa").duration - 0.35;

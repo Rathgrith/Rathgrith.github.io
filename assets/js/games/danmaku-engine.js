@@ -284,6 +284,7 @@
         y: y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
+        heading: angle,
         radius:
           {
             star: 3.1,
@@ -294,6 +295,7 @@
             scale: 2.3,
             amulet: 2.7,
             bubble: 4,
+            darkorb: 3.8,
             butterfly: 2.4,
             flame: 3.2,
             pellet: 1.7,
@@ -451,6 +453,12 @@
           state.wave++;
         }
       }
+      if (
+        !state.enemySpell.nonspell &&
+        state.enemySpell.firstPatternTick !== undefined &&
+        state.time >= state.attackReadyAt
+      )
+        patterns.update(state, dt, { bullet: bullet, laser: laser });
     }
     function fire() {
       sound("shot");
@@ -840,8 +848,13 @@
         })
       ) {
         var movementTime = state.time % trackDuration;
-        state.boss.x = W / 2 + Math.sin(movementTime * 0.4) * 36;
-        state.boss.y = 54 + Math.sin(movementTime * 0.7) * 6;
+        var pose = patterns.bossPosition(state) || {
+          x: W / 2 + Math.sin(movementTime * 0.4) * 36,
+          y: 54 + Math.sin(movementTime * 0.7) * 6,
+        };
+        var settle = 1 - Math.exp(-8 * dt);
+        state.boss.x += (pose.x - state.boss.x) * settle;
+        state.boss.y += (pose.y - state.boss.y) * settle;
       }
       state.grazePulse = Math.max(0, state.grazePulse - dt * 3);
       state.grazeTimer = Math.max(0, state.grazeTimer - dt);
@@ -943,9 +956,14 @@
         children = [];
       state.bullets = state.bullets.filter(function (b) {
         if (
-          !patterns.advanceBullet(b, dt, function () {
-            children.push(Array.prototype.slice.call(arguments));
-          })
+          !patterns.advanceBullet(
+            b,
+            dt,
+            function () {
+              children.push(Array.prototype.slice.call(arguments));
+            },
+            state.player
+          )
         ) {
           spark(b.x, b.y, b.color, 2);
           return false;

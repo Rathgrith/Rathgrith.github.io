@@ -88,6 +88,16 @@
     return true;
   }
   function deploy(boss, emitter, age, index, reduced) {
+    // Recurring casts own their entry/retirement positions. Reusing the spell's
+    // opening animation here would detach the visible doll from its shots.
+    if (emitter.deployed)
+      return {
+        x: emitter.x,
+        y: emitter.y,
+        opacity: emitter.opacity === undefined ? 1 : emitter.opacity,
+        scale: emitter.scale === undefined ? 1 : emitter.scale,
+        progress: 1,
+      };
     var t = reduced
       ? 1
       : Math.max(0, Math.min(1, (age - index * 0.065) / 1.05));
@@ -101,11 +111,29 @@
       progress: progress,
     };
   }
-  function satellite(ctx, id, x, y, index, time, scale, color) {
+  function satellite(ctx, id, x, y, index, time, scale, color, kind) {
     ctx.save();
     ctx.translate(Math.round(x), Math.round(y));
     ctx.scale(scale, scale);
-    if (id === "alice") {
+    if (kind === "flare") {
+      // Royal Flare's moving red core is distinct from an elemental stone.
+      var opacity = ctx.globalAlpha,
+        pulse = 0.82 + Math.sin(time * 7 + index) * 0.18;
+      ctx.fillStyle = color || "#ff717a";
+      ctx.globalAlpha = opacity * 0.16 * pulse;
+      ctx.fillRect(-7, -4, 14, 8);
+      ctx.fillRect(-4, -7, 8, 14);
+      ctx.globalAlpha = opacity * 0.5;
+      ctx.fillRect(-4, -3, 8, 6);
+      ctx.fillRect(-3, -4, 6, 8);
+      ctx.globalAlpha = opacity;
+      ctx.fillStyle = "#ffb4b8";
+      ctx.fillRect(-3, -2, 6, 4);
+      ctx.fillRect(-2, -3, 4, 6);
+      ctx.fillStyle = "#fff1db";
+      ctx.fillRect(-1, -2, 2, 4);
+      ctx.fillRect(-2, -1, 4, 2);
+    } else if (id === "alice") {
       // A small Shanghai silhouette: bow, hair, blue skirt and flapping sleeves.
       var flap = Math.floor(time * 7 + index) % 2;
       ctx.fillStyle = "#292337";
