@@ -15,7 +15,7 @@ fs.mkdirSync(out, { recursive: true });
       await page.route(base + "renderer-test", (route) =>
         route.fulfill({
           contentType: "text/html",
-          body: '<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"></head><body><canvas id="field"></canvas><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns-alice.js"></script><script src="/assets/js/games/danmaku-patterns-marisa.js"></script><script src="/assets/js/games/danmaku-patterns-patchouli.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script></body></html>',
+          body: '<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"></head><body><canvas id="field"></canvas><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns-alice.js"></script><script src="/assets/js/games/danmaku-patterns-marisa.js"></script><script src="/assets/js/games/danmaku-patterns-patchouli.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-player-sprites.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script></body></html>',
         })
       );
       await page.goto(base + "renderer-test");
@@ -126,14 +126,13 @@ fs.mkdirSync(out, { recursive: true });
           events.miss = canvas.toDataURL();
           s.eventNotice = null;
           for (const power of [1, 8]) {
-            const shotGame = DanmakuEngine.create(id, "alice", 1977),
+            const shotGame = DanmakuEngine.create(id, id, 1977),
               ss = shotGame.state;
             ss.countdown = 0;
             ss.power = power;
             ss.player.invulnerable = 999;
             for (let f = 0; f < 125; f++)
               shotGame.step(1 / 60, { focus: true });
-            ss.enemyId = id;
             ss.enemySpell.age = 3;
             ss.bullets = [];
             renderer.draw(ss);

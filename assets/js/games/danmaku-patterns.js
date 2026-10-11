@@ -355,17 +355,21 @@
       var n = 4 + Math.floor(density / 3),
         d,
         side;
-      if (id === "france" && local % 4 === 0) {
+      if (id === "france" && (local % 4 === 0 || local % 16 === 6)) {
         sources
           .filter(function (_, i) {
-            return i % 2 === (beat / 2) % 2;
+            return (
+              i % 2 === (Math.floor(beat / 2) + (local % 16 === 6 ? 1 : 0)) % 2
+            );
           })
           .forEach(function (d) {
+            var echo = local % 16 === 6;
             fan(
               d.x,
               d.y,
-              Math.atan2(p.y - d.y, p.x - d.x),
-              n,
+              Math.atan2(p.y - d.y, p.x - d.x) +
+                (echo ? (d.x < b.x ? -0.18 : 0.18) : 0),
+              n + (echo ? 1 : 0),
               0.22,
               speed,
               d.color,
@@ -377,7 +381,7 @@
         ring(
           d.x,
           d.y,
-          12 + Math.floor(density / 2),
+          15 + Math.floor(density / 2),
           beat * 0.2,
           speed * 0.8,
           d.color,
@@ -391,13 +395,13 @@
             d.x,
             d.y,
             (petal * TAU) / 3 + beat * 0.25,
-            3,
+            4,
             0.1,
             speed,
             d.color,
             "scale"
           );
-      } else if (id === "russia" && local % 4 === 0) {
+      } else if (id === "russia" && (local % 4 === 0 || local % 16 === 10)) {
         for (var column = 0; column < 6; column++)
           if (column !== Math.floor(beat / 2) % 6)
             fan(
@@ -423,16 +427,16 @@
             d.color,
             0
           );
-        if (local % 4 === 2)
-          fan(b.x, b.y, aim, n, 0.24, speed, "#e6b1d7", "amulet");
+        if (local % 4 === 2 || local % 16 === 7)
+          fan(b.x, b.y, aim, n + 1, 0.22, speed, "#e6b1d7", "amulet");
       } else if (id === "tibet" && whole) {
         d = sources[beat % sources.length];
         fan(
           d.x,
           d.y,
           Math.PI / 2 + Math.sin(beat * 0.3) * 0.5,
-          n + 1,
-          0.17,
+          n + 4,
+          0.135,
           speed,
           d.color,
           "butterfly",
@@ -444,17 +448,17 @@
             b.x,
             b.y,
             Math.PI / 2 + side * 0.7 + Math.sin(beat * 0.2) * 0.2,
-            3,
+            4,
             0.13,
             speed,
             side ? "#e7bbf0" : "#f8d892",
             "smallstar"
           );
-      } else if (id === "asteroid" && local % 4 === 0) {
+      } else if (id === "asteroid" && (local % 4 === 0 || local % 16 === 10)) {
         ring(
           b.x + (beat % 4 ? -22 : 22),
           b.y,
-          12 + Math.floor(density / 2),
+          (local % 4 === 0 ? 12 : 9) + Math.floor(density / 2),
           beat * 0.17,
           speed * (beat % 4 ? 0.78 : 1),
           "#c7b5ed",
@@ -467,14 +471,14 @@
               b.x + side * 42,
               b.y,
               Math.PI / 2 - side * 0.5,
-              n,
+              n + 1,
               0.13,
               speed,
               side < 0 ? "#ecb2d4" : "#addbf3",
               "smallstar"
             );
         if (local % 8 === 3)
-          fan(b.x, b.y, aim, 3, 0.3, speed * 1.18, "#f5d48c", "star");
+          fan(b.x, b.y, aim, 4, 0.3, speed * 1.18, "#f5d48c", "star");
       } else if (id === "nondirectional") {
         if (local % 16 === 0)
           for (side = -1; side <= 1; side += 2)
@@ -493,7 +497,7 @@
           ring(
             b.x,
             b.y,
-            16 + Math.floor(density / 2),
+            22 + Math.floor(density / 2),
             beat * 0.2,
             speed,
             "#e9b9df",
@@ -501,39 +505,52 @@
           );
       } else if (id === "master") {
         if (local % 4 === 0)
-          fan(b.x, b.y, aim, n, 0.18, speed * 1.15, "#f1d195", "bigstar");
+          fan(b.x, b.y, aim, n + 2, 0.18, speed * 1.15, "#f1d195", "bigstar");
         if (local % 4 === 2)
           for (side = -1; side <= 1; side += 2)
             fan(
               b.x + side * 28,
               b.y,
               Math.PI / 2 + side * 0.4,
-              3,
+              4,
               0.16,
               speed,
               "#b9d7f6",
               "smallstar"
             );
       } else if (id === "finalspark" && whole) {
+        speed *= 1.06;
         for (side = -1; side <= 1; side += 2)
           fan(
             b.x + side * 24,
             b.y,
             Math.PI / 2 + side * 0.6,
-            n,
-            0.12,
+            n + 2,
+            0.1,
             speed,
             side < 0 ? "#f0afc0" : "#b2c5f4",
             "star",
             { turn: -side * 0.5, decay: 1.4 }
           );
-      } else if (id === "agni" && local % 4 === 0) {
-        d = sources[(beat / 2) % 3];
+        if (beat % 4 === 2)
+          fan(
+            b.x,
+            b.y,
+            Math.PI / 2,
+            3,
+            0.2,
+            speed * 1.08,
+            "#f7e4ac",
+            "smallstar"
+          );
+      } else if (id === "agni" && (local % 4 === 0 || local % 16 === 6)) {
+        d = sources[Math.floor(beat / 2) % 3];
         fan(
           d.x,
           d.y,
-          Math.atan2(p.y - d.y, p.x - d.x),
-          n + 2,
+          Math.atan2(p.y - d.y, p.x - d.x) +
+            (local % 16 === 6 ? (d.x < b.x ? 0.14 : -0.14) : 0),
+          n + (local % 16 === 6 || beat % 4 === 0 ? 3 : 2),
           0.18,
           speed,
           "#efa18a",
@@ -545,7 +562,7 @@
           ring(
             d.x,
             d.y,
-            12 + Math.floor(density / 2),
+            15 + Math.floor(density / 2),
             beat * 0.17,
             speed * 0.82,
             d.color,
@@ -553,7 +570,7 @@
           );
         }
         if (local % 8 === 2)
-          fan(b.x, b.y, aim, 3, 0.25, speed, "#c6eafa", "rice");
+          fan(b.x, b.y, aim, 4, 0.25, speed, "#c6eafa", "rice");
       } else if (id === "sylphy" && whole) {
         side = beat % 2;
         d = sources[side];
@@ -561,7 +578,7 @@
           d.x,
           d.y,
           Math.PI / 2 + (side ? 0.65 : -0.65),
-          n,
+          n + 2,
           0.16,
           speed,
           d.color,
@@ -571,10 +588,10 @@
       } else if (id === "trilithon" && local % 4 === 0) {
         for (var column = 0; column < 5; column++)
           if (column !== (beat / 2) % 5)
-            for (var row = 0; row < 2; row++)
+            for (var row = 0; row < (beat % 4 === 0 ? 2 : 3); row++)
               api.bullet(
                 24 + column * 48,
-                48 - row * 12,
+                48 - row * 22,
                 Math.PI / 2,
                 speed * (column % 2 ? 0.8 : 1),
                 "#d9c595",
@@ -584,7 +601,7 @@
         ring(
           b.x,
           b.y,
-          20 + Math.floor(density / 2),
+          26 + Math.floor(density / 2),
           beat * 0.12,
           speed,
           "#f1b794",
@@ -592,14 +609,19 @@
           0,
           Math.PI / 2 + Math.sin(beat * 0.2) * 0.7
         );
-      } else if (id === "philosopher" && local % 4 === 0) {
-        var element = (beat / 2) % 5;
+      } else if (
+        id === "philosopher" &&
+        (local % 4 === 0 || local % 16 === 10)
+      ) {
+        var element = (Math.floor(beat / 2) + (local % 16 === 10 ? 2 : 0)) % 5;
         d = sources[element];
         fan(
           d.x,
           d.y,
-          Math.atan2(p.y - d.y, p.x - d.x) + (element - 2) * 0.1,
-          n + 1,
+          Math.atan2(p.y - d.y, p.x - d.x) +
+            (element - 2) * 0.1 +
+            (local % 16 === 10 ? (element % 2 ? 0.17 : -0.17) : 0),
+          n + (local % 16 === 10 ? 2 : 1),
           0.19,
           speed * (0.8 + element * 0.06),
           d.color,

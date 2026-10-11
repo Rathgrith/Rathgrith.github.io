@@ -13,12 +13,48 @@
   function age(s) {
     return Math.max(0, (s.enemySpell.age || 0) - 2);
   }
+  function ease(value) {
+    var t = Math.max(0, Math.min(1, value));
+    return t * t * (3 - 2 * t);
+  }
+  function londonClock(s) {
+    var rhythm = s.rhythm,
+      first = s.enemySpell.firstPatternTick;
+    // The formation keeps moving during a durability-clear ceasefire. An
+    // emission-anchored clock would freeze and then jump on the next volley.
+    if (first !== undefined && rhythm && Number.isFinite(rhythm.progress))
+      return Math.max(0, rhythm.beat + rhythm.progress - first / 2);
+    return Math.max(0, beatClock(s));
+  }
   function bossPosition(s) {
     var id = s.enemySpell.id,
       t = age(s);
     if (id === "tibet" || id === "shanghai") return { x: 120, y: 77 };
+    if (id === "london") {
+      // Normal's moving centre displaces successive rings. These upper-field
+      // waypoints fit the music arena; they are not recovered PCB coordinates.
+      var clock = londonClock(s),
+        stops = [
+          [120, 70],
+          [78, 86],
+          [162, 64],
+          [96, 92],
+          [160, 76],
+          [80, 62],
+          [136, 90],
+          [110, 72],
+        ],
+        stage = Math.floor(clock / 6),
+        from = stops[stage % stops.length],
+        to = stops[(stage + 1) % stops.length],
+        travel = ease(((clock % 6) - 3) / 2.7);
+      return {
+        x: from[0] + (to[0] - from[0]) * travel,
+        y: from[1] + (to[1] - from[1]) * travel,
+      };
+    }
     return {
-      x: 120 + Math.sin(t * (id === "london" ? 0.42 : 0.28)) * 18,
+      x: 120 + Math.sin(t * 0.28) * 18,
       y: 77 + Math.sin(t * 0.24) * 6,
     };
   }
@@ -96,17 +132,25 @@
     }
     var count = id === "london" ? 7 : id === "shanghai" ? 4 : 6;
     var radius = id === "tibet" ? 39 : 34;
-    // London/Tibet open out and gather again between colour pairs. This is
-    // motion of the same ring, not an extra set of invisible firing centres.
-    if (id === "london" || id === "tibet") {
-      var opening = (1 - Math.cos((Math.max(0, beatClock(s)) * TAU) / 10)) / 2;
-      radius = (id === "tibet" ? 29 : 26) + opening * 20;
+    // London gathers its source ring during relocation. Tibet instead rotates
+    // a near-constant ring around a stationary centre; do not give both cards
+    // the same invented breathing motion. Orbit rates are visual adaptations.
+    if (id === "london") {
+      var local = londonClock(s) % 6;
+      radius = 42 - 18 * ease((local - 3) / 1.6) * (1 - ease(local - 5));
     }
     for (var d = 0; d < count; d++) {
       var angle =
         (d * TAU) / count -
         Math.PI / 2 +
-        t * (id === "shanghai" ? 0.46 : id === "london" ? 0.15 : 0.09);
+        t *
+          (id === "shanghai"
+            ? 0.46
+            : id === "london"
+              ? 0.95
+              : id === "tibet"
+                ? 0.85
+                : 0.09);
       doll(
         b.x + Math.cos(angle) * radius,
         b.y + Math.sin(angle) * radius,
@@ -207,16 +251,16 @@
     }
 
     if (id === "london") {
-      var local = tick % 40;
+      var local = tick % 48;
       var green = local === 0 || local === 4;
-      var blue = local === 8 || local === 12;
-      var yellow = local === 20 || local === 24,
-        cyan = local === 28 || local === 32;
+      var blue = local === 12 || local === 16;
+      var yellow = local === 28 || local === 32,
+        cyan = local === 34 || local === 38;
       if (!green && !blue && !yellow && !cyan) return;
       var color = green ? GREEN : blue ? BLUE : yellow ? YELLOW : CYAN;
       var early = green || blue;
-      var count = (early ? 12 : 16) + extra * 2;
-      var phase = Math.floor(tick / 40) * 0.17 + local * 0.035;
+      var count = (early ? 14 : 18) + extra * 2;
+      var phase = Math.floor(tick / 48) * 0.17 + local * 0.035;
       sources.forEach(function (d, i) {
         // Late yellow/cyan rings share a phase: crossings remain readable.
         var a = early ? phase + i * 0.12 : Math.PI / 2 + i * 0.12;
@@ -235,8 +279,10 @@
 
     if (id === "tibet") {
       var local = tick % 40;
-      if ([0, 4, 8, 12, 20, 24, 28, 32].indexOf(local) < 0) return;
-      var colourIndex = local < 8 ? 0 : local < 20 ? 1 : local < 28 ? 2 : 3;
+      // Hard retains the same colour family, with a tighter yellow/cyan tail.
+      // The volley count and half-beat quantization fit this music-timed mode.
+      if ([0, 4, 10, 14, 24, 26, 28, 30].indexOf(local) < 0) return;
+      var colourIndex = local < 10 ? 0 : local < 24 ? 1 : local < 28 ? 2 : 3;
       var color = [GREEN, BLUE, YELLOW, CYAN][colourIndex];
       var turn = colourIndex % 2 ? -0.25 : 0.25;
       sources.forEach(function (d, i) {

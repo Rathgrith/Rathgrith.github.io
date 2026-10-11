@@ -968,13 +968,10 @@
           spark(b.x, b.y, b.color, 2);
           return false;
         }
-        if (
-          b.age > 12 ||
-          b.x < -28 ||
-          b.x > W + 28 ||
-          b.y < -60 ||
-          b.y > H + 20
-        )
+        // Slow, oblique ribbons can remain visible for more than twelve seconds.
+        // Retire them at the field boundary or through an explicit game event,
+        // not an unrelated lifetime cutoff that erases an intact wave mid-flight.
+        if (b.x < -28 || b.x > W + 28 || b.y < -60 || b.y > H + 20)
           return false;
         var d = distance(b, p);
         if (!p.invulnerable && !hit && d < p.radius + b.radius) {
