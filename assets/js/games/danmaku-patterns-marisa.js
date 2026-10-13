@@ -91,10 +91,13 @@
     var step = quarter / 2;
     var b = s.boss;
     var p = s.player;
-    var cycle = Math.min(6, level.cycle || 0);
+    var cycle = Math.min(
+      6,
+      level.densityTier === undefined ? level.cycle || 0 : level.densityTier
+    );
     // Preserve the original arm counts. Later rounds tighten speed and cadence,
     // rather than silently changing a named spell into a generic dense fan.
-    var rank = 1 + cycle * 0.04;
+    var rank = level.velocityScale || 1 + cycle * 0.04;
     var sources = emitters(s);
     var aim = Math.atan2(p.y - b.y, p.x - b.x);
     var i, j, a, d;

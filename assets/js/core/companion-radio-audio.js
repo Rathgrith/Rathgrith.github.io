@@ -9,7 +9,10 @@
     var disposed = false,
       state = -1,
       request = 0,
-      wanted = false;
+      wanted = false,
+      signal = null,
+      cue = null,
+      cueSeeking = false;
     var events = options.events;
     function emit(value) {
       if (disposed || state === value) return;
@@ -21,8 +24,12 @@
       var token = ++request;
       wanted = true;
       if (audio.paused) emit(3);
-      audio
-        .play()
+      Promise.resolve(signal ? signal.unlock() : false)
+        .then(function (running) {
+          if (disposed || token !== request || !wanted) return;
+          if (running) signal.attach(audio);
+          return audio.play();
+        })
         .then(function () {
           // Some providers settle play after Pause or a mixer handoff. A late
           // completion must never override the newest explicit playback intent.
@@ -45,7 +52,30 @@
         emit(2);
         return;
       }
-      if (!audio.paused) emit(1);
+      if (!audio.paused && cue === null && !cueSeeking && !audio.seeking)
+        emit(1);
+    });
+    audio.addEventListener("loadedmetadata", function () {
+      if (cue === null || disposed) return;
+      // Clamp against the decoded file, rather than trusting catalog duration.
+      var target = Math.max(0, Math.min(cue, Math.max(0, audio.duration - 12)));
+      cue = null;
+      cueSeeking = target > 0.05;
+      if (cueSeeking) audio.currentTime = target;
+    });
+    audio.addEventListener("seeked", function () {
+      cueSeeking = false;
+      if (wanted && !audio.paused && audio.readyState >= 3) emit(1);
+    });
+    audio.addEventListener("canplay", function () {
+      if (
+        wanted &&
+        !audio.paused &&
+        cue === null &&
+        !cueSeeking &&
+        !audio.seeking
+      )
+        emit(1);
     });
     audio.addEventListener("waiting", function () {
       if (!audio.paused) emit(3);
@@ -61,6 +91,12 @@
         events.onError({ target: api, data: audio.error && audio.error.code });
     });
     var api = {
+      getAudioElement: function () {
+        return audio;
+      },
+      setSignal: function (value) {
+        signal = value;
+      },
       getIframe: function () {
         return audio;
       },
@@ -92,7 +128,13 @@
         if (Number.isFinite(audio.duration))
           audio.currentTime = Math.max(0, Math.min(seconds, audio.duration));
       },
-      loadVideoById: function (id) {
+      loadVideoById: function (selection) {
+        var id = typeof selection === "object" ? selection.videoId : selection;
+        cue =
+          typeof selection === "object"
+            ? Number(selection.startSeconds) || 0
+            : 0;
+        cueSeeking = false;
         var track = window.CompanionRadioTracks.find(function (entry) {
           return entry.id === id && entry.src;
         });
@@ -116,6 +158,7 @@
         ++request;
         clearTimeout(readyTimer);
         audio.pause();
+        if (signal) signal.detach();
         audio.removeAttribute("src");
         audio.load();
         audio.remove();

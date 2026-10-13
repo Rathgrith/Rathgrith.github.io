@@ -56,7 +56,7 @@
       '<div class="vn-bgm-deck">' +
       '<button type="button" class="vn-bgm-track" data-radio-open aria-label="ラジオの選局窓を開く"><span class="vn-bgm-label">BGM：</span><span data-bgm-title></span><span class="vn-bgm-type" aria-hidden="true">FM</span></button>' +
       '<button type="button" class="vn-bgm-lyrics" data-radio-lyrics-open title="歌詞の表示・補正"><span class="vn-bgm-lyrics-label">歌詞</span><span data-bgm-lyric>歌詞は未登録</span></button>' +
-      '<div class="vn-radio-dial" aria-hidden="true"><span>76</span><span>80</span><span>84</span><span>88</span><span>92</span><i></i></div>' +
+      '<div class="vn-radio-spectrum"><span aria-hidden="true">SIGNAL</span><canvas data-radio-spectrum width="288" height="12" role="img" aria-label="受信音声の周波数スペクトラム"></canvas><span data-radio-band aria-hidden="true">FM</span></div>' +
       "</div>" +
       '<div class="vn-bgm-transport"><time data-bgm-time aria-hidden="true">0:00</time><input type="range" data-bgm-seek aria-label="再生位置" min="0" max="1000" value="0" disabled></div>' +
       '<div class="vn-bgm-main">' +
@@ -150,15 +150,14 @@
     var player,
       ready = false,
       connecting = false,
-      selected = 0,
+      selected = Math.floor(Math.random() * playlist.length),
       character = "";
     // Both embedded and full-page radio start only from their own playback
     // controls. Battle music has a separate opt-in/default policy and mixer.
     var requested = false,
       opened = false,
       visible = true,
-      game = false,
-      tuned = false;
+      game = false;
     var volume = 0.28,
       muted = false,
       loading = false,
@@ -166,20 +165,27 @@
       needsLoad = true;
     var pendingIntro = false,
       transitionTimer = 0,
-      transitionEpoch = 0,
       connectionTimer = 0,
+      trackTimer = 0,
       epoch = 0;
     var tuneBeforePlay = false,
       tuning = false,
-      tuningSeconds = 1.06;
+      lockTimer = 0;
     var audioConfigured = false,
       desiredVolume = null,
       desiredMute = null,
       audioWriteUntil = 0;
-    var programmaticPause = false,
-      tuningContext,
-      tuningNodes,
-      tuningEpoch = 0;
+    var programmaticPause = false;
+    var signal = window.CompanionRadioSignal.create();
+    var bag = [],
+      history = [];
+    var spectrum = strip.querySelector("[data-radio-spectrum]");
+    var spectrumContext = spectrum.getContext("2d");
+    var spectrumData = new Uint8Array(512),
+      peaks = new Float32Array(32);
+    var spectrumFrame = 0,
+      spectrumTime = 0;
+    var reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     try {
       var stored = localStorage.getItem("site-companion-bgm-volume");
       if (stored !== null && Number.isFinite(Number(stored)))
@@ -192,12 +198,39 @@
       ];
     }
     function nextAvailable(direction) {
-      for (var step = 1; step <= playlist.length; step++) {
-        var index =
-          (selected + direction * step + playlist.length) % playlist.length;
-        if (available(index)) return index;
+      if (direction < 0) {
+        while (history.length) {
+          var previous = history.pop();
+          if (available(previous)) return previous;
+        }
+        return selected;
       }
-      return selected;
+      bag = bag.filter(function (index) {
+        return index !== selected && available(index);
+      });
+      if (!bag.length) {
+        playlist.forEach(function (_, index) {
+          if (index !== selected && available(index)) bag.push(index);
+        });
+        for (var i = bag.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1)),
+            swap = bag[i];
+          bag[i] = bag[j];
+          bag[j] = swap;
+        }
+      }
+      return bag.length ? bag.pop() : selected;
+    }
+    function cueFor(track) {
+      var duration = track.duration || 240;
+      var low = Math.min(25, duration * 0.16);
+      var high = Math.max(low, duration - Math.max(24, duration * 0.15));
+      var candidates = (track.cueStarts || []).filter(function (time) {
+        return Number.isFinite(time) && time >= low && time <= high;
+      });
+      return candidates.length && Math.random() < 0.65
+        ? candidates[Math.floor(Math.random() * candidates.length)]
+        : low + Math.random() * (high - low);
     }
     function unavailableMessage() {
       if (mode === "pv")
@@ -225,6 +258,7 @@
       } catch (_) {}
     }
     function applyAudioSettings() {
+      signal.setVolume(muted ? 0 : volume);
       if (!ready) return;
       desiredVolume = Math.round(volume * 100);
       desiredMute = muted;
@@ -261,7 +295,7 @@
         volume = nativeVolume / 100;
         volumeInput.value = nativeVolume;
         saveVolume();
-        stopTuning();
+        signal.setVolume(muted ? 0 : volume);
       }
       if (
         desiredMute === null &&
@@ -269,133 +303,103 @@
         nativeMute !== muted
       ) {
         muted = nativeMute;
-        stopTuning();
+        signal.setVolume(muted ? 0 : volume);
       }
     }
     function stopTuning() {
-      ++tuningEpoch;
+      clearTimeout(lockTimer);
+      lockTimer = 0;
       tuning = false;
-      if (!tuningNodes) return;
-      var nodes = tuningNodes;
-      tuningNodes = null;
-      try {
-        nodes[0].stop();
-      } catch (_) {}
-      nodes.forEach(function (node) {
-        node.disconnect();
-      });
+      signal.stop();
     }
     function playTuning() {
-      stopTuning();
-      if (!allowed() || muted || !volume) return;
-      var AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      var token = tuningEpoch;
-      var deadline = performance.now() + tuningSeconds * 1000;
+      if (!allowed() || (tuning && !lockTimer)) return;
+      clearTimeout(lockTimer);
+      lockTimer = 0;
       tuning = true;
-      try {
-        if (!tuningContext || tuningContext.state === "closed")
-          tuningContext = new AudioContext();
-        var context = tuningContext;
-        Promise.resolve(context.resume())
-          .then(function () {
-            if (
-              token !== tuningEpoch ||
-              context.state !== "running" ||
-              !allowed() ||
-              muted ||
-              !volume
+      signal.tune(muted ? 0 : volume);
+    }
+    function lockStation() {
+      clearTimeout(trackTimer);
+      trackTimer = 0;
+      tuneBeforePlay = false;
+      if (!tuning) return;
+      signal.lock();
+      clearTimeout(lockTimer);
+      lockTimer = setTimeout(function () {
+        lockTimer = 0;
+        tuning = false;
+        update();
+      }, 1500);
+    }
+    function watchLoading() {
+      if (trackTimer) return;
+      trackTimer = setTimeout(function () {
+        trackTimer = 0;
+        if (allowed() && loading) fail();
+      }, 20000);
+    }
+    function drawSpectrum(time) {
+      spectrumFrame = 0;
+      var active =
+        allowed() &&
+        !muted &&
+        volume > 0 &&
+        (tuning || (ready && player.getPlayerState() === 1));
+      var live = active && signal.frequencies(spectrumData);
+      spectrum.dataset.state = live
+        ? tuning
+          ? "tuning"
+          : "live"
+        : mode === "pv" || active
+          ? "unavailable"
+          : "idle";
+      strip.querySelector("[data-radio-band]").textContent = tuning
+        ? "SCAN"
+        : mode === "pv"
+          ? "PV"
+          : "FM";
+      if (
+        time - spectrumTime >= (reducedMotion.matches ? 125 : 33) ||
+        !active
+      ) {
+        spectrumTime = time;
+        var ctx = spectrumContext,
+          w = spectrum.width,
+          h = spectrum.height;
+        ctx.clearRect(0, 0, w, h);
+        for (var i = 0; i < 32; i++) {
+          var from = Math.max(
+            1,
+            Math.floor(
+              (80 * Math.pow(150, i / 32)) / (signal.sampleRate() / 1024)
             )
-              return;
-            // A slow resume must never spill noise over the next song. The
-            // transport owns this deadline and cancels even a suspended context.
-            var duration = (deadline - performance.now()) / 1000;
-            if (duration < 0.8) return;
-            var source = context.createBufferSource(),
-              filter = context.createBiquadFilter();
-            var treble = context.createBiquadFilter(),
-              gain = context.createGain();
-            var buffer = context.createBuffer(
-              1,
-              Math.ceil(context.sampleRate * duration),
-              context.sampleRate
-            );
-            var samples = buffer.getChannelData(0);
-            for (var i = 0; i < samples.length; i++) {
-              var time = i / context.sampleRate,
-                lock = time - duration * 0.9;
-              // A soft, damped lock-on click shares the same envelope and filter.
-              samples[i] =
-                (Math.random() * 2 - 1) * 0.8 +
-                (lock >= 0 && lock < 0.035
-                  ? 0.45 *
-                    Math.sin(lock * 2 * Math.PI * 1050) *
-                    Math.exp(-lock * 140)
-                  : 0);
-            }
-            source.buffer = buffer;
-            filter.type = "bandpass";
-            filter.Q.value = 0.65;
-            treble.type = "lowpass";
-            treble.frequency.value = 3800;
-            treble.Q.value = 0.5;
-            var now = context.currentTime;
-            filter.frequency.setValueAtTime(2600, now);
-            [
-              [0.27, 420],
-              [0.55, 1900],
-              [0.86, 850],
-              [1, 1100],
-            ].forEach(function (point) {
-              filter.frequency.exponentialRampToValueAtTime(
-                point[1],
-                now + duration * point[0]
-              );
-            });
-            // Three short reception bursts, separated by quiet gaps; a gradual
-            // final fade makes the following track enter without a hard edge.
-            [
-              [0, 0],
-              [0.025, 0.3],
-              [0.2, 0.17],
-              [0.24, 0],
-              [0.29, 0],
-              [0.32, 0.26],
-              [0.5, 0.1],
-              [0.55, 0],
-              [0.62, 0],
-              [0.65, 0.2],
-              [0.85, 0.13],
-              [0.9, 0.21],
-              [0.95, 0.08],
-              [0.99, 0],
-              [1, 0],
-            ].forEach(function (point, index) {
-              gain.gain[index ? "linearRampToValueAtTime" : "setValueAtTime"](
-                point[1] * volume,
-                now + duration * point[0]
-              );
-            });
-            source.connect(filter);
-            filter.connect(treble);
-            treble.connect(gain);
-            gain.connect(context.destination);
-            tuningNodes = [source, filter, treble, gain];
-            source.onended = function () {
-              if (tuningNodes && tuningNodes[0] === source) {
-                stopTuning();
-                update();
-              }
-            };
-            source.start(now);
-            source.stop(now + duration);
-          })
-          .catch(function () {
-            /* A blocked audio context must not block the radio. */
-          });
-      } catch (_) {
-        /* Audio is optional on browsers without a usable Web Audio context. */
+          );
+          var to = Math.max(
+            from + 1,
+            Math.floor(
+              (80 * Math.pow(150, (i + 1) / 32)) / (signal.sampleRate() / 1024)
+            )
+          );
+          var energy = 0;
+          if (live)
+            for (var j = from; j < Math.min(to, 512); j++)
+              energy += spectrumData[j] / 255;
+          energy /= Math.max(1, Math.min(to, 512) - from);
+          var rows = Math.min(6, Math.round(energy * 6));
+          peaks[i] = active ? Math.max(rows, peaks[i] - 0.24) : 0;
+          for (var row = 0; row < 6; row++) {
+            ctx.fillStyle =
+              row < rows ? (row > 3 ? "#e8c282" : "#abc49a") : "#313b35";
+            ctx.fillRect(i * 9, h - (row + 1) * 2, 6, 1);
+          }
+          if (peaks[i] > 0) {
+            ctx.fillStyle = "#ddd6ae";
+            ctx.fillRect(i * 9, h - Math.ceil(peaks[i]) * 2, 6, 1);
+          }
+        }
       }
+      if (active) spectrumFrame = requestAnimationFrame(drawSpectrum);
     }
     function pausePlayer() {
       if (!ready) return;
@@ -468,10 +472,6 @@
         mode === "pv" ? track.videoId || track.id + "-pv" : track.id,
         mode === "audio" ? track.lyrics : ""
       );
-      strip.style.setProperty(
-        "--radio-frequency",
-        8 + (selected / (playlist.length - 1)) * 84 + "%"
-      );
       strip.dataset.radioTrack = track.id;
       var source =
         mode === "pv" && track.videoId
@@ -513,6 +513,7 @@
                 ? "playing"
                 : "paused";
       strip.dataset.bgmTuning = String(tuning);
+      if (!spectrumFrame) drawSpectrum(performance.now());
       receiver.dataset.state = strip.dataset.bgmState;
       play.innerHTML = failed
         ? icons.retry
@@ -555,7 +556,7 @@
       var onair = strip.querySelector("[data-bgm-intro]");
       onair.hidden = !(pendingIntro && allowed());
       onair.textContent = playlist[selected].intro;
-      seek.disabled = !duration || failed || pendingIntro || tuneBeforePlay;
+      seek.disabled = !duration || failed || tuneBeforePlay;
       seek.value = duration ? Math.round((current / duration) * 1000) : 0;
       seek.setAttribute(
         "aria-valuetext",
@@ -571,12 +572,13 @@
         : "再生 ▷";
     }
     function stopTransition() {
-      ++transitionEpoch;
       clearTimeout(transitionTimer);
       transitionTimer = 0;
     }
     function fail() {
       clearTimeout(connectionTimer);
+      clearTimeout(trackTimer);
+      trackTimer = 0;
       stopTransition();
       stopTuning();
       loading = connecting = pendingIntro = requested = false;
@@ -593,8 +595,14 @@
       if (needsLoad) {
         loading = true;
         needsLoad = false;
+        watchLoading();
         player.loadVideoById(
-          mode === "audio" ? playlist[selected].id : playlist[selected].videoId
+          mode === "audio"
+            ? {
+                videoId: playlist[selected].id,
+                startSeconds: cueFor(playlist[selected]),
+              }
+            : playlist[selected].videoId
         );
       } else player.playVideo();
       update();
@@ -635,9 +643,10 @@
                   clearTimeout(connectionTimer);
                   connecting = loading = false;
                   ready = true;
+                  if (player.setSignal) player.setSignal(signal);
                   applyAudioSettings();
                   if (mode === "pv") {
-                    player.getIframe().title = "幻想郷ラジオ — YouTube公式音源";
+                    player.getIframe().title = "幻想郷ラジオ — YouTube動画";
                     player.getIframe().referrerPolicy =
                       "strict-origin-when-cross-origin";
                   }
@@ -659,27 +668,28 @@
                       !game &&
                       !document.hidden &&
                       (mode === "audio" || opened) &&
-                      !pendingIntro &&
-                      !tuneBeforePlay &&
                       (requested || (mode === "pv" && !programmaticPause))
-                    )
+                    ) {
                       requested = true;
-                    else pausePlayer();
+                      programmaticPause = false;
+                      lockStation();
+                    } else pausePlayer();
                   }
                   if (event.data === 2) {
                     loading = false;
-                    if (
-                      !programmaticPause &&
-                      allowed() &&
-                      !pendingIntro &&
-                      !tuneBeforePlay
-                    ) {
+                    if (!programmaticPause && allowed() && !needsLoad) {
                       requested = false;
+                      clearTimeout(trackTimer);
+                      trackTimer = 0;
                       stopTuning();
                     }
                     programmaticPause = false;
                   }
-                  if (event.data === 3 && allowed()) loading = true;
+                  if (event.data === 3 && allowed()) {
+                    loading = true;
+                    playTuning();
+                    watchLoading();
+                  }
                   update();
                 },
                 onError: function () {
@@ -688,6 +698,8 @@
                 onAutoplayBlocked: function () {
                   if (token !== epoch) return;
                   requested = loading = false;
+                  clearTimeout(trackTimer);
+                  trackTimer = 0;
                   stopTuning();
                   intro.textContent = "再生ボタンを押すと、放送が始まります。";
                   update();
@@ -705,55 +717,38 @@
         });
     }
     function sync() {
-      stopTransition();
-      stopTuning();
       showReceiver(opened && visible && !game && !document.hidden);
       if (!allowed()) {
-        tuneBeforePlay = false;
+        stopTransition();
+        stopTuning();
+        clearTimeout(trackTimer);
+        trackTimer = 0;
+        pendingIntro = false;
         pausePlayer();
         update();
         return;
       }
+      if (needsLoad || tuneBeforePlay || loading) playTuning();
       if (!ready) {
         connect();
         update();
         return;
       }
-      var token = transitionEpoch;
-      var withTuning = tuneBeforePlay && !muted && volume > 0;
-      function enterTrack() {
-        transitionTimer = 0;
-        if (token !== transitionEpoch || !allowed()) return;
-        stopTuning();
-        tuneBeforePlay = pendingIntro = false;
-        startTrack();
+      if (pendingIntro && !transitionTimer) {
+        transitionTimer = setTimeout(function () {
+          pendingIntro = false;
+          transitionTimer = 0;
+          update();
+        }, 4800);
       }
-      function tuneAndStart() {
-        transitionTimer = 0;
-        if (token !== transitionEpoch || !allowed()) return;
-        if (!withTuning) {
-          enterTrack();
-          return;
-        }
-        if (!muted && volume) playTuning();
-        loading = !pendingIntro;
-        update();
-        transitionTimer = setTimeout(enterTrack, tuningSeconds * 1000);
-      }
-      if (pendingIntro) {
-        pausePlayer();
-        // Keep the full Japanese introduction, with tuning in its last second.
-        transitionTimer = setTimeout(
-          tuneAndStart,
-          4800 - (withTuning ? tuningSeconds * 1000 : 0)
-        );
-        update();
-      } else tuneAndStart();
+      startTrack();
     }
     function destroyPlayer() {
       readNativeAudio();
       ++epoch;
       clearTimeout(connectionTimer);
+      clearTimeout(trackTimer);
+      trackTimer = 0;
       stopTransition();
       stopTuning();
       if (player) player.destroy();
@@ -769,11 +764,14 @@
         screen.prepend(slot);
       }
     }
-    function choose(index, introduce) {
+    function choose(index, introduce, remember) {
       readNativeAudio();
       if (failed && !ready) destroyPlayer();
-      tuned = true;
       stopTransition();
+      stopTuning();
+      clearTimeout(trackTimer);
+      trackTimer = 0;
+      if (remember !== false && selected !== index) history.push(selected);
       selected = (index + playlist.length) % playlist.length;
       needsLoad = true;
       failed = false;
@@ -795,13 +793,14 @@
     function start() {
       if (!available()) return;
       readNativeAudio();
-      tuned = requested = true;
+      requested = true;
+      signal.unlock();
       if (mode === "pv") opened = true;
       if (failed) {
         destroyPlayer();
         failed = false;
       }
-      tuneBeforePlay = true;
+      tuneBeforePlay = needsLoad;
       intro.textContent = playlist[selected].intro;
       sync();
     }
@@ -828,12 +827,6 @@
         showReceiver(true);
         select.focus({ preventScroll: true });
       });
-    function recommendation() {
-      return Math.min(
-        character === "patchouli" ? 1 : character === "marisa" ? 2 : 0,
-        playlist.length - 1
-      );
-    }
     function switchMode(nextMode) {
       if (nextMode !== mode) {
         requested = pendingIntro = false;
@@ -867,7 +860,7 @@
     strip
       .querySelector("[data-bgm-prev]")
       .addEventListener("click", function () {
-        choose(nextAvailable(-1), requested);
+        choose(nextAvailable(-1), requested, false);
       });
     strip
       .querySelector("[data-bgm-next]")
@@ -910,7 +903,7 @@
         muted = !muted;
         applyAudioSettings();
       }
-      if (muted) stopTuning();
+      signal.setVolume(muted ? 0 : volume);
       update();
     });
     volumeInput.addEventListener("input", function () {
@@ -919,7 +912,6 @@
       volume = chosenVolume;
       volumeInput.value = Math.round(volume * 100);
       applyAudioSettings();
-      stopTuning();
       saveVolume();
       update();
     });
@@ -952,14 +944,6 @@
         character = id;
         strip.dataset.bgmCharacter = id;
         requestAnimationFrame(syncTheme);
-        if (!tuned) {
-          selected = recommendation();
-          metadata();
-          intro.textContent = available()
-            ? playlist[selected].intro
-            : unavailableMessage();
-          update();
-        }
       },
       setVisible: function (value) {
         if (visible !== value) {

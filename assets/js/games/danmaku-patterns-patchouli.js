@@ -124,7 +124,10 @@
     var p = s.player;
     var beat = s.rhythm.beatDuration;
     var speed = level.speed;
-    var round = Math.min(6, level.cycle || 0);
+    var round = Math.min(
+      6,
+      level.densityTier === undefined ? level.cycle || 0 : level.densityTier
+    );
     var n, i, j, a, v, x, y;
     var aim = Math.atan2(p.y - b.y, p.x - b.x);
     var state = s.enemySpell.patchouli || (s.enemySpell.patchouli = {});
@@ -213,7 +216,9 @@
         if (step % 2 === 0) {
           n = 10 + Math.floor(round / 3) * 2;
           for (i = 0; i < n; i++) {
-            a = state.waterAim + (i - (n - 1) / 2) * 0.196;
+            // Added rank grains close the existing fan's gaps; widening it
+            // instead would send the extra water offscreen and lower density.
+            a = state.waterAim + ((i - (n - 1) / 2) * 0.196 * 9) / (n - 1);
             api.bullet(b.x, b.y, a, speed * 0.86, "#9697ff", "orb");
           }
         }
@@ -445,7 +450,9 @@
       group.ageBeats += beatStep;
       group.radius += radialSpeed * dt;
       group.rotation += beatStep * 0.48;
-      group.shotBeats += beatStep;
+      // More closely spaced beads raise Royal Flare's density without adding
+      // a fourth source or copying its entire three-head generation.
+      group.shotBeats += beatStep * (level.cadence || 1);
     });
     flare.generations = flare.generations.filter(function (group) {
       return group.ageBeats < 14;

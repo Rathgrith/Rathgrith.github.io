@@ -23,7 +23,7 @@ fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({
     channel: "chrome",
     headless: true,
-    args: ["--disable-gpu"],
+    args: ["--disable-gpu", "--mute-audio"],
   });
   try {
     const context = await browser.newContext({
@@ -160,11 +160,13 @@ fs.mkdirSync(out, { recursive: true });
         /\/assets\/music\/radio\/[a-z0-9-]+\.mp3$/.test(mediaURL.pathname),
         `${track.id} has a local MP3`
       );
-      assert.equal(
-        track.lyrics,
-        track.src.replace(/\.mp3$/, ".lrc"),
-        `${track.id} has matching bundled lyrics`
-      );
+      if (track.instrumental) assert.equal(track.lyrics, "");
+      else
+        assert.equal(
+          track.lyrics,
+          track.src.replace(/\.mp3$/, ".lrc"),
+          `${track.id} has matching bundled lyrics`
+        );
       assert.equal(track.kind, "SONG");
       assert(/^[A-Za-z0-9_-]{11}$/.test(track.videoId));
       const sourcePath = path.join(
@@ -173,15 +175,37 @@ fs.mkdirSync(out, { recursive: true });
         path.basename(mediaURL.pathname)
       );
       assert(fs.statSync(sourcePath).size > 1024, `${track.id} MP3 exists`);
-      const text = fs.readFileSync(
-        sourcePath.replace(/\.mp3$/, ".lrc"),
-        "utf8"
-      );
-      assert(
-        /\[\d{1,4}:[0-5]?\d(?:[.:]\d{1,3})?\].*\S/.test(text),
-        `${track.id} LRC contains timed text`
+      if (!track.instrumental) {
+        const text = fs.readFileSync(
+          sourcePath.replace(/\.mp3$/, ".lrc"),
+          "utf8"
+        );
+        assert(
+          /\[\d{1,4}:[0-5]?\d(?:[.:]\d{1,3})?\].*\S/.test(text),
+          `${track.id} LRC contains timed text`
+        );
+      }
+    }
+    assert.equal(await panel.getAttribute("data-radio-mode"), "audio");
+    assert.equal(await panel.getAttribute("data-bgm-state"), "paused");
+    assert.equal(await audio.count(), 0);
+    assert.equal(await receiver.locator("iframe").count(), 0);
+    assert.equal(await receiver.isVisible(), false);
+    assert.equal(await page.evaluate(() => __tuningMock.contexts.length), 0);
+    assert.deepEqual(musicRequests, []);
+    const initialId = await panel.getAttribute("data-radio-track");
+    for (const character of ["alice", "patchouli", "marisa"]) {
+      await page.locator(`button[data-vn-character="${character}"]`).click();
+      assert.equal(
+        await panel.getAttribute("data-radio-track"),
+        initialId,
+        "Theme changes preserve the initial random station"
       );
     }
+    await page.locator("[data-radio-open]").click();
+    assert(await receiver.isVisible());
+    const openingTrack = production.filter((track) => track.lyrics)[1];
+    await choose(openingTrack.id);
     await page.waitForFunction(
       () =>
         document.querySelector(".vn-radio-lyrics").dataset.lyricsState ===
@@ -189,40 +213,13 @@ fs.mkdirSync(out, { recursive: true });
     );
     assert(
       lyricsRequests.length > 0,
-      "bundled lyrics load automatically without starting music"
+      "Selected vocal tracks load bundled lyrics without starting music"
     );
-    assert.equal(await panel.getAttribute("data-radio-mode"), "audio");
-    assert.equal(await panel.getAttribute("data-bgm-state"), "paused");
-    assert.equal(await audio.count(), 0);
-    assert.equal(await receiver.locator("iframe").count(), 0);
-    assert.equal(await receiver.isVisible(), false);
-    assert(
-      await page.locator("[data-bgm-lyric]").isVisible(),
-      "default deck displays lyrics without opening the receiver"
-    );
+    assert(await page.locator("[data-bgm-lyric]").isVisible());
     assert.equal(
       await page.locator("[data-bgm-lyric]").getAttribute("data-lyrics-state"),
       "ready"
     );
-    assert.equal(await page.evaluate(() => __tuningMock.contexts.length), 0);
-    assert.deepEqual(musicRequests, []);
-    for (const [character, index] of [
-      ["alice", 0],
-      ["patchouli", 1],
-      ["marisa", 2],
-    ]) {
-      await page.locator(`button[data-vn-character="${character}"]`).click();
-      await page.waitForFunction(
-        (id) => document.querySelector(".vn-bgm").dataset.radioTrack === id,
-        playlist[index].id
-      );
-      assert.equal(
-        await page.locator("[data-bgm-credit]").getAttribute("href"),
-        playlist[index].url
-      );
-    }
-    await page.locator("[data-radio-open]").click();
-    assert(await receiver.isVisible());
     assert.equal(
       await page.locator("[data-radio-station] option").count(),
       catalog.length
@@ -235,23 +232,8 @@ fs.mkdirSync(out, { recursive: true });
     assert.deepEqual(musicRequests, [], "station browsing does not load audio");
     await page.locator("[data-radio-close]").click();
     await page.locator("[data-bgm-play]").click();
-    await page.waitForFunction(() =>
-      __tuningMock.sources.some((s) => s.active)
-    );
-    assert(
-      await audio.evaluate((a) => a.paused),
-      "native audio stays paused throughout initial tuning"
-    );
-    assert.deepEqual(
-      musicRequests,
-      [],
-      "tuning starts before the first MP3 load"
-    );
     await playing();
-    assert(
-      await page.evaluate(() => !__tuningMock.sources.some((s) => s.active)),
-      "the first song cannot mask tuning"
-    );
+    // Persistent loading noise and real DSP use delayed sources in session.cjs.
     assert.equal(
       await receiver.isVisible(),
       false,
@@ -259,7 +241,7 @@ fs.mkdirSync(out, { recursive: true });
     );
     assert.equal(await audio.count(), 1);
     assert.equal(await receiver.locator("iframe").count(), 0);
-    assert.equal(await audio.getAttribute("src"), playlist[2].src);
+    assert.equal(await audio.getAttribute("src"), openingTrack.src);
     assert.equal(await audio.getAttribute("preload"), "none");
     assert.equal(await audio.evaluate((a) => a.muted), false);
     assert(await audio.evaluate((a) => a.duration > 10 && a.readyState >= 3));
@@ -272,18 +254,11 @@ fs.mkdirSync(out, { recursive: true });
     });
 
     await page.locator("[data-bgm-mute]").click();
-    const noiseBeforeMute = await page.evaluate(
-      () => __tuningMock.sources.length
-    );
     await page.locator("[data-bgm-play]").click();
     await paused();
     await page.locator("[data-bgm-play]").click();
     await playing();
     assert(await audio.evaluate((a) => a.muted));
-    assert.equal(
-      await page.evaluate(() => __tuningMock.sources.length),
-      noiseBeforeMute
-    );
     await page.locator("[data-companion-minimize]").click();
     await paused();
     await page.locator("[data-companion-minimize]").click();
@@ -293,15 +268,13 @@ fs.mkdirSync(out, { recursive: true });
 
     // A local LRC remains synchronized with actual media time.
     await page.locator("[data-radio-open]").click();
-    await page
-      .locator("[data-lyrics-file]")
-      .setInputFiles({
-        name: "native-original.lrc",
-        mimeType: "text/plain",
-        buffer: Buffer.from(
-          "[00:01]音声テスト一。\n[00:05]音声テスト二。\n[00:09]音声テスト三。"
-        ),
-      });
+    await page.locator("[data-lyrics-file]").setInputFiles({
+      name: "native-original.lrc",
+      mimeType: "text/plain",
+      buffer: Buffer.from(
+        "[00:01]音声テスト一。\n[00:05]音声テスト二。\n[00:09]音声テスト三。"
+      ),
+    });
     await page.waitForFunction(
       () =>
         document.querySelector(".vn-radio-lyrics").dataset.lyricsState ===
@@ -368,13 +341,11 @@ fs.mkdirSync(out, { recursive: true });
       );
     const beforeLongLyrics = await heights();
     const longLine = "長い歌詞も画面の高さを変えずに表示する。".repeat(8);
-    await page
-      .locator("[data-lyrics-file]")
-      .setInputFiles({
-        name: "multiline.lrc",
-        mimeType: "text/plain",
-        buffer: Buffer.from(`[00:00]${longLine}\n[00:00]翻訳のテスト。`),
-      });
+    await page.locator("[data-lyrics-file]").setInputFiles({
+      name: "multiline.lrc",
+      mimeType: "text/plain",
+      buffer: Buffer.from(`[00:00]${longLine}\n[00:00]翻訳のテスト。`),
+    });
     await page.waitForFunction(() =>
       document
         .querySelector("[data-bgm-lyric]")
@@ -392,25 +363,10 @@ fs.mkdirSync(out, { recursive: true });
     );
 
     await page.locator("[data-radio-open]").click();
-    const manualNoise = await page.evaluate(() => __tuningMock.sources.length);
     await page.locator("[data-radio-station]").selectOption("0");
-    await page.waitForFunction(
-      () =>
-        document.querySelector(".vn-bgm").dataset.bgmState === "intermission"
-    );
     assert.equal(
       (await page.locator("[data-bgm-intro]").textContent()).trim(),
       playlist[0].intro
-    );
-    await page.waitForFunction(
-      (count) =>
-        __tuningMock.sources.length === count + 1 &&
-        __tuningMock.sources.some((s) => s.active),
-      manualNoise
-    );
-    assert(
-      await audio.evaluate((a) => a.paused),
-      "the old song stays paused during station tuning"
     );
     await page.waitForFunction(
       (src) =>
@@ -423,36 +379,42 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(
       await panel.getAttribute("data-radio-track"),
       playlist[0].id,
-      "explicit audio selection survives themes"
+      "Explicit audio selection survives themes"
     );
-    const endedNoise = await page.evaluate(() => __tuningMock.sources.length);
     await audio.evaluate((a) => {
       a.currentTime = a.duration - 0.05;
     });
     await page.waitForFunction(
-      () =>
-        document.querySelector(".vn-bgm").dataset.bgmState === "intermission"
+      (id) => document.querySelector(".vn-bgm").dataset.radioTrack !== id,
+      playlist[0].id
     );
-    assert.equal(await panel.getAttribute("data-radio-track"), playlist[1].id);
+    const endedId = await panel.getAttribute("data-radio-track");
+    const endedTrack = catalog.find((track) => track.id === endedId);
+    assert(
+      endedTrack.src,
+      "Native ended events choose a playable random station"
+    );
     await page.waitForFunction(
       (src) =>
         document.querySelector("[data-radio-audio]").getAttribute("src") ===
         src,
-      playlist[1].src
+      endedTrack.src
     );
     await playing();
-    assert.equal(
-      await page.evaluate(() => __tuningMock.sources.length),
-      endedNoise + 1,
-      "native ended events also tune the next station"
-    );
-    assert(
-      await page.evaluate(() => !__tuningMock.sources.some((s) => s.active)),
-      "automatic tuning ends before native playback"
-    );
     await page.locator("[data-radio-close]").click();
 
-    await page.locator("[data-danmaku-open]").click();
+    await page
+      .locator("[data-danmaku-open]")
+      .click()
+      .catch(async (error) => {
+        fs.writeFileSync(
+          path.join(out, "handoff-failure.html"),
+          await page.content()
+        );
+        throw new Error(
+          error.message + "\nBrowser errors: " + JSON.stringify(errors)
+        );
+      });
     await paused();
     await page.locator("[data-danmaku-exit]").click();
     await playing();
@@ -602,27 +564,28 @@ fs.mkdirSync(out, { recursive: true });
     assert.equal(await receiver.locator("iframe").count(), 0);
     assert.equal(await panel.getAttribute("data-bgm-state"), "paused");
 
-    // Previous/next skip unavailable entries instead of changing to another mode.
+    // Shuffle and listening history remain source-aware in both modes.
     await choose("test-radio-pair");
     await page.locator("[data-bgm-next]").click();
-    assert.equal(
-      await panel.getAttribute("data-radio-track"),
-      videoOnly.id,
-      "PV Next skips the injected audio-only entry"
+    const pvNext = await panel.getAttribute("data-radio-track");
+    assert.notEqual(pvNext, "test-radio-pair");
+    assert(
+      catalog.find((track) => track.id === pvNext).videoId,
+      "PV Next skips every audio-only entry"
     );
     await page.locator("[data-bgm-prev]").click();
     assert.equal(
       await panel.getAttribute("data-radio-track"),
       "test-radio-pair",
-      "PV Previous also skips the audio-only entry"
+      "Previous follows actual PV history"
     );
     await page.locator('button[data-radio-mode="audio"]').click();
     await choose(production[0].id);
     await page.locator("[data-bgm-prev]").click();
-    assert.equal(
-      await panel.getAttribute("data-radio-track"),
-      playlist.at(-1).id,
-      "RADIO Previous skips PV-only entries at catalog end"
+    const priorAudio = await panel.getAttribute("data-radio-track");
+    assert(
+      catalog.find((track) => track.id === priorAudio).src,
+      "RADIO Previous skips unavailable history entries"
     );
     await page.locator("[data-radio-start]").click();
     await playing();
@@ -630,30 +593,31 @@ fs.mkdirSync(out, { recursive: true });
       a.currentTime = a.duration - 0.05;
     });
     await page.waitForFunction(
-      () =>
-        document.querySelector(".vn-bgm").dataset.bgmState === "intermission"
+      (id) => document.querySelector(".vn-bgm").dataset.radioTrack !== id,
+      priorAudio
     );
-    assert.equal(
-      await panel.getAttribute("data-radio-track"),
-      playlist[0].id,
-      "RADIO auto-advance skips every PV-only entry"
-    );
+    const nextAudioId = await panel.getAttribute("data-radio-track");
+    const nextAudio = catalog.find((track) => track.id === nextAudioId);
+    assert(nextAudio.src, "RADIO auto-advance skips every PV-only entry");
     await page.waitForFunction(
       (src) =>
         document.querySelector("[data-radio-audio]").getAttribute("src") ===
         src,
-      playlist[0].src
+      nextAudio.src
     );
     await playing();
 
     // Audio and video versions can have different timelines: LRC files and offsets stay separate.
-    await page
-      .locator("[data-lyrics-file]")
-      .setInputFiles({
-        name: "aligned-audio.lrc",
-        mimeType: "text/plain",
-        buffer: Buffer.from("[00:01]音声版のテスト。"),
-      });
+    const timelineTrack = catalog.find(
+      (track) => track.id === "test-radio-pair"
+    );
+    await choose(timelineTrack.id);
+    await playing();
+    await page.locator("[data-lyrics-file]").setInputFiles({
+      name: "aligned-audio.lrc",
+      mimeType: "text/plain",
+      buffer: Buffer.from("[00:01]音声版のテスト。"),
+    });
     await page.waitForFunction(
       () =>
         document.querySelector(".vn-radio-lyrics").dataset.lyricsState ===
@@ -671,13 +635,11 @@ fs.mkdirSync(out, { recursive: true });
       "歌詞は未登録",
       "inline lyrics reset across audio/PV sources"
     );
-    await page
-      .locator("[data-lyrics-file]")
-      .setInputFiles({
-        name: "aligned-video.lrc",
-        mimeType: "text/plain",
-        buffer: Buffer.from("[00:01]映像版のテスト。"),
-      });
+    await page.locator("[data-lyrics-file]").setInputFiles({
+      name: "aligned-video.lrc",
+      mimeType: "text/plain",
+      buffer: Buffer.from("[00:01]映像版のテスト。"),
+    });
     await page.waitForFunction(
       () =>
         document.querySelector(".vn-radio-lyrics").dataset.lyricsState ===
@@ -706,8 +668,8 @@ fs.mkdirSync(out, { recursive: true });
       () =>
         JSON.parse(localStorage.getItem("site-companion-radio-lrc-v1")).tracks
     );
-    assert(records[pairs[0][0]].lrc.includes("音声版のテスト。"));
-    assert(records[pairs[0][1]].lrc.includes("映像版のテスト。"));
+    assert(records[timelineTrack.id].lrc.includes("音声版のテスト。"));
+    assert(records[timelineTrack.videoId].lrc.includes("映像版のテスト。"));
     await page.locator("[data-radio-start]").click();
     await playing();
     await audio.evaluate((a) => {
@@ -803,7 +765,7 @@ fs.mkdirSync(out, { recursive: true });
     assert.deepEqual(forbiddenRequests, []);
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: real HTMLAudio adapter, opt-in/default audio, recommendations, no iframe/third-party widget, transport, mute/noise, LRC, queue, lifecycle, softnav, local MP3/LRC catalog and paired songs, unavailable-mode silence, source-aware queue, separate LRC clocks, 4 widths, reload silence, source-error recovery, and pending-play cancellation (local MP3 fixture and controlled missing-source records)."
+      "PASS: real HTMLAudio adapter, opt-in random audio, theme-independent station, no iframe/third-party widget, transport, mute/noise, LRC, queue, lifecycle, softnav, local MP3/LRC catalog and paired songs, unavailable-mode silence, source-aware queue, separate LRC clocks, 4 widths, reload silence, source-error recovery, and pending-play cancellation (local MP3 fixture and controlled missing-source records)."
     );
   } finally {
     await browser.close();

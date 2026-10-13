@@ -48,6 +48,30 @@ fs.mkdirSync(out, { recursive: true });
       assert.equal(fit.w, width);
       assert.equal(fit.h, height);
       assert(!fit.documentOverflow && !fit.viewXOverflow, JSON.stringify(fit));
+      // Entry is shuffled: every title must fit the fixed radio column, not
+      // merely whichever short title happened to be selected for this run.
+      const tracks = await p.locator("[data-radio-station] option").count();
+      assert(tracks > 1, "radio stations are populated before layout checks");
+      for (let i = 0; i < tracks; i++) {
+        const radioFit = await p.evaluate((index) => {
+          const station = document.querySelector("[data-radio-station]");
+          station.value = String(index);
+          station.dispatchEvent(new Event("change"));
+          const view = document.querySelector(".vn-main-view"),
+            radio = document.querySelector(".vn-bgm"),
+            deck = radio.querySelector(".vn-bgm-deck").getBoundingClientRect(),
+            frame = radio.getBoundingClientRect();
+          return {
+            track: radio.dataset.radioTrack,
+            overflow: view.scrollWidth > view.clientWidth + 1,
+            deckFits: deck.left >= frame.left && deck.right <= frame.right,
+          };
+        }, i);
+        assert(
+          !radioFit.overflow && radioFit.deckFits,
+          `${width}x${height} ${JSON.stringify(radioFit)}`
+        );
+      }
       assert(!(await p.locator(".classic-masthead").count()));
       assert(!(await p.locator("[data-site-options-floating]").count()));
       assert(!(await p.locator("[data-companion-minimize]").isVisible()));

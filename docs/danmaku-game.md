@@ -19,12 +19,55 @@ Open **弾幕に挑戦** in the Live2D window. Choose a pilot, then click one of
 - **自動操作** in the lobby, **自動** in battle, or **T** toggles the pilot. It predicts nearby bullet trajectories, chooses between normal/precision movement, collects safe nearby items and uses spirit strikes when boxed in. It uses the same speed, resource and collision rules as manual play. Movement keys or a pointer drag immediately return control to the player. It pauses for the same lifecycle events as manual play and never silently resumes.
 - Survival awards 20 points/second, each hit awards 12 × its shot weight, and each grazed bullet awards 80 points once. Cancelled bullets become small score items: 10 points each for a durability clear or spell transition and 2 for a spirit strike. They drift briefly, then home to the pilot; the points arrive on collection. Completing a timed spell without a miss or Bomb awards 5,000 points; otherwise it awards 1,000. Durability clears do not end the card or award this completion bonus. A calm musical passage uses the same clean-survival rule. Graze radius is 16 logical pixels (formerly 12), while the central hitbox stays 2.2 pixels. Scores are rounded down for display and records.
 - Bullet art includes rice, kunai, scales, paper talismans, butterflies, water bubbles, flames, pellets, crystals and three star sizes. Shapes are assigned per spell/element, with bright centres and dark outlines; their hit radii follow the small visible core. Repeated shapes/colours are cached as local Canvas sprites.
-- Patterns follow an offline beat map of each actual dBu recording. Each recording has six encounters, whose boundaries follow sixteen-beat musical phrases; it never resets to the introductory card midway through the song. Volleys retain whole-beat, half-beat and syncopated timing. Sustained quieter bars after 60% of an encounter can open a nonspell early; otherwise its last 24 beats allow a timed clear and an actual playable nonspell. Announcements last 2 seconds with a 0.15-second safety gap. Clears reserve four beats for collection before nonspell firing. Each character has six distinct interludes, with Japanese names and different emitters, trajectories, shapes and rhythms; small nonspell lasers retain warnings. Characteristic formations and arm counts remain stable, with bounded repeat-round speed/cadence growth up to the seventh round. Ceilings remain 720 bullets, 12 lasers and 720 score items; excess cancellation value is aggregated without losing points.
+- Patterns follow an offline beat map of each actual dBu recording. Each recording has six encounters, whose boundaries follow sixteen-beat musical phrases; it never resets to the introductory card midway through the song. Native whole-beat, half-beat and syncopated sequences follow the recording tempo through the rank-adjusted firing clock. Sustained quieter bars after 60% of an encounter can open a nonspell early; otherwise its last 24 beats allow a timed clear and an actual playable nonspell. Announcements last 2 seconds with a 0.15-second safety gap. Clears reserve four beats for collection before nonspell firing. Each character has six distinct interludes, with Japanese names and different emitters, trajectories, shapes and rhythms; small nonspell lasers retain warnings. Characteristic formations and arm counts remain stable, with bounded rank-driven speed, density and cadence growth through rank 25. Ceilings remain 720 bullets, 12 lasers and 720 score items; excess cancellation value is aggregated without losing points.
 - Lasers show a harmless charge line for at least 0.8 seconds before becoming dangerous. Master Spark locks its aim during the charge, and the boss holds position while anchored beams are present. Spark beams widen along their path with identical warning/render/collision geometry. Active Sparks shake the arena by roughly 1–2 logical pixels; Bombs kick by at most 3.2 pixels with seven 0.18-second damage/impact pulses. The time bar, cut-ins and text do not shake; reduced motion disables camera shake. Neither event freezes the music or combat clock. The auto pilot samples its entire reachable route at intervals no longer than 16ms, including ignition, expiry, beam sweeps and orbiting emitters. Score attack looks 1.65s ahead; the two-field game looks 0.95s ahead and recomputes every 60ms while lasers exist. An imminent collision outweighs a possible distant collision. Rendering, collision and avoidance share `laserPose`/`laserGap`.
 - Three detailed pixel backgrounds depict Alice’s workshop, Marisa’s Forest of Magic and Patchouli’s library. Feathered overlapping artwork, subdued edge lighting and a faster particle layer provide scrolling depth. Background movement now starts at 88–110 logical pixels/second by character and smoothly responds to recording energy, beats, elapsed combat time and active pressure, capped at 270px/s. This is roughly 3–4× the previous pace, with a combat field passing in about 2–3 seconds. Light runs at 0.45× scene speed; foreground edge streaks run at 1.7× and 2.5×, lengthening with velocity while the central bullet corridor stays clear. Both renderers feather repeated artwork to avoid hard scrolling seams. Declarations ease the pace; intermissions coast to rest without resetting the offset. This uses the silent beat map even with music muted and applies to both score attack and CPU duel. Pausing and the resume countdown freeze scenery, spell age, drops and score collection; reduced motion freezes decorative scrolling and sprite flutter. [Artwork prompts and generator](../assets/images/classic/danmaku/backgrounds/artwork.json).
 - Rear-view player atlases have idle plus eight movement directions, each with two cloth/banking frames. Keyboard, relative pointer input and auto movement all select the pose from actual motion, including clamping at the arena boundary. Enemy/front portraits are separate. Head, sleeves, hem, legs and broom use separate integer-grid pose placements rather than a scanline distortion of the whole sprite.
 - Records are stored locally for each pilot/opponent pair in `site-danmaku-records-v3`, separate from the previous scoring rules (old records are retained but not mixed). Manual keys use `pilot:opponent`; automatic runs use a separate `:auto` suffix. Once auto has been used, the rest of that run remains in the automatic category even after manual takeover. Game over, leaving the battle and page hide retain the best score. Failed/blocked storage uses session memory; there is no server leaderboard or score verification. Each live run receives a fresh random seed; explicit engine seeds reproduce drops in tests.
 - Minimizing/closing the companion, tab hiding, losing window focus, leaving the game with keyboard focus, scrolling the canvas mostly out of view, resizing, title-bar dragging and soft navigation pause the run. None silently resume it. Returning to the conversation stops the game loop and resumes the Live2D renderer and typewriter.
+
+## Rank pressure
+
+The score-attack HUD gains one rank per 20 seconds of active battle time.
+Difficulty now uses that same rank, rather than waiting for a complete music
+loop. Its bounded pressure is `min(1, (rank - 1) / 24)`: speed reaches at most
+1.24× the opening value, and native variable-count rings/fans gain a density
+tier every four ranks (six tiers maximum). The fan's overall angle is retained
+where extra grains should tighten its gaps, notably Princess Undine.
+
+Firing follows a continuous beat-duration integral. A new card starts on a
+musical half-beat; rank compresses the existing choreography's spacing without
+duplicating whole volleys or skipping source stages. Fixed-arm cards (France,
+Holland, Russia, Milky Way, Non-Directional Laser, Master Spark, Final Spark,
+Royal Flare) reach 1.32× cadence. Asteroid Belt and Philosopher's Stone reach
+1.20×, and the remaining variable-count cards reach 1.12×. This balances added
+rows against their existing per-volley density growth. No new source families,
+additional Spark arms or altered France split genealogy are introduced by rank.
+Royal Flare tightens the bead spacing from its same three moving heads.
+Pause, declarations and durability-clear firing gates do not accumulate a
+burst to replay later; London's source ring continues moving during a clear.
+The music, spell boundaries, two-second declarations and minimum laser warnings
+retain their independent timings. Pressure saturates at rank 25; the displayed
+rank and survival score can keep increasing.
+
+Holland also has a **user-requested time-attack modification**, separate from
+the original-game reconstruction. Its successive six-position doll formation
+refreshes every 3/4 native beat on average (alternating half-/whole-beat gaps),
+instead of every beat. Each third new doll adds one ivory three-way aimed
+volley alongside its unchanged seven-spoke/six-grain wheel. The centre grain
+locks the pilot's current position once; all three then fly straight, with
+±0.12-radian spacing at 0.84× the card's base speed. These accents prevent
+permanent stationary routes without turning the main wheel into a homing fan.
+Russia does not inherit the faster summons or aimed layer.
+
+`node tests/danmaku-rank.cjs` compares every full card at the same recording
+position with ranks 1 and 25: actual shot counts increase, measured shot
+intervals shorten, and average live lower-field bullet populations increase
+despite the higher speed. It rejects pool clipping. The same test checks all
+three flower attack families and minion waves. `node
+tests/danmaku-holland-pressure.cjs` keeps the pilot stationary at 13 corner,
+edge and centre positions through the complete Holland card, at ranks 1 and
+25; actual aimed-core crossings must recur well beyond its opening.
 
 ## Battle audio
 
@@ -117,6 +160,13 @@ Flower View roster. Rules were checked against the publisher's
   Patchouli sends five-element fans. White returns and card attacks have a
   visible incoming delay. Bosses enter before firing and expire or can be shot
   down. Cancellation particles collect toward their own pilot.
+- Flower rank increases every 18 seconds plus one step per completed round,
+  capped at 16 pressure steps. Fairy squads grow from five to eight members,
+  wave intervals shrink from 3.4 to 1.5 seconds, and fairy/spirit firing
+  cooldowns are divided by `1 + rankStep * 0.025`. Every four steps adds a
+  grain to Alice's and Patchouli's existing fans (same angular span), or two
+  stars to Marisa's ring. Boss firing keeps its 1.9-to-0.94-second bounded
+  cadence. These increases use the same rules on both fields.
 - Both AI pilots use the same shooting, meter and collision simulation as a
   human. Decisions occur every 160–220ms and use short trajectory forecasts;
   they aim at minions, activate spirits, bank for C2/C3/C4 or quick-cast in danger.

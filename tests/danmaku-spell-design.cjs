@@ -66,7 +66,8 @@ assert.equal(
 );
 assert.equal(
   new Set(emission("alice", "holland").bullets.map((b) => b[4])).size,
-  2
+  3,
+  "two original wheel colours plus the time-attack variant's ivory aimed accents"
 );
 assert.equal(
   new Set(emission("alice", "russia").bullets.map((b) => b[0] < 120)).size,

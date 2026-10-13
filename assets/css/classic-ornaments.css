@@ -1,21 +1,39 @@
-/* Original illustrated squadron insignia. A restrained full-resolution crest gives the
-   document a character identity without competing with its text or controls. */
+/* Match the visible silhouette, not merely the transparent image box. Patchouli's
+   open codex has less painted mass than the old enclosing crescent; at 1.02 its
+   visible desktop bounds are 228×218 px, alongside Marisa's 229×195 px. */
+html[data-live2d-character="patchouli"] {
+  --corner-art-scale: 1.02;
+}
+
+/* Original illustrated squadron insignia, kept behind content as watermarks. */
 .classic-document {
   --corner-size: 240px;
+  --corner-render-size: calc(var(--corner-size) * var(--corner-art-scale, 1));
   --corner-veil: 78%;
   background-image:
     linear-gradient(
-      color-mix(in srgb, var(--classic-document) var(--corner-veil), transparent),
-      color-mix(in srgb, var(--classic-document) var(--corner-veil), transparent)
+      color-mix(
+        in srgb,
+        var(--classic-document) var(--corner-veil),
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--classic-document) var(--corner-veil),
+        transparent
+      )
     ),
     var(--classic-corner-art);
   background-position: right 16px top 12px;
-  background-size: var(--corner-size) var(--corner-size), auto var(--corner-size);
+  background-size:
+    var(--corner-render-size) var(--corner-render-size),
+    auto var(--corner-render-size);
   background-repeat: no-repeat;
 }
 
 /* Keep the same insignia subtle inside the smaller observation/menu surface. */
 #live2d-widget .vn-panel {
+  --corner-panel-size: calc(160px * var(--corner-art-scale, 1));
   background-image:
     linear-gradient(
       color-mix(in srgb, var(--vn-panel) 88%, transparent),
@@ -23,7 +41,9 @@
     ),
     var(--classic-corner-art);
   background-position: right 8px top 8px;
-  background-size: 160px 160px, auto 160px;
+  background-size:
+    var(--corner-panel-size) var(--corner-panel-size),
+    auto var(--corner-panel-size);
   background-repeat: no-repeat;
 }
 

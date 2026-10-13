@@ -35,7 +35,7 @@ const aim = (b, p) => Math.atan2(p.y - b.y, p.x - b.x);
 
 // These main patterns have fixed/random directions, not player tracking.
 for (const [enemy, ids] of Object.entries({
-  alice: ["france", "holland", "russia"],
+  alice: ["france", "russia"],
   marisa: ["stardust", "milky", "asteroid"],
   patchouli: ["agni", "sylphy", "flare"],
 })) {
@@ -45,6 +45,36 @@ for (const [enemy, ids] of Object.entries({
       emission(enemy, id, right).frames,
       `${id}: moving the player must not rotate a fixed pattern`
     );
+}
+
+// Holland's user-requested time-attack pressure keeps the original fixed wheel
+// separate from its new intermittent, once-locked aimed grains.
+const hollandLeft = emission("alice", "holland", left),
+  hollandRight = emission("alice", "holland", right),
+  hollandCrosses = emission("alice", "holland", crosses);
+assert.deepEqual(
+  hollandLeft.frames.map((f) => f.bullets.filter((b) => b[4] !== "#f0eefb")),
+  hollandRight.frames.map((f) => f.bullets.filter((b) => b[4] !== "#f0eefb")),
+  "Holland's original seven packet spokes do not track the player"
+);
+for (const tick of [0, 5, 9, 14]) {
+  const grains = hollandCrosses.frames[tick].bullets.filter(
+    (b) => b[4] === "#f0eefb"
+  );
+  assert.equal(
+    grains.length,
+    3,
+    "each third new doll adds one readable aimed triplet"
+  );
+  near(
+    grains[1][2],
+    Math.atan2(crosses(tick).y - grains[1][1], crosses(tick).x - grains[1][0]),
+    "Holland samples the current player at this cast"
+  );
+  assert(
+    grains.every((b) => !b[6]),
+    "aimed grains fly straight after launch"
+  );
 }
 
 // Master Spark opens downward; only subsequent beams acquire the new position.

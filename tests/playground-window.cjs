@@ -110,17 +110,49 @@ fs.mkdirSync(out, { recursive: true });
           text = w
             .querySelector(".live2d-dialogue__text")
             .getBoundingClientRect(),
-          choices = w.querySelector(".vn-choices").getBoundingClientRect();
+          choices = w.querySelector(".vn-choices").getBoundingClientRect(),
+          body = w.querySelector(".vn-dialogue-body"),
+          viewport = body.getBoundingClientRect(),
+          conversation = w
+            .querySelector(".companion-conversation")
+            .getBoundingClientRect();
         return (
           text.top >= reading.top - 1 &&
           text.bottom <= reading.bottom + 1 &&
           reading.bottom <= choices.top + 1 &&
-          choices.bottom <=
-            w.querySelector(".companion-conversation").getBoundingClientRect()
-              .bottom
+          viewport.top >= conversation.top - 1 &&
+          viewport.bottom <= conversation.bottom + 1 &&
+          getComputedStyle(body).overflowY === "auto"
         );
       }),
-      "branch choices must not cover the text"
+      "branch choices follow the text inside the fixed dialogue scroll viewport"
+    );
+    const fixedRegions = () =>
+      widget.evaluate((w) =>
+        [".companion-stage", ".companion-conversation", ".vn-bgm"].map(
+          (selector) =>
+            w.querySelector(selector).getBoundingClientRect().toJSON()
+        )
+      );
+    const beforeChoiceScroll = await fixedRegions();
+    // Long branches may exceed the viewport. Verify their clipped portion can
+    // actually be reached instead of requiring every raw rect to fit at once.
+    for (const option of await page.locator(".vn-choices button").all()) {
+      await option.scrollIntoViewIfNeeded();
+      await option.click({ trial: true });
+      assert(
+        await option.evaluate((el) => {
+          const r = el.getBoundingClientRect(),
+            body = el.closest(".vn-dialogue-body").getBoundingClientRect();
+          return r.top >= body.top - 1 && r.bottom <= body.bottom + 1;
+        }),
+        "each branch option can be brought fully into its viewport"
+      );
+    }
+    assert.deepEqual(
+      await fixedRegions(),
+      beforeChoiceScroll,
+      "scrolling choices never moves the scene, dialogue frame or radio"
     );
     await page.locator(".vn-choices button").first().click();
     await page.evaluate(() => SiteCompanion.start("today"));
@@ -214,7 +246,12 @@ fs.mkdirSync(out, { recursive: true });
             const main = w.querySelector(".vn-main-view");
             return main.scrollHeight <= main.clientHeight + 2;
           }),
-          "portrait maximization must fit its controls"
+          `portrait maximization must fit its controls at ${width}x${height}: ${JSON.stringify(
+            await widget.evaluate((w) => {
+              const main = w.querySelector(".vn-main-view");
+              return { height: main.clientHeight, content: main.scrollHeight };
+            })
+          )}`
         );
       if (width >= 1024) {
         for (const character of ["alice", "marisa", "patchouli"]) {
