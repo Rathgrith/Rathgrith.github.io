@@ -3,7 +3,7 @@
 Original Touhou Project themes: **ZUN / 上海アリス幻樂団**.
 These three fan arrangements are retained as archived assets and test fixtures. The current battle soundtrack uses [the separately credited dBu recordings](../danmaku/README.md). These are not original game recordings and are independent of the radio queue.
 
-The FM receiver has a separate 13-song local library paired with official
+The FM receiver has a separate eight-song local library paired with matching
 YouTube videos. See [radio provenance and version notes](../radio/README.md).
 The radio's tuning noise is synthesized locally with Web Audio. The permissions
 for the three battle arrangements below do not apply to the separate radio library.

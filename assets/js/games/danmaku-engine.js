@@ -399,6 +399,7 @@
       state.enemySpell.nonspell = true;
       state.enemySpell.nonspellName = patterns.nonspells[state.enemySpell.id];
       state.enemySpell.remaining = 0;
+      delete state.enemySpell.firingClock;
       state.attackReadyAt = state.time + state.rhythm.beatDuration * 4;
       sound(capture ? "capture" : "spell_break", enemy);
     }
@@ -442,11 +443,38 @@
       );
       if (!state.enemySpell.nonspell && state.time >= state.rhythm.spellEnd)
         finishSpell(state.rhythm.quietBreak ? "music" : "timeout");
-      var tick = state.rhythm.tickKey;
-      if (tick !== lastTick) {
-        lastTick = tick;
-        if (state.rhythm.halfBeat >= 0 && state.time >= state.attackReadyAt) {
-          patterns.emit(state, state.rhythm.halfBeat, {
+      var tick = state.rhythm.tickKey,
+        newBeat = tick !== lastTick,
+        ready = state.rhythm.halfBeat >= 0 && state.time >= state.attackReadyAt,
+        clock = state.enemySpell.firingClock;
+      lastTick = tick;
+      if (clock && !ready && state.enemySpell.id === "london") {
+        // A durability clear gates shots, not London's moving source ring.
+        clock.restTicks =
+          (clock.restTicks || 0) +
+          (dt * 2 * patterns.difficulty(state).cadence) /
+            Math.max(0.12, state.rhythm.beatDuration);
+      }
+      if (ready) {
+        // Begin on a musical subdivision, then integrate its changing tempo.
+        // Rank shortens the interval of the original choreography; it never
+        // duplicates a whole volley or skips one of a card's source stages.
+        if (!clock && newBeat) {
+          clock = state.enemySpell.firingClock = {
+            ticks: 0,
+            emitted: -1,
+            origin: state.rhythm.halfBeat,
+          };
+        } else if (clock) {
+          clock.ticks +=
+            (dt * 2 * patterns.difficulty(state).cadence) /
+            Math.max(0.12, state.rhythm.beatDuration);
+        }
+        if (clock && Math.floor(clock.ticks) > clock.emitted) {
+          // dt is capped at 1/30 s: at most one native half-beat is crossed.
+          // A pause, declaration or durability clear never accrues a backlog.
+          clock.emitted++;
+          patterns.emit(state, clock.origin + clock.emitted, {
             bullet: bullet,
             laser: laser,
           });

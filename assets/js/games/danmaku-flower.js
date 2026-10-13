@@ -320,7 +320,7 @@
         radius: 7,
         active: false,
         vy: kind === "spirit" ? 22 : 27 + rank * 2,
-        fire: 1.4 + (phase || 0) * 0.03,
+        fire: (1.4 + (phase || 0) * 0.03) / (1 + rank * 0.025),
       });
     }
     function incoming(f, a, rank) {
@@ -366,6 +366,7 @@
     function attack(f, id, level, phase, rank, boss) {
       var color = base.cast[id].color,
         speed = 42 + rank * 3 + level * 3,
+        extra = Math.floor(rank / 4),
         p = f.player;
       if (id === "alice") {
         for (var side = -1; side <= 1; side += 2) {
@@ -375,9 +376,9 @@
             f,
             x,
             y,
-            3 + level,
+            3 + level + extra,
             Math.atan2(p.y - y, p.x - x),
-            0.16,
+            (0.16 * (2 + level)) / (2 + level + extra),
             speed,
             "diamond",
             color,
@@ -387,7 +388,17 @@
             f.effects.push({ kind: "doll", x: x, y: y, age: 0, color: color });
         }
       } else if (id === "marisa") {
-        ring(f, 120, 36, 10 + level * 3, phase, speed, "star", color, true);
+        ring(
+          f,
+          120,
+          36,
+          10 + level * 3 + extra * 2,
+          phase,
+          speed,
+          "star",
+          color,
+          true
+        );
         if (level >= 3 && f.lasers.length < 4) {
           f.lasers.push({
             x: clamp(p.x + (Math.sin(phase) > 0.0 ? 28 : -28), 20, 220),
@@ -406,9 +417,9 @@
             f,
             x,
             20 + (e % 2) * 16,
-            level + 1,
+            level + 1 + extra,
             Math.PI / 2 + Math.sin(phase + e) * 0.32,
-            0.15,
+            (0.15 * level) / (level + extra),
             speed * (0.8 + e * 0.08),
             e % 2 ? "rice" : "orb",
             colors[e],
@@ -459,9 +470,9 @@
         for (var x = -1; x <= 1; x++) {
           var focus = Boolean(
             nearest &&
-              nearest.kind === "spirit" &&
-              distance(nearest, p) < 120 &&
-              Math.abs(nearest.x - p.x) < 60
+            nearest.kind === "spirit" &&
+            distance(nearest, p) < 120 &&
+            Math.abs(nearest.x - p.x) < 60
           );
           // Prediction uses the actual normalized speed, including focused flight.
           var speed = focus ? 58 : base.cast[f.id].speed,
@@ -590,10 +601,11 @@
         f.waveClock = Math.max(1.5, 3.4 - rank * 0.12);
         f.wave++;
         var start = 35 + (f.wave % 3) * 65;
-        for (var i = 0; i < 5; i++)
+        var waveSize = 5 + Math.floor(rank / 5);
+        for (var i = 0; i < waveSize; i++)
           minion(
             f,
-            clamp(start + (i - 2) * 15, 15, 225),
+            clamp(start + (i - (waveSize - 1) / 2) * 15, 15, 225),
             -14 - i * 17,
             "fairy",
             f.wave * 0.75,
@@ -631,7 +643,7 @@
         }
         e.fire -= dt;
         if (e.fire <= 0 && e.y > 18 && e.y < 215) {
-          e.fire = e.active ? 1.4 : 2.7;
+          e.fire = (e.active ? 1.4 : 2.7) / (1 + rank * 0.025);
           bullet(
             f,
             e.x,
@@ -814,6 +826,7 @@
         16,
         Math.floor(state.roundTime / 18) + state.round - 1
       );
+      state.rank = rank + 1;
       var inputs = [
         state.auto ? pilotAI(state.fields[0], dt) : input,
         pilotAI(state.fields[1], dt),

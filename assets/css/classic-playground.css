@@ -224,6 +224,7 @@ body.playground-page {
 }
 .playground-page #live2d-widget[data-playground-layout="wide"] .vn-bgm {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: 4px;
   margin: 0;

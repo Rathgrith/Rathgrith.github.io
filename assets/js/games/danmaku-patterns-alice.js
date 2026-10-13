@@ -18,6 +18,12 @@
     return t * t * (3 - 2 * t);
   }
   function londonClock(s) {
+    if (s.enemySpell.firingClock)
+      return (
+        (s.enemySpell.firingClock.ticks +
+          (s.enemySpell.firingClock.restTicks || 0)) /
+        2
+      );
     var rhythm = s.rhythm,
       first = s.enemySpell.firstPatternTick;
     // The formation keeps moving during a durability-clear ceasefire. An
@@ -59,6 +65,7 @@
     };
   }
   function beatClock(s) {
+    if (s.enemySpell.firingClock) return s.enemySpell.firingClock.ticks / 2;
     var spell = s.enemySpell,
       beat = spell.aliceClockBeat || (s.rhythm && s.rhythm.beatDuration) || 0.5;
     return spell.aliceClockTick === undefined
@@ -72,7 +79,7 @@
   function packetDolls(s) {
     var id = s.enemySpell.id,
       sourceCount = id === "russia" ? 9 : 6,
-      clock = beatClock(s),
+      clock = beatClock(s) * (id === "holland" ? 4 / 3 : 1),
       out = [];
     // These are successive summons, not one rank teleported and recoloured.
     // A doll arrives before its own shot and overlaps the next generation while
@@ -167,7 +174,10 @@
     var id = s.enemySpell.id,
       b = s.boss,
       sources = emitters(s);
-    var cycle = Math.min(6, level.cycle || 0),
+    var cycle = Math.min(
+        6,
+        level.densityTier === undefined ? level.cycle || 0 : level.densityTier
+      ),
       speed = level.speed;
     // Later rounds tighten spacing slightly; they never change a card's grammar.
     var extra = Math.floor(cycle / 3);
@@ -222,12 +232,16 @@
     }
 
     if (id === "holland" || id === "russia") {
-      if (tick % 2 !== 0) return;
-      var cast = Math.floor(tick / 2),
+      // The time-attack Holland variant refreshes its six-position formation
+      // every 3/4 beat on average. Russia retains its original one-beat casts.
+      if (id === "russia" && tick % 2 !== 0) return;
+      var cast = Math.floor(id === "holland" ? (tick * 2) / 3 : tick / 2),
         d = sources.find(function (source) {
           return source.cast === cast;
         });
+      if (s.enemySpell.lastPacketCast === cast) return;
       if (!d || d.opacity <= 0) return;
+      s.enemySpell.lastPacketCast = cast;
       // Successive dolls cast a fixed right-facing wheel. A wheel consists of
       // compact six-grain packets, with open sectors between the spokes.
       var rays = id === "holland" ? 7 : 6;
@@ -246,6 +260,21 @@
             );
           }
         }
+      }
+      if (id === "holland" && cast % 3 === 0) {
+        // User-requested anti-camping layer for this time-attack adaptation.
+        // Lock once at the visible doll, then fly straight; never home after
+        // firing or manufacture an invisible secondary origin near the player.
+        var aimed = direction(d.x, d.y);
+        for (var lane = -1; lane <= 1; lane++)
+          api.bullet(
+            d.x,
+            d.y,
+            aimed + lane * 0.12,
+            speed * 0.84,
+            WHITE,
+            "rice"
+          );
       }
       return;
     }

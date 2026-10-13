@@ -72,18 +72,47 @@
     );
     var cycle = Math.min(6, s.rhythm.cycle || 0),
       energy = s.rhythm.energy;
-    var extra = Math.floor(cycle / 2);
+    // The HUD rank advances every twenty seconds. Previously only the song's
+    // repeat count reached the emitters, so most RANK UP notices changed no
+    // shots at all. Keep a ceiling: authored formations already use the field.
+    var rank = Number.isFinite(s.level) ? Math.max(0, s.level - 1) : cycle * 4;
+    var pressure = Math.min(1, rank / 24),
+      densityTier = Math.min(6, Math.floor(rank / 4));
+    // Fixed-arm cards gain tighter successive rows instead of extra sources or
+    // changing France's 7×7 split / Spark's 8-way grammar. Variable-count cards
+    // need less cadence gain because their own rings already gain more grains.
+    var cadenceGain = s.enemySpell.nonspell
+      ? 0.12
+      : [
+            "france",
+            "holland",
+            "russia",
+            "milky",
+            "nondirectional",
+            "master",
+            "finalspark",
+            "flare",
+          ].indexOf(s.enemySpell.id) >= 0
+        ? 0.32
+        : ["asteroid", "philosopher"].indexOf(s.enemySpell.id) >= 0
+          ? 0.2
+          : 0.12;
+    var extra = Math.floor(densityTier / 2);
     if (["agni", "undine", "asteroid"].indexOf(s.enemySpell.id) >= 0)
       extra = Math.min(1, extra);
     return {
       stage: stage,
       cycle: cycle,
+      rank: rank,
+      densityTier: densityTier,
+      cadence: 1 + pressure * cadenceGain,
+      velocityScale: 1 + pressure * 0.24,
       speed:
         [58, 64, 72, 80, 87, 96][stage] *
-        (1 + cycle * 0.04) *
+        (1 + pressure * 0.24) *
         (0.97 + energy * 0.06),
       density: stage + 1 + extra,
-      warning: [1.3, 1.24, 1.18, 1.12, 1.06, 1][stage] / (1 + cycle * 0.025),
+      warning: [1.3, 1.24, 1.18, 1.12, 1.06, 1][stage] / (1 + pressure * 0.15),
     };
   }
   function interludeEmitters(s) {
@@ -324,7 +353,7 @@
     }
     function fan(x, y, a, n, spread, v, color, shape, curve) {
       var original = n;
-      n = Math.max(3, Math.round(n * (1 + level.cycle * 0.04)));
+      n = Math.max(3, Math.round(n * (1 + level.densityTier * 0.04)));
       spread *= (original - 1) / (n - 1);
       for (var j = 0; j < n; j++)
         api.bullet(
@@ -338,7 +367,7 @@
         );
     }
     function ring(x, y, n, a, v, color, shape, curve, gap) {
-      n = Math.max(6, Math.round(n * (1 + level.cycle * 0.04)));
+      n = Math.max(6, Math.round(n * (1 + level.densityTier * 0.04)));
       for (var j = 0; j < n; j++) {
         var angle = a + (j * TAU) / n;
         if (
@@ -648,6 +677,7 @@
     bossPosition: bossPosition,
     emit: emit,
     update: update,
+    difficulty: difficulty,
     advanceBullet: advanceBullet,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

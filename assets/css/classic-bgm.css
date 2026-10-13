@@ -117,31 +117,41 @@
   overflow-wrap: anywhere;
   white-space: pre-line;
 }
-#live2d-widget .vn-radio-dial {
-  display: flex;
-  justify-content: space-between;
-  position: relative;
-  height: 17px;
-  margin: 5px 2px 0;
-  padding: 0 2px;
-  color: #b9bcb0;
+#live2d-widget .vn-radio-spectrum {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 6px;
+  height: 27px;
+  margin: 5px 0 0;
+  padding: 2px 4px;
+  overflow: hidden;
+  color: #bfc7ac;
+  background: #1b231f;
+  border: 1px solid #101612;
+  box-shadow:
+    inset 0 1px 3px #0008,
+    0 1px 0 #ffffff18;
   font: 8px/1 monospace;
-  background: repeating-linear-gradient(
-      90deg,
-      #b9bcb05c 0 1px,
-      transparent 1px 6px
-    )
-    left bottom / 100% 4px no-repeat;
-  border-bottom: 1px solid #a4a18570;
+  letter-spacing: 0.3px;
 }
-#live2d-widget .vn-radio-dial i {
-  position: absolute;
+#live2d-widget [data-radio-spectrum] {
+  display: block;
+  width: 100%;
+  height: 24px;
+  min-width: 0;
+  image-rendering: pixelated;
+}
+#live2d-widget [data-radio-band] {
+  text-align: right;
+}
+/* Fit the floating window's fixed reading area without stealing lyric rows. */
+body:not(.playground-page) #live2d-widget .vn-radio-spectrum {
+  height: 17px;
+  padding-block: 1px;
+}
+body:not(.playground-page) #live2d-widget [data-radio-spectrum] {
   height: 12px;
-  bottom: -1px;
-  left: var(--radio-frequency, 8%);
-  border-left: 2px solid #edb892;
-  box-shadow: 1px 0 0 #402923;
-  transition: left 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 #live2d-widget .vn-bgm-main {
   display: grid;
@@ -367,9 +377,6 @@
   #live2d-widget [data-bgm-state="loading"] [data-bgm-status]::before,
   #live2d-widget [data-bgm-tuning="true"] [data-bgm-status]::before {
     animation: none;
-  }
-  #live2d-widget .vn-radio-dial i {
-    transition: none;
   }
   #live2d-widget .vn-bgm-button {
     transition: none;

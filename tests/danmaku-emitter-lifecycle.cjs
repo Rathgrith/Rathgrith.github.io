@@ -84,7 +84,9 @@ alice.emit = function (s, tick, api, level) {
       ...api,
       bullet(...shot) {
         if (trace && packet) {
-          const cast = Math.floor(tick / 2);
+          const cast = Math.floor(
+            trace.card === "holland" ? (tick * 2) / 3 : tick / 2
+          );
           const source = alice.emitters(s).find((d) => d.cast === cast);
           sameOrigin(
             shot,
@@ -109,7 +111,15 @@ alice.emit = function (s, tick, api, level) {
   if (trace && packet) {
     // The original seven/six packet spokes contain six grains each. This is
     // also a regression for a clock mismatch silently returning no source.
-    const expected = tick % 2 ? 0 : trace.card === "holland" ? 42 : 36;
+    const cast = Math.floor((tick * 2) / 3);
+    const expected =
+      trace.card === "holland"
+        ? tick % 3 === 1
+          ? 0
+          : 42 + (cast % 3 === 0 ? 3 : 0)
+        : tick % 2
+          ? 0
+          : 36;
     assert.equal(
       shots,
       expected,

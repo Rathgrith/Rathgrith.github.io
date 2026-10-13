@@ -8,6 +8,14 @@ dolls. Those claims came from reading crowded snapshots too loosely. The later i
 
 ## Evidence and difficulty boundaries
 
+**Later time-attack adjustment (2026-10-14):** at the user's request, Holland
+now refreshes its same six-position doll sequence every 3/4 native beat on
+average and adds an ivory three-way, once-locked player-aimed volley from each
+third new doll. The original seven-spoke packet wheels remain fixed. This is
+an intentional anti-camping adaptation, **not newly discovered PCB evidence**;
+the source audit below records the original baseline. Russia is unchanged by
+this adjustment. See [rank and Holland rules](danmaku-game.md#rank-pressure).
+
 The following original-game footage was viewed in the browser, following the
 colour changes and emitter positions across successive states:
 
