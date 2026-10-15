@@ -3,7 +3,9 @@
   if (window.__sitePageTransitionBootstrapped) return;
   window.__sitePageTransitionBootstrapped = true;
 
-  var navigating = false;
+  var activeNavigation = null;
+  var renderedUrl = new URL(window.location.href);
+  var scrollPositions = new Map();
   var boundNavigation = false;
 
   function isModifiedClick(event) {
@@ -57,9 +59,13 @@
     if (target && target !== "_self") return false;
 
     var rawHref = anchor.getAttribute("href");
+    if (rawHref && rawHref[0] === "#") {
+      rememberScroll();
+      cancelNavigation();
+      return false;
+    }
     if (
       !rawHref ||
-      rawHref[0] === "#" ||
       rawHref.indexOf("mailto:") === 0 ||
       rawHref.indexOf("tel:") === 0 ||
       rawHref.indexOf("javascript:") === 0
@@ -75,8 +81,12 @@
     }
 
     if (url.origin !== window.location.origin) return false;
-    if (isSamePageAnchor(url)) return false;
-    if (isSamePageUrl(url)) return false;
+    if (isSamePageAnchor(url)) {
+      rememberScroll();
+      cancelNavigation();
+      return false;
+    }
+    if (isSamePageUrl(url) && !activeNavigation) return false;
     if (hasNonHtmlExtension(url)) return false;
 
     return true;
@@ -133,6 +143,9 @@
 
     syncHeadTag(nextDoc, "link[rel='canonical']", "href");
     syncHeadTag(nextDoc, "meta[property='og:url']", "content");
+    syncHeadTag(nextDoc, "meta[property='og:title']", "content");
+    syncHeadTag(nextDoc, "meta[property='og:description']", "content");
+    syncHeadTag(nextDoc, "meta[name='description']", "content");
   }
 
   function syncBodyDataAttribute(nextBody, attributeName) {
@@ -158,6 +171,7 @@
     document.body.className = nextClasses;
 
     syncBodyDataAttribute(nextBody, "data-disable-live2d");
+    syncBodyDataAttribute(nextBody, "data-disable-mouse-firework");
   }
 
   function replaceMain(nextDoc) {
@@ -232,9 +246,18 @@
     dispatchContentUpdated(url);
   }
 
-  function scrollAfterNavigation(url) {
+  function scrollAfterNavigation(url, position) {
+    if (position) {
+      window.scrollTo(position.x, position.y);
+      return;
+    }
     if (url.hash) {
-      var id = decodeURIComponent(url.hash.slice(1));
+      var id = url.hash.slice(1);
+      try {
+        id = decodeURIComponent(id);
+      } catch (e) {
+        // A malformed fragment must not reload an otherwise valid page.
+      }
       if (id) {
         var target = document.getElementById(id);
         if (target && typeof target.scrollIntoView === "function") {
@@ -247,9 +270,10 @@
     window.scrollTo(0, 0);
   }
 
-  function softNavigate(url, options) {
+  function softNavigate(url, options, request) {
     return fetch(url.href, {
       credentials: "same-origin",
+      signal: request.controller ? request.controller.signal : undefined,
       headers: {
         "X-Requested-With": "site-page-transition",
       },
@@ -261,6 +285,8 @@
         return response.text();
       })
       .then(function (html) {
+        // A slow response must never overwrite a more recent click or Back.
+        if (request !== activeNavigation) return;
         var parser = new DOMParser();
         var nextDoc = parser.parseFromString(html, "text/html");
 
@@ -270,6 +296,9 @@
           document.body.dataset.playgroundStandalone
         ) {
           throw new Error("Page shell changed");
+        }
+        if (!nextDoc.getElementById("main")) {
+          throw new Error("Missing #main in target page");
         }
         updateDocumentMeta(nextDoc);
         applyBodyClass(nextDoc.body);
@@ -294,30 +323,77 @@
           }
         }
 
-        scrollAfterNavigation(url);
         runPostSwapHooks(url);
+        renderedUrl = url;
+        insertedMain.setAttribute("aria-busy", "false");
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          insertedMain.classList.add("is-content-entering");
+          insertedMain.addEventListener("animationend", function finish(event) {
+            if (event.animationName !== "classic-content-enter") return;
+            insertedMain.classList.remove("is-content-entering");
+            insertedMain.removeEventListener("animationend", finish);
+          });
+        }
+        // Focus follows replaced content, while the persistent radio/model remain alive.
+        insertedMain.focus({ preventScroll: true });
+        scrollAfterNavigation(url, options && options.position);
       });
   }
 
-  function navigateWithTransition(url, options) {
-    if (navigating) return;
-    navigating = true;
+  function clearNavigation(request) {
+    if (!request) return;
+    clearTimeout(request.timeout);
+    if (activeNavigation !== request) return;
+    activeNavigation = null;
+    document.documentElement.removeAttribute("data-navigation-pending");
+    var main = document.getElementById("main");
+    if (main) main.setAttribute("aria-busy", "false");
+  }
 
+  function cancelNavigation() {
+    var request = activeNavigation;
+    clearNavigation(request);
+    if (request && request.controller) request.controller.abort();
+  }
+
+  function rememberScroll() {
+    scrollPositions.set(renderedUrl.href, {
+      x: window.scrollX,
+      y: window.scrollY,
+    });
+    // Bound the cache for long-lived gallery/radio sessions.
+    if (scrollPositions.size > 40)
+      scrollPositions.delete(scrollPositions.keys().next().value);
+  }
+
+  function navigateWithTransition(url, options) {
     var targetUrl;
     try {
       targetUrl = new URL(url, window.location.href);
     } catch (e) {
-      navigating = false;
       hardNavigate(url);
       return;
     }
-
-    function finalizeSuccess() {
-      navigating = false;
+    rememberScroll();
+    var wasPending = Boolean(activeNavigation);
+    cancelNavigation();
+    if (wasPending && targetUrl.href === renderedUrl.href) {
+      scrollAfterNavigation(targetUrl);
+      return;
     }
+    var request = {
+      controller: window.AbortController ? new AbortController() : null,
+      timeout: 0,
+    };
+    activeNavigation = request;
+    document.documentElement.setAttribute("data-navigation-pending", "true");
+    var main = document.getElementById("main");
+    if (main) main.setAttribute("aria-busy", "true");
 
     function fallbackToHardNavigation() {
-      navigating = false;
+      if (request !== activeNavigation) return;
+      clearNavigation(request);
+      if (request.controller) request.controller.abort();
       hardNavigate(targetUrl.href);
     }
 
@@ -327,8 +403,11 @@
         return;
       }
 
-      softNavigate(targetUrl, options)
-        .then(finalizeSuccess)
+      request.timeout = setTimeout(fallbackToHardNavigation, 12000);
+      softNavigate(targetUrl, options, request)
+        .then(function () {
+          clearNavigation(request);
+        })
         .catch(fallbackToHardNavigation);
     }
 
@@ -353,12 +432,37 @@
     );
 
     window.addEventListener("popstate", function () {
-      if (navigating) return;
-      navigateWithTransition(window.location.href, { skipHistory: true });
+      var url = new URL(window.location.href);
+      var position = scrollPositions.get(url.href);
+      rememberScroll();
+      cancelNavigation();
+      if (
+        url.pathname === renderedUrl.pathname &&
+        url.search === renderedUrl.search
+      ) {
+        renderedUrl = url;
+        scrollAfterNavigation(url, position);
+        return;
+      }
+      navigateWithTransition(url.href, {
+        skipHistory: true,
+        position: position,
+      });
+    });
+    window.addEventListener("hashchange", function () {
+      var url = new URL(window.location.href);
+      if (
+        url.pathname === renderedUrl.pathname &&
+        url.search === renderedUrl.search
+      )
+        renderedUrl = url;
     });
   }
 
   function init() {
+    if (canSoftNavigate() && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
     if (window.history && typeof window.history.replaceState === "function") {
       try {
         window.history.replaceState(
@@ -375,7 +479,7 @@
   }
 
   window.addEventListener("pageshow", function (event) {
-    navigating = false;
+    if (event.persisted) cancelNavigation();
   });
 
   if (document.readyState === "loading") {

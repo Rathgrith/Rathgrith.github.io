@@ -1,18 +1,19 @@
+{% include frontend-context.html %}
 <!doctype html>
-<html lang="en" class="no-js classic-root" data-theme="dark" data-live2d-character="alice">
+<html lang="en" class="no-js classic-root" data-theme="dark" data-live2d-character="{{ classic_character }}">
   <head>
     {% include head.html %}
     {% include head/custom.html %}
   </head>
 
   {% assign body_classes = page.body_class | default: "" | append: " classic-site" %}
-  {% if page.body_class == "home-page" and page.disable_home_loading != true %}
+  {% if classic_home_loading %}
     {% assign body_classes = body_classes | append: " home-loading" %}
   {% endif %}
   <body{% if body_classes != "" %} class="{{ body_classes | strip }}"{% endif %}{% if page.disable_live2d %} data-disable-live2d="true"{% endif %}{% if page.disable_mouse_firework %} data-disable-mouse-firework="true"{% endif %}>
 
     {% include browser-upgrade.html %}
-    {% if page.body_class == "home-page" and page.disable_home_loading != true %}
+    {% if classic_home_loading %}
       <div class="home-loading-screen" id="home-loading-screen" role="status" lang="ja" aria-label="少女祈祷中…">
         {% include prayer-loader.html %}
       </div>
@@ -38,7 +39,7 @@
       </div>
     </main>
 
-    {% include site-runtime-footer.html %}
+    {% unless site.classic.runtime == false %}{% include site-runtime-footer.html %}{% endunless %}
     {% include classic-credits.html %}
     </div>
     {% include companion-runtime.html %}

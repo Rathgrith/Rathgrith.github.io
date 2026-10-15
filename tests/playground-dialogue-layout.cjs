@@ -149,9 +149,20 @@ fs.mkdirSync(out, { recursive: true });
             canvas.height,
           ],
           heights: [c.height, rect(w.querySelector(".vn-bgm")).height],
-          dialVisible:
-            w.querySelector(".vn-radio-dial").getBoundingClientRect().height >
-            0,
+          spectrumVisible:
+            w.querySelector(".vn-radio-spectrum").getBoundingClientRect()
+              .height > 0,
+          nameplateFits: [".vn-nameplate strong", "[data-vn-affinity]"].every(
+            (selector) => {
+              const label = w.querySelector(selector);
+              const range = document.createRange();
+              range.selectNodeContents(label);
+              return (
+                range.getClientRects().length === 1 &&
+                label.scrollWidth <= label.clientWidth + 1
+              );
+            }
+          ),
           conversation: c,
           reading: r,
           text: t,
@@ -212,8 +223,12 @@ fs.mkdirSync(out, { recursive: true });
             details
         );
         assert(
-          result.dialVisible,
+          result.spectrumVisible,
           "Dialogue options must never hide player controls: " + details
+        );
+        assert(
+          result.nameplateFits,
+          "Speaker and affinity stay on one line: " + details
         );
         assert(result.conversation.bottom <= result.footer.top + 1, details);
         assert(

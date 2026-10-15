@@ -1,0 +1,19 @@
+# The three supported palettes; keep ids stable for dialogue, game and saved preferences.
+- id: "alice"
+  name: "Alice"
+  portrait: "/images/avatars/alice-portrait.png"
+  icon: "/assets/images/classic/characters/alice.svg"
+  expressionMotionIds: ["01", "02", "03", "04", "05", "06", "07", "08"]
+  modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Alice/object_live2d_014_101.asset.model3.json"
+- id: "marisa"
+  name: "Marisa"
+  portrait: "/images/avatars/marisa-portrait.png"
+  icon: "/assets/images/classic/characters/marisa.svg"
+  expressionMotionIds: ["01", "02", "03", "04", "05", "06", "07", "08"]
+  modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Marisa/object_live2d_002_101.asset.model3.json"
+- id: "patchouli"
+  name: "Patchouli"
+  portrait: "/images/avatars/patchouli-portrait.png"
+  icon: "/assets/images/classic/characters/patchouli.svg"
+  expressionMotionIds: ["01", "02", "03", "04", "05", "06", "07", "08"]
+  modelPath: "https://raw.githubusercontent.com/n0099/TouhouCannonBall-Live2d-Models/main/Patchouli/object_live2d_008_101.asset.model3.json"

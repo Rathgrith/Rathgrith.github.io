@@ -1,6 +1,7 @@
 /* Shared artwork, independent split-field composition for the flower duel. */
 (function (scope) {
   "use strict";
+  var assetBase = (scope.SiteAssets && scope.SiteAssets.base) || "";
   var W = 240,
     H = 360,
     cast = scope.DanmakuEngine.cast;
@@ -27,6 +28,7 @@
               patchouli: "patchouli-library",
             }[id];
             img.src =
+              assetBase +
               "/assets/images/classic/danmaku/" +
               (kind === "background"
                 ? "backgrounds/" + scene + ".png"

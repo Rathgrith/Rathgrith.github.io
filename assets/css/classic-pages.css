@@ -26,7 +26,8 @@
 }
 /* A tall conversation stays in page flow; the index can stick when it stands alone. */
 @media (min-width: 1000px) {
-  .classic-gallery-rail:has(.classic-companion-dock:empty) .classic-year-navigation,
+  .classic-gallery-rail:has(.classic-companion-dock:empty)
+    .classic-year-navigation,
   body.live2d-is-hidden .classic-gallery-rail .classic-year-navigation {
     position: sticky;
   }
@@ -86,6 +87,7 @@
   columns: auto;
 }
 .gallery-page .classic-photo {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -103,7 +105,26 @@
     var(--classic-chrome) 50%,
     var(--classic-document)
   );
-  transition: border-color 120ms ease;
+  transition:
+    border-color var(--motion-ui, 180ms) var(--motion-ease, ease),
+    background-color var(--motion-ui, 180ms) var(--motion-ease, ease);
+}
+.gallery-page .classic-photo::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid var(--classic-accent);
+  border-right: 2px solid var(--classic-accent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-ui, 180ms) var(--motion-ease, ease);
+}
+.gallery-page .classic-photo:focus-within::after,
+.gallery-page .classic-photo:hover::after {
+  opacity: 1;
 }
 .gallery-page .classic-photo a {
   display: block;
@@ -123,6 +144,7 @@
   margin: 0;
   border: 0;
   border-radius: 0;
+  transition: transform var(--motion-panel, 240ms) var(--motion-ease, ease);
 }
 .gallery-page .classic-photo figcaption {
   margin: 0;
@@ -133,6 +155,7 @@
     Arial,
     sans-serif;
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 .gallery-page .gallery-container {
   text-align: left;
@@ -170,18 +193,6 @@
   position: relative;
   z-index: 1;
   object-fit: contain;
-}
-.gallery-page .classic-photo-status {
-  display: block;
-  grid-column: 1 / -1;
-  color: var(--text-muted);
-  font:
-    14px/1.4 "W95FA",
-    Arial,
-    sans-serif;
-}
-.gallery-page .classic-photo-status:empty {
-  display: none;
 }
 .gallery-page .gallery-modal__meta {
   font-family: "W95FA", Arial, sans-serif;
@@ -245,6 +256,15 @@
   margin-bottom: 18px;
   color: var(--text-muted);
   font-size: 16px;
+}
+.gallery-page .classic-archive-year > h2::after {
+  content: "";
+  flex: 0 0 16px;
+  height: 16px;
+  margin-left: auto;
+  background: var(--classic-accent);
+  mask: var(--classic-section-mark) center / contain no-repeat;
+  opacity: 0.5;
 }
 .gallery-page .classic-archive-year + .classic-archive-year {
   margin-top: 38px;
@@ -358,6 +378,15 @@
 .classic-document.blog-article {
   padding: 24px;
 }
-.gallery-page .gallery-modal__image {
-  transition: none;
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .gallery-page .classic-photo:hover img {
+    transform: scale(1.025);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gallery-page .classic-photo,
+  .gallery-page .classic-photo::after,
+  .gallery-page .classic-photo img {
+    transition: none;
+  }
 }

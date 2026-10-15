@@ -1,6 +1,7 @@
 /* Visual-novel controller. Story state is independent of optional WebGL/model loading. */
 (function () {
   "use strict";
+  var assetBase = (window.SiteAssets && window.SiteAssets.base) || "";
   var data = window.CompanionStories,
     root,
     hooks,
@@ -579,7 +580,9 @@
               id +
               '" aria-label="話し相手：' +
               data.characters[id].name +
-              '"><img src="/assets/images/classic/characters/' +
+              '"><img src="' +
+              assetBase +
+              "/assets/images/classic/characters/" +
               id +
               '.svg" alt="">' +
               data.characters[id].name +

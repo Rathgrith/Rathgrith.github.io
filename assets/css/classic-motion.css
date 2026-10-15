@@ -1,0 +1,92 @@
+/* Small, finite transitions keep the desktop responsive without softening pixels.
+   Only the replaced article fades: the persistent Playground is never captured,
+   transformed or paused while the visitor changes pages. */
+@keyframes classic-content-enter {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes classic-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes classic-navigation-progress {
+  from {
+    background-position: -34% 0;
+  }
+  to {
+    background-position: 134% 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .is-content-entering > article {
+    animation: classic-content-enter var(--motion-panel) var(--motion-ease);
+  }
+  .classic-frame,
+  .classic-document,
+  .classic-toolbar,
+  .site-options-fab__trigger,
+  .site-options-fab__action {
+    transition:
+      background-color var(--motion-ui) var(--motion-ease),
+      color var(--motion-fast) linear,
+      border-color var(--motion-ui) linear;
+  }
+  .site-options-fab.is-open .site-options-fab__menu {
+    animation: classic-panel-enter var(--motion-ui) var(--motion-ease);
+  }
+  .hover-photo__card {
+    transition:
+      opacity var(--motion-fast) linear,
+      visibility var(--motion-fast);
+  }
+}
+
+/* A thin loading trace occupies the existing toolbar rule, without layout shift. */
+.classic-toolbar {
+  position: relative;
+}
+.classic-toolbar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  pointer-events: none;
+  background: var(--classic-accent);
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+}
+html[data-navigation-pending] .classic-toolbar::after {
+  opacity: 0.8;
+  clip-path: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-navigation-pending] .classic-toolbar::after {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--classic-accent),
+        transparent
+      )
+      no-repeat;
+    background-size: 25% 100%;
+    animation: classic-navigation-progress 900ms linear infinite;
+  }
+}
+@media print, (forced-colors: active) {
+  .classic-toolbar::after {
+    display: none;
+  }
+}

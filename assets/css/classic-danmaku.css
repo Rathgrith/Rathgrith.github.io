@@ -444,15 +444,26 @@
       .danmaku-pilots,
       .danmaku-opponents,
       .danmaku-game-modes,
-      .danmaku-controls
+      .danmaku-controls,
+      .danmaku-audio
     )
     button {
     transition:
-      color 0.12s,
-      background-color 0.12s,
-      border-color 0.12s,
-      box-shadow 0.12s;
+      color var(--motion-fast, 120ms),
+      background-color var(--motion-fast, 120ms),
+      border-color var(--motion-fast, 120ms),
+      box-shadow var(--motion-fast, 120ms);
   }
+}
+#live2d-widget
+  :is(.danmaku-pilots, .danmaku-opponents, .danmaku-game-modes)
+  button:focus-visible {
+  outline-offset: -4px;
+}
+#live2d-widget
+  :is(.danmaku-opponents, .danmaku-controls, .danmaku-audio)
+  button:active:not(:disabled) {
+  box-shadow: inset 1px 1px 0 #0009;
 }
 
 /* A track ending is a quiet, reversible continuation prompt. */

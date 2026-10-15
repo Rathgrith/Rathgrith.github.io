@@ -10,12 +10,12 @@
     root.className = "site-options-fab";
     root.setAttribute("data-site-options-floating", "true");
     root.innerHTML = [
-      '<button type="button" class="site-options-fab__trigger" data-site-options-trigger aria-label="Open options" aria-haspopup="true" aria-expanded="false">',
+      '<button type="button" class="site-options-fab__trigger" data-site-options-trigger aria-label="Open options" aria-controls="site-options-menu" aria-expanded="false">',
       '<i class="fas fa-sliders-h" aria-hidden="true"></i>',
       '<span class="visually-hidden">Options</span>',
       "</button>",
-      '<div class="site-options-fab__menu" data-site-options-menu role="menu" hidden>',
-      '<button type="button" class="site-options-fab__action" data-live2d-toggle data-live2d-toggle-style="menu" aria-pressed="true" role="menuitem"></button>',
+      '<div id="site-options-menu" class="site-options-fab__menu" data-site-options-menu role="group" aria-label="Options" hidden>',
+      '<button type="button" class="site-options-fab__action" data-live2d-toggle data-live2d-toggle-style="menu" aria-pressed="true"></button>',
       "</div>",
     ].join("");
 
@@ -36,6 +36,10 @@
     function setOpen(isOpen) {
       root.classList.toggle("is-open", isOpen);
       trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      trigger.setAttribute(
+        "aria-label",
+        isOpen ? "Close options" : "Open options"
+      );
       menu.hidden = !isOpen;
     }
 
@@ -59,6 +63,20 @@
         setOpen(false);
         trigger.focus();
       }
+    });
+    root.addEventListener("focusout", function () {
+      // Let focus settle before checking keyboard movement out of the disclosure.
+      setTimeout(function () {
+        if (!root.contains(document.activeElement)) setOpen(false);
+      }, 0);
+    });
+    menu.addEventListener("click", function (event) {
+      if (!event.target.closest("button")) return;
+      setOpen(false);
+      trigger.focus({ preventScroll: true });
+    });
+    document.addEventListener("site:before-content-replace", function () {
+      setOpen(false);
     });
 
     root.addEventListener("keydown", function (event) {

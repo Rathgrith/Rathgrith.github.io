@@ -1,4 +1,4 @@
-# main links links
+# Section index. Header tabs are configured separately below.
 main:
   - title: "About"
     url: "/#about-me"
@@ -27,3 +27,24 @@ main:
 
   - title: "Gallery"
     url: "/gallery/"
+
+# Header icons use the existing 16px asset grid. Local URLs respect baseurl.
+header:
+  - title: Home
+    url: /
+    page: home
+    icon: directory_closed-1.png
+  - title: Publications
+    url: /#publications
+    icon: notepad_file-1.png
+  - title: Gallery
+    url: /gallery/
+    page: gallery
+    icon: gallery.svg
+  - title: Playground
+    url: /playground/
+    full_navigation: true
+    icon: playground.svg
+  - title: CV
+    url: /assets/resume.pdf
+    icon: address_book_card_copy-1.png

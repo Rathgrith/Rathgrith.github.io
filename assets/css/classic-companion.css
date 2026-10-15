@@ -35,6 +35,7 @@
     inset 0 0 0 1px var(--classic-edge-dark),
     4px 4px 0 #0007;
   color: var(--vn-ink);
+  color-scheme: dark;
   font: 12px/1.75 var(--vn-font);
   overflow: hidden;
   opacity: 1;
@@ -81,7 +82,7 @@
   text-shadow: none;
   opacity: 1;
 }
-#live2d-widget button:hover,
+#live2d-widget button:hover:not(:disabled),
 #live2d-widget button[aria-pressed="true"] {
   background: var(--classic-soft);
   color: var(--classic-accent);
@@ -206,6 +207,7 @@
   padding: 3px 1px;
   font-size: 12px;
   border-color: transparent;
+  white-space: nowrap;
 }
 #live2d-widget .vn-cast button[aria-pressed="true"] {
   border-color: var(--vn-rule);
@@ -231,10 +233,11 @@
 @container playground (max-width: 260px) {
   #live2d-widget .vn-cast button {
     gap: 2px;
+    font-size: 10px;
   }
   #live2d-widget .vn-cast img {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 }
 #live2d-widget .companion-stage {
@@ -317,6 +320,9 @@
   display: none;
 }
 #live2d-widget .vn-scene-caption {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   position: absolute;
   z-index: 3;
   left: 8px;
@@ -328,6 +334,16 @@
   border-left: 2px solid var(--classic-accent);
   font: 12px/1.5 var(--vn-font);
   pointer-events: none;
+}
+/* The scene label carries each character's line-art seal, outside the rig. */
+#live2d-widget .vn-scene-caption::before {
+  content: "";
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  background: var(--classic-accent);
+  mask: var(--vn-ornament) center / contain no-repeat;
+  opacity: 0.85;
 }
 #live2d-widget .companion-load-status {
   display: none;
@@ -348,6 +364,7 @@
   display: flex;
 }
 #live2d-widget .companion-conversation {
+  container: vn-dialogue / inline-size;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -378,6 +395,17 @@
       12px 1px no-repeat,
     linear-gradient(var(--classic-accent), var(--classic-accent)) right top /
       1px 12px no-repeat;
+  /* Fine paired registration marks keep the ornament on the frame, clear of text. */
+  border-image: linear-gradient(
+      90deg,
+      transparent 20px,
+      var(--vn-rule) 20px 42px,
+      transparent 42px calc(100% - 42px),
+      var(--vn-rule) calc(100% - 42px) calc(100% - 20px),
+      transparent calc(100% - 20px)
+    )
+    1;
+  border-block: 1px solid transparent;
 }
 #live2d-widget .vn-dialogue-body {
   min-width: 0;
@@ -453,6 +481,7 @@
   background: var(--vn-panel);
   color: var(--classic-accent);
   font: var(--vn-dialogue-size, 12px) / 1.5 var(--vn-font);
+  white-space: nowrap;
 }
 #live2d-widget .vn-affinity {
   display: flex;
@@ -462,6 +491,7 @@
   color: var(--vn-muted);
   background: var(--vn-panel);
   font-size: 12px;
+  white-space: nowrap;
 }
 #live2d-widget meter {
   width: 35px;
@@ -526,6 +556,25 @@
   line-height: 1.7;
   background: var(--vn-panel);
 }
+/* The right column of a resized window can be as narrow as the sidebar dock. */
+@container vn-dialogue (max-width: 240px) {
+  #live2d-widget .vn-nameplate strong {
+    padding-inline: 4px;
+    font-size: 10px;
+  }
+  #live2d-widget .vn-affinity {
+    gap: 4px;
+    padding-inline: 2px;
+    font-size: 10px;
+  }
+  #live2d-widget .vn-affinity meter {
+    width: 24px;
+  }
+  #live2d-widget .vn-nameplate .vn-voice-toggle {
+    padding-inline: 4px;
+    font-size: 9px;
+  }
+}
 #live2d-widget .vn-voice-credits {
   margin-top: 16px;
   font-size: 12px;
@@ -583,16 +632,42 @@
       .vn-choices button,
       .companion-footer button,
       .vn-panel button,
+      .companion-controls > :is(button, a),
+      .vn-weather-strip,
       .vn-arcade-entry,
       .danmaku-pilots button,
       .danmaku-opponents button
     ) {
     transition:
-      background-color 0.12s,
-      border-color 0.12s,
-      color 0.12s,
-      box-shadow 0.12s;
+      background-color var(--motion-fast, 120ms),
+      border-color var(--motion-fast, 120ms),
+      color var(--motion-fast, 120ms),
+      box-shadow var(--motion-fast, 120ms);
   }
+  #live2d-widget .vn-panel:not([hidden]) {
+    animation: vn-sheet-reveal var(--motion-ui, 180ms)
+      var(--motion-ease, ease-out) both;
+  }
+  #live2d-widget .vn-main-view {
+    transition: filter var(--motion-ui, 180ms) var(--motion-ease, ease-out);
+  }
+}
+@keyframes vn-sheet-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+#live2d-widget
+  :is(.companion-controls, .companion-footer, .vn-choices, .vn-panel)
+  button:active:not(:disabled) {
+  box-shadow: inset 1px 1px 0 #0008;
+}
+#live2d-widget .vn-reading:focus-visible {
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--classic-accent) 5%, transparent);
 }
 #live2d-widget .companion-footer {
   display: flex;
@@ -1025,10 +1100,9 @@ html body.live2d-is-hidden #live2d-widget {
   grid-template-columns: minmax(0, 1fr) var(--vn-controls-width);
   /* Only the window and controls determine the scene height. Dialogue scrolls
      inside its own cell and cannot enlarge this track through min-content. */
-  grid-template-rows: 48px minmax(
-      136px,
-      1fr
-    ) max-content max-content max-content max-content;
+  grid-template-rows:
+    48px minmax(136px, 1fr)
+    max-content max-content max-content max-content;
   grid-template-areas: "cast cast" "scene dialogue" "scene controls" "scene music" "scene arcade" "scene weather";
   gap: 6px 10px;
   overflow: auto;

@@ -4,7 +4,7 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 
 ## Style ownership
 
-`_includes/head.html` lists styles in an explicit order. The files are readable source, not generated override bundles.
+`_data/frontend.yml` lists styles and scripts in an explicit dependency order, rendered by `_includes/head.html` and `_includes/asset-scripts.html`. The files are readable source, not generated override bundles.
 
 | File | Owns |
 | --- | --- |
@@ -21,6 +21,10 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 | `classic-companion.css` | Floating window, scene, dialogue, panels, loading and viewport behavior |
 | `classic-danmaku.css` | Companion arcade lobby, score HUD, playfield and pause/result screens |
 | `classic-ornaments.css` | Full-resolution flat squadron insignia in document corners and companion panels |
+| `classic-playground.css` | Standalone scene, fixed dialogue desk, radio and game composition |
+| `classic-motion.css` | Shared short transitions and reduced-motion handling |
+
+Shared motion uses `--motion-fast` (120ms), `--motion-ui` (180ms) and `--motion-panel` (240ms). Page entrances animate only the article opacity, keeping the persistent Live2D canvas and its camera out of transforms. A small toolbar trace indicates pending page navigation. Color/border feedback stays short and respects reduced-motion preferences.
 
 The native `hidden` attribute wins globally. The active styles do not depend on increasing `html.classic-root body.classic-site` specificity to defeat another template. Site options, companion, previews, modal and loading layers are ordered through theme variables. Each component uses small local layers within its own stacking context.
 
@@ -30,9 +34,11 @@ Gallery cards always crop to 4:3, with five columns at 1280px and above and thre
 
 ## Runtime ownership
 
-- `page-transition.js` replaces `#main`, updates metadata/history and dispatches `site:content-updated`. Page swapping is immediate; the retired paper animation and its artificial wait are removed.
+- `site-assets.js` supplies the deployment mount path for dynamically created companion/game assets. `_includes/frontend-context.html` resolves the initial palette and cache version; `_data/characters.yml` provides portrait/model configuration. See [template customization](template-customization.md).
+
+- `page-transition.js` replaces `#main`, updates metadata/history and dispatches `site:content-updated`. A newer navigation intent aborts the previous request; stale responses cannot replace a later click or browser Back. It retains the existing widget, moves focus to the new main region, restores saved Back/Forward scroll positions and falls back to a full navigation on errors or a different page shell. Page swapping does not wait for decorative animation.
 - `classic-navigation.js` updates page tabs and reading/collection indexes, and measures the desktop homepage rail for its direction-aware sticky position. Compact placement is unchanged.
-- `site-options.js` owns the header menu. `live2d-toggle.js` owns the single persisted companion visibility preference.
+- `site-options.js` owns the header menu. `live2d-toggle.js` owns separately persisted desktop/compact companion visibility preferences.
 - `companion-dialogue.js` owns the dialogue state machine and persistent preferences; `companion-dialogues.js` contains writing and pure story selection. See [the companion guide](companion-system.md).
 - `companion-voice-reactions.js` owns opt-in recorded interjections. Eighteen brief clips use emotion selection, a per-character cooldown and consecutive-repeat avoidance. Mouth articulation remains driven by the kana plan. See [voice sources](companion-voices.md).
 - `companion-bgm.js` owns the opt-in FM receiver and the shared eight-song catalog in `data/companion-radio.js`. Local MP3 paths resolve against Jekyll's `data-audio-base`. Six vocal tracks have bundled LRC; two instrumentals leave lyrics empty. Video links include matching third-party uploads where noted in the library credits. No media source loads until Play/Unmute, and native audio does not open another window. Initial and subsequent tracks use a character-independent shuffle bag; Previous follows listening history.
@@ -44,7 +50,8 @@ Gallery cards always crop to 4:3, with five columns at 1280px and above and thre
 - `live2d-loader.js` owns Cubism/PIXI model lifecycle, half-body framing, motion and window movement. Model requests use a generation token so rapid switches cannot replace the current character with a stale result. Gaze uses the original page-wide SDK coordinate mapping. Only the dialogue rectangle smoothly returns it to neutral; menu/music controls and the rest of the page keep following. Touch and reduced-motion mode do not track. Playground tracks size, position and maximize/restore state independently; ResizeObserver rerenders the stage and budgets compact height from the controls and a fixed dialogue viewport. Choices never contribute to the camera dimensions.
 - `games/danmaku-engine.js` / `danmaku-renderer.js` own the score-attack simulation and view; `danmaku-flower.js` / `danmaku-flower-renderer.js` own the two-field CPU duel. Both use `companion-danmaku.js` for one shared input/lifecycle controller, separate mode/assistance records and responsive Canvas sizing. The game uses `danmaku-audio.js` for independent, silent-by-default battle BGM and effect mixing from deterministic event hooks. The mounted game pauses the conversation renderer, music and typewriter; local pixel sprites keep it independent of remote Live2D availability. See [the game guide](danmaku-game.md).
 - Before replacing `#main`, page navigation emits `site:before-content-replace`. The companion clears its dragged position and custom size and temporarily reparents to `body`, then moves to the destination page's dock. This retains the same canvas and weather instance. Weather refresh/location/cache behavior remains in `components/weather-widget.js`.
-- Publications, runtime, hover previews and the gallery each keep their own small module. Visitor counters and analytics integrations have been removed. No generic legacy feature loader or jQuery bundle is required.
+- `hover-photo-preview.js` uses one delegated pointer/focus lifecycle, clamps previews after scroll/resize, supports Escape dismissal and releases cached page references before a swap.
+- Publications, runtime and the gallery each keep their own small module. Visitor counters and analytics integrations have been removed. No generic legacy feature loader or jQuery bundle is required.
 
 Auxiliary conversation panels are centered, bounded sheets over the retained scene. The underlying scene is dimmed and inert while a panel is open; the model camera, dialogue and radio keep their geometry. Each sheet scrolls internally on short windows, traps keyboard focus and restores it when dismissed. History retains a bounded list; the arcade uses its own height budget.
 
@@ -68,6 +75,7 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-gaze.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/playground-window.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-voice-reactions.cjs
 node tests/companion-data.cjs
+node tests/template-config.cjs
 node tests/danmaku-engine.cjs
 node tests/danmaku-flower.cjs
 node tests/danmaku-scroll.cjs
@@ -88,7 +96,9 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-performance.cjs
 
 Screenshots go to the system temporary directory by default; set `QA_OUTPUT` to retain them elsewhere. Software Chrome rendering is used for consistent captures on the development Mac.
 
-Radio update validated on 2026-10-10: the native-audio suite uses real HTML audio with a local MP3 fixture; the PV suite uses a documented YouTube API double. Both cover playback, mode changes, mute, errors, LRC, lifecycle and 320/375/768/1440px layouts. The isolated lyric browser suite covers bundled/imported-source races, cancellation, persistence and response limits. A separate live smoke loaded all 13 supplied LRCs, played and sought within the three default local MP3s, and played the corresponding official FELT upload. All audio files passed complete decoding and unchanged-audio-packet checks. The earlier full 45-theme/width homepage check, eight gallery widths and eight Playground resize layouts remain documented below.
+Radio regression uses a real HTML audio fixture, a documented YouTube API double and a real AudioContext with a synthetic waveform for tuning/spectrum tests. These cover playback, mode changes, mute, errors, LRC, lifecycle, latest playback intent and 320/375/768/1440px layouts. The isolated lyric suite covers bundled/imported-source races, cancellation, persistence and response limits. The current catalog integrity check covers all eight tracks; the previous 13-track validation is historical and does not describe the current station rotation.
+
+`tests/template-config.cjs` separately builds a customized project-subpath site and validates configuration in the rendered browser, including canonical URLs, app icons, optional modules, gallery links and all dynamic game artwork families. It leaves `_site` untouched.
 
 Validated on 2026-10-08:
 

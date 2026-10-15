@@ -1,0 +1,84 @@
+# Ordered assets. Dependencies precede consumers; see docs/template-customization.md.
+site_styles:
+  - icons.css
+  - classic-theme.css
+  - classic-base.css
+  - classic-site.css
+  - classic-widgets.css
+  - classic-pages.css
+  - classic-gallery-viewer.css
+  - classic-weather.css
+  - classic-companion.css
+  - classic-bgm.css
+  - classic-danmaku.css
+  - classic-loading.css
+  - classic-ornaments.css
+  - classic-motion.css
+playground_styles:
+  - classic-theme.css
+  - classic-base.css
+  - classic-weather.css
+  - classic-companion.css
+  - classic-bgm.css
+  - classic-danmaku.css
+  - classic-loading.css
+  - classic-playground.css
+  - classic-motion.css
+shared_scripts:
+  - path: "/assets/js/core/site-assets.js"
+    attribute: "data-site-base"
+    base: "/"
+  - path: "/assets/js/core/link-target-policy.js"
+site_scripts:
+  - path: "/assets/js/core/site-options.js"
+  - path: "/assets/js/core/page-transition.js"
+  - path: "/assets/js/core/site-runtime-timer.js"
+    feature: "runtime"
+  - path: "/assets/js/core/paper-click-effect.js"
+  - path: "/assets/js/core/publication-filter.js"
+  - path: "/assets/js/core/hover-photo-preview.js"
+  - path: "/assets/js/core/home-loading.js"
+    feature: "home_loading"
+companion_scripts:
+  - path: "/assets/js/data/kyureki-years.js"
+  - path: "/assets/js/components/weather-calendar.js"
+  - path: "/assets/js/components/weather-widget.js"
+  - path: "/assets/js/core/live2d-toggle.js"
+  - path: "/assets/js/data/companion-dialogues.js"
+  - path: "/assets/js/data/companion-remarks.js"
+  - path: "/assets/js/data/companion-branches.js"
+  - path: "/assets/js/data/companion-readings.js"
+  - path: "/assets/js/core/companion-speech.js"
+  - path: "/assets/js/core/companion-radio-signal.js"
+  - path: "/assets/js/core/companion-radio-audio.js"
+  - path: "/assets/js/data/companion-radio.js"
+    attribute: "data-audio-base"
+    base: "/assets/music/radio/"
+  - path: "/assets/js/core/companion-radio-lyrics.js"
+  - path: "/assets/js/core/companion-bgm.js"
+  - path: "/assets/js/core/companion-voice-reactions.js"
+    attribute: "data-audio-base"
+    base: "/assets/audio/reactions/"
+  - path: "/assets/js/core/companion-dialogue.js"
+  - path: "/assets/js/core/companion-lighting.js"
+  - path: "/assets/js/core/companion-reactions.js"
+  - path: "/assets/js/core/companion-performance.js"
+  - path: "/assets/js/games/danmaku-score.js"
+  - path: "/assets/js/games/danmaku-patterns-alice.js"
+  - path: "/assets/js/games/danmaku-patterns-marisa.js"
+  - path: "/assets/js/games/danmaku-patterns-patchouli.js"
+  - path: "/assets/js/games/danmaku-patterns.js"
+  - path: "/assets/js/games/danmaku-scroll.js"
+  - path: "/assets/js/games/danmaku-engine.js"
+  - path: "/assets/js/games/danmaku-boss-sprites.js"
+  - path: "/assets/js/games/danmaku-player-sprites.js"
+  - path: "/assets/js/games/danmaku-renderer.js"
+  - path: "/assets/js/games/danmaku-flower.js"
+  - path: "/assets/js/games/danmaku-flower-renderer.js"
+  - path: "/assets/js/games/danmaku-audio.js"
+    attribute: "data-sfx-base"
+    base: "/assets/audio/danmaku/"
+  - path: "/assets/js/games/companion-danmaku.js"
+  - path: "/assets/js/core/live2d-loader.js"
+navigation_scripts:
+  - path: "/assets/js/core/classic-navigation.js"
