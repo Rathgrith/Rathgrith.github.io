@@ -37,12 +37,21 @@
   .classic-frame,
   .classic-document,
   .classic-toolbar,
+  .classic-tab,
+  .classic-button,
+  .classic-research,
+  .classic-education > li,
+  .publication-item,
+  .publication-filter__button,
+  .thought-card,
+  .misc-showcase,
   .site-options-fab__trigger,
   .site-options-fab__action {
     transition:
       background-color var(--motion-ui) var(--motion-ease),
       color var(--motion-fast) linear,
-      border-color var(--motion-ui) linear;
+      border-color var(--motion-ui) linear,
+      box-shadow var(--motion-ui) var(--motion-ease);
   }
   .site-options-fab.is-open .site-options-fab__menu {
     animation: classic-panel-enter var(--motion-ui) var(--motion-ease);
@@ -51,6 +60,28 @@
     transition:
       opacity var(--motion-fast) linear,
       visibility var(--motion-fast);
+  }
+}
+
+/* A preference change takes effect immediately, including halfway through a
+   theme or hover transition. JS also cancels every finite card animation. */
+@media (prefers-reduced-motion: reduce) {
+  .classic-frame,
+  .classic-document,
+  .classic-toolbar,
+  .classic-tab,
+  .classic-button,
+  .classic-research,
+  .classic-education > li,
+  .publication-item,
+  .publication-thumb-wrap,
+  .publication-filter__button,
+  .thought-card,
+  .misc-showcase,
+  .site-options-fab__trigger,
+  .site-options-fab__action,
+  .hover-photo__card {
+    transition: none;
   }
 }
 
@@ -88,5 +119,10 @@ html[data-navigation-pending] .classic-toolbar::after {
 @media print, (forced-colors: active) {
   .classic-toolbar::after {
     display: none;
+  }
+}
+@media print {
+  .is-content-entering > article {
+    animation: none;
   }
 }

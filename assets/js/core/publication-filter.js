@@ -14,13 +14,16 @@
     );
     var count = filter.querySelector("[data-publication-count]");
 
-    function applyMode(mode) {
+    function applyMode(mode, announce) {
       var showAll = mode === "all";
       var visibleCount = 0;
+      var revealed = [];
+      var changed = list.getAttribute("data-publication-mode") !== mode;
 
       items.forEach(function (item) {
         var visible =
           showAll || item.getAttribute("data-publication-selected") === "true";
+        if (visible && item.hidden) revealed.push(item);
         item.hidden = !visible;
         if (visible) visibleCount += 1;
       });
@@ -33,6 +36,12 @@
 
       list.setAttribute("data-publication-mode", mode);
       if (count) count.textContent = String(visibleCount);
+      // Filtering stays immediate; optional decoration listens independently.
+      if (announce && changed) {
+        document.dispatchEvent(new CustomEvent("site:publications-filtered", {
+          detail: { list: list, revealed: revealed, mode: mode },
+        }));
+      }
     }
 
     filter.addEventListener("click", function (event) {
@@ -41,7 +50,8 @@
       applyMode(
         button.getAttribute("data-publication-filter") === "all"
           ? "all"
-          : "selected"
+          : "selected",
+        true
       );
     });
 
