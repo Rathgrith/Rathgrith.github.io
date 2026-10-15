@@ -15,6 +15,20 @@ google_scholar_stats_use_cdn: true
 site_started_at: "2023-10-28T12:31:48-05:00"
 site_started_commit: "24a7ac3bdae6b25d4ee07557c534c77f69bd0593"
 
+# Classic template. Restart Jekyll after changing configuration.
+# Character artwork/model paths live in _data/characters.yml.
+classic:
+  default_character: alice # alice, marisa, patchouli; saved visitor choice takes priority.
+  window_label: "Personal homepage"
+  home_loading: true
+  math: true
+  runtime: true
+  model_repository: "https://github.com/n0099/TouhouCannonBall-Live2d-Models"
+
+gallery:
+  # External original files keep the published site small. Change this when forking.
+  originals_url: "https://raw.githubusercontent.com/Rathgrith/Rathgrith.github.io/main/images/gallery/originals/"
+
 # SEO Related
 google_site_verification: # get google_site_verification from https://search.google.com/search-console/about
 bing_site_verification: # get bing_site_verification from https://www.bing.com/webmasters/about
@@ -23,8 +37,7 @@ baidu_site_verification: # get baidu_site_verification from https://ziyuan.baidu
 # Site Author
 author:
   name: "Dongheng Lin"
-  avatar: "images/avatar_square.png" # Path to your avatar image.
-  avatar_dark: "images/avatar_square_night.png"
+  role: "Research · Engineering"
   bio:
   location: "West Midlands, UK"
   employer:

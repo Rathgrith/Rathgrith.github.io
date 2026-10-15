@@ -1,6 +1,7 @@
 /* A contained arcade view; no game input or animation survives leaving the view. */
 (function () {
   "use strict";
+  var assetBase = (window.SiteAssets && window.SiteAssets.base) || "";
   var root,
     view,
     hooks,
@@ -156,7 +157,9 @@
     if (show) {
       q("[data-danmaku-round-title]").textContent = cast[s.enemyId].name;
       q("[data-danmaku-round-portrait]").style.backgroundImage =
-        'url("/assets/images/classic/danmaku/portraits/' +
+        'url("' +
+        assetBase +
+        "/assets/images/classic/danmaku/portraits/" +
         s.enemyId +
         '-expressions.png")';
       q("[data-danmaku-round-line]").textContent = flower
@@ -522,7 +525,9 @@
           return (
             '<button type="button" data-danmaku-player="' +
             id +
-            '" aria-pressed="false"><img src="/assets/images/classic/danmaku/' +
+            '" aria-pressed="false"><img src="' +
+            assetBase +
+            "/assets/images/classic/danmaku/" +
             id +
             '-player.svg" alt=""><strong>' +
             cast[id].name +
@@ -538,7 +543,9 @@
           return (
             '<button type="button" data-danmaku-challenge="' +
             id +
-            '"><img src="/assets/images/classic/characters/' +
+            '"><img src="' +
+            assetBase +
+            "/assets/images/classic/characters/" +
             id +
             '.svg" alt=""><span><strong>' +
             cast[id].name +

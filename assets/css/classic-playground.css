@@ -257,6 +257,14 @@ body.playground-page {
   border-bottom: 1px solid color-mix(in srgb, var(--vn-rule) 65%, transparent);
   background: color-mix(in srgb, var(--vn-panel) 86%, transparent);
 }
+.playground-page #live2d-widget .vn-scene-caption::after {
+  content: "";
+  width: 24px;
+  height: 5px;
+  margin-left: 2px;
+  border-block: 1px solid var(--vn-rule);
+  opacity: 0.65;
+}
 .playground-page #live2d-widget .vn-main-view {
   scrollbar-width: thin;
   scrollbar-color: var(--vn-rule) var(--vn-panel);
@@ -396,7 +404,10 @@ body.playground-page {
 /* Dedicated arcade layout: the playfield and its instrument rail share a frame. */
 .playground-page #live2d-widget .vn-danmaku-view {
   background:
-    linear-gradient(#111722ed, #111722f5),
+    linear-gradient(
+      color-mix(in srgb, var(--vn-panel) 93%, transparent),
+      color-mix(in srgb, var(--vn-panel) 97%, transparent)
+    ),
     var(--vn-scene) center / cover;
 }
 .playground-page #live2d-widget .danmaku-lobby {

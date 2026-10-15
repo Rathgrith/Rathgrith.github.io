@@ -81,10 +81,15 @@
       gear: document.getElementById("gallery-modal-gear"),
       counter: document.getElementById("gallery-modal-counter"),
       strip: document.getElementById("gallery-modal-strip"),
+      stage: root.querySelector(".gallery-modal__image-stage"),
       closeButton: root.querySelector(".gallery-modal__close"),
       placeholder: root.querySelector("[data-gallery-placeholder]"),
       status: root.querySelector("[data-gallery-status]"),
     };
+    // Loading feedback overlays the image; finishing a download must not change
+    // the caption height and resize the photograph beneath the viewer.
+    if (state.modalRefs.status && state.modalRefs.stage)
+      state.modalRefs.stage.appendChild(state.modalRefs.status);
     return state.modalRefs;
   }
 
@@ -102,6 +107,12 @@
     return total ? ((index % total) + total) % total : -1;
   }
 
+  function imageUrl(directory, filename) {
+    // Gallery entries are flat filenames, not URLs. Encode the path segment once
+    // so spaces, #, ?, % and non-ASCII names survive every dynamic image path.
+    return directory + encodeURIComponent(filename);
+  }
+
   function preloadModalImage(index) {
     var total = state.items.length;
     var normalized = wrapIndex(index, total);
@@ -113,7 +124,7 @@
 
     var image = new Image();
     image.decoding = "async";
-    image.src = state.originalDir + filename;
+    image.src = imageUrl(state.originalDir, filename);
   }
 
   function modalStripIndices(total, current) {
@@ -142,7 +153,10 @@
       if (!active) return;
       var stripRect = refs.strip.getBoundingClientRect();
       var activeRect = active.getBoundingClientRect();
-      refs.strip.scrollLeft += activeRect.left - stripRect.left - (refs.strip.clientWidth - activeRect.width) / 2;
+      refs.strip.scrollLeft +=
+        activeRect.left -
+        stripRect.left -
+        (refs.strip.clientWidth - activeRect.width) / 2;
     });
   }
 
@@ -178,7 +192,7 @@
       if (entry.caption) button.title = entry.caption;
 
       var image = createElement("img", "gallery-modal__thumb-image");
-      image.src = state.thumbnailDir + item.filename;
+      image.src = imageUrl(state.thumbnailDir, item.filename);
       image.alt = "";
       image.loading = "eager";
       image.decoding = "async";
@@ -192,7 +206,8 @@
     refs.strip.replaceChildren(fragment);
     if (activeId) {
       refs.strip.setAttribute("aria-activedescendant", activeId);
-      if (restoreStripFocus) document.getElementById(activeId).focus({ preventScroll: true });
+      if (restoreStripFocus)
+        document.getElementById(activeId).focus({ preventScroll: true });
       centerModalActiveThumbnail(refs);
     }
   }
@@ -212,28 +227,37 @@
     var requestId = (state.imageRequestId || 0) + 1;
     state.imageRequestId = requestId;
     refs.image.style.opacity = "0";
-    refs.placeholder.src = state.thumbnailDir + item.filename;
+    refs.placeholder.src = imageUrl(state.thumbnailDir, item.filename);
     refs.placeholder.hidden = false;
     refs.status.textContent = "Loading full-size image…";
+    refs.stage.setAttribute("aria-busy", "true");
     var fullImage = new Image();
-    fullImage.src = state.originalDir + item.filename;
-    var ready = fullImage.decode ? fullImage.decode() : new Promise(function (resolve, reject) {
-      fullImage.onload = resolve;
-      fullImage.onerror = reject;
-    });
-    ready.then(function () {
-      if (requestId !== state.imageRequestId || !state.isOpen) return;
-      refs.image.src = fullImage.src;
-      return refs.image.decode ? refs.image.decode() : Promise.resolve();
-    }).then(function () {
-      if (requestId !== state.imageRequestId || !state.isOpen) return;
-      refs.image.style.opacity = "1";
-      refs.placeholder.hidden = true;
-      refs.status.textContent = "";
-    }).catch(function () {
-      if (requestId !== state.imageRequestId || !state.isOpen) return;
-      refs.status.textContent = "Full-size image unavailable. Showing preview.";
-    });
+    fullImage.src = imageUrl(state.originalDir, item.filename);
+    var ready = fullImage.decode
+      ? fullImage.decode()
+      : new Promise(function (resolve, reject) {
+          fullImage.onload = resolve;
+          fullImage.onerror = reject;
+        });
+    ready
+      .then(function () {
+        if (requestId !== state.imageRequestId || !state.isOpen) return;
+        refs.image.src = fullImage.src;
+        return refs.image.decode ? refs.image.decode() : Promise.resolve();
+      })
+      .then(function () {
+        if (requestId !== state.imageRequestId || !state.isOpen) return;
+        refs.image.style.opacity = "1";
+        refs.placeholder.hidden = true;
+        refs.status.textContent = "";
+        refs.stage.setAttribute("aria-busy", "false");
+      })
+      .catch(function () {
+        if (requestId !== state.imageRequestId || !state.isOpen) return;
+        refs.status.textContent =
+          "Full-size image unavailable. Showing preview.";
+        refs.stage.setAttribute("aria-busy", "false");
+      });
     refs.image.alt = entry.caption || "Gallery image";
     refs.caption.textContent = entry.caption;
     refs.counter.textContent = state.currentIndex + 1 + " / " + total;
@@ -249,7 +273,10 @@
     var refs = state.modalRefs;
     if (!mount || !refs) return;
     if (mount.parent.isConnected) {
-      var next = mount.next && mount.next.parentNode === mount.parent ? mount.next : null;
+      var next =
+        mount.next && mount.next.parentNode === mount.parent
+          ? mount.next
+          : null;
       mount.parent.insertBefore(refs.root, next);
     } else {
       // Soft navigation may have replaced the original page while open.
@@ -274,7 +301,10 @@
     // Mount outside the document frame so viewport layout and modal stacking
     // remain independent of page navigation.
     if (refs.root.parentNode !== document.body) {
-      state.modalMount = { parent: refs.root.parentNode, next: refs.root.nextSibling };
+      state.modalMount = {
+        parent: refs.root.parentNode,
+        next: refs.root.nextSibling,
+      };
       document.body.appendChild(refs.root);
     }
     refs.root.hidden = false;
@@ -298,7 +328,7 @@
     restoreModalMount();
 
     if (state.triggerElement && document.contains(state.triggerElement)) {
-      state.triggerElement.focus();
+      state.triggerElement.focus({ preventScroll: true });
     }
     state.triggerElement = null;
   }
@@ -338,6 +368,26 @@
       }
       event.preventDefault();
     });
+
+    var touchStart = null;
+    refs.stage.addEventListener("pointerdown", function (event) {
+      touchStart =
+        event.isPrimary && event.pointerType !== "mouse"
+          ? { id: event.pointerId, x: event.clientX, y: event.clientY }
+          : null;
+    });
+    refs.stage.addEventListener("pointercancel", function () {
+      touchStart = null;
+    });
+    refs.stage.addEventListener("pointerup", function (event) {
+      var start = touchStart;
+      touchStart = null;
+      if (!start || start.id !== event.pointerId || !state.isOpen) return;
+      var dx = event.clientX - start.x;
+      var dy = event.clientY - start.y;
+      if (Math.abs(dx) >= 44 && Math.abs(dx) > Math.abs(dy) * 1.5)
+        stepModal(dx < 0 ? 1 : -1);
+    });
   }
 
   function bindGlobalKeyboardEvents() {
@@ -350,20 +400,33 @@
 
     document.addEventListener("keydown", function (event) {
       if (!state.isOpen) return;
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.key === "Tab") {
         var refs = getModalRefs();
-        var controls = refs.root.querySelectorAll('button:not([disabled]), a[href], [tabindex="0"]');
+        var controls = refs.root.querySelectorAll(
+          'button:not([disabled]), a[href], [tabindex="0"]'
+        );
         var first = controls[0];
         var last = controls[controls.length - 1];
-        if (!refs.root.contains(document.activeElement)) { (event.shiftKey ? last : first).focus(); event.preventDefault(); }
-        else if (event.shiftKey && document.activeElement === first) { last.focus(); event.preventDefault(); }
-        else if (!event.shiftKey && document.activeElement === last) { first.focus(); event.preventDefault(); }
+        if (!refs.root.contains(document.activeElement)) {
+          (event.shiftKey ? last : first).focus();
+          event.preventDefault();
+        } else if (event.shiftKey && document.activeElement === first) {
+          last.focus();
+          event.preventDefault();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          first.focus();
+          event.preventDefault();
+        }
         return;
       }
       if (event.key === "Escape") closeModal();
       else if (event.key === "ArrowLeft") stepModal(-1);
       else if (event.key === "ArrowRight") stepModal(1);
-      else return;
+      else if (event.key === "Home" || event.key === "End") {
+        state.currentIndex = event.key === "Home" ? 0 : state.items.length - 1;
+        updateModalContent();
+      } else return;
       event.preventDefault();
     });
   }
@@ -374,6 +437,14 @@
       function (event) {
         var anchor = event.target.closest("a[data-gallery-filename]");
         if (!anchor || !state.gallery.contains(anchor)) return;
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        )
+          return;
         event.preventDefault();
         event.stopPropagation();
         if (typeof event.stopImmediatePropagation === "function") {
@@ -435,9 +506,16 @@
     shuffleCollections(gallery);
     state.gallery = gallery;
     state.captions = parseCaptions();
-    state.items = Array.prototype.map.call(gallery.querySelectorAll("a[data-gallery-filename]"), function (anchor) {
-      return { filename: anchor.getAttribute("data-gallery-filename"), anchor: anchor, element: anchor.closest("figure") };
-    });
+    state.items = Array.prototype.map.call(
+      gallery.querySelectorAll("a[data-gallery-filename]"),
+      function (anchor) {
+        return {
+          filename: anchor.getAttribute("data-gallery-filename"),
+          anchor: anchor,
+          element: anchor.closest("figure"),
+        };
+      }
+    );
     state.thumbnailDir = (
       container.getAttribute("data-thumbnail-dir") || ""
     ).trim();

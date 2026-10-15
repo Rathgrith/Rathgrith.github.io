@@ -5,18 +5,18 @@
 
   <div class="author__avatar">
     <div class="author__avatar-frame">
-      <div class="author__avatar-media" role="img" aria-label="{{ author.name }}">
-        <img src="{{ '/images/avatars/marisa-portrait.png' | relative_url }}" class="author__avatar-image" data-avatar-character="marisa" data-avatar-theme="light" alt="" decoding="async">
-        <img src="{{ '/images/avatars/alice-portrait.png' | relative_url }}" class="author__avatar-image" data-avatar-character="alice" data-avatar-theme="light" alt="" decoding="async">
-        <img src="{{ '/images/avatars/patchouli-portrait.png' | relative_url }}" class="author__avatar-image" data-avatar-character="patchouli" data-avatar-theme="light" alt="" decoding="async">
+      <div class="author__avatar-media" role="img" aria-label="{{ author.name | escape }}">
+        {% for character in site.data.characters %}
+        <img src="{{ character.portrait | relative_url }}" class="author__avatar-image" data-avatar-character="{{ character.id }}" data-avatar-theme="light" alt="" decoding="async">
+        {% endfor %}
       </div>
       {% include avatar-ornaments.html %}
     </div>
   </div>
 
   <div class="author__content">
-    <h3 class="author__name">{{ author.name }}</h3>
-    <p class="author__role">Research · Engineering</p>
+    <h3 class="author__name">{{ author.name | escape }}</h3>
+    {% if author.role %}<p class="author__role">{{ author.role | escape }}</p>{% endif %}
     {% if author.location %}<p class="author__location"><i class="fa fa-map-marker" aria-hidden="true"></i> {{ author.location }}</p>{% endif %}
     {% if author.bio %}<p class="author__bio">{{ author.bio }}</p>{% endif %}
   </div>

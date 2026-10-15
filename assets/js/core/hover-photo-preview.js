@@ -67,42 +67,37 @@
 
     image.src =
       normaliseDir(trigger.getAttribute("data-gallery-thumbnail-dir")) +
-      filename;
+      encodeURIComponent(filename);
     image.alt = "Photography gallery preview";
     trigger.setAttribute("data-gallery-hover-ready", "true");
   }
 
-  function bindPlacement(trigger) {
-    if (trigger.dataset.previewPlacementBound) return;
-    trigger.dataset.previewPlacementBound = "true";
+  var activeTrigger = null;
+  var placementFrame = 0;
+
+  function place(trigger) {
     var card = trigger.querySelector(".hover-photo__card");
-    if (!card) return;
-    function place() {
-      var anchor = trigger.getBoundingClientRect();
-      var bounds = card.getBoundingClientRect();
-      card.style.left =
-        Math.max(
-          16,
-          Math.min(
-            innerWidth - bounds.width - 16,
-            anchor.left + anchor.width / 2 - bounds.width / 2
-          )
-        ) + "px";
-      card.style.top =
-        Math.max(
-          8,
-          anchor.top > bounds.height + 18
-            ? anchor.top - bounds.height - 10
-            : Math.min(innerHeight - bounds.height - 8, anchor.bottom + 10)
-        ) + "px";
-    }
-    trigger.addEventListener("pointerenter", place);
-    trigger.addEventListener("focus", place);
-    window.addEventListener("resize", place);
+    if (!card || !trigger.isConnected) return;
+    var anchor = trigger.getBoundingClientRect();
+    var bounds = card.getBoundingClientRect();
+    card.style.left =
+      Math.max(
+        16,
+        Math.min(
+          innerWidth - bounds.width - 16,
+          anchor.left + anchor.width / 2 - bounds.width / 2
+        )
+      ) + "px";
+    card.style.top =
+      Math.max(
+        8,
+        anchor.top > bounds.height + 18
+          ? anchor.top - bounds.height - 10
+          : Math.min(innerHeight - bounds.height - 8, anchor.bottom + 10)
+      ) + "px";
   }
 
   function init() {
-    document.querySelectorAll(".hover-photo").forEach(bindPlacement);
     var pool = parseGalleryPool();
     Array.prototype.forEach.call(
       document.querySelectorAll(TRIGGER_SELECTOR),
@@ -111,6 +106,50 @@
       }
     );
   }
+
+  // Delegate once: replaced pages must not retain one resize listener per photo.
+  function activate(event) {
+    var trigger = event.target.closest && event.target.closest(".hover-photo");
+    if (
+      !trigger ||
+      (event.relatedTarget && trigger.contains(event.relatedTarget))
+    )
+      return;
+    if (activeTrigger && activeTrigger !== trigger)
+      activeTrigger.setAttribute("data-preview-dismissed", "true");
+    activeTrigger = trigger;
+    trigger.removeAttribute("data-preview-dismissed");
+    place(trigger);
+  }
+  function reposition() {
+    if (placementFrame || !activeTrigger) return;
+    placementFrame = requestAnimationFrame(function () {
+      placementFrame = 0;
+      if (
+        activeTrigger &&
+        activeTrigger.isConnected &&
+        activeTrigger.matches(":hover, :focus-within")
+      )
+        place(activeTrigger);
+      else activeTrigger = null;
+    });
+  }
+  document.addEventListener("pointerover", activate);
+  document.addEventListener("focusin", activate);
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && activeTrigger) {
+      activeTrigger.setAttribute("data-preview-dismissed", "true");
+    }
+  });
+  window.addEventListener("resize", reposition);
+  window.addEventListener("scroll", reposition, { passive: true });
+  document.addEventListener("site:before-content-replace", function () {
+    activeTrigger = null;
+    cancelAnimationFrame(placementFrame);
+    placementFrame = 0;
+    cachedDataNode = null;
+    cachedPool = [];
+  });
 
   document.addEventListener("site:content-updated", init);
 

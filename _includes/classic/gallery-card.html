@@ -1,8 +1,9 @@
 {% assign photo = site.data.gallery_captions[include.filename] %}
 {% assign caption = photo.caption | default: include.filename %}
+{% assign photo_filename = include.filename | url_encode | replace: '+', '%20' %}
 <figure class="classic-photo gallery-item">
-  <a href="https://raw.githubusercontent.com/Rathgrith/Rathgrith.github.io/main/images/gallery/originals/{{ include.filename | uri_escape }}" data-gallery-filename="{{ include.filename | escape }}" aria-label="Open {{ caption | escape }}">
-    <img src="{{ '/images/gallery/thumbnails/' | relative_url }}{{ include.filename | uri_escape }}" alt="{{ caption | escape }}" loading="lazy" decoding="async">
+  <a href="{{ site.gallery.originals_url | default: '/images/gallery/originals/' | relative_url }}{{ photo_filename }}" data-gallery-filename="{{ include.filename | escape }}" aria-label="Open {{ caption | escape }}">
+    <img src="{{ '/images/gallery/thumbnails/' | relative_url }}{{ photo_filename }}" alt="{{ caption | escape }}" loading="lazy" decoding="async">
   </a>
   <figcaption>{{ caption | escape }}</figcaption>
 </figure>

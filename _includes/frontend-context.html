@@ -1,0 +1,9 @@
+{%- assign build_timestamp = site.time | date: "%s" -%}
+{%- assign asset_version = site.github.build_revision | append: "-" | append: build_timestamp -%}
+{%- assign classic_character_ids = site.data.characters | map: 'id' -%}
+{%- assign classic_character = site.classic.default_character | default: 'alice' -%}
+{%- unless classic_character_ids contains classic_character -%}{%- assign classic_character = 'alice' -%}{%- endunless -%}
+{%- assign classic_home_loading = false -%}
+{%- if page.body_class == 'home-page' and page.disable_home_loading != true and site.classic.home_loading != false -%}
+  {%- assign classic_home_loading = true -%}
+{%- endif -%}

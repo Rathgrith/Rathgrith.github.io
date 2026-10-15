@@ -30,15 +30,15 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 <ol class="classic-education">
   <li>
     <span class="classic-education-date">2026.01 — Present</span>
-    <div><p class="classic-degree">PhD in Computer Science</p><a href="https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd"><img src="/images/universities/birmingham-shield.svg" alt="" class="inline-school-icon"> University of Birmingham</a></div>
+    <div><p class="classic-degree">PhD in Computer Science</p><a href="https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd"><img src="{{ '/images/universities/birmingham-shield.svg' | relative_url }}" alt="" class="inline-school-icon"> University of Birmingham</a></div>
   </li>
   <li>
     <span class="classic-education-date">2023.08 — 2024.12</span>
-    <div><p class="classic-degree">MEng in Electrical and Computer Engineering</p><a href="https://ece.illinois.edu/"><img src="/images/universities/uiuc.png" alt="" class="inline-school-icon"> University of Illinois, Urbana-Champaign</a></div>
+    <div><p class="classic-degree">MEng in Electrical and Computer Engineering</p><a href="https://ece.illinois.edu/"><img src="{{ '/images/universities/uiuc.png' | relative_url }}" alt="" class="inline-school-icon"> University of Illinois, Urbana-Champaign</a></div>
   </li>
   <li>
     <span class="classic-education-date">2019.09 — 2023.07</span>
-    <div><p class="classic-degree">BSc (Hons) in Information and Computing Science</p><a href="https://www.liverpool.ac.uk/computer-science/"><img src="/images/universities/liverpool.png" alt="" class="inline-school-icon"> University of Liverpool &amp; XJTLU</a></div>
+    <div><p class="classic-degree">BSc (Hons) in Information and Computing Science</p><a href="https://www.liverpool.ac.uk/computer-science/"><img src="{{ '/images/universities/liverpool.png' | relative_url }}" alt="" class="inline-school-icon"> University of Liverpool &amp; XJTLU</a></div>
   </li>
 </ol>
 
@@ -59,7 +59,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://arxiv.org/abs/2608.00903" target="_blank" rel="noopener noreferrer">
-        <img src="images/peca_eccv2026.gif" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
+        <img src="{{ '/images/peca_eccv2026.gif' | relative_url }}" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
       </a>
     </div>
   </div>
@@ -67,7 +67,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://happy-new-bears.github.io/scav-project-page/">Whence the Voice? Self-supervised Dual-source Audio-Visual Localisation via Selective Convergence</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Yuqi Hou, Haotian Li, Hyung Jin Chang, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://happy-new-bears.github.io/scav-project-page/" target="_blank" rel="noopener noreferrer">
-        <img src="/images/papers/scav_eccv2026.png" alt="SCAV overview: selective convergence for dual-source audio-visual localisation" class="publication-thumb paper-preview" loading="lazy" width="2835" height="1151">
+        <img src="{{ '/images/papers/scav_eccv2026.png' | relative_url }}" alt="SCAV overview: selective convergence for dual-source audio-visual localisation" class="publication-thumb paper-preview" loading="lazy" width="2835" height="1151">
       </a>
     </div>
   </div>
@@ -75,7 +75,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">NeurIPS 2025</span><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></div>
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
-        <img src="images/NIPS25_TTR_VAD.png" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
+        <img src="{{ '/images/NIPS25_TTR_VAD.png' | relative_url }}" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
       </a>
     </div>
   </div>
@@ -83,7 +83,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag journal">TMLR 2025</span><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></div>
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=f1MYOG4iDG" target="_blank" rel="noopener noreferrer">
-        <img src="images/timerep3.png" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
+        <img src="{{ '/images/timerep3.png' | relative_url }}" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
       </a>
     </div>
   </div>
@@ -91,7 +91,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">BMVC 2025</span><a href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf">Audio-Visual Separation with Hierarchical Fusion and Representation Alignment</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf" target="_blank" rel="noopener noreferrer">
-        <img src="/images/papers/audio_visual_separation_bmvc2025.png" alt="BMVC 2025 audio-visual separation method preview" class="publication-thumb paper-preview">
+        <img src="{{ '/images/papers/audio_visual_separation_bmvc2025.png' | relative_url }}" alt="BMVC 2025 audio-visual separation method preview" class="publication-thumb paper-preview">
       </a>
     </div>
   </div>
@@ -116,10 +116,10 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 # Miscellaneous
 
 <div class="misc-showcase">
-  <p>Favorite manga fanbook(s): <a class="hover-photo hover-photo--manga" href="https://www.pixiv.net/artworks/37362275" target="_blank" rel="noopener noreferrer">「Nostalgic Ocean Landscape」<span class="hover-photo__card" aria-hidden="true"><img src="/images/nol_preview.png" alt=""></span></a>, <a class="hover-photo hover-photo--manga" href="https://x.com/Washman711/status/1995311785528934597?s=20" target="_blank" rel="noopener noreferrer">「Phantom Walk at Night」<span class="hover-photo__card" aria-hidden="true"><img src="/images/phantom-walk-at-night.jpg" alt="" loading="lazy" decoding="async"></span></a>, <a class="hover-photo hover-photo--manga" href="https://mangadex.org/title/4465b46f-ba31-4fc5-8d89-f79f203614dd/touhou-liar" target="_blank" rel="noopener noreferrer">「Liar」<span class="hover-photo__card" aria-hidden="true"><img src="/images/liar_preview.jpg" alt="Liar cover" loading="lazy" decoding="async"></span></a>.</p>
-  <p>Favorite visual novel: <a class="hover-photo hover-photo--narcissu" href="https://en.wikipedia.org/wiki/Narcissu" target="_blank" rel="noopener noreferrer">Narcissu<span class="hover-photo__card" aria-hidden="true"><img src="/images/narcissu-logo.png" alt="Narcissu logo" loading="lazy" decoding="async"></span></a>.</p>
-  <p>I used to make amateur <span class="hover-photo hover-photo--views" tabindex="0">3D animations<span class="hover-photo__card" aria-hidden="true"><img src="/images/views.png" alt="Creator stats showing 264k views."></span></span>. I had the fortune to participate in the program preparation of <a href="https://www.bilibili.com/video/BV16q4y1h7xX/" target="_blank" rel="noopener noreferrer">2022·东方华灯宴</a> (Unfortunately, the program have ceased after 2022.). Those skills are very rusty now...</p>
-  <p>I also enjoy <a class="hover-photo hover-photo--gallery" href="/gallery/" data-gallery-hover-preview data-gallery-preview="RATH6538.jpg" data-gallery-thumbnail-dir="/images/gallery/thumbnails/">photography<span class="hover-photo__card" aria-hidden="true"><img src="" alt="" loading="lazy" decoding="async"></span></a>, <a class="hover-photo hover-photo--balcony" href="/images/IMG20260419144241.jpg" target="_blank" rel="noopener noreferrer">balcony gardening<span class="hover-photo__card" aria-hidden="true"><img src="/images/balcony-gardening-thumb.jpg" alt=""></span></a>, and <a class="hover-photo hover-photo--doujin" href="https://en.wikipedia.org/wiki/Doujin_music" target="_blank" rel="noopener noreferrer">doujin music<span class="hover-photo__card" aria-hidden="true"><img src="/images/04af8e6b10eb61f0e9b4a0264aae7ff9.jpeg" alt="" loading="lazy" decoding="async"></span></a>.</p>
+  <p>Favorite manga fanbook(s): <a class="hover-photo hover-photo--manga" href="https://www.pixiv.net/artworks/37362275" target="_blank" rel="noopener noreferrer">「Nostalgic Ocean Landscape」<span class="hover-photo__card" aria-hidden="true"><img src="{{ '/images/nol_preview.png' | relative_url }}" alt=""></span></a>, <a class="hover-photo hover-photo--manga" href="https://x.com/Washman711/status/1995311785528934597?s=20" target="_blank" rel="noopener noreferrer">「Phantom Walk at Night」<span class="hover-photo__card" aria-hidden="true"><img src="{{ '/images/phantom-walk-at-night.jpg' | relative_url }}" alt="" loading="lazy" decoding="async"></span></a>, <a class="hover-photo hover-photo--manga" href="https://mangadex.org/title/4465b46f-ba31-4fc5-8d89-f79f203614dd/touhou-liar" target="_blank" rel="noopener noreferrer">「Liar」<span class="hover-photo__card" aria-hidden="true"><img src="{{ '/images/liar_preview.jpg' | relative_url }}" alt="Liar cover" loading="lazy" decoding="async"></span></a>.</p>
+  <p>Favorite visual novel: <a class="hover-photo hover-photo--narcissu" href="https://en.wikipedia.org/wiki/Narcissu" target="_blank" rel="noopener noreferrer">Narcissu<span class="hover-photo__card" aria-hidden="true"><img src="{{ '/images/narcissu-logo.png' | relative_url }}" alt="Narcissu logo" loading="lazy" decoding="async"></span></a>.</p>
+  <p>I used to make amateur <span class="hover-photo hover-photo--views" tabindex="0">3D animations<span class="hover-photo__card" aria-hidden="true"><img src="{{ '/images/views.png' | relative_url }}" alt="Creator stats showing 264k views."></span></span>. I had the fortune to participate in the program preparation of <a href="https://www.bilibili.com/video/BV16q4y1h7xX/" target="_blank" rel="noopener noreferrer">2022·东方华灯宴</a> (Unfortunately, the program have ceased after 2022.). Those skills are very rusty now...</p>
+  <p>I also enjoy <a class="hover-photo hover-photo--gallery" href="{{ '/gallery/' | relative_url }}" data-gallery-hover-preview data-gallery-preview="RATH6538.jpg" data-gallery-thumbnail-dir="{{ '/images/gallery/thumbnails/' | relative_url }}">photography<span class="hover-photo__card" aria-hidden="true"><img src="" alt="" loading="lazy" decoding="async"></span></a>, <a class="hover-photo hover-photo--balcony" href="{{ '/images/IMG20260419144241.jpg' | relative_url }}" target="_blank" rel="noopener noreferrer">balcony gardening<span class="hover-photo__card" aria-hidden="true"><img src="{{ '/images/balcony-gardening-thumb.jpg' | relative_url }}" alt=""></span></a>, and <a class="hover-photo hover-photo--doujin" href="https://en.wikipedia.org/wiki/Doujin_music" target="_blank" rel="noopener noreferrer">doujin music<span class="hover-photo__card" aria-hidden="true"><img src="{{ '/images/04af8e6b10eb61f0e9b4a0264aae7ff9.jpeg' | relative_url }}" alt="" loading="lazy" decoding="async"></span></a>.</p>
 </div>
 
 <!-- Favorite [Light Novel](https://en.wikipedia.org/wiki/Light_novel) (single volume): [『続・終物語』](https://ja.wikipedia.org/wiki/%E7%B6%9A%E3%83%BB%E7%B5%82%E7%89%A9%E8%AA%9E). -->

@@ -1,6 +1,7 @@
 /* Registered 48 px animation cells shared by both battle renderers. */
 (function (scope) {
   "use strict";
+  var assetBase = (scope.SiteAssets && scope.SiteAssets.base) || "";
   var registration = {
     alice: { centers: [201, 198, 174, 195], feet: [395, 396], height: 324 },
     marisa: { centers: [210, 212, 215, 219], feet: [419, 418], height: 393 },
@@ -54,7 +55,8 @@
             sheets[id] = atlas;
             resolve();
           };
-          image.src = "/assets/images/classic/danmaku/bosses/" + id + ".png";
+          image.src =
+            assetBase + "/assets/images/classic/danmaku/bosses/" + id + ".png";
         });
       })
     );

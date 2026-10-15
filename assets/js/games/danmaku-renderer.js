@@ -1,6 +1,7 @@
 /* Canvas-only presentation; the collision/scoring simulation lives in the engine. */
 (function () {
   "use strict";
+  var assetBase = (window.SiteAssets && window.SiteAssets.base) || "";
   var W = DanmakuEngine.width,
     H = DanmakuEngine.height;
   var palettes = {
@@ -41,14 +42,16 @@
               patchouli: "patchouli-library",
             };
             image.src = id.endsWith("-portraits")
-              ? "/assets/images/classic/danmaku/portraits/" +
+              ? assetBase +
+                "/assets/images/classic/danmaku/portraits/" +
                 id.split("-")[0] +
                 "-expressions.png"
               : id.endsWith("-background")
-                ? "/assets/images/classic/danmaku/backgrounds/" +
+                ? assetBase +
+                  "/assets/images/classic/danmaku/backgrounds/" +
                   backgrounds[id.split("-")[0]] +
                   ".png"
-                : "/assets/images/classic/danmaku/" + id + ".svg";
+                : assetBase + "/assets/images/classic/danmaku/" + id + ".svg";
           });
         })
     );

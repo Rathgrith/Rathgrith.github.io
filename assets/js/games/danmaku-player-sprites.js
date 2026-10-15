@@ -1,6 +1,7 @@
 /* Rear-facing flight atlas shared by score attack and the flower duel. */
 (function (scope) {
   "use strict";
+  var assetBase = (scope.SiteAssets && scope.SiteAssets.base) || "";
   var poses = ["idle", "n", "ne", "e", "se", "s", "sw", "w", "nw"];
   // Generated sheets have irregular row spacing. Each rectangle is the visible
   // silhouette within its column/row, not a naïve equal-height source cell.
@@ -131,7 +132,8 @@
             sheets[id] = register(image, id);
             resolve();
           };
-          image.src = "/assets/images/classic/danmaku/players/" + id + ".png";
+          image.src =
+            assetBase + "/assets/images/classic/danmaku/players/" + id + ".png";
         });
       })
     );
