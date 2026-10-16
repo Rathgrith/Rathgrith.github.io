@@ -24,7 +24,9 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 | `classic-playground.css` | Standalone scene, fixed dialogue desk, radio and game composition |
 | `classic-motion.css` | Shared short transitions and reduced-motion handling |
 
-Shared motion uses `--motion-fast` (120ms), `--motion-ui` (180ms) and `--motion-panel` (240ms). Page entrances animate only the article opacity, keeping the persistent Live2D canvas and its camera out of transforms. A small toolbar trace indicates pending page navigation. Color/border feedback stays short and respects reduced-motion preferences.
+Shared motion uses `--motion-fast` (120ms), `--motion-ui` (180ms) and `--motion-panel` (240ms). Page entrances animate only the article opacity, keeping the persistent Live2D canvas and its camera out of transforms. `classic-motion.js` adds one-time, four-pixel stepped entries to content cards as they enter the viewport, with at most 112ms of stagger; visible cards do not repeat that effect during page swaps. Newly exposed publications receive the same finite feedback. Content stays visible without JavaScript or animation support, and changing the reduced-motion preference cancels running entries. A small toolbar trace indicates pending page navigation. Color/border feedback stays short and respects reduced-motion preferences.
+
+Shared containers use palette-derived panel, rule and highlight tokens. Raised profile and photo frames contrast with recessed document and viewer surfaces; education, publications and secondary lists share clear internal spacing. Fixed-aspect publication previews declare their source dimensions and load lazily. Container styling does not transform the rails or change the companion camera.
 
 The native `hidden` attribute wins globally. The active styles do not depend on increasing `html.classic-root body.classic-site` specificity to defeat another template. Site options, companion, previews, modal and loading layers are ordered through theme variables. Each component uses small local layers within its own stacking context.
 
@@ -51,6 +53,7 @@ Gallery cards always crop to 4:3, with five columns at 1280px and above and thre
 - `games/danmaku-engine.js` / `danmaku-renderer.js` own the score-attack simulation and view; `danmaku-flower.js` / `danmaku-flower-renderer.js` own the two-field CPU duel. Both use `companion-danmaku.js` for one shared input/lifecycle controller, separate mode/assistance records and responsive Canvas sizing. The game uses `danmaku-audio.js` for independent, silent-by-default battle BGM and effect mixing from deterministic event hooks. The mounted game pauses the conversation renderer, music and typewriter; local pixel sprites keep it independent of remote Live2D availability. See [the game guide](danmaku-game.md).
 - Before replacing `#main`, page navigation emits `site:before-content-replace`. The companion clears its dragged position and custom size and temporarily reparents to `body`, then moves to the destination page's dock. This retains the same canvas and weather instance. Weather refresh/location/cache behavior remains in `components/weather-widget.js`.
 - `hover-photo-preview.js` uses one delegated pointer/focus lifecycle, clamps previews after scroll/resize, supports Escape dismissal and releases cached page references before a swap.
+- `classic-motion.js` observes article content only and releases observers, pending frames and running animations before a page replacement. Focus stops motion on the relevant card; publication filtering emits `site:publications-filtered` without waiting for decoration.
 - Publications, runtime and the gallery each keep their own small module. Visitor counters and analytics integrations have been removed. No generic legacy feature loader or jQuery bundle is required.
 
 Auxiliary conversation panels are centered, bounded sheets over the retained scene. The underlying scene is dimmed and inert while a panel is open; the model camera, dialogue and radio keep their geometry. Each sheet scrolls internally on short windows, traps keyboard focus and restores it when dismissed. History retains a bounded list; the arcade uses its own height budget.
@@ -87,6 +90,7 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-presentation.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/loading-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/site-browser.cjs
+node tests/frontend-motion.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-resilience.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-mobile.cjs

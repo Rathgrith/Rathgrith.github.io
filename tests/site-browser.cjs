@@ -133,6 +133,25 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     for (const width of [320, 375, 600, 768, 1000, 1280, 1440, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       await page.waitForTimeout(100);
+      // A wider viewport can bring fresh cards into view. Check the settled
+      // grid after their bounded entry animations, with default motion enabled.
+      await page.locator(".classic-photo").evaluateAll(async (cards) => {
+        const animations = cards.flatMap((card) => card.getAnimations());
+        if (animations.some((animation) =>
+          !Number.isFinite(animation.effect.getComputedTiming().endTime)
+        )) throw new Error("Gallery card animations must be finite");
+        let deadline;
+        try {
+          await Promise.race([
+            Promise.all(animations.map((animation) => animation.finished.catch(() => {}))),
+            new Promise((_, reject) => {
+              deadline = setTimeout(() => reject(new Error("Gallery cards did not settle")), 1000);
+            }),
+          ]);
+        } finally {
+          clearTimeout(deadline);
+        }
+      });
       assert.equal(
         await page.evaluate(
           () => document.documentElement.scrollWidth > innerWidth

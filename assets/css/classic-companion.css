@@ -33,6 +33,7 @@
   background: var(--vn-panel);
   box-shadow:
     inset 0 0 0 1px var(--classic-edge-dark),
+    inset 2px 2px 0 color-mix(in srgb, var(--vn-rule) 22%, transparent),
     4px 4px 0 #0007;
   color: var(--vn-ink);
   color-scheme: dark;
@@ -105,6 +106,7 @@
   border-bottom: 1px solid var(--vn-rule);
   color: var(--vn-ink);
   background: linear-gradient(90deg, var(--classic-title), var(--vn-panel));
+  box-shadow: inset 0 1px color-mix(in srgb, var(--classic-accent) 16%, transparent);
   font: 12px/1.5 var(--vn-font);
   cursor: grab;
   touch-action: none;
@@ -166,6 +168,16 @@
   background: var(--classic-soft);
   color: var(--classic-accent);
 }
+#live2d-widget .companion-controls > :is(button, a) {
+  border-color: var(--vn-rule) var(--classic-edge-dark) var(--classic-edge-dark)
+    var(--vn-rule);
+  box-shadow: inset 1px 1px 0 #ffffff0b;
+}
+#live2d-widget .companion-controls > :is(button, a):active {
+  border-color: var(--classic-edge-dark) var(--vn-rule) var(--vn-rule)
+    var(--classic-edge-dark);
+  box-shadow: inset 1px 1px 0 #0006;
+}
 #live2d-widget .companion-controls svg {
   display: block;
   margin: auto;
@@ -206,12 +218,15 @@
   min-height: 38px;
   padding: 3px 1px;
   font-size: 12px;
-  border-color: transparent;
+  border-color: color-mix(in srgb, var(--vn-rule) 25%, transparent);
+  background: color-mix(in srgb, var(--vn-panel) 94%, var(--vn-rule));
   white-space: nowrap;
 }
 #live2d-widget .vn-cast button[aria-pressed="true"] {
   border-color: var(--vn-rule);
-  box-shadow: inset 0 -2px var(--classic-accent);
+  box-shadow:
+    inset 0 -2px var(--classic-accent),
+    inset 1px 1px 0 #ffffff0b;
 }
 #live2d-widget .vn-cast img {
   display: block;
@@ -373,7 +388,10 @@
   margin-top: 8px;
   padding: 11px 10px 6px;
   border: 3px double var(--vn-rule);
-  background: var(--vn-panel);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--vn-light) 4%, transparent), transparent 55%),
+    var(--vn-panel);
+  box-shadow: inset 0 0 0 2px var(--vn-panel), inset 0 0 0 3px #ffffff04;
 }
 /* Keep docked text compact, but make detached conversations comfortable to read.
    The fixed dialogue viewport, rather than its content, determines the layout. */
@@ -646,7 +664,7 @@
   }
   #live2d-widget .vn-panel:not([hidden]) {
     animation: vn-sheet-reveal var(--motion-ui, 180ms)
-      var(--motion-ease, ease-out) both;
+      steps(4, end) both;
   }
   #live2d-widget .vn-main-view {
     transition: filter var(--motion-ui, 180ms) var(--motion-ease, ease-out);
@@ -654,10 +672,12 @@
 }
 @keyframes vn-sheet-reveal {
   from {
-    opacity: 0;
+    opacity: 0.5;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 #live2d-widget
@@ -744,7 +764,9 @@
   scrollbar-color: var(--vn-rule) transparent;
   padding: 14px;
   border: 1px solid var(--vn-rule);
-  background: var(--vn-panel);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--vn-light) 5%, transparent), transparent 100px),
+    var(--vn-panel);
   box-shadow:
     inset 0 0 0 3px var(--vn-panel),
     inset 0 0 0 4px color-mix(in srgb, var(--vn-rule) 45%, transparent),
@@ -920,6 +942,7 @@
   padding: 10px 12px;
   margin: 0 0 8px;
   border-left: 2px solid var(--vn-rule);
+  border-block: 1px solid color-mix(in srgb, var(--vn-rule) 20%, transparent);
   background: #0002;
 }
 #live2d-widget .vn-history li:last-child {

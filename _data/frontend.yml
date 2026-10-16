@@ -36,6 +36,7 @@ site_scripts:
     feature: "runtime"
   - path: "/assets/js/core/paper-click-effect.js"
   - path: "/assets/js/core/publication-filter.js"
+  - path: "/assets/js/core/classic-motion.js"
   - path: "/assets/js/core/hover-photo-preview.js"
   - path: "/assets/js/core/home-loading.js"
     feature: "home_loading"

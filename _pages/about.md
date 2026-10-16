@@ -59,7 +59,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://arxiv.org/abs/2608.00903" target="_blank" rel="noopener noreferrer">
-        <img src="{{ '/images/peca_eccv2026.gif' | relative_url }}" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview">
+        <img src="{{ '/images/peca_eccv2026.gif' | relative_url }}" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview" width="640" height="387" loading="lazy" decoding="async">
       </a>
     </div>
   </div>
@@ -75,7 +75,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">NeurIPS 2025</span><a href="https://openreview.net/pdf?id=Qla5PqFL0s">A Unified Reasoning Framework for Holistic Zero-Shot Video Anomaly Analysis</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Mengxue Qu, Kunyang Han, Jianbo Jiao, Xiaojie Jin, Yunchao Wei<sup>†</sup></span></div>
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=Qla5PqFL0s" target="_blank" rel="noopener noreferrer">
-        <img src="{{ '/images/NIPS25_TTR_VAD.png' | relative_url }}" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview">
+        <img src="{{ '/images/NIPS25_TTR_VAD.png' | relative_url }}" alt="NeurIPS 2025 paper preview" class="publication-thumb paper-preview" width="875" height="587" loading="lazy" decoding="async">
       </a>
     </div>
   </div>
@@ -83,7 +83,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag journal">TMLR 2025</span><a href="https://openreview.net/pdf?id=f1MYOG4iDG">What Time Tells Us? An Explorative Study of Time Awareness Learned from Static Images</a><span class="publication-authors"><strong>Dongheng Lin<sup>*</sup></strong>, Han Hu<sup>*</sup>, Jianbo Jiao<sup>†</sup></span></div>
       <a class="publication-thumb-wrap" href="https://openreview.net/pdf?id=f1MYOG4iDG" target="_blank" rel="noopener noreferrer">
-        <img src="{{ '/images/timerep3.png' | relative_url }}" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview">
+        <img src="{{ '/images/timerep3.png' | relative_url }}" alt="TMLR 2025 paper preview" class="publication-thumb paper-preview" width="916" height="493" loading="lazy" decoding="async">
       </a>
     </div>
   </div>

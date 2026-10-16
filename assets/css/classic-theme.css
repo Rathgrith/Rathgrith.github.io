@@ -22,6 +22,12 @@ html {
   --link: var(--classic-link);
   --link-hover: #f4f6fa;
   --classic-silver: var(--classic-chrome);
+  /* Shared surfaces inherit the active character, including theme changes. */
+  --classic-panel: color-mix(in srgb, var(--classic-chrome) 46%, var(--classic-document));
+  --classic-panel-hover: color-mix(in srgb, var(--classic-soft) 48%, var(--classic-document));
+  --classic-accent-wash: color-mix(in srgb, var(--classic-accent) 7%, var(--classic-document));
+  --classic-rule: color-mix(in srgb, var(--classic-accent) 27%, var(--classic-document));
+  --classic-highlight: color-mix(in srgb, var(--classic-accent) 13%, transparent);
   --classic-bevel-raised:
     inset -1px -1px var(--classic-edge-mid),
     inset 1px 1px var(--classic-edge-mid);
