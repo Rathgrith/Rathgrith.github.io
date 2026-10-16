@@ -388,24 +388,36 @@
     padding: 18px;
   }
   .gallery-page .classic-archive-grid .classic-year-navigation {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    position: sticky;
+    top: 8px;
+    z-index: 20;
+    display: flex;
+    flex-wrap: nowrap;
     align-items: stretch;
+    min-width: 0;
+    max-width: 100%;
+    padding: 6px;
+    gap: 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--classic-edge-light) var(--classic-panel);
+    scroll-padding-inline: 6px;
   }
   .gallery-page .classic-year-navigation .classic-rail-heading,
   .gallery-page .classic-year-navigation .classic-small {
-    grid-column: 1 / -1;
+    display: none;
   }
   .gallery-page .classic-year-navigation .classic-button {
+    flex: 0 0 auto;
     padding: 6px 8px;
-    min-height: 40px;
-    font-size: 15px;
+    min-height: 36px;
+    font-size: 14px;
     gap: 6px;
+    white-space: nowrap;
   }
-}
-@media (min-width: 600px) and (max-width: 767px) {
-  .gallery-page .classic-archive-grid .classic-year-navigation {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .gallery-page .classic-archive-year > h2 {
+    scroll-margin-top: 84px;
   }
 }
 @media (max-width: 480px) {

@@ -848,6 +848,9 @@ html[data-live2d-character="patchouli"]
   border-block: 1px solid var(--classic-rule);
 }
 .classic-page-index a {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
   padding: 4px 6px;
   border: 1px solid transparent;
   color: var(--text-muted);
@@ -864,6 +867,17 @@ html[data-live2d-character="patchouli"]
   background: var(--classic-panel-hover);
   border-color: var(--border);
 }
+.classic-page-index a:focus-visible {
+  outline: 1px dotted var(--classic-accent);
+  outline-offset: -4px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .classic-page-index a,
+  .classic-year-navigation a {
+    transition: color var(--motion-fast), background-color var(--motion-fast),
+      border-color var(--motion-fast), box-shadow var(--motion-fast);
+  }
+}
 
 /* Publication rows respond to their available space, including narrow windows. */
 .publication-list {
@@ -873,7 +887,7 @@ html[data-live2d-character="patchouli"]
   border: 0;
 }
 .publication-item {
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--border);
   background: var(--classic-panel);
   box-shadow: inset 0 1px var(--classic-highlight), 2px 2px 0 var(--classic-edge-dark);
@@ -890,17 +904,22 @@ html[data-live2d-character="patchouli"]
 }
 .publication-item-inner {
   display: grid;
-  grid-template-columns: minmax(140px, 22%) minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: clamp(120px, 18%, 176px) minmax(0, 1fr);
+  gap: 18px;
   align-items: center;
 }
 .publication-thumb-wrap {
+  /* Only the text contributes to the row height; image dimensions cannot
+     enlarge a publication when an original or animated preview loads. */
+  position: relative;
   grid-column: 1;
   grid-row: 1;
+  align-self: stretch;
   justify-self: start;
   width: 100%;
+  min-height: 0;
   max-width: none;
-  aspect-ratio: 16/10;
+  aspect-ratio: auto;
   border: 1px solid;
   border-color: var(--classic-edge-dark) var(--classic-edge-light)
     var(--classic-edge-light) var(--classic-edge-dark);
@@ -914,6 +933,8 @@ html[data-live2d-character="patchouli"]
   border-color: var(--classic-accent);
 }
 .publication-thumb {
+  position: absolute;
+  inset: 0;
   border-radius: 0;
 }
 .publication-thumb.paper-preview {
@@ -1072,10 +1093,8 @@ html[data-live2d-character="patchouli"]
   }
   .publication-thumb-wrap {
     grid-row: 2;
-    width: 100%;
-    aspect-ratio: 2/1;
-    max-height: 180px;
-    background: #f5f4ef;
+    width: min(176px, 100%);
+    height: 92px;
   }
 }
 .hover-photo__card {
@@ -1208,6 +1227,7 @@ body.live2d-is-hidden .classic-companion-dock {
   }
 }
 
+.classic-mobile-page-index,
 .classic-mobile-footer {
   display: none;
 }
@@ -1220,15 +1240,45 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
 
 /* Tablet: profile above the document. */
 @media (max-width: 999px) {
+  .classic-mobile-page-index:not(:empty) {
+    display: block;
+    position: sticky;
+    top: 8px;
+    z-index: 20;
+    grid-column: 1 / -1;
+    min-width: 0;
+    background: var(--classic-chrome);
+    box-shadow: 0 3px 0 var(--classic-edge-dark);
+  }
+  .classic-mobile-page-index .classic-page-index {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    margin: 0;
+    padding: 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--classic-edge-light) var(--classic-panel);
+    scroll-padding-inline: 6px;
+  }
+  .classic-mobile-page-index .classic-page-index a {
+    flex: 0 0 auto;
+    justify-content: center;
+    min-height: 36px;
+    padding: 5px 10px;
+    white-space: nowrap;
+  }
+  .home-page .page__content :is(h1, h2, h3, .anchor) {
+    scroll-margin-top: 84px;
+  }
   .classic-mobile-footer {
     display: block;
     grid-column: 1 / -1;
     min-width: 0;
     padding: 0 4px;
   }
-  .classic-mobile-footer:has([data-mobile-page-index]:empty):has(
-      [data-companion-mobile-dock]:empty
-    ) {
+  .classic-mobile-footer:has([data-companion-mobile-dock]:empty) {
     display: none;
   }
   .classic-companion-mobile-dock {
@@ -1547,6 +1597,7 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
   }
   .classic-toolbar,
   .classic-utilities,
+  .classic-mobile-page-index:not(:empty),
   .classic-page-index {
     display: none;
   }

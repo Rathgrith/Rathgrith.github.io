@@ -5,6 +5,8 @@
 
   var activeNavigation = null;
   var renderedUrl = new URL(window.location.href);
+  var renderedEntryKey = null;
+  var entrySequence = 0;
   var scrollPositions = new Map();
   var boundNavigation = false;
 
@@ -27,13 +29,11 @@
     return ext !== "html" && ext !== "htm";
   }
 
-  function isSamePageAnchor(url) {
-    var current = new URL(window.location.href);
+  function isSameDocument(url, current) {
     return (
       url.origin === current.origin &&
       url.pathname === current.pathname &&
-      url.search === current.search &&
-      Boolean(url.hash)
+      url.search === current.search
     );
   }
 
@@ -59,11 +59,6 @@
     if (target && target !== "_self") return false;
 
     var rawHref = anchor.getAttribute("href");
-    if (rawHref && rawHref[0] === "#") {
-      rememberScroll();
-      cancelNavigation();
-      return false;
-    }
     if (
       !rawHref ||
       rawHref.indexOf("mailto:") === 0 ||
@@ -81,11 +76,6 @@
     }
 
     if (url.origin !== window.location.origin) return false;
-    if (isSamePageAnchor(url)) {
-      rememberScroll();
-      cancelNavigation();
-      return false;
-    }
     if (isSamePageUrl(url) && !activeNavigation) return false;
     if (hasNonHtmlExtension(url)) return false;
 
@@ -246,28 +236,82 @@
     dispatchContentUpdated(url);
   }
 
+  function anchorTarget(url) {
+    if (!url.hash) return null;
+    var id = url.hash.slice(1);
+    try {
+      id = decodeURIComponent(id);
+    } catch (e) {
+      // Malformed fragments may still be literal IDs; never break navigation.
+    }
+    return document.getElementById(id);
+  }
+
+  function historyState(url) {
+    return {
+      __siteSoftNav: true,
+      __siteScrollKey: Date.now().toString(36) + ":" + entrySequence++,
+      url: url.href,
+    };
+  }
+
+  function ensureHistoryEntry(url) {
+    var state = window.history.state;
+    if (!state || !state.__siteScrollKey) {
+      state = Object.assign({}, state, historyState(url));
+      window.history.replaceState(state, "", url.href);
+    }
+    return state.__siteScrollKey;
+  }
+
+  function focusAnchor(target) {
+    // Some section URLs point at an invisible marker just before their heading.
+    if (target.getAttribute("aria-hidden") === "true") {
+      var heading = target.nextElementSibling;
+      if (!heading || !heading.matches("h1, h2, h3, h4, h5, h6")) return;
+      target = heading;
+    }
+    var temporaryTabindex = !target.hasAttribute("tabindex");
+    if (temporaryTabindex) target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: true });
+    if (temporaryTabindex) {
+      target.addEventListener("blur", function cleanup() {
+        if (target.getAttribute("tabindex") === "-1")
+          target.removeAttribute("tabindex");
+      }, { once: true });
+    }
+  }
+
+  function navigateToAnchor(url, target) {
+    rememberScroll();
+    cancelNavigation();
+    if (url.href !== window.location.href)
+      window.history.pushState(historyState(url), "", url.href);
+    renderedUrl = url;
+    renderedEntryKey = ensureHistoryEntry(url);
+    var behavior = matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth";
+    if (target) {
+      focusAnchor(target);
+      target.scrollIntoView({ behavior: behavior, block: "start" });
+    } else if (!url.hash) {
+      window.scrollTo({ left: 0, top: 0, behavior: behavior });
+    }
+  }
+
   function scrollAfterNavigation(url, position) {
     if (position) {
-      window.scrollTo(position.x, position.y);
+      window.scrollTo({ left: position.x, top: position.y, behavior: "instant" });
       return;
     }
-    if (url.hash) {
-      var id = url.hash.slice(1);
-      try {
-        id = decodeURIComponent(id);
-      } catch (e) {
-        // A malformed fragment must not reload an otherwise valid page.
-      }
-      if (id) {
-        var target = document.getElementById(id);
-        if (target && typeof target.scrollIntoView === "function") {
-          target.scrollIntoView();
-          return;
-        }
-      }
+    var target = anchorTarget(url);
+    if (target) {
+      target.scrollIntoView({ behavior: "instant", block: "start" });
+      return;
     }
 
-    window.scrollTo(0, 0);
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" });
   }
 
   function softNavigate(url, options, request) {
@@ -316,7 +360,7 @@
             typeof window.history.pushState === "function"
           ) {
             window.history.pushState(
-              { __siteSoftNav: true, url: url.href },
+              historyState(url),
               "",
               url.href
             );
@@ -325,6 +369,7 @@
 
         runPostSwapHooks(url);
         renderedUrl = url;
+        renderedEntryKey = ensureHistoryEntry(url);
         insertedMain.setAttribute("aria-busy", "false");
         if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
           insertedMain.classList.add("is-content-entering");
@@ -357,7 +402,7 @@
   }
 
   function rememberScroll() {
-    scrollPositions.set(renderedUrl.href, {
+    scrollPositions.set(renderedEntryKey || renderedUrl.href, {
       x: window.scrollX,
       y: window.scrollY,
     });
@@ -423,6 +468,28 @@
       function (event) {
         var anchor = event.target.closest("a[href]");
         if (!anchor) return;
+        // Resolve same-document links before ordinary page navigation. Let
+        // downloads, modified clicks and targets keep their browser semantics.
+        if (
+          !isModifiedClick(event) &&
+          !anchor.hasAttribute("download") &&
+          !anchor.hasAttribute("data-full-navigation") &&
+          (!anchor.target || anchor.target.toLowerCase() === "_self")
+        ) {
+          var url;
+          try {
+            url = new URL(anchor.href, window.location.href);
+          } catch (e) {
+            return;
+          }
+          if (isSameDocument(url, renderedUrl) && anchor.href.indexOf("#") !== -1) {
+            event.preventDefault();
+            // Missing targets update the fragment without scrolling, just as
+            // native links do; an empty fragment scrolls to the page top.
+            navigateToAnchor(url, anchorTarget(url));
+            return;
+          }
+        }
         if (!isInternalPageLink(anchor, event)) return;
 
         event.preventDefault();
@@ -433,7 +500,8 @@
 
     window.addEventListener("popstate", function () {
       var url = new URL(window.location.href);
-      var position = scrollPositions.get(url.href);
+      var entryKey = ensureHistoryEntry(url);
+      var position = scrollPositions.get(entryKey);
       rememberScroll();
       cancelNavigation();
       if (
@@ -441,6 +509,7 @@
         url.search === renderedUrl.search
       ) {
         renderedUrl = url;
+        renderedEntryKey = entryKey;
         scrollAfterNavigation(url, position);
         return;
       }
@@ -454,8 +523,10 @@
       if (
         url.pathname === renderedUrl.pathname &&
         url.search === renderedUrl.search
-      )
+      ) {
         renderedUrl = url;
+        renderedEntryKey = ensureHistoryEntry(url);
+      }
     });
   }
 
@@ -465,11 +536,7 @@
     }
     if (window.history && typeof window.history.replaceState === "function") {
       try {
-        window.history.replaceState(
-          { __siteSoftNav: true, url: window.location.href },
-          "",
-          window.location.href
-        );
+        renderedEntryKey = ensureHistoryEntry(renderedUrl);
       } catch (e) {
         // Ignore history errors.
       }

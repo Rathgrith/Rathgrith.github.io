@@ -40,6 +40,7 @@ fs.mkdirSync(out, { recursive: true });
     const bounds = await p.evaluate(() => {
       const rect = (s) => document.querySelector(s).getBoundingClientRect();
       return {
+        articleTop: rect(".page").top,
         articleBottom: rect(".page").bottom,
         navTop: rect(".classic-page-index").top,
         navBottom: rect(".classic-page-index").bottom,
@@ -48,12 +49,12 @@ fs.mkdirSync(out, { recursive: true });
       };
     });
     assert(
-      bounds.navTop >= bounds.articleBottom &&
-        bounds.companionTop >= bounds.navBottom &&
+      bounds.navBottom <= bounds.articleTop &&
+        bounds.companionTop >= bounds.articleBottom &&
         !bounds.docOverflow,
       JSON.stringify(bounds)
     );
-    await p.locator(".classic-page-index").scrollIntoViewIfNeeded();
+    await p.locator("#live2d-widget").scrollIntoViewIfNeeded();
     await p.screenshot({ path: out + "/mobile-bottom.png" });
     // Layout changes keep desktop and mobile visibility choices independent.
     await p.locator("[data-companion-close]").click();
@@ -112,7 +113,7 @@ fs.mkdirSync(out, { recursive: true });
     );
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: mobile default-on without scroll jumps, persisted opt-out with no model load, footer/index ordering, independent visibility and persistent canvas on navigation"
+      "PASS: mobile default-on without scroll jumps, persisted opt-out with no model load, index before article and companion after it, independent visibility and persistent canvas on navigation"
     );
   } finally {
     await b.close();

@@ -86,6 +86,17 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
             footerHeight: footer.height,
             navOneRow: tabs.every((r) => Math.abs(r.top - tabs[0].top) < 1),
             portraitSquare: Math.abs(portrait.width - portrait.height) < 1,
+            publications: [...document.querySelectorAll('.publication-item:not([hidden])')].map((item) => {
+              const image = item.querySelector('.publication-thumb-wrap').getBoundingClientRect();
+              const text = item.querySelector('.publication-line').getBoundingClientRect();
+              return {
+                sideBySide: Math.abs(image.top - text.top) < 1,
+                imageHeight: image.height,
+                textHeight: text.height,
+                imageWidth: image.width,
+                fit: getComputedStyle(item.querySelector('.publication-thumb')).objectFit,
+              };
+            }),
             logos: [
               ...document.querySelectorAll(".classic-education .inline-school-icon"),
             ].map((e) => {
@@ -103,6 +114,14 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
         );
         assert(geometry.footerHeight < 130);
         geometry.logos.forEach((x) => assert.deepEqual(x, [16, 16, "contain"]));
+        geometry.publications.forEach((publication) => {
+          assert.equal(publication.fit, 'contain');
+          assert(publication.imageWidth <= 177, JSON.stringify({ id, width, publication }));
+          assert(publication.sideBySide
+            ? Math.abs(publication.imageHeight - publication.textHeight) < 2
+            : publication.imageHeight <= 93,
+          JSON.stringify({ id, width, publication }));
+        });
         checks++;
         if ([375, 768, 1440].includes(width))
           await page.screenshot({ path: out + `/home-${id}-${width}.png` });
