@@ -278,16 +278,12 @@ fs.mkdirSync(out, { recursive: true });
     if (width < 1000) {
       assert(
         await page.locator("#live2d-widget").evaluate((e) => {
-          const nav = document
-            .querySelector(".classic-page-index")
-            .getBoundingClientRect();
-          const article = document
-            .querySelector(".page")
-            .getBoundingClientRect();
+          const nav = document.querySelector(".classic-page-index");
+          const article = document.querySelector(".page");
           return (
             e.parentElement.hasAttribute("data-companion-mobile-dock") &&
-            e.getBoundingClientRect().top >= nav.bottom &&
-            nav.top >= article.bottom
+            e.getBoundingClientRect().top >= article.getBoundingClientRect().bottom &&
+            Boolean(nav.compareDocumentPosition(article) & Node.DOCUMENT_POSITION_FOLLOWING)
           );
         })
       );

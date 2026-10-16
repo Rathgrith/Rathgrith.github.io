@@ -26,7 +26,7 @@ The site has one active visual system: the dark Nostalgia desktop, with Alice, M
 
 Shared motion uses `--motion-fast` (120ms), `--motion-ui` (180ms) and `--motion-panel` (240ms). Page entrances animate only the article opacity, keeping the persistent Live2D canvas and its camera out of transforms. `classic-motion.js` adds one-time, four-pixel stepped entries to content cards as they enter the viewport, with at most 112ms of stagger; visible cards do not repeat that effect during page swaps. Newly exposed publications receive the same finite feedback. Content stays visible without JavaScript or animation support, and changing the reduced-motion preference cancels running entries. A small toolbar trace indicates pending page navigation. Color/border feedback stays short and respects reduced-motion preferences.
 
-Shared containers use palette-derived panel, rule and highlight tokens. Raised profile and photo frames contrast with recessed document and viewer surfaces; education, publications and secondary lists share clear internal spacing. Fixed-aspect publication previews declare their source dimensions and load lazily. Container styling does not transform the rails or change the companion camera.
+Shared containers use palette-derived panel, rule and highlight tokens. Raised profile and photo frames contrast with recessed document and viewer surfaces; education, publications and secondary lists share clear internal spacing. Publication previews declare their source dimensions and load lazily; their frame follows the adjacent text height, while narrow cards use a compact 176×92px frame. The contained image cannot enlarge the text row. Container styling does not transform the rails or change the companion camera.
 
 The native `hidden` attribute wins globally. The active styles do not depend on increasing `html.classic-root body.classic-site` specificity to defeat another template. Site options, companion, previews, modal and loading layers are ordered through theme variables. Each component uses small local layers within its own stacking context.
 
@@ -38,8 +38,8 @@ Gallery cards always crop to 4:3, with five columns at 1280px and above and thre
 
 - `site-assets.js` supplies the deployment mount path for dynamically created companion/game assets. `_includes/frontend-context.html` resolves the initial palette and cache version; `_data/characters.yml` provides portrait/model configuration. See [template customization](template-customization.md).
 
-- `page-transition.js` replaces `#main`, updates metadata/history and dispatches `site:content-updated`. A newer navigation intent aborts the previous request; stale responses cannot replace a later click or browser Back. It retains the existing widget, moves focus to the new main region, restores saved Back/Forward scroll positions and falls back to a full navigation on errors or a different page shell. Page swapping does not wait for decorative animation.
-- `classic-navigation.js` updates page tabs and reading/collection indexes, and measures the desktop homepage rail for its direction-aware sticky position. Compact placement is unchanged.
+- `page-transition.js` replaces `#main`, updates metadata/history and dispatches `site:content-updated`. A newer navigation intent aborts the previous request; stale responses cannot replace a later click or browser Back. Same-page section links use native smooth scrolling, or an immediate jump with reduced motion, and focus the destination heading. Entry-specific history keys preserve distinct scroll positions when the same URL is revisited. It retains the existing widget, moves focus to the new main region, restores saved Back/Forward scroll positions immediately and falls back to a full navigation on errors or a different page shell. Page swapping does not wait for decorative animation.
+- `classic-navigation.js` updates page tabs and reading/collection indexes, and measures the desktop homepage rail for its direction-aware sticky position. Below 1000px the homepage index moves before the article into a horizontal sticky bar; Gallery uses the same compact treatment below 768px. Scrollspy accounts for the top bar and keeps its active link horizontally visible without moving the document. The compact companion remains after the article. MathJax's startup hash positioning is disabled so late formula initialization cannot interrupt a section scroll.
 - `site-options.js` owns the header menu. `live2d-toggle.js` owns separately persisted desktop/compact companion visibility preferences.
 - `companion-dialogue.js` owns the dialogue state machine and persistent preferences; `companion-dialogues.js` contains writing and pure story selection. See [the companion guide](companion-system.md).
 - `companion-voice-reactions.js` owns opt-in recorded interjections. Eighteen brief clips use emotion selection, a per-character cooldown and consecutive-repeat avoidance. Mouth articulation remains driven by the kana plan. See [voice sources](companion-voices.md).
@@ -90,6 +90,8 @@ PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/danmaku-presentation.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/loading-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/site-browser.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/navigation-browser.cjs
+PREVIEW_URL=http://127.0.0.1:4100/ node tests/anchor-navigation.cjs
 node tests/frontend-motion.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-browser.cjs
 PREVIEW_URL=http://127.0.0.1:4100/ node tests/companion-resilience.cjs
@@ -112,7 +114,7 @@ Validated on 2026-10-08:
 - All 228 Japanese everyday lines plus 102 acquaintance remarks, four affinity tiers, both response branches, day/night and seven fixed-date holiday groups; complete shuffle cycles, no adjacent repeats across cycles, independent contexts, and reachability of every added variant.
 - Explicit per-line directions (including 18 existing quotations), all 15 rendered body poses and hand layers, Patchouli's reading angle, sustained facial expressions, and the latest-line motion queue. Desktop index/dock ordering also survives breakpoint changes.
 - Saved affinity/text speed, per-character isolation, typewriter completion, minimized pause, auto stopping for choices, single instances across soft navigation, close/reopen and keyboard movement.
-- Fresh mobile visits show the companion by default; page-bottom/index order, separately saved desktop/mobile visibility, explicit closing, reload and soft-navigation retention are checked.
+- Fresh mobile visits show the companion by default; the index precedes the article and the companion follows it. Separately saved desktop/mobile visibility, explicit closing, reload and soft-navigation retention are checked.
 - Simulated model/CDN and weather failure, model retry, rapid character switching, blocked localStorage, reduced motion and the Halloween branch in the UI.
 - Nine endless arcade matchups, three distinct shot types and patterns, growing density, collision/graze/strike rules, actual canvas output, keyboard/touch controls, result/retry/records, short landscape and seven playfield widths. Leaving the game restores the existing conversation.
 - Browser checks observed no uncaught JavaScript errors or missing local assets. Remote models, weather and original photos still depend on their existing providers; failure behavior is tested separately from successful loading.

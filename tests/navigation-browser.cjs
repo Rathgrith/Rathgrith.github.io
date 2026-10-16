@@ -19,6 +19,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     if (process.env.QA_SOURCE) {
       for (const filename of [
         "page-transition.js",
+        "classic-navigation.js",
         "site-options.js",
         "hover-photo-preview.js",
       ]) {
@@ -34,7 +35,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       }
     }
     const errors = [];
-    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("pageerror", (error) => errors.push(error.stack || error.message));
     await page.goto(base);
     await page.evaluate(() => document.fonts.ready);
     await page.waitForFunction(
