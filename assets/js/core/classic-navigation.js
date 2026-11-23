@@ -1,17 +1,16 @@
 (function () {
   function updateNavigation() {
-    var path = window.location.pathname;
-    var active =
-      path.indexOf("/gallery") !== -1
-        ? "gallery"
-        : path.indexOf("/notes") !== -1
-          ? "notes"
-          : path.indexOf("/thoughts") !== -1
-            ? "thoughts"
-            : "home";
-    document.querySelectorAll("[data-classic-page]").forEach(function (link) {
-      if (link.getAttribute("data-classic-page") === active)
-        link.setAttribute("aria-current", "page");
+    // Compare resolved URLs so subpath deployments and secondary documents
+    // do not accidentally select Home. Fragments designate sections of a page.
+    var tabs = Array.from(document.querySelectorAll(".classic-navigation a[href]"));
+    var path = window.location.pathname.replace(/\/index\.html$/, "/");
+    var matching = tabs.filter(function (link) {
+      return link.origin === location.origin && link.pathname === path;
+    });
+    var active = matching.find(function (link) { return link.hash && link.hash === location.hash; }) ||
+      matching.find(function (link) { return !link.hash; });
+    tabs.forEach(function (link) {
+      if (link === active) link.setAttribute("aria-current", link.hash ? "location" : "page");
       else link.removeAttribute("aria-current");
     });
   }
@@ -22,11 +21,13 @@
     var index = document.querySelector(".classic-page-index");
     if (!rail || !footer || !index) return;
     var parent = window.innerWidth < 1000 ? footer : rail;
+    var focused = index.contains(document.activeElement) ? document.activeElement : null;
     if (parent === rail) {
       var dock = rail.querySelector("[data-companion-dock]");
       if (index.parentNode !== rail || index.nextElementSibling !== dock)
         rail.insertBefore(index, dock);
     } else if (index.parentNode !== parent) parent.appendChild(index);
+    if (focused && focused !== document.activeElement) focused.focus({ preventScroll: true });
   }
   matchMedia("(max-width: 999px)").addEventListener("change", placePageIndex);
   document.addEventListener("site:content-updated", placePageIndex);
@@ -109,24 +110,33 @@
     if (offset) nav.scrollTo({ left: nav.scrollLeft + offset, behavior: "instant" });
   }
   function updateArchive() {
-    var atBottom =
-      window.scrollY > 0 &&
-      window.scrollY + window.innerHeight >=
-        document.documentElement.scrollHeight - 2;
+    var remaining = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
+    var atBottom = window.scrollY > 0 && remaining <= 2;
     sectionGroups.forEach(function (group) {
       var threshold = sectionThreshold(group.nav);
       var items = group.items;
-      var active = items[0];
-      items.forEach(function (item) {
-        if (item.target.getBoundingClientRect().top <= threshold) active = item;
-      });
-      // Short final sections cannot always reach the top of the viewport.
-      if (atBottom) active = items[items.length - 1];
-      items.forEach(function (item) {
-        if (item === active) item.link.setAttribute("aria-current", "location");
-        else item.link.removeAttribute("aria-current");
-      });
-      revealActiveLink(group, active);
+      if (!items.length) return;
+      var tops = items.map(function (item) { return item.target.getBoundingClientRect().top; });
+      var index = 0;
+      tops.forEach(function (top, i) { if (top <= threshold) index = i; });
+      if (atBottom) index = items.length - 1;
+      var active = items[index];
+      if (group.active !== active) {
+        items.forEach(function (item) {
+          if (item === active) item.link.setAttribute("aria-current", "location");
+          else item.link.removeAttribute("aria-current");
+        });
+        revealActiveLink(group, active);
+      }
+      // The final section can end at the bottom of the document before its
+      // heading reaches the sticky index. Fill its strip over the reachable span.
+      var end = index + 1 < tops.length ? tops[index + 1] : threshold + remaining;
+      var fraction = (threshold - tops[index]) / Math.max(1, end - tops[index]);
+      var percent = atBottom ? 100 : Math.round(Math.max(0, Math.min(1, fraction)) * 100);
+      if (group.progress !== percent) {
+        group.nav.style.setProperty("--section-read", percent + "%");
+        group.progress = percent;
+      }
     });
   }
   function bindArchive() {
@@ -175,6 +185,9 @@
     { passive: true }
   );
   window.addEventListener("hashchange", updateArchive);
+  window.addEventListener("hashchange", updateNavigation);
+  document.addEventListener("site:anchor-navigated", updateNavigation);
+  document.addEventListener("site:publications-filtered", updateArchive);
   window.addEventListener("resize", function () {
     sectionGroups.forEach(function (group) { group.active = null; });
     updateArchive();

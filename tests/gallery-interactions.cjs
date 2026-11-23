@@ -6,6 +6,32 @@ const path = require("node:path");
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 const output = process.env.QA_OUTPUT || "/tmp/gallery-interactions";
 fs.mkdirSync(output, { recursive: true });
+async function checkTouchZoom(page) {
+  const session = await page.context().newCDPSession(page);
+  const counter = page.locator("#gallery-modal-counter");
+  const stage = await page.locator(".gallery-modal__image-stage").boundingBox();
+  const x = Math.round(stage.x + stage.width / 2);
+  const y = Math.round(stage.y + stage.height / 2);
+  const touch = (type, xs) => session.send("Input.dispatchTouchEvent", {
+    type,
+    touchPoints: xs.map((point, id) => ({ x: point, y, id })),
+  });
+  const photo = await counter.textContent();
+  await touch("touchStart", [x - 30, x + 30]);
+  for (let offset = 40; offset <= 92; offset += 4)
+    await touch("touchMove", [x - offset, x + offset]);
+  await touch("touchEnd", []);
+  await page.waitForFunction(() => visualViewport.scale > 1.5);
+  const start = await page.evaluate(() => visualViewport.offsetLeft);
+  await touch("touchStart", [x]);
+  for (let offset = 10; offset <= 80; offset += 10)
+    await touch("touchMove", [x - offset]);
+  await touch("touchEnd", []);
+  await page.waitForFunction((start) => visualViewport.offsetLeft > start + 5, start);
+  assert.equal(await counter.textContent(), photo, "Panning a magnified original keeps the current photo");
+  await session.detach();
+}
+
 async function checkEncodedFilenames(browser) {
   const fixture = await browser.newPage();
   const files = ["plain.jpg", "trip #1.jpg", "other.jpg"];
@@ -107,9 +133,12 @@ async function checkEncodedFilenames(browser) {
   try {
     const page = await browser.newPage({
       viewport: { width: 375, height: 812 },
+      isMobile: true,
+      hasTouch: true,
     });
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
+    await page.route(/mapmyvisitors|clustrmaps|geojs\.io|google-analytics|googletagmanager|busuanzi/i, route => route.abort());
     await page.addInitScript(() => {
       localStorage.setItem("site-live2d-enabled", "false");
       localStorage.setItem("site-live2d-mobile-enabled", "false");
@@ -163,8 +192,14 @@ async function checkEncodedFilenames(browser) {
     }
     await cards.first().scrollIntoViewIfNeeded();
     const scroll = await page.evaluate(() => scrollY);
-    await cards.first().click();
+    await cards.first().locator("figcaption").tap();
     const stage = page.locator(".gallery-modal__image-stage");
+    assert.equal(await page.locator("[data-gallery-collection-title]").textContent(),
+      await cards.first().evaluate(a => a.closest("[data-gallery-collection]").dataset.galleryCollection));
+    assert.equal(await page.locator("[data-gallery-original]").getAttribute("href"),
+      await cards.first().getAttribute("href"));
+    assert.deepEqual(await page.locator("[data-gallery-thumb-index]").evaluateAll(buttons =>
+      buttons.map(button => Number(button.dataset.galleryThumbIndex))), Array.from({length:13}, (_, i) => i));
     await page.waitForTimeout(260); // Allow the brief viewer entrance to finish.
     assert.equal(await stage.getAttribute("aria-busy"), "true");
     assert.equal(
@@ -218,6 +253,13 @@ async function checkEncodedFilenames(browser) {
       "Failure feedback keeps the stage stable"
     );
     await page.screenshot({ path: output + "/viewer-fallback.png" });
+    assert(await page.locator("#gallery-modal-image").isHidden(), "A failed current original cannot expose the previous photo");
+    gates.delete(names[2]);
+    await page.getByRole("button", {name: "Retry"}).click();
+    gate(names[2]).resolve("ready");
+    await page.waitForFunction(() => document.querySelector(".gallery-modal__image-stage").getAttribute("aria-busy") === "false");
+    assert((await page.locator("#gallery-modal-image").getAttribute("src")).endsWith(names[2]));
+    assert(await page.getByRole("button", {name: "Retry"}).isHidden());
 
     for (const key of ["Tab", "Shift+Tab"]) {
       for (let i = 0; i < 12; i++) {
@@ -231,6 +273,7 @@ async function checkEncodedFilenames(browser) {
       }
     }
     await page.keyboard.press("End");
+    assert.equal(await page.locator("[data-gallery-thumb-index]").last().getAttribute("data-gallery-thumb-index"), String(names.length - 1));
     assert.equal(
       await page.locator("#gallery-modal-counter").textContent(),
       `${names.length} / ${names.length}`
@@ -277,6 +320,29 @@ async function checkEncodedFilenames(browser) {
     assert.equal(await page.evaluate(() => scrollY), scroll);
     assert(await cards.first().evaluate((el) => el === document.activeElement));
 
+    await page.setViewportSize({ width: 844, height: 390 });
+    const rail = page.getByRole("navigation", {name: "Gallery collections"});
+    assert((await rail.boundingBox()).height < 70, "All collection links share a reachable strip in short landscape");
+    const collection = rail.locator('a[href="#gallery-group-places"]');
+    await collection.click();
+    await page.waitForFunction(() => {
+      const heading = document.querySelector("#gallery-group-places");
+      const y = heading.getBoundingClientRect().top;
+      return Math.abs(y - parseFloat(getComputedStyle(heading).scrollMarginTop)) < 2 &&
+        document.querySelector('.classic-year-navigation [aria-current="location"]')?.hash === "#gallery-group-places";
+    });
+    await cards.first().click();
+    const railPhoto = await stage.boundingBox();
+    const contactSheet = await page.locator("#gallery-modal-strip").boundingBox();
+    assert(railPhoto.height > 280 && contactSheet.x >= railPhoto.x + railPhoto.width, "Landscape photos keep the full available height");
+    await page.locator('[data-gallery-thumb-index="5"]').click();
+    assert.equal(await page.locator("#gallery-modal-counter").textContent(), "6 / " + names.length);
+    assert.equal(await page.locator("#gallery-modal-strip [aria-selected=true]").getAttribute("aria-posinset"), "6");
+    await page.keyboard.press("ArrowLeft");
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.galleryThumbIndex), "4");
+    await page.keyboard.press("Escape");
+    await page.setViewportSize({ width: 375, height: 812 });
+
     await page.emulateMedia({ reducedMotion: "reduce" });
     await cards.first().click();
     assert.deepEqual(
@@ -287,10 +353,12 @@ async function checkEncodedFilenames(browser) {
         transition: getComputedStyle(
           document.querySelector(".gallery-modal__image")
         ).transitionDuration,
+        photograph: getComputedStyle(document.querySelector(".gallery-modal__image")).animationName,
       })),
-      { animation: "none", transition: "0s" }
+      { animation: "none", transition: "0s", photograph: "none" }
     );
     assert.deepEqual(errors, []);
+    await checkTouchZoom(page);
     await checkEncodedFilenames(browser);
     console.log(
       "PASS: native modified links, fixed loading/error geometry, stale requests, keyboard focus/first/last, touch swipes, restored scroll/focus, reduced motion, encoded filenames across all image paths"

@@ -40,6 +40,21 @@ fs.mkdirSync(out, { recursive: true });
     );
     const docked = () =>
       widget.evaluate((w) => w.classList.contains("is-docked"));
+    async function checkWindowControls(maximize, minimize) {
+      const controls = widget.locator(".companion-controls > :is(a, button)");
+      assert.deepEqual(await controls.allTextContents(), [
+        "Open page", "Dock", maximize, minimize, "Close",
+      ]);
+      assert(await controls.evaluateAll((buttons) => buttons.every((button) => {
+        const bounds = button.getBoundingClientRect();
+        const text = button.querySelector("span").getBoundingClientRect();
+        const bar = button.closest(".companion-titlebar").getBoundingClientRect();
+        return text.width > 0 && text.height > 0 &&
+          text.left >= bounds.left && text.right <= bounds.right + 1 &&
+          text.top >= bounds.top && text.bottom <= bounds.bottom + 1 &&
+          bounds.left >= bar.left && bounds.right <= bar.right + 1;
+      })), "every window action has a visible, unclipped label");
+    }
     const checkCanvas = async () => {
       await page.waitForTimeout(250);
       assert(
@@ -56,10 +71,13 @@ fs.mkdirSync(out, { recursive: true });
       );
     };
     assert(await docked());
+    assert(await page.getByRole("button", { name: "Dock", exact: true }).isDisabled());
     await widget.scrollIntoViewIfNeeded();
+    await checkWindowControls("Maximize", "Minimize");
     await widget.screenshot({ path: out + "/docked.png" });
     await page.locator("[data-companion-maximize]").click();
     assert(!(await docked()));
+    assert(await page.getByRole("button", { name: "Dock", exact: true }).isEnabled());
     assert.equal(await widget.getAttribute("data-playground-layout"), "wide");
     await checkCanvas();
     let r = await widget.boundingBox();
@@ -204,6 +222,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.locator("[data-companion-minimize]").click();
     assert(!(await page.locator("[data-companion-content]").isVisible()));
     assert(!(await grip.isVisible()));
+    await checkWindowControls("Maximize", "Expand");
     await page.locator("[data-companion-maximize]").click();
     assert(await page.locator("[data-companion-content]").isVisible());
     // Maximized windows remain within the screen after narrowing/rotation.
@@ -219,6 +238,7 @@ fs.mkdirSync(out, { recursive: true });
     ]) {
       await page.setViewportSize({ width, height });
       await checkCanvas();
+      await checkWindowControls("Restore", "Minimize");
       const info = await widget.evaluate((w) => {
         const r = w.getBoundingClientRect(),
           main = w.querySelector(".vn-main-view");

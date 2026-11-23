@@ -10,6 +10,18 @@
       <div id="live2d-widget"></div>
       <noscript><p>Playground には JavaScript が必要です。<a href="{{ '/' | relative_url }}">ホームへ</a></p></noscript>
     </main>
+    <template id="playground-workspace">
+      <section class="pg-roster" aria-labelledby="pg-roster-title">
+        <h2 class="pg-section-title" id="pg-roster-title">話し相手</h2>
+      </section>
+      <section class="pg-dialogue-desk" aria-label="会話"></section>
+      <aside class="pg-tools" aria-label="遊びと音楽">
+        <details class="pg-radio">
+          <summary><span class="pg-radio-icon" aria-hidden="true">♫</span>ラジオ</summary>
+        </details>
+        <div class="pg-launchers"></div>
+      </aside>
+    </template>
     {% include companion-runtime.html %}
     {% include scripts.html %}
   </body>

@@ -41,6 +41,15 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       await p.locator("[data-bgm-play]").getAttribute("aria-label"),
       "ラジオを再生"
     );
+    const drawerToggle = p.locator(".pg-radio > summary");
+    await p.locator("[data-radio-open]").click();
+    await drawerToggle.click();
+    await p.locator("[data-radio-close]").click();
+    assert(
+      await drawerToggle.evaluate((summary) => document.activeElement === summary),
+      "closing the receiver returns focus to the collapsed radio drawer"
+    );
+    await drawerToggle.click();
     await p.locator("[data-vn-character=marisa]").click();
     await p.locator("[data-vn-open=settings]").click();
     await p.keyboard.press("Escape");

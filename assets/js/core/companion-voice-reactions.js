@@ -24,10 +24,10 @@
     toggle.dataset.voiceReactions = "";
     root.querySelector(".vn-nameplate").appendChild(toggle);
     var settings = root.querySelector('[data-vn-panel="settings"]');
-    settings.insertAdjacentHTML("beforeend", '<label for="vn-reaction-volume">声の音量</label><input id="vn-reaction-volume" data-reaction-volume type="range" min="0" max="100" value="55">' +
+    settings.insertAdjacentHTML("beforeend", '<fieldset class="vn-setting-group"><legend>音声</legend><label for="vn-reaction-volume">声の音量 <output for="vn-reaction-volume" data-reaction-volume-output>55%</output></label><input id="vn-reaction-volume" data-reaction-volume type="range" min="0" max="100" value="55">' +
       '<details class="vn-voice-credits"><summary>音声クレジット</summary>' +
       '<p>アリス：東北イタコ（CV：木戸衣吹）<br>パチュリー：東北きりたん（CV：茜屋日海夏）<br><a href="https://zunko.jp/con_voice.html" target="_blank" rel="noopener noreferrer">東北ずん子・ずんだもんプロジェクト 音声素材</a></p>' +
-      '<p>魔理沙：<a href="https://amitaro.net/" target="_blank" rel="noopener noreferrer">あみたろの声素材工房</a></p></details>');
+      '<p>魔理沙：<a href="https://amitaro.net/" target="_blank" rel="noopener noreferrer">あみたろの声素材工房</a></p></details></fieldset>');
 
     function allowed() { return enabled && visible && !game && !document.hidden; }
     function update(state) {
@@ -94,6 +94,7 @@
     });
     settings.querySelector("[data-reaction-volume]").addEventListener("input", function (event) {
       volume = Number(event.target.value) / 100;
+      settings.querySelector("[data-reaction-volume-output]").value = event.target.value + "%";
       if (audio) audio.volume = volume;
     });
     document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); });

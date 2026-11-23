@@ -93,6 +93,7 @@
       '<p class="vn-radio-host" role="status" aria-live="polite"><span>STUDIO</span><span data-radio-intro>幻想郷ラジオへようこそ。今夜も、お気に入りの一曲を。</span></p>' +
       '<div class="vn-radio-footer"><span data-radio-credit></span><a data-radio-listen target="_blank" rel="noopener noreferrer" hidden></a><a data-radio-source target="_blank" rel="noopener noreferrer">YouTube ↗</a></div></div>';
     document.body.appendChild(receiver);
+    var receiverOpener;
     var lyrics = window.CompanionRadioLyrics.mount(
       receiver.querySelector(".vn-radio-body"),
       strip.querySelector("[data-bgm-lyric]")
@@ -100,6 +101,7 @@
     strip
       .querySelector("[data-radio-lyrics-open]")
       .addEventListener("click", function () {
+        receiverOpener = this;
         opened = true;
         showReceiver(true);
         lyrics.root.scrollIntoView({ block: "nearest" });
@@ -790,12 +792,16 @@
       metadata();
       sync();
     }
-    function start() {
+    function start(opener) {
       if (!available()) return;
       readNativeAudio();
       requested = true;
       signal.unlock();
-      if (mode === "pv") opened = true;
+      var openingPV = mode === "pv" && !opened;
+      if (openingPV) {
+        receiverOpener = opener;
+        opened = true;
+      }
       if (failed) {
         destroyPlayer();
         failed = false;
@@ -803,6 +809,7 @@
       tuneBeforePlay = needsLoad;
       intro.textContent = playlist[selected].intro;
       sync();
+      if (openingPV) select.focus({ preventScroll: true });
     }
     function close() {
       opened = false;
@@ -812,17 +819,22 @@
       }
       showReceiver(false);
       update();
-      play.focus({ preventScroll: true });
+      var opener = receiverOpener || play;
+      var closedDrawer = opener.closest("details:not([open])");
+      (closedDrawer ? closedDrawer.querySelector("summary") : opener).focus({
+        preventScroll: true,
+      });
     }
     play.addEventListener("click", function () {
       if (requested) {
         requested = false;
         sync();
-      } else start();
+      } else start(this);
     });
     strip
       .querySelector("[data-radio-open]")
       .addEventListener("click", function () {
+        receiverOpener = this;
         opened = true;
         showReceiver(true);
         select.focus({ preventScroll: true });
@@ -855,7 +867,9 @@
     strip
       .querySelector("[data-radio-pv]")
       .addEventListener("click", function () {
+        receiverOpener = this;
         switchMode("pv");
+        select.focus({ preventScroll: true });
       });
     strip
       .querySelector("[data-bgm-prev]")
@@ -896,7 +910,7 @@
         }
         applyAudioSettings();
         if (!requested) {
-          start();
+          start(this);
           return;
         }
       } else {

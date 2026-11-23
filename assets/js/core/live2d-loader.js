@@ -1,5 +1,6 @@
 (function () {
   var standalone = document.body.dataset.playgroundStandalone === "true";
+  var icon = window.SiteAssets.icon;
   var PIXI_URL =
     "https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js";
   var CUBISM_CORE_URL =
@@ -183,6 +184,7 @@
     restoredWindow = null;
   var stageObserver = null,
     stageFrame = 0;
+  var stageInView = !("IntersectionObserver" in window);
   var resizeTimer = 0;
   var focusFrame = 0;
   var lastPointerPosition = null;
@@ -356,7 +358,13 @@
     var parent = standalone
       ? document.querySelector(".playground-host")
       : dock || document.body;
-    if (widget.parentNode !== parent) parent.appendChild(widget);
+    if (widget.parentNode !== parent) {
+      var focused = widget.contains(document.activeElement)
+        ? document.activeElement
+        : null;
+      parent.appendChild(widget);
+      if (focused) focused.focus({ preventScroll: true });
+    }
     widget.classList.toggle("is-docked", Boolean(dock));
   }
 
@@ -368,7 +376,7 @@
     return {
       width: width,
       height: dock
-        ? Math.round(Math.min(300, width * 0.78))
+        ? Math.round(Math.max(width / 2.25, Math.min(300, width * 0.78)))
         : Math.max(170, Math.min(260, Math.round(window.innerHeight * 0.31))),
     };
   }
@@ -426,6 +434,10 @@
     widget.style.setProperty("--vn-available-height", available + "px");
   }
 
+  function windowControl(iconName, label) {
+    return icon(iconName) + "<span>" + label + "</span>";
+  }
+
   function renderCompanionVisibility(widget) {
     var state = companionMinimized ? "true" : "false";
     if (widget.getAttribute("data-companion-minimized") === state) return;
@@ -435,12 +447,10 @@
       companionMinimized;
     var button = widget.querySelector("[data-companion-minimize]");
     button.setAttribute("aria-expanded", companionMinimized ? "false" : "true");
-    button.setAttribute(
-      "aria-label",
-      companionMinimized ? "ウィンドウを開く" : "最小化"
-    );
-    button.setAttribute("title", companionMinimized ? "開く" : "最小化");
-    button.textContent = companionMinimized ? "□" : "_";
+    button.title = companionMinimized ? "Expand Playground" : "Minimize Playground";
+    button.innerHTML = companionMinimized
+      ? windowControl("expand", "Expand")
+      : windowControl("minimize", "Minimize");
   }
 
   function setCompanionMinimized(minimized) {
@@ -546,6 +556,12 @@
     grip.addEventListener("pointerdown", function (event) {
       if (event.button !== 0) return;
       var bounds = widget.getBoundingClientRect();
+      // Preserve the grip's offset under the pointer if detaching changes
+      // the window origin or clamps an unusually tall dock to its maximum.
+      start = {
+        rightInset: bounds.right - event.clientX,
+        bottomInset: bounds.bottom - event.clientY,
+      };
       companionSize = {
         width: bounds.width,
         height: Math.min(bounds.height, innerHeight - 16),
@@ -560,13 +576,6 @@
       companionMaximized = false;
       restoredWindow = null;
       applyResponsiveSize();
-      bounds = widget.getBoundingClientRect();
-      start = {
-        x: event.clientX,
-        y: event.clientY,
-        width: bounds.width,
-        height: bounds.height,
-      };
       grip.setPointerCapture(event.pointerId);
       widget.classList.add("is-resizing");
       event.preventDefault();
@@ -574,8 +583,8 @@
     grip.addEventListener("pointermove", function (event) {
       if (start)
         resize(
-          start.width + event.clientX - start.x,
-          start.height + event.clientY - start.y
+          event.clientX - companionPosition.x + start.rightInset,
+          event.clientY - companionPosition.y + start.bottomInset
         );
     });
     function end() {
@@ -616,13 +625,21 @@
     widget.setAttribute("aria-labelledby", "companion-title");
     widget.innerHTML = [
       '<div class="playground-surface">',
-      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" title="ドラッグで移動・ダブルクリックで元の位置へ">',
+      '<div class="companion-titlebar" data-companion-titlebar tabindex="0" lang="' +
+        (standalone ? "ja" : "en") +
+        '" title="Drag or use the arrow keys to move. Double-click or press Home to dock.">',
       '<span id="companion-title" class="companion-title"><span data-companion-name>Playground</span></span>',
-      '<div class="companion-controls">',
-      '<button type="button" data-companion-reset-position aria-label="元の位置へ" title="元の位置へ"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path fill="currentColor" d="M1 1h6v2H4l6 6-1 1-6-6v3H1zM10 2h5v13H2v-5h2v3h9V4h-3z"/></svg></button>',
-      '<button type="button" data-companion-maximize aria-label="最大化" title="最大化" aria-pressed="false">□</button>',
-      '<button type="button" data-companion-minimize aria-label="最小化" aria-expanded="true" aria-controls="companion-content" title="最小化">_</button>',
-      '<button type="button" data-companion-close aria-label="閉じる" title="閉じる">×</button>',
+      '<div class="companion-controls" role="group" aria-label="' +
+        (standalone ? "ウィンドウ操作" : "Window controls") +
+        '">',
+      '<button type="button" data-companion-reset-position title="Return Playground to the page dock">' +
+        windowControl("dock", "Dock") +
+        "</button>",
+      '<button type="button" data-companion-maximize aria-pressed="false"></button>',
+      '<button type="button" data-companion-minimize aria-expanded="true" aria-controls="companion-content"></button>',
+      '<button type="button" data-companion-close title="Close Playground">' +
+        windowControl("window-close", "Close") +
+        "</button>",
       "</div></div>",
       '<div id="companion-content" data-companion-content>',
       '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">少女祈祷中…</span></div>',
@@ -630,6 +647,8 @@
       '<div class="companion-footer" data-companion-footer></div>',
       '</div><div class="playground-sizebar"><button type="button" data-companion-resize aria-label="ウィンドウのサイズを変更" title="ドラッグ・矢印キーでサイズを変更"><span aria-hidden="true"></span></button></div></div>',
     ].join("");
+    widget.addEventListener("pointerdown", interruptIdle, { passive: true, capture: true });
+    widget.addEventListener("keydown", interruptIdle, true);
     var controls = widget.querySelector(".companion-controls");
     var pageLink = document.createElement("a");
     var config = window.__siteLive2DConfig || {};
@@ -638,18 +657,14 @@
     pageLink.href = standalone
       ? config.homePath || "/"
       : config.playgroundPath || "/playground/";
-    pageLink.title = standalone ? "ホームへ戻る" : "Playground を全画面で開く";
-    pageLink.setAttribute("aria-label", pageLink.title);
+    pageLink.title = standalone ? "ホームへ戻る" : "Open the dedicated Playground page";
     pageLink.setAttribute(
       standalone ? "data-playground-home" : "data-playground-open",
       ""
     );
-    pageLink.innerHTML =
-      '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" d="' +
-      (standalone
-        ? "M7 3 2 8l5 5M2 8h12"
-        : "M9 2h5v5M14 2 7 9M6 3H2v11h11v-4") +
-      '"/></svg>';
+    pageLink.innerHTML = standalone
+      ? windowControl("home", "ホーム")
+      : windowControl("open", "Open page");
     controls.prepend(pageLink);
     if (standalone) {
       ["reset-position", "minimize", "close"].forEach(function (action) {
@@ -664,7 +679,10 @@
     }
     widget
       .querySelector("[data-companion-reset-position]")
-      .addEventListener("click", resetCompanionPosition);
+      .addEventListener("click", function () {
+        resetCompanionPosition();
+        widget.querySelector("[data-companion-titlebar]").focus({ preventScroll: true });
+      });
     widget
       .querySelector("[data-companion-minimize]")
       .addEventListener("click", function () {
@@ -814,6 +832,8 @@
   function fitCurrentModel() {
     if (!application || !currentModel) return;
     var display = application.renderer.screen;
+    var frame = companionWidget.querySelector(".vn-scene-light");
+    if (!frame.offsetHeight) return;
     currentModel.scale.set(1);
     var modelHeight = Math.max(currentModel.height || 1, 1);
     // Frame the upper half of the original model canvas; preserve its own motion rig.
@@ -823,11 +843,12 @@
       patchouli: { crop: 0.46, top: 0.13 },
     };
     var camera = cameras[currentCharacterId] || cameras.alice;
-    var scale = display.height / (modelHeight * camera.crop);
+    var scale = frame.offsetHeight / (modelHeight * camera.crop);
     currentModel.anchor.set(0.5, 0);
     currentModel.scale.set(scale);
     currentModel.x = display.width * 0.5;
-    currentModel.y = -modelHeight * scale * camera.top;
+    currentModel.y = frame.offsetTop - modelHeight * scale * camera.top;
+    if (performanceController) performanceController.refreshReaction();
   }
 
   function applyPointerFocus() {
@@ -878,6 +899,21 @@
       currentModel.internalModel.focusController.focus(0, 0, Boolean(instant));
   }
 
+  function interruptIdle() {
+    if (performanceController && performanceController.interruptIdle) performanceController.interruptIdle();
+  }
+
+  function canIdle() {
+    return stageInView && !document.hidden && !companionMinimized && !companionGameActive &&
+      currentModel.visible && companionWidget.dataset.dialogueState !== "typing" &&
+      !companionWidget.matches(".is-loading, .has-live2d-error, .has-vn-panel, .is-dragging, .is-resizing");
+  }
+
+  function releasePointerFocus() {
+    lastPointerPosition = null;
+    focusModelAtRest(false);
+  }
+
   function bindFocusEvents() {
     if (window.__siteLive2DFocusBound) return;
     window.__siteLive2DFocusBound = true;
@@ -885,17 +921,14 @@
       "pointermove",
       function (event) {
         if (event.pointerType === "touch") return;
+        interruptIdle();
         lastPointerPosition = { x: event.clientX, y: event.clientY };
         schedulePointerFocus();
       },
       { passive: true }
     );
-    function rest() {
-      lastPointerPosition = null;
-      focusModelAtRest(false);
-    }
-    document.documentElement.addEventListener("mouseleave", rest);
-    window.addEventListener("blur", rest);
+    document.documentElement.addEventListener("mouseleave", releasePointerFocus);
+    window.addEventListener("blur", releasePointerFocus);
     window.addEventListener("scroll", schedulePointerFocus, {
       passive: true,
       capture: true,
@@ -903,6 +936,7 @@
     window
       .matchMedia("(prefers-reduced-motion: reduce)")
       .addEventListener("change", function () {
+        interruptIdle();
         lastPointerPosition = null;
         focusModelAtRest(true);
       });
@@ -929,7 +963,12 @@
         scale +
       main.scrollTop -
       stage.offsetHeight;
-    var height = Math.max(110, Math.floor(main.clientHeight - occupied));
+    // Let the controls scroll before the scene becomes a shallow strip.
+    var height = Math.max(
+      110,
+      Math.ceil(stage.clientWidth / 2.25),
+      Math.floor(main.clientHeight - occupied)
+    );
     if (Math.abs(stage.offsetHeight - height) > 1)
       stage.style.height = height + "px";
   }
@@ -949,12 +988,13 @@
         (Number(companionWidget.dataset.playgroundScale) || 1)
     );
     if (
-      application.renderer.screen.width !== width ||
-      application.renderer.screen.height !== height ||
+      application.view.width !== Math.round(width * resolution) ||
+      application.view.height !== Math.round(height * resolution) ||
       application.renderer.resolution !== resolution
     ) {
       application.renderer.resolution = resolution;
       application.renderer.resize(width, height);
+      if (syncModelLighting) syncModelLighting();
       fitCurrentModel();
       schedulePointerFocus();
     }
@@ -971,6 +1011,8 @@
 
     var display = getDisplayConfig();
     var widget = elements.widget;
+    var dockButton = widget.querySelector("[data-companion-reset-position]");
+    dockButton.disabled = widget.classList.contains("is-docked");
     if (companionSize) {
       var maximum = maximumCompanionSize();
       companionSize.width = companionMaximized
@@ -988,14 +1030,20 @@
     var sized = Boolean(companionSize && !companionMinimized);
     widget.classList.toggle("is-sized", sized);
     widget.classList.toggle("is-maximized", companionMaximized);
-    widget.dataset.playgroundLayout =
-      sized &&
-      companionSize.width >= (standalone ? 760 : 620) &&
-      (!standalone || companionSize.height >= 540)
-        ? "wide"
-        : "compact";
-    if (standalone && companionSize.width >= 640 && companionSize.height < 540)
-      widget.dataset.playgroundLayout = "landscape";
+    var pageScale = 1;
+    var layout = sized && companionSize.width >= 620 ? "wide" : "compact";
+    if (standalone) {
+      var width = companionSize.width, height = companionSize.height;
+      if (width >= 640 && height < 590) layout = "landscape";
+      else layout = width >= 960 && width >= height * 1.2 ? "wide" : "compact";
+      // Choose the initial receiver state once so resizing preserves the reader's choice.
+      if (!widget.dataset.playgroundLayout) {
+        var receiver = widget.querySelector(".pg-radio");
+        if (receiver) receiver.open = layout === "wide";
+      }
+      pageScale = Math.max(1, Math.min(1.4, width / 1600, height / 980));
+    }
+    widget.dataset.playgroundLayout = layout;
     var wide = widget.dataset.playgroundLayout === "wide";
     // Leave room for the radio, a full reading and three choices before
     // enlarging the shared surface. CSS handles longer content by scrolling
@@ -1011,12 +1059,7 @@
       : 1;
     // The dedicated page has its own composition; huge desktop viewports should
     // add scene space rather than magnifying every control like a floating window.
-    if (standalone && wide)
-      scale = Math.max(
-        1,
-        Math.min(1.25, companionSize.width / 1280, companionSize.height / 840)
-      );
-    if (standalone && !wide) scale = 1;
+    if (standalone) scale = pageScale;
     widget.dataset.playgroundScale = String(scale);
     widget.style.setProperty("--playground-scale", scale);
     // Compact reading space responds only to the window, never to its contents.
@@ -1034,18 +1077,9 @@
     );
     widget.style.height = sized ? companionSize.height + "px" : "auto";
     var stage = widget.querySelector("[data-companion-stage]");
-    // A phone gets a genuine close-up even when utilities need to scroll below
-    // the desk. Wide and landscape compositions allocate the scene in CSS.
-    var compactHeight = standalone
-      ? Math.max(
-          220,
-          Math.min(340, companionSize.width * 0.72, companionSize.height * 0.38)
-        )
-      : sized
-        ? 110
-        : display.height + 2;
-    stage.style.height =
-      widget.dataset.playgroundLayout === "compact" ? compactHeight + "px" : "";
+    // The standalone workspace allocates the camera in its responsive grid.
+    var embeddedHeight = sized ? 110 : display.height + 2;
+    stage.style.height = !standalone && !wide ? embeddedHeight + "px" : "";
     var maximize = widget.querySelector("[data-companion-maximize]");
     var expanded = standalone
       ? Boolean(document.fullscreenElement)
@@ -1053,14 +1087,26 @@
     var expandLabel = standalone
       ? expanded
         ? "全画面を終了"
-        : "ブラウザーを全画面にする"
+        : "全画面"
       : expanded
-        ? "元のサイズに戻す"
-        : "最大化";
-    maximize.setAttribute("aria-pressed", String(expanded));
-    maximize.setAttribute("aria-label", expandLabel);
-    maximize.title = expandLabel;
-    maximize.textContent = expanded ? "❐" : "□";
+        ? "Restore"
+        : "Maximize";
+    if (maximize.textContent !== expandLabel) {
+      maximize.setAttribute("aria-pressed", String(expanded));
+      maximize.title = standalone
+        ? expandLabel
+        : expanded
+          ? "Restore the previous size and position"
+          : "Maximize the Playground window";
+      var expandIcon = standalone
+        ? expanded
+          ? "exit-fullscreen"
+          : "fullscreen"
+        : expanded
+          ? "restore"
+          : "maximize";
+      maximize.innerHTML = windowControl(expandIcon, expandLabel);
+    }
     widget.querySelector(".playground-sizebar").hidden =
       standalone || companionMinimized;
     if (!stageObserver) {
@@ -1068,6 +1114,12 @@
         if (!stageFrame) stageFrame = requestAnimationFrame(syncStageRenderer);
       });
       stageObserver.observe(stage);
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (entries) {
+          stageInView = entries[entries.length - 1].isIntersecting;
+          if (!stageInView) interruptIdle();
+        }).observe(stage);
+      }
       var main = widget.querySelector(".vn-main-view");
       stageObserver.observe(main);
       Array.prototype.forEach.call(main.children, function (child) {
@@ -1084,12 +1136,11 @@
         companionGameActive ||
         shouldDisableLive2D() ||
         document.hidden
-      )
+      ) {
+        interruptIdle();
         application.stop();
-      else application.start();
+      } else application.start();
     }
-    elements.canvas.style.width = "100%";
-    elements.canvas.style.height = "100%";
     // Clamp after the stage has its new height, including after a rotation.
     constrainCompanionPosition(elements.widget);
     syncStageRenderer();
@@ -1191,7 +1242,8 @@
       width: display.width,
       height: display.height,
       antialias: true,
-      autoDensity: true,
+      // CSS fits the view to the stage, including fractional sizes under zoom.
+      autoDensity: false,
       backgroundAlpha: 0,
       resolution: Math.min(window.devicePixelRatio || 1, 2),
     });
@@ -1289,7 +1341,12 @@
         character.id,
         companionWidget,
         expressions,
-        { reducedMotion: prefersReducedMotion }
+        {
+          reducedMotion: prefersReducedMotion,
+          renderer: application.renderer,
+          canIdle: canIdle,
+          releaseIdleGaze: releasePointerFocus,
+        }
       );
     });
   }
@@ -1825,6 +1882,17 @@
       })
       .catch(function (error) {
         clearTimeout(deadline);
+        // PIXI retains a rejected ImageResource promise. Evict only the failed
+        // image so retry can fetch it, even after switching away and back.
+        var image = error && error.event && error.event.target;
+        var texture = image && window.PIXI.utils.TextureCache[image.src];
+        if (
+          texture &&
+          !texture.baseTexture.valid &&
+          texture.baseTexture.resource.source === image
+        ) {
+          texture.destroy(true);
+        }
         if (generation === modelLoadGeneration) {
           window.SiteCompanion.setReady("error");
         }
@@ -1846,7 +1914,9 @@
     button.type = "button";
     button.className = "site-options-fab__action";
     button.setAttribute("data-live2d-character", "true");
-    button.setAttribute("role", "menuitem");
+    button.lang = "ja";
+    button.innerHTML =
+      '<span class="site-options-fab__action-icon"><img width="32" height="32" alt=""></span><span class="site-options-fab__action-label"></span>';
 
     var live2dToggle = menu.querySelector("[data-live2d-toggle]");
     if (live2dToggle && live2dToggle.nextSibling) {
@@ -1871,12 +1941,8 @@
     button.hidden = isPageDisabled();
     button.setAttribute("aria-label", accessibleLabel);
     button.setAttribute("title", accessibleLabel);
-    button.innerHTML = [
-      '<span class="site-options-fab__action-icon" aria-hidden="true"><i class="fas fa-exchange-alt"></i></span>',
-      '<span class="site-options-fab__action-label">',
-      label,
-      "</span>",
-    ].join("");
+    button.querySelector("img").src = window.SiteAssets.characterIcon(selected.id);
+    button.querySelector(".site-options-fab__action-label").textContent = label;
   }
 
   function selectNextCharacter() {

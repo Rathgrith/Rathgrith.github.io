@@ -80,6 +80,21 @@ fs.mkdirSync(out, { recursive: true });
             overflow: document.documentElement.scrollWidth > innerWidth,
           };
         });
+      const layout = await w.getAttribute("data-playground-layout");
+      const radio = w.locator(".pg-radio");
+      assert.equal(await radio.evaluate(element => element.open), layout === "wide");
+      if (layout !== "wide") await radio.locator("summary").click();
+      await w.locator(".vn-main-view").evaluate(element => element.scrollTop = 0);
+      // Opening the receiver can resize the stage. Sample its real backing
+      // store after the renderer has processed the resize observer.
+      await p.waitForFunction(() => {
+        const widget = document.querySelector("#live2d-widget");
+        const stage = widget.querySelector(".companion-stage");
+        const canvas = stage.querySelector("canvas");
+        const resolution = Math.min(3, devicePixelRatio * Number(widget.dataset.playgroundScale));
+        return canvas.width === Math.round(stage.clientWidth * resolution)
+          && canvas.height === Math.round(stage.clientHeight * resolution);
+      });
       const before = await geometry();
       assert(!before.overflow);
       assert(
@@ -120,15 +135,20 @@ fs.mkdirSync(out, { recursive: true });
         "all character tabs fit their labels"
       );
       await p.screenshot({ path: `${out}/main-${width}.png` });
-      if (width >= 760 && height >= 540) {
+      if (layout === "landscape") {
+        assert(before.scene.right < before.dialogue.x, "wide and short stages keep a separate reading desk");
+      } else if (layout === "wide") {
         assert(
           before.scene.bottom <= before.dialogue.y + 1,
           "dialogue sits below the scene"
         );
         assert(
-          before.dialogue.right < before.radio.x,
-          "radio is beside the dialogue desk"
+          before.radio.bottom <= before.dialogue.y + 1 || before.dialogue.right <= before.radio.x + 1,
+          "the receiver stays outside the conversation across desktop compositions"
         );
+      } else {
+        assert(before.scene.bottom <= before.dialogue.y + 1);
+        assert(before.radio.y >= before.dialogue.bottom, "portrait keeps the tools below the conversation");
       }
       await p.locator('[data-vn-open="topics"]').click();
       await p.locator('[data-vn-topic-start^="branch:"]').first().click();

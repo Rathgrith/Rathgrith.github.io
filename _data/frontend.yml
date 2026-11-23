@@ -30,6 +30,8 @@ shared_scripts:
     base: "/"
   - path: "/assets/js/core/link-target-policy.js"
 site_scripts:
+  - path: "/assets/js/core/visitor-map.js"
+    feature: "visitor_map"
   - path: "/assets/js/core/site-options.js"
   - path: "/assets/js/core/page-transition.js"
   - path: "/assets/js/core/site-runtime-timer.js"

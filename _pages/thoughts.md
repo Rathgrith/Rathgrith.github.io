@@ -12,11 +12,11 @@ body_class: thoughts-page
 
 <p class="thoughts-actions">
   <a class="thoughts-action" href="https://github.com/Rathgrith/Rathgrith.github.io/new/main/_thoughts" target="_blank" rel="noopener noreferrer">
-    <i class="fa fa-github" aria-hidden="true"></i>
+    <img src="{{ '/assets/images/classic/icons/16/notepad-0.png' | relative_url }}" alt="" width="16" height="16">
     <span>New thought</span>
   </a>
   <a class="thoughts-action" href="https://github.com/Rathgrith/Rathgrith.github.io/blob/main/_thoughts/2026-07-04-template.md" target="_blank" rel="noopener noreferrer">
-    <i class="fa fa-file-text-o" aria-hidden="true"></i>
+    <img src="{{ '/assets/images/classic/icons/16/notepad_file-1.png' | relative_url }}" alt="" width="16" height="16">
     <span>Template</span>
   </a>
 </p>

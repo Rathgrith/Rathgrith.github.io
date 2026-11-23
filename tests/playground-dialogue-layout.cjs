@@ -396,16 +396,17 @@ fs.mkdirSync(out, { recursive: true });
       (s) => !process.env.LAYOUT_CASE || s.join("x") === process.env.LAYOUT_CASE
     )) {
       const handle = await grip.boundingBox();
+      const before = await widget.boundingBox();
       const x = handle.x + handle.width / 2,
         y = handle.y + handle.height / 2;
       await page.mouse.move(x, y);
       await page.mouse.down();
-      // Pointer-down can clamp a formerly auto-height docked window to the
-      // floating maximum. Match the resize handler's post-clamp start box.
+      // The floating window can move or shrink when first detached. Drag the
+      // spot we picked up on its grip to the requested lower-right corner.
       const bounds = await widget.boundingBox();
       await page.mouse.move(
-        x + width - bounds.width,
-        y + height - bounds.height,
+        bounds.x + width - (before.x + before.width - x),
+        bounds.y + height - (before.y + before.height - y),
         { steps: 8 }
       );
       await page.mouse.up();

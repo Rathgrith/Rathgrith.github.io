@@ -60,6 +60,22 @@ async function activate(page, selector) {
     assert.equal(await page.evaluate(() => document.activeElement.id), "recent-publications", "Keyboard focus reaches the visible heading, not its aria-hidden marker");
     if (output) await page.screenshot({ path: path.join(output, "publications-desktop.png") });
 
+    // Move within a long section and back without changing the active link.
+    const readPosition = await page.locator(".classic-page-index").evaluate((nav) =>
+      parseFloat(nav.style.getPropertyValue("--section-read"))
+    );
+    await page.evaluate(() => window.scrollBy({ top: 80, behavior: "instant" }));
+    await page.waitForFunction((start) => {
+      const nav = document.querySelector(".classic-page-index");
+      return nav.querySelector('[aria-current="location"]').hash === "#publications" &&
+        parseFloat(nav.style.getPropertyValue("--section-read")) > start;
+    }, readPosition);
+    await page.evaluate(() => window.scrollBy({ top: -80, behavior: "instant" }));
+    await page.waitForFunction((start) =>
+      parseFloat(document.querySelector(".classic-page-index").style.getPropertyValue("--section-read")) === start,
+      readPosition
+    );
+
     // Revisiting the same URL must not overwrite an older entry's scroll position.
     await page.evaluate(() => window.scrollTo({ top: 120, behavior: "instant" }));
     await activate(page, ".classic-page-index a[href$='#education']");
@@ -144,9 +160,19 @@ async function activate(page, selector) {
     await page.waitForURL("**/#publications");
     await settledAt(page, "publications");
     await page.waitForFunction(() => document.querySelector(".classic-page-index a[href$='#publications']").getAttribute("aria-current") === "location");
+    assert.equal(await page.evaluate(() => document.activeElement.id), "recent-publications",
+      "A section reached from Gallery receives the same focus as a local section link");
+    await page.locator('[data-publication-filter="all"]').click();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await activate(page, "[data-classic-page='home']");
+    await page.waitForURL(base);
+    await page.waitForFunction(() => scrollY === 0);
+    assert.equal(await page.locator("[data-publication-list]").getAttribute("data-publication-mode"), "all",
+      "Returning to the top of the current page preserves the publication filter");
     // MathJax's asynchronous startup used to reposition the current fragment
     // mid-scroll, making the very first Gallery click stop at the wrong section.
     await page.setViewportSize({ width: 375, height: 760 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(base + "gallery/");
     await page.locator(".classic-year-navigation a[href='#gallery-group-places']").click();
     await settledAt(page, "gallery-group-places");

@@ -5,7 +5,7 @@
 
   var activeNavigation = null;
   var renderedUrl = new URL(window.location.href);
-  var renderedEntryKey = null;
+  var renderedEntry = null;
   var entrySequence = 0;
   var scrollPositions = new Map();
   var boundNavigation = false;
@@ -37,26 +37,16 @@
     );
   }
 
-  function isSamePageUrl(url) {
-    var current = new URL(window.location.href);
-    return (
-      url.origin === current.origin &&
-      url.pathname === current.pathname &&
-      url.search === current.search &&
-      url.hash === current.hash
-    );
-  }
-
-  function isInternalPageLink(anchor, event) {
-    if (isModifiedClick(event)) return false;
+  function internalPageUrl(anchor, event) {
+    if (isModifiedClick(event)) return null;
     if (
       anchor.hasAttribute("download") ||
       anchor.hasAttribute("data-full-navigation")
     )
-      return false;
+      return null;
 
     var target = (anchor.getAttribute("target") || "").toLowerCase();
-    if (target && target !== "_self") return false;
+    if (target && target !== "_self") return null;
 
     var rawHref = anchor.getAttribute("href");
     if (
@@ -65,21 +55,18 @@
       rawHref.indexOf("tel:") === 0 ||
       rawHref.indexOf("javascript:") === 0
     ) {
-      return false;
+      return null;
     }
 
     var url;
     try {
       url = new URL(anchor.href, window.location.href);
     } catch (e) {
-      return false;
+      return null;
     }
 
-    if (url.origin !== window.location.origin) return false;
-    if (isSamePageUrl(url) && !activeNavigation) return false;
-    if (hasNonHtmlExtension(url)) return false;
-
-    return true;
+    if (url.origin !== window.location.origin || hasNonHtmlExtension(url)) return null;
+    return url;
   }
 
   function canSoftNavigate() {
@@ -89,7 +76,10 @@
   }
 
   function hardNavigate(url) {
-    window.location.assign(url);
+    // A failed Back/Forward fetch is already at its destination URL. Reloading
+    // that entry also works for fragments and keeps the forward history intact.
+    if (url === window.location.href) window.location.reload();
+    else window.location.assign(url);
   }
 
   function syncHeadTag(nextDoc, selector, attrName) {
@@ -248,8 +238,11 @@
   }
 
   function historyState(url) {
+    var current = window.history.state || renderedEntry;
     return {
       __siteSoftNav: true,
+      __siteEntryIndex: current && Number.isSafeInteger(current.__siteEntryIndex)
+        ? current.__siteEntryIndex + 1 : 0,
       __siteScrollKey: Date.now().toString(36) + ":" + entrySequence++,
       url: url.href,
     };
@@ -257,20 +250,24 @@
 
   function ensureHistoryEntry(url) {
     var state = window.history.state;
-    if (!state || !state.__siteScrollKey) {
-      state = Object.assign({}, state, historyState(url));
+    if (!state || !state.__siteScrollKey || !Number.isSafeInteger(state.__siteEntryIndex)) {
+      var entry = historyState(url);
+      if (state && state.__siteScrollKey) entry.__siteScrollKey = state.__siteScrollKey;
+      state = Object.assign({}, state, entry);
       window.history.replaceState(state, "", url.href);
     }
-    return state.__siteScrollKey;
+    return state;
+  }
+
+  function visibleAnchor(target) {
+    if (!target || target.getAttribute("aria-hidden") !== "true") return target;
+    // Some section URLs use an invisible marker just before the visible heading.
+    var heading = target.nextElementSibling;
+    return heading && heading.matches("h1,h2,h3,h4,h5,h6") ? heading : null;
   }
 
   function focusAnchor(target) {
-    // Some section URLs point at an invisible marker just before their heading.
-    if (target.getAttribute("aria-hidden") === "true") {
-      var heading = target.nextElementSibling;
-      if (!heading || !heading.matches("h1, h2, h3, h4, h5, h6")) return;
-      target = heading;
-    }
+    if (!target) return;
     var temporaryTabindex = !target.hasAttribute("tabindex");
     if (temporaryTabindex) target.setAttribute("tabindex", "-1");
     target.focus({ preventScroll: true });
@@ -288,12 +285,13 @@
     if (url.href !== window.location.href)
       window.history.pushState(historyState(url), "", url.href);
     renderedUrl = url;
-    renderedEntryKey = ensureHistoryEntry(url);
+    renderedEntry = ensureHistoryEntry(url);
+    document.dispatchEvent(new Event("site:anchor-navigated"));
     var behavior = matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
         : "smooth";
     if (target) {
-      focusAnchor(target);
+      focusAnchor(visibleAnchor(target));
       target.scrollIntoView({ behavior: behavior, block: "start" });
     } else if (!url.hash) {
       window.scrollTo({ left: 0, top: 0, behavior: behavior });
@@ -312,6 +310,27 @@
     }
 
     window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+  }
+
+  function animateDocument(main, backward, target) {
+    if (!matchMedia("screen and (prefers-reduced-motion: no-preference)").matches) return;
+    // Gallery nests its persistent dock in the article, beside the document.
+    var panel = main.querySelector("article.classic-document, article .classic-document");
+    if (!panel) return;
+    var title = target && panel.contains(target) && target.matches("h1,h2,h3,h4,h5,h6")
+      ? target : panel.querySelector("h1,h2");
+    if (title) title.classList.add("document-entry-heading");
+    panel.dataset.documentEntry = backward ? "back" : "forward";
+
+    function finish(event) {
+      if (event.target !== panel || event.animationName !== "classic-document-enter") return;
+      delete panel.dataset.documentEntry;
+      if (title) title.classList.remove("document-entry-heading");
+      panel.removeEventListener("animationend", finish);
+      panel.removeEventListener("animationcancel", finish);
+    }
+    panel.addEventListener("animationend", finish);
+    panel.addEventListener("animationcancel", finish);
   }
 
   function softNavigate(url, options, request) {
@@ -369,18 +388,12 @@
 
         runPostSwapHooks(url);
         renderedUrl = url;
-        renderedEntryKey = ensureHistoryEntry(url);
+        renderedEntry = ensureHistoryEntry(url);
         insertedMain.setAttribute("aria-busy", "false");
-        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          insertedMain.classList.add("is-content-entering");
-          insertedMain.addEventListener("animationend", function finish(event) {
-            if (event.animationName !== "classic-content-enter") return;
-            insertedMain.classList.remove("is-content-entering");
-            insertedMain.removeEventListener("animationend", finish);
-          });
-        }
-        // Focus follows replaced content, while the persistent radio/model remain alive.
-        insertedMain.focus({ preventScroll: true });
+        // Focus and scroll commit immediately, independent of visual motion.
+        var target = options && options.skipHistory ? null : visibleAnchor(anchorTarget(url));
+        animateDocument(insertedMain, options && options.backward, target);
+        focusAnchor(target || insertedMain);
         scrollAfterNavigation(url, options && options.position);
       });
   }
@@ -402,7 +415,7 @@
   }
 
   function rememberScroll() {
-    scrollPositions.set(renderedEntryKey || renderedUrl.href, {
+    scrollPositions.set(renderedEntry ? renderedEntry.__siteScrollKey : renderedUrl.href, {
       x: window.scrollX,
       y: window.scrollY,
     });
@@ -420,12 +433,7 @@
       return;
     }
     rememberScroll();
-    var wasPending = Boolean(activeNavigation);
     cancelNavigation();
-    if (wasPending && targetUrl.href === renderedUrl.href) {
-      scrollAfterNavigation(targetUrl);
-      return;
-    }
     var request = {
       controller: window.AbortController ? new AbortController() : null,
       timeout: 0,
@@ -468,40 +476,21 @@
       function (event) {
         var anchor = event.target.closest("a[href]");
         if (!anchor) return;
-        // Resolve same-document links before ordinary page navigation. Let
-        // downloads, modified clicks and targets keep their browser semantics.
-        if (
-          !isModifiedClick(event) &&
-          !anchor.hasAttribute("download") &&
-          !anchor.hasAttribute("data-full-navigation") &&
-          (!anchor.target || anchor.target.toLowerCase() === "_self")
-        ) {
-          var url;
-          try {
-            url = new URL(anchor.href, window.location.href);
-          } catch (e) {
-            return;
-          }
-          if (isSameDocument(url, renderedUrl) && anchor.href.indexOf("#") !== -1) {
-            event.preventDefault();
-            // Missing targets update the fragment without scrolling, just as
-            // native links do; an empty fragment scrolls to the page top.
-            navigateToAnchor(url, anchorTarget(url));
-            return;
-          }
-        }
-        if (!isInternalPageLink(anchor, event)) return;
-
+        var url = internalPageUrl(anchor, event);
+        if (!url) return;
         event.preventDefault();
-        navigateWithTransition(anchor.href);
+        // Removing a fragment or revisiting the current tab only moves the
+        // reading position. Keep the mounted widgets, gallery order and filters.
+        if (isSameDocument(url, renderedUrl)) navigateToAnchor(url, anchorTarget(url));
+        else navigateWithTransition(url.href);
       },
       true
     );
 
     window.addEventListener("popstate", function () {
       var url = new URL(window.location.href);
-      var entryKey = ensureHistoryEntry(url);
-      var position = scrollPositions.get(entryKey);
+      var entry = ensureHistoryEntry(url);
+      var position = scrollPositions.get(entry.__siteScrollKey);
       rememberScroll();
       cancelNavigation();
       if (
@@ -509,12 +498,23 @@
         url.search === renderedUrl.search
       ) {
         renderedUrl = url;
-        renderedEntryKey = entryKey;
+        renderedEntry = entry;
         scrollAfterNavigation(url, position);
+        if (position) {
+          // An interrupted smooth anchor can still deliver a compositor scroll
+          // in the next frame, even after an instant scroll to the same pixel.
+          requestAnimationFrame(function () {
+            if (!activeNavigation && renderedEntry.__siteScrollKey === entry.__siteScrollKey &&
+              (window.scrollX !== position.x || window.scrollY !== position.y)) {
+              scrollAfterNavigation(url, position);
+            }
+          });
+        }
         return;
       }
       navigateWithTransition(url.href, {
         skipHistory: true,
+        backward: !!renderedEntry && entry.__siteEntryIndex < renderedEntry.__siteEntryIndex,
         position: position,
       });
     });
@@ -525,7 +525,7 @@
         url.search === renderedUrl.search
       ) {
         renderedUrl = url;
-        renderedEntryKey = ensureHistoryEntry(url);
+        renderedEntry = ensureHistoryEntry(url);
       }
     });
   }
@@ -534,15 +534,23 @@
     if (canSoftNavigate() && "scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
+    var url = new URL(window.location.href);
+    // History may already have moved again while a fallback reload was parsing.
+    // The navigation timing entry identifies the HTML actually on screen.
+    var loaded = window.performance && performance.getEntriesByType
+      ? performance.getEntriesByType("navigation")[0] : null;
+    renderedUrl = loaded ? new URL(loaded.name) : renderedUrl;
     if (window.history && typeof window.history.replaceState === "function") {
       try {
-        renderedEntryKey = ensureHistoryEntry(renderedUrl);
+        renderedEntry = ensureHistoryEntry(url);
       } catch (e) {
         // Ignore history errors.
       }
     }
 
     bindNavigationTransition();
+    if (isSameDocument(url, renderedUrl)) renderedUrl = url;
+    else navigateWithTransition(url.href, { skipHistory: true });
   }
 
   window.addEventListener("pageshow", function (event) {

@@ -83,7 +83,7 @@
       return { name: "钻石尘", phase: "snow" };
     }
 
-    if ((code >= 71 && code <= 86) || snowfall > 0) {
+    if (includesCode(code, [71, 73, 75, 77, 85, 86]) || snowfall > 0) {
       return { name: "雪", phase: "snow" };
     }
 
@@ -161,7 +161,8 @@
       if (!raw) return null;
 
       var cached = JSON.parse(raw);
-      if (!cached || Date.now() - cached.savedAt > CACHE_LIFETIME_MS) {
+      if (!cached || !cached.payload || !cached.payload.current ||
+          !Number.isFinite(cached.savedAt) || Date.now() - cached.savedAt > CACHE_LIFETIME_MS) {
         window.sessionStorage.removeItem(key);
         return null;
       }
@@ -426,13 +427,6 @@
       if (!statusNode) return;
       statusNode.textContent = message || "";
       statusNode.hidden = !message;
-      if (/タイムアウト|更新できません/.test(message || "")) {
-        root.querySelector("[data-weather-signal]").textContent = "通信待機";
-        if (!lastUpdatedAt)
-          root.querySelector("[data-weather-chart-empty]").textContent =
-            "予報を取得できません";
-        document.dispatchEvent(new CustomEvent("site:weather-error"));
-      }
     }
 
     function renderWeather(payload, locationLabel) {
@@ -544,6 +538,7 @@
       setBusy(true);
       if (!settings.quiet) setStatus("天気を観測中…");
 
+      var failure;
       try {
         var response = await window.fetch(
           buildForecastUrl(latitude, longitude),
@@ -558,20 +553,25 @@
 
         var payload = await response.json();
         if (controller !== requestController) return;
-        cacheWeather(key, payload);
         renderWeather(payload, activeLocation.label);
+        cacheWeather(key, payload);
       } catch (error) {
         if (controller !== requestController) return;
-        if (error && error.name === "AbortError") {
-          setStatus("接続がタイムアウトしました。");
-        } else {
-          setStatus("天気を更新できませんでした。");
-        }
+        failure = error && error.name === "AbortError"
+          ? "接続がタイムアウトしました。"
+          : "天気を更新できませんでした。";
       } finally {
         window.clearTimeout(timeoutId);
         if (requestController === controller) {
           requestController = null;
           setBusy(false);
+          if (failure) {
+            setStatus(failure);
+            root.querySelector("[data-weather-signal]").textContent = "通信待機";
+            if (!lastUpdatedAt)
+              root.querySelector("[data-weather-chart-empty]").textContent = "予報を取得できません";
+            document.dispatchEvent(new CustomEvent("site:weather-error"));
+          }
         }
       }
     }
@@ -596,7 +596,7 @@
         function () {
           setBusy(false);
           setStatus(
-            "現在地を取得できません。" + defaultLocation + "を表示しています。"
+            "現在地を取得できません。" + (lastUpdatedAt ? locationNode.textContent + "を表示しています。" : "")
           );
         },
         {

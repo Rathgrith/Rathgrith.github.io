@@ -73,7 +73,10 @@ fs.mkdirSync(out, { recursive: true });
     await page.keyboard.press("Escape");
     await page.locator('[data-vn-open="topics"]').click();
     await page.locator('[data-vn-topic-start="craft"]').click();
-    await page.locator("#live2d-interact").click();
+    assert(
+      await page.locator("[data-vn-reading]").evaluate((e) => e === document.activeElement)
+    );
+    await page.keyboard.press("Enter");
     assert.equal(await page.locator("[data-vn-choices] button").count(), 2);
     await page.screenshot({ path: out + "/" + id + "-choices.png" });
     const responses = await page.evaluate(
@@ -84,6 +87,9 @@ fs.mkdirSync(out, { recursive: true });
       id
     );
     await page.locator("[data-vn-choices] button").first().click();
+    assert(
+      await page.locator("[data-vn-reading]").evaluate((e) => e === document.activeElement)
+    );
     assert(responses.includes(await page.locator("[data-live2d-dialogue-text]").textContent()));
     assert.equal(
       await page.locator("[data-vn-affinity]").textContent(),
@@ -215,8 +221,30 @@ fs.mkdirSync(out, { recursive: true });
   const title = page.locator("[data-companion-titlebar]");
   await title.focus();
   await page.keyboard.press("ArrowLeft");
+  assert(
+    await title.evaluate((e) => e === document.activeElement),
+    "detaching must preserve keyboard control of the title bar"
+  );
   await page.keyboard.press("ArrowUp");
   await page.keyboard.press("Home");
+  assert(
+    await title.evaluate((e) => e.closest("#live2d-widget").classList.contains("is-docked"))
+  );
+  const grip = page.locator("[data-companion-resize]");
+  await grip.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForFunction(() =>
+    document.querySelector("#live2d-widget").classList.contains("is-sized")
+  );
+  assert(
+    await grip.evaluate((e) => e === document.activeElement),
+    "detaching by the size grip must preserve keyboard control"
+  );
+  await page.locator('[data-vn-open="settings"]').click();
+  await page.locator("[data-vn-reset-position]").click();
+  assert(
+    await page.locator('[data-vn-open="settings"]').evaluate((e) => e === document.activeElement)
+  );
   await title.scrollIntoViewIfNeeded();
   const dragBox = await title.boundingBox();
   await page.mouse.move(dragBox.x + 70, dragBox.y + 12);
@@ -302,6 +330,13 @@ fs.mkdirSync(out, { recursive: true });
   await title.scrollIntoViewIfNeeded();
   await title.focus();
   await page.keyboard.press("ArrowRight");
+  assert(
+    await grip.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+    }),
+    "the resize grip remains reachable in a short floating window"
+  );
   await page.locator('[data-vn-open="settings"]').click();
   await page.screenshot({ path: out + "/short-settings.png" });
   await page.keyboard.press("Escape");

@@ -56,6 +56,7 @@ function harness({ reduced = false, observerSupport = true, loading = false } = 
         classList: { contains: name => name === className },
         getBoundingClientRect() { return { top: this.top, bottom: this.top + 100 }; },
         closest() { return this; },
+        matches(selector) { return className === "heading" && selector.includes(".page__content h1"); },
         animate(keyframes, options) {
           let finish;
           const animation = {
@@ -110,7 +111,7 @@ assert.equal(h.animations.length, 2, "A scrolled card enters only once");
 assert(!h.observers[0].targets.has(below));
 h.animations.forEach(animation => {
   assert(animation.options.duration + animation.options.delay <= 400);
-  assert.equal(animation.options.fill, "none", "Completion retains no presentation state");
+  assert.equal(animation.options.fill, "backwards", "Staggered entries apply immediately and retain no presentation state after completion");
 });
 
 hidden.hidden = false;
@@ -165,6 +166,30 @@ fallbackCard.animate = undefined;
 fallback.mount([fallbackCard, offscreen]); fallback.boot(); fallback.flush();
 assert.equal(fallback.animations.length, 0);
 assert(!fallbackCard.hidden && !offscreen.hidden, "Unsupported animation/observer APIs leave everything readable");
+
+const reading = harness();
+const heading = reading.card(1200, false, "heading");
+const photo = reading.card(1300, false, "classic-photo");
+const image = reading.card(1300);
+image.tagName = "IMG";
+image.closest = () => photo;
+image.complete = false;
+photo.querySelector = selector => selector === "img" ? image : null;
+reading.mount([heading, photo]); reading.boot(); reading.flush();
+reading.observers[0].enter(heading);
+reading.observers[0].enter(photo);
+assert.equal(reading.animations.length, 1, "A lazy print waits for its actual thumbnail");
+image.complete = true;
+image.naturalWidth = 320;
+reading.dispatch("load", { target: image });
+assert.equal(reading.animations.length, 1, "An image that decodes below the viewport stays still");
+photo.top = 510;
+reading.observers[0].enter(photo);
+assert.equal(reading.animations[0].keyframes[0]["--reading-rule-end"], "100%");
+assert.equal(reading.animations[0].keyframes[1]["--reading-rule-end"], "0%");
+assert.equal(reading.animations[1].element, image, "Gallery captions and link boxes remain stationary");
+reading.dispatch("focusin", { target: photo });
+assert(reading.animations[1].cancelled, "Focusing a print also cancels motion on its image");
 
 const previews = harness();
 const misc = previews.card(100, false, "misc-showcase");

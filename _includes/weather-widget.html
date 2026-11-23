@@ -78,24 +78,26 @@
 
   <div class="weather-terminal__header"><span>広域気象端末</span><span class="weather-terminal__signal" data-weather-signal>受信待機</span></div>
   <div class="weather-terminal__lcd">
-    <div class="weather-terminal__station"><span data-weather-location>ウェスト・ミッドランズ</span><span data-weather-coordinates>52.49°N / 1.89°W</span></div>
-    <div class="weather-terminal__overview">
-      <figure class="weather-map" aria-label="観測地点の世界地図">
-        <img src="{{ '/assets/images/classic/weather/world-map.svg' | relative_url }}" width="360" height="180" alt="" draggable="false">
-        <svg class="weather-map__overlay" viewBox="0 0 360 180" aria-hidden="true">
-          <path class="weather-map__crosshair" data-weather-map-crosshair d="M178.11 0V180M0 37.51H360"/>
-          <g data-weather-map-marker transform="translate(178.11 37.51)"><circle r="6"/><circle r="2" class="weather-map__point"/><path d="M-10 0h-4m24 0h4M0-10v-4m0 24v4"/></g>
-        </svg>
-        <figcaption><span>世界座標</span><span data-weather-daylight>--</span></figcaption>
-      </figure>
-      <div class="weather-terminal__reading">
-        <div class="weather-terminal__condition"><svg class="weather-dial__icon" viewBox="0 0 24 24" aria-hidden="true"><use data-weather-icon-use href="#weather-icon-observe"></use></svg><span data-weather-name>観測待ち</span></div>
-        <strong class="weather-dial__temperature" data-weather-temperature>--°C</strong>
-        <span class="weather-terminal__range" data-weather-range>-- / --</span>
-        <div class="weather-terminal__observed"><span>観測</span><time data-weather-time>--:--</time></div>
+    <div class="weather-terminal__face">
+      <div class="weather-terminal__station"><span data-weather-location>ウェスト・ミッドランズ</span><span data-weather-coordinates>52.49°N / 1.89°W</span></div>
+      <div class="weather-terminal__overview">
+        <div class="weather-terminal__reading">
+          <div class="weather-terminal__condition"><svg class="weather-dial__icon" viewBox="0 0 24 24" aria-hidden="true"><use data-weather-icon-use href="#weather-icon-observe"></use></svg><span data-weather-name>観測待ち</span></div>
+          <strong class="weather-dial__temperature" data-weather-temperature>--°C</strong>
+          <span class="weather-terminal__range" data-weather-range>-- / --</span>
+          <div class="weather-terminal__observed"><span>観測</span><time data-weather-time>--:--</time></div>
+        </div>
+        <figure class="weather-map" aria-label="観測地点の世界地図">
+          <img src="{{ '/assets/images/classic/weather/world-map.svg' | relative_url }}" width="360" height="180" alt="" draggable="false">
+          <svg class="weather-map__overlay" viewBox="0 0 360 180" aria-hidden="true">
+            <path class="weather-map__crosshair" data-weather-map-crosshair d="M178.11 0V180M0 37.51H360"/>
+            <g data-weather-map-marker transform="translate(178.11 37.51)"><circle r="6"/><circle r="2" class="weather-map__point"/><path d="M-10 0h-4m24 0h4M0-10v-4m0 24v4"/></g>
+          </svg>
+          <figcaption><span>世界座標</span><span data-weather-daylight>--</span></figcaption>
+        </figure>
       </div>
+      <div class="weather-dial__description" data-weather-description>空模様を観測しています</div>
     </div>
-    <div class="weather-dial__description" data-weather-description>空模様を観測しています</div>
     <dl class="weather-terminal__metrics">
       <div><dt>湿度</dt><dd data-weather-humidity>--%</dd><meter data-weather-humidity-meter min="0" max="100" value="0" aria-label="湿度" hidden></meter></div>
       <div><dt>雲量</dt><dd data-weather-cloud>--%</dd><meter data-weather-cloud-meter min="0" max="100" value="0" aria-label="雲量" hidden></meter></div>
@@ -103,7 +105,7 @@
       <div><dt>気圧</dt><dd data-weather-pressure>--</dd><span>hPa</span></div>
     </dl>
     <figure class="weather-trend">
-      <figcaption><span>24時間予報</span><span class="weather-trend__key">─ 気温 <i></i> 降水確率</span></figcaption>
+      <figcaption><span>24時間予報</span><span class="weather-trend__key"><i class="weather-trend__line-key" aria-hidden="true"></i>気温 <i class="weather-trend__bar-key" aria-hidden="true"></i>降水確率</span></figcaption>
       <div class="weather-trend__plot">
         <svg viewBox="0 0 360 100" preserveAspectRatio="none" data-weather-chart role="img" aria-label="予報データを待っています" hidden>
           <path class="weather-trend__grid" d="M0 16H360M0 40H360M0 64H360M0 96H360M90 0V100M180 0V100M270 0V100"/>

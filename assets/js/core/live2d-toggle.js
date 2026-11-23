@@ -30,12 +30,13 @@
       .forEach(function (button) {
         var label = enabled ? "Playground を閉じる" : "Playground を開く";
         button.hidden = disabled;
-        button.setAttribute("aria-pressed", String(enabled));
+        button.setAttribute("aria-expanded", String(enabled));
+        button.setAttribute("aria-controls", "live2d-widget");
         button.setAttribute("aria-label", label);
         button.innerHTML =
-          '<span class="site-options-fab__action-icon" aria-hidden="true"><i class="fas ' +
-          (enabled ? "fa-user-astronaut" : "fa-user-slash") +
-          '"></i></span><span class="site-options-fab__action-label">' +
+          '<span class="site-options-fab__action-icon">' +
+          window.SiteAssets.icon(enabled ? "hide" : "show") +
+          '</span><span class="site-options-fab__action-label">' +
           label +
           "</span>";
       });

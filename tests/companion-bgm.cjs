@@ -114,6 +114,17 @@ const {
         initialTrack.url
       );
     }
+    for (const selector of [
+      "[data-radio-open]", "[data-radio-lyrics-open]", "[data-radio-pv]",
+    ]) {
+      const opener = page.locator(selector);
+      await opener.focus();
+      await page.keyboard.press("Enter");
+      assert(await receiver.evaluate((el) => el.contains(document.activeElement)));
+      await page.keyboard.press("Escape");
+      assert.equal(await receiver.isVisible(), false);
+      assert(await opener.evaluate((el) => el === document.activeElement));
+    }
     await page.locator("[data-radio-pv]").click();
     assert.equal(
       await selected(),
@@ -430,6 +441,7 @@ const {
       1,
       "reopening creates exactly one fresh receiver frame"
     );
+    assert(await receiver.evaluate((el) => el.contains(document.activeElement)));
     await page.evaluate(() =>
       oldRadioPlayer.options.events.onAutoplayBlocked()
     );

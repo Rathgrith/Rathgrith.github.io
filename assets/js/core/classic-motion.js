@@ -5,13 +5,17 @@
   window.__siteClassicMotionBound = true;
 
   var preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var headingSelector = ".page__content h1, .classic-archive-year > h2, .notes-heading, .thought-detail__content > h2";
   var selector = [
+    headingSelector,
     ".classic-research",
     ".classic-education > li",
     ".publication-item",
     ".misc-showcase",
     ".classic-photo",
     ".thought-card",
+    ".notes-index > ul > li",
+    ".notes-projects > .project",
     ".classic-blog-entry",
   ].join(", ");
   var article = null;
@@ -46,30 +50,52 @@
 
   function reveal(element, index) {
     if (preference.matches || !belongs(element)) return;
+    var image = element.classList.contains("classic-photo") ? element.querySelector("img") : null;
+    if (image && !image.complete) {
+      // A lazy thumbnail may arrive after the user has scrolled past it.
+      if (observer) observer.observe(element);
+      return;
+    }
     seen.add(element);
     if (observer) observer.unobserve(element);
     cancel(element);
     if (typeof element.animate !== "function") return;
-    // Integer-pixel steps suit the desktop artwork. No fill or inline style is
-    // retained, so completion, cancellation and unsupported APIs are all safe.
-    var animation;
-    var keyframes = [{ opacity: 0.65 }, { opacity: 1 }];
-    // Fixed hover previews use viewport coordinates. Transforming their parent
-    // would give them a new containing block until the entry has finished.
-    if (!element.classList.contains("misc-showcase")) {
-      keyframes[0].transform = "translateY(4px)";
-      keyframes[1].transform = "translateY(0)";
+    var target = element;
+    var keyframes;
+    var options = {
+      duration: 220,
+      delay: Math.min(index, 3) * 24,
+      easing: "steps(6, end)",
+      fill: "backwards",
+    };
+    if (element.matches(headingSelector)) {
+      // Only the heading's ornamental rule reads this inherited property.
+      keyframes = [{ "--reading-rule-end": "100%" }, { "--reading-rule-end": "0%" }];
+      options.duration = 320;
+      options.easing = "steps(14, end)";
+      options.delay = 0;
+    } else if (image) {
+      // Let colour develop inside the print. Its caption and link never move.
+      if (!image.naturalWidth) return;
+      target = image;
+      keyframes = [
+        { opacity: 0.72, filter: "saturate(0.38)" },
+        { opacity: 1, filter: "saturate(1)" },
+      ];
+      options.duration = 260;
+      options.easing = "steps(8, end)";
+    } else if (element.classList.contains("misc-showcase")) {
+      // A transform here would detach fixed photo previews from the viewport.
+      keyframes = [{ opacity: 0.8 }, { opacity: 1 }];
+    } else {
+      keyframes = [
+        { opacity: 0.75, transform: "translateY(6px)" },
+        { opacity: 1, transform: "translateY(0)" },
+      ];
     }
+    var animation;
     try {
-      animation = element.animate(
-        keyframes,
-        {
-          duration: 240,
-          delay: Math.min(index, 4) * 28,
-          easing: "steps(4, end)",
-          fill: "none",
-        }
-      );
+      animation = target.animate(keyframes, options);
     } catch (error) {
       return;
     }
@@ -103,7 +129,7 @@
               reveal(entry.target, stagger++);
             });
           },
-          { rootMargin: "0px 0px -16px 0px", threshold: 0 }
+          { rootMargin: "0px 0px -32px 0px", threshold: 0 }
         );
       }
       var stagger = 0;
@@ -113,7 +139,7 @@
         if (bounds.bottom <= 0) {
           seen.add(element);
         } else if (bounds.top < window.innerHeight) {
-          // The article's existing fade owns a soft-navigation entrance; the
+          // The page transition owns a soft-navigation entrance; the
           // prayer loader owns the first home entrance. Do not stack effects.
           if (softNavigation || document.body.classList.contains("home-loading"))
             seen.add(element);
@@ -149,6 +175,13 @@
       }
     });
   });
+  document.addEventListener("load", function (event) {
+    if (!article || event.target.tagName !== "IMG") return;
+    var photo = event.target.closest(".classic-photo");
+    if (!photo || seen.has(photo) || !belongs(photo)) return;
+    var bounds = photo.getBoundingClientRect();
+    if (bounds.bottom > 0 && bounds.top < window.innerHeight - 32) reveal(photo, 0);
+  }, true);
   document.addEventListener("focusin", function (event) {
     var element = event.target.closest(selector);
     if (!belongs(element)) return;

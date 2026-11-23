@@ -6,6 +6,18 @@ const out =
   process.env.QA_OUTPUT || require("node:os").tmpdir() + "/homepage-qa";
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 fs.mkdirSync(out, { recursive: true });
+async function checkPortrait(page, id) {
+  const portrait = page.locator(".author__avatar-link:visible");
+  assert.equal(await portrait.count(), 1);
+  const expected = new URL("images/avatars/" + id + "-portrait.png", base).href;
+  await portrait.scrollIntoViewIfNeeded();
+  const hit = await portrait.evaluate((link) => {
+    const rect = link.getBoundingClientRect();
+    const image = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return { href: image.closest("a")?.href, image: image.currentSrc };
+  });
+  assert.deepEqual(hit, { href: expected, image: expected }, id + " portrait hit target");
+}
 async function galleryOrder(page, scripted = true) {
   if (scripted)
     await page.locator('#gallery[data-gallery-bound="true"]').waitFor();
@@ -53,13 +65,13 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
         (id) => document.documentElement.dataset.live2dCharacter === id,
         id
       );
-      await page.waitForFunction((id) => getComputedStyle(document.querySelector(`.author__avatar-image[data-avatar-character="${id}"]`)).opacity === "1", id);
-      assert.equal(
-        await page
-          .locator(`.author__avatar-image[data-avatar-character="${id}"]`)
-          .evaluate((e) => getComputedStyle(e).opacity),
-        "1"
-      );
+      await checkPortrait(page, id);
+      const [original] = await Promise.all([
+        page.context().waitForEvent("page"),
+        page.locator(".author__avatar-link:visible").click({ button: "middle" }),
+      ]);
+      await original.waitForURL(new URL("images/avatars/" + id + "-portrait.png", base).href);
+      await original.close();
       for (const width of [
         320, 375, 480, 599, 600, 699, 700, 767, 768, 999, 1000, 1279, 1280,
         1440, 1920,
@@ -235,6 +247,7 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     assert.equal(await page.locator("#gallery-modal").isVisible(), false);
     await page.locator('[data-classic-page="home"]').click();
     await page.waitForURL(base);
+    await checkPortrait(page, "patchouli");
     await page.goBack();
     await page.waitForURL("**/gallery/");
     await page.waitForSelector(".classic-photo");

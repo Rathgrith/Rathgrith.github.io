@@ -1,12 +1,12 @@
 /* Visual-novel controller. Story state is independent of optional WebGL/model loading. */
 (function () {
   "use strict";
-  var assetBase = (window.SiteAssets && window.SiteAssets.base) || "";
   var data = window.CompanionStories,
     root,
     hooks,
     bgm,
     voiceReactions,
+    deskMotion,
     currentId = "",
     story,
     index = 0,
@@ -57,6 +57,18 @@
   function q(selector) {
     return root.querySelector(selector);
   }
+  function accent(element, frames, duration, delay) {
+    if (!deskMotion || !deskMotion.matches || document.hidden ||
+        !element.animate || !element.getAnimations) return;
+    // A rapid advance replaces the previous pulse on this element immediately.
+    element.getAnimations().forEach(function (animation) {
+      if (animation.id === "playground-dialogue") animation.cancel();
+    });
+    element.animate(frames, {
+      id: "playground-dialogue", duration: duration, delay: delay || 0,
+      easing: "cubic-bezier(.2,.7,.2,1)", fill: "backwards",
+    });
+  }
   function clearTimers() {
     generation++;
     clearTimeout(timer);
@@ -68,6 +80,11 @@
   function setState(value) {
     state = value;
     root.dataset.dialogueState = value;
+    if (deskMotion) {
+      var reading = q("[data-vn-reading]");
+      reading.setAttribute("aria-disabled", String(value === "choice"));
+      reading.tabIndex = value === "choice" ? -1 : 0;
+    }
   }
   function updateAffinity() {
     var value = affinity[currentId],
@@ -140,28 +157,31 @@
   function renderTopics() {
     var list = q("[data-vn-topic-list]"),
       tree = branches();
-    var topics = [
+    list.replaceChildren();
+    function appendTopics(heading, topics) {
+      if (!topics.length) return;
+      var title = document.createElement("h3");
+      title.textContent = heading;
+      list.appendChild(title);
+      topics.forEach(function (topic) {
+        var button = document.createElement("button");
+        button.type = "button";
+        button.textContent = topic.label;
+        button.setAttribute("data-vn-topic-start", topic.id);
+        list.appendChild(button);
+      });
+    }
+    if (tree) appendTopics("選択肢のある会話", tree.topics.map(function (topic) {
+      return { id: "branch:" + topic.id, label: topic.label };
+    }));
+    appendTopics("日常の話題", [
       { id: "today", label: "今日のこと" },
       { id: "craft", label: "魔法の話" },
-    ].concat(
-      (tree ? tree.topics : []).map(function (topic) {
-        return { id: "branch:" + topic.id, label: topic.label };
-      }),
-      [
-        { id: "friends", label: "友人のこと" },
-        { id: "rest", label: "お茶にしましょう" },
-        { id: "weather", label: "窓の向こう" },
-        { id: "original", label: "思い出" },
-      ]
-    );
-    list.replaceChildren();
-    topics.forEach(function (topic) {
-      var button = document.createElement("button");
-      button.type = "button";
-      button.textContent = topic.label;
-      button.setAttribute("data-vn-topic-start", topic.id);
-      list.appendChild(button);
-    });
+      { id: "friends", label: "友人のこと" },
+      { id: "rest", label: "お茶にしましょう" },
+      { id: "weather", label: "窓の向こう" },
+      { id: "original", label: "思い出" },
+    ]);
   }
   function startBranchNode(id, level) {
     var tree = branches(),
@@ -195,13 +215,20 @@
       return entry.character === currentId;
     });
     if (!entries.length) {
-      var empty = document.createElement("p");
+      var empty = document.createElement("li");
+      empty.className = "vn-history-empty";
       empty.textContent = "まだ記録はありません。";
       container.appendChild(empty);
     }
-    entries.forEach(function (entry) {
+    entries.forEach(function (entry, i) {
       var item = document.createElement("li"),
         text = document.createElement("p");
+      if (!i || entries[i - 1].reply !== entry.reply) {
+        var speaker = document.createElement("strong");
+        speaker.textContent = entry.reply ? "あなた" : data.characters[currentId].name;
+        item.appendChild(speaker);
+      }
+      if (entry.reply) item.className = "vn-history-reply";
       text.lang = "ja";
       text.textContent = entry.text;
       item.appendChild(text);
@@ -243,7 +270,8 @@
         updateAffinity();
         history.push({
           character: currentId,
-          text: "▸ " + choice.label,
+          reply: true,
+          text: choice.label,
         });
         if (choice.next) {
           startBranchNode(choice.next, level);
@@ -350,6 +378,14 @@
         data.characters[currentId].name + "：" + line.text;
     }
     renderChoices();
+    if (deskMotion && deskMotion.matches) {
+      q("[data-vn-choices]").querySelectorAll("button").forEach(function (button, n) {
+        accent(button, [
+          { opacity: .72, boxShadow: "inset 3px 0 var(--classic-accent)" },
+          { opacity: 1, boxShadow: "inset 0 0 transparent" },
+        ], 180, Math.min(n, 3) * 32);
+      });
+    }
     scheduleAuto();
   }
   function renderLine() {
@@ -357,7 +393,11 @@
     logged = false;
     line = story.lines[index];
     if (!line) return;
-    q("[data-vn-choices]").replaceChildren();
+    if (deskMotion) q("[data-vn-reading]").dataset.completeLine = line.text;
+    var choices = q("[data-vn-choices]");
+    if (choices.contains(document.activeElement))
+      q("[data-vn-reading]").focus({ preventScroll: true });
+    choices.replaceChildren();
     q("[data-vn-dialogue-body]").scrollTop = 0;
     q("[data-live2d-dialogue-text]").textContent = "";
     q("#live2d-interact").textContent = "次へ ▸";
@@ -366,6 +406,11 @@
     q("#live2d-dialogue").classList.add("is-visible");
     root.classList.add("has-dialogue");
     setState("typing");
+    accent(q(".vn-dialogue-ornament"), [
+      { opacity: .9, transform: "scaleX(.12)" },
+      { opacity: .75, transform: "scaleX(1)", offset: .65 },
+      { opacity: 0, transform: "scaleX(1)" },
+    ], 300);
     hooks.perform(line);
     if (voiceReactions) voiceReactions.play(currentId, line);
     if (speed === 0 || matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -476,6 +521,7 @@
     setState("idle");
     q("[data-vn-choices]").replaceChildren();
     q("[data-live2d-dialogue-text]").textContent = "……";
+    if (deskMotion) delete q("[data-vn-reading]").dataset.completeLine;
     q("[data-vn-announcement]").textContent = "";
     q("#live2d-interact").textContent = "話題 ▸";
     q("#live2d-interact").disabled = false;
@@ -489,7 +535,18 @@
     root.dataset.vnCharacter = id;
     if (bgm) bgm.setCharacter(id);
     q("[data-companion-name]").textContent = "Playground";
-    q("[data-live2d-dialogue-name]").textContent = character.name;
+    var nameplate = q("[data-live2d-dialogue-name]");
+    nameplate.textContent = character.name;
+    if (deskMotion) {
+      var portrait = document.createElement("img");
+      portrait.alt = "";
+      portrait.src = window.SiteAssets.characterIcon(id);
+      nameplate.prepend(portrait);
+    }
+    accent(nameplate, [
+      { color: "var(--classic-accent)", transform: "translateX(4px)" },
+      { color: "var(--vn-ink)", transform: "none" },
+    ], 200);
     q("[data-vn-location]").textContent = character.location;
     root.querySelectorAll("[data-vn-character]").forEach(function (button) {
       button.setAttribute(
@@ -513,7 +570,7 @@
       status === "error" ? "接続できませんでした" : "少女祈祷中…";
 
     q("[data-vn-retry]").hidden = status !== "error";
-    if (status === "ready" && !story) start("today");
+    if (status === "ready" && !story && !panel && !gameActive) start("today");
   }
   function syncWeather() {
     if (!root) return;
@@ -546,6 +603,38 @@
       new CustomEvent("site:companion-game", { detail: { active: value } })
     );
   }
+  function arrangePlayground(mainView, template) {
+    var workspace = template.content.cloneNode(true);
+    var roster = workspace.querySelector(".pg-roster");
+    var cast = q(".vn-cast");
+    cast.querySelectorAll("[data-vn-character]").forEach(function (button) {
+      var character = data.characters[button.dataset.vnCharacter];
+      var name = document.createElement("strong");
+      name.textContent = character.name;
+      var place = document.createElement("small");
+      place.textContent = character.location.split("·").pop().trim();
+      var label = document.createElement("span");
+      label.append(name, place);
+      button.replaceChildren(button.querySelector("img"), label);
+    });
+    roster.append(cast);
+    workspace.querySelector(".pg-dialogue-desk").append(
+      q(".companion-conversation"), q(".companion-footer")
+    );
+    workspace.querySelector(".pg-radio").append(q(".vn-bgm"));
+    var arcade = q(".vn-arcade-entry");
+    arcade.innerHTML = '<img class="pg-app-icon" alt=""><span class="pg-app-title">弾幕遊戯</span><span class="pg-app-detail">スコアアタック・対戦</span>';
+    arcade.querySelector("img").src = window.SiteAssets.url("/assets/images/classic/icons/16/playground.svg");
+    var forecast = q(".vn-weather-strip");
+    forecast.querySelector(".vn-weather-brand").classList.add("pg-app-title");
+    forecast.querySelector("[data-vn-weather-summary]").classList.add("pg-app-detail");
+    forecast.lastElementChild.remove();
+    forecast.insertAdjacentHTML("afterbegin", '<svg class="pg-app-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#weather-icon-observe"></use></svg>');
+    workspace.querySelector(".pg-launchers").append(arcade, forecast);
+    mainView.append(workspace);
+    roster.after(q("[data-companion-stage]"));
+  }
+
   function mount(widget, callbacks) {
     if (root)
       return {
@@ -555,6 +644,20 @@
     root = widget;
     root.lang = "ja";
     hooks = callbacks;
+    if (document.body.dataset.playgroundStandalone === "true") {
+      deskMotion = matchMedia("(prefers-reduced-motion: no-preference)");
+      var reduceDeskMotion = function () {
+        if (deskMotion.matches) return;
+        if (state === "typing") complete();
+        if (root.getAnimations) {
+          root.getAnimations({ subtree: true }).forEach(function (animation) {
+            if (animation.id === "playground-dialogue") animation.cancel();
+          });
+        }
+      };
+      if (deskMotion.addEventListener) deskMotion.addEventListener("change", reduceDeskMotion);
+      else if (deskMotion.addListener) deskMotion.addListener(reduceDeskMotion);
+    }
     q("[data-companion-stage]").insertAdjacentHTML(
       "afterbegin",
       '<div class="vn-scene-light" aria-hidden="true"></div><div class="vn-scene-caption" data-vn-location></div>'
@@ -580,11 +683,7 @@
               id +
               '" aria-label="話し相手：' +
               data.characters[id].name +
-              '"><img src="' +
-              assetBase +
-              "/assets/images/classic/characters/" +
-              id +
-              '.svg" alt="">' +
+              '"><img width="24" height="24" alt="">' +
               data.characters[id].name +
               "</button>"
             );
@@ -592,6 +691,13 @@
           .join("") +
         "</div>"
     );
+    q(".vn-cast")
+      .querySelectorAll("[data-vn-character]")
+      .forEach(function (button) {
+        button.querySelector("img").src = window.SiteAssets.characterIcon(
+          button.dataset.vnCharacter
+        );
+      });
     q("[data-companion-conversation]").innerHTML =
       '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" data-vn-dialogue-body><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-label="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div></div><span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
     q("[data-companion-footer]").innerHTML =
@@ -599,10 +705,10 @@
     q("[data-companion-content]").insertAdjacentHTML(
       "beforeend",
       '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span class="vn-weather-brand">非想天則</span><span data-vn-weather-summary>観測中…</span><span aria-hidden="true">▴</span></button>' +
-        '<section class="vn-panel" data-vn-panel="topics" hidden aria-label="話題"><header>話題<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list" data-vn-topic-list></div></section>' +
-        '<section class="vn-panel" data-vn-panel="friends" hidden aria-label="友人のこと"><header>友人のこと<button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-friends-list" data-vn-friends-list></div></section>' +
-        '<section class="vn-panel" data-vn-panel="settings" hidden aria-label="設定"><header>設定<button type="button" data-vn-close aria-label="閉じる">×</button></header><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光</label><label for="vn-light-strength">光の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
-        '<section class="vn-panel" data-vn-panel="history" hidden aria-label="履歴"><header>履歴<button type="button" data-vn-close aria-label="閉じる">×</button></header><ol class="vn-history" data-vn-history-list></ol></section>' +
+        '<section class="vn-panel vn-dialog-panel" data-vn-panel="topics" hidden aria-label="話題"><header><h2>話題</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list" data-vn-topic-list></div></section>' +
+        '<section class="vn-panel vn-dialog-panel" data-vn-panel="friends" hidden aria-label="友人のこと"><header><h2>友人のこと</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-friends-list" data-vn-friends-list></div></section>' +
+        '<section class="vn-panel vn-dialog-panel" data-vn-panel="settings" hidden aria-label="設定"><header><h2>設定</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><fieldset class="vn-setting-group"><legend>会話</legend><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select></fieldset><fieldset class="vn-setting-group"><legend>照明</legend><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光</label><label for="vn-light-strength">光の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"></fieldset><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
+        '<section class="vn-panel vn-dialog-panel" data-vn-panel="history" hidden aria-label="履歴"><header><h2>履歴</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><ol class="vn-history" data-vn-history-list aria-label="会話の記録" tabindex="0"></ol></section>' +
         '<section class="vn-panel" data-vn-panel="weather" hidden aria-labelledby="vn-weather-title"><header><h2 class="vn-weather-title" id="vn-weather-title">非想天則</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div data-vn-weather-mount></div><button class="vn-weather-talk" type="button" data-vn-topic-start="weather">空の話をする ▸</button></section>'
     );
     var content = q("[data-companion-content]");
@@ -638,8 +744,10 @@
         var opener = panelOpener(previous);
         if (opener) opener.focus();
       }
-      if (target.hasAttribute("data-vn-topic-start"))
+      if (target.hasAttribute("data-vn-topic-start")) {
         start(target.dataset.vnTopicStart);
+        if (!panel) q("[data-vn-reading]").focus({ preventScroll: true });
+      }
       if (target.hasAttribute("data-vn-character"))
         hooks.select(target.dataset.vnCharacter);
       if (target.id === "live2d-interact") advance();
@@ -652,6 +760,7 @@
       if (target.hasAttribute("data-vn-reset-position")) {
         hooks.resetPosition();
         closePanel();
+        panelOpener("settings").focus({ preventScroll: true });
       }
     });
     q("[data-vn-reading]").addEventListener("click", advance);
@@ -663,20 +772,25 @@
     });
     root.addEventListener("keydown", function (event) {
       var choice = event.target.closest(".vn-choices button");
+      var direction = event.key;
+      if (choice && deskMotion) {
+        if (direction === "ArrowRight") direction = "ArrowDown";
+        if (direction === "ArrowLeft") direction = "ArrowUp";
+      }
       if (
         choice &&
-        ["ArrowUp", "ArrowDown", "Home", "End"].indexOf(event.key) !== -1
+        ["ArrowUp", "ArrowDown", "Home", "End"].indexOf(direction) !== -1
       ) {
         var options = Array.from(
           q(".vn-choices").querySelectorAll("button:not(:disabled)")
         );
         var at = options.indexOf(choice),
           next =
-            event.key === "Home"
+            direction === "Home"
               ? 0
-              : event.key === "End"
+              : direction === "End"
                 ? options.length - 1
-                : (at + (event.key === "ArrowDown" ? 1 : -1) + options.length) %
+                : (at + (direction === "ArrowDown" ? 1 : -1) + options.length) %
                   options.length;
         event.preventDefault();
         options[next].focus();
@@ -766,6 +880,8 @@
         return currentId;
       },
     });
+    var workspace = document.getElementById("playground-workspace");
+    if (workspace) arrangePlayground(mainView, workspace);
     return { trigger: q("#live2d-interact"), dialogue: q("#live2d-dialogue") };
   }
   window.SiteCompanion = {

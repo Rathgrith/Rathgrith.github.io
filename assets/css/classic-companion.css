@@ -16,6 +16,7 @@
   --vn-panel: #111722;
   --vn-rule: #6a7688;
   --vn-scene: url("../images/classic/scenes/alice-atelier.png");
+  --vn-camera-focus: 0.22;
   --vn-light: #99bfff;
   --vn-ornament: url("../images/classic/ornaments/alice.svg");
   position: fixed;
@@ -51,6 +52,7 @@
   --vn-rule: #948062;
   --vn-muted: #c3b8a8;
   --vn-scene: url("../images/classic/scenes/marisa-workshop.png");
+  --vn-camera-focus: 0.025;
   --vn-light: #ffc57c;
   --vn-ornament: url("../images/classic/ornaments/marisa.svg");
 }
@@ -59,6 +61,7 @@
   --vn-rule: #8c769f;
   --vn-muted: #c4b7cd;
   --vn-scene: url("../images/classic/scenes/patchouli-library.png");
+  --vn-camera-focus: 0.13;
   --vn-light: #c6a8f6;
   --vn-ornament: url("../images/classic/ornaments/patchouli.svg");
 }
@@ -126,8 +129,11 @@
   text-overflow: ellipsis;
 }
 #live2d-widget .companion-title::before {
-  content: "◇";
-  color: var(--classic-accent);
+  content: "";
+  flex: 0 0 16px;
+  height: 16px;
+  background: url("../images/classic/icons/16/playground.svg") center / contain no-repeat;
+  image-rendering: pixelated;
 }
 #live2d-widget .companion-title::after {
   content: "";
@@ -147,18 +153,17 @@
   gap: 3px;
   flex-shrink: 0;
 }
-#live2d-widget .companion-controls button,
-#live2d-widget .companion-controls .companion-page-link {
-  width: 24px;
-  height: 23px;
-  padding: 0;
-  font:
-    17px/1 "W95FA",
-    sans-serif;
+#live2d-widget .companion-controls > :is(button, a) {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 3px 6px;
+  white-space: nowrap;
+  font: 12px/1 var(--classic-font);
 }
 #live2d-widget .companion-page-link {
-  display: grid;
-  place-items: center;
   border: 1px solid var(--vn-rule);
   background: var(--vn-panel);
   color: var(--vn-ink);
@@ -173,21 +178,52 @@
     var(--vn-rule);
   box-shadow: inset 1px 1px 0 #ffffff0b;
 }
-#live2d-widget .companion-controls > :is(button, a):active {
+#live2d-widget .companion-controls button:disabled {
+  border-color: var(--classic-edge-dark);
+  color: var(--vn-muted);
+  box-shadow: none;
+}
+#live2d-widget .companion-controls button:disabled svg {
+  opacity: 0.68;
+}
+#live2d-widget .companion-controls > :is(button, a):active:not(:disabled) {
   border-color: var(--classic-edge-dark) var(--vn-rule) var(--vn-rule)
     var(--classic-edge-dark);
   box-shadow: inset 1px 1px 0 #0006;
 }
 #live2d-widget .companion-controls svg {
   display: block;
-  margin: auto;
+  flex: none;
+}
+@container playground (max-width: 579px) {
+  .classic-site:not(.playground-page) #live2d-widget .companion-titlebar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    padding: 2px 3px 4px;
+  }
+  .classic-site:not(.playground-page) #live2d-widget .companion-title {
+    min-height: 22px;
+    padding-inline: 4px;
+  }
+  .classic-site:not(.playground-page) #live2d-widget .companion-title::after {
+    max-width: none;
+  }
+  .classic-site:not(.playground-page) #live2d-widget .companion-controls {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(max-content, 1fr));
+  }
+  .classic-site:not(.playground-page) #live2d-widget .companion-controls > :is(button, a) {
+    flex-direction: column;
+    gap: 2px;
+    padding: 3px 2px;
+  }
 }
 #live2d-widget [data-companion-content] {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
-  max-height: calc(var(--vn-available-height, 100dvh - 24px) - 38px);
   overflow: clip;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -200,7 +236,7 @@
   max-width: 100%;
 }
 #live2d-widget.is-minimized:not(.is-docked) {
-  width: 244px;
+  width: 280px;
 }
 #live2d-widget .vn-cast {
   display: grid;
@@ -260,21 +296,32 @@
   width: 100%;
   overflow: hidden;
   margin: 0;
+  container-type: size;
   background: var(--vn-panel);
   border: 1px solid var(--vn-rule);
   isolation: isolate;
 }
-/* Defocus only the environment; the rig stays crisp in front of it. */
+/* The original art, character and lights share a 16:9 composition. Cover
+   the actual stage with that plane, allowing three pixels for the defocus.
+   Each character keeps their own headroom when a wide stage crops vertically. */
+#live2d-widget .companion-stage::before,
+#live2d-widget .companion-stage::after,
+#live2d-widget .vn-scene-light {
+  position: absolute;
+  --vn-camera-height: max(calc(100cqh + 6px), calc((100cqw + 6px) * 9 / 16));
+  height: var(--vn-camera-height);
+  aspect-ratio: 16 / 9;
+  left: calc((100cqw - var(--vn-camera-height) * 16 / 9) / 2);
+  top: calc(-3px + (100cqh + 6px - var(--vn-camera-height)) * var(--vn-camera-focus));
+  pointer-events: none;
+}
 #live2d-widget .companion-stage::before,
 #live2d-widget .companion-stage::after {
   content: "";
-  position: absolute;
   z-index: 0;
-  inset: -5px;
-  pointer-events: none;
 }
 #live2d-widget .companion-stage::before {
-  background: var(--vn-scene) center 45% / cover;
+  background: var(--vn-scene) center 45% / cover no-repeat;
   filter: blur(1.25px);
 }
 #live2d-widget .companion-stage::after {
@@ -290,7 +337,8 @@
   inset: 0;
   z-index: 1;
   display: block;
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
   margin: 0;
   opacity: 1;
   transform: none;
@@ -314,10 +362,7 @@
   }
 }
 #live2d-widget .vn-scene-light {
-  position: absolute;
   z-index: 2;
-  inset: 0;
-  pointer-events: none;
   background: linear-gradient(115deg, var(--vn-light), transparent 65%);
   mix-blend-mode: soft-light;
   opacity: calc(var(--vn-light-strength, 0.75) * 0.2);
@@ -332,7 +377,7 @@
   opacity: calc(var(--vn-light-strength, 0.75) * 0.18);
 }
 #live2d-widget[data-scene-lighting="false"] .vn-scene-light {
-  display: none;
+  visibility: hidden;
 }
 #live2d-widget .vn-scene-caption {
   display: flex;
@@ -783,6 +828,7 @@
   font-size: 12px;
   letter-spacing: 0.5px;
 }
+#live2d-widget .vn-dialog-panel > header h2 { margin: 0; color: inherit; font: inherit; }
 #live2d-widget .vn-panel > header::after {
   content: "";
   position: absolute;
@@ -888,22 +934,21 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 7px;
 }
-#live2d-widget .vn-topic-list {
-  counter-reset: vn-topic;
+#live2d-widget .vn-topic-list h3,
+#live2d-widget .vn-setting-group legend {
+  margin: 0;
+  color: var(--vn-light);
+  font: 13px/1.5 var(--vn-font);
 }
-#live2d-widget .vn-topic-list button {
+#live2d-widget .vn-topic-list h3 {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  counter-increment: vn-topic;
+  gap: 9px;
 }
-#live2d-widget .vn-topic-list button::before {
-  content: counter(vn-topic, decimal-leading-zero);
-  flex: 0 0 18px;
-  color: var(--classic-accent);
-  font: 10px/1 var(--vn-font);
-  font-variant-numeric: tabular-nums;
-  opacity: 0.7;
+#live2d-widget .vn-topic-list h3:not(:first-child) { margin-top: 7px; }
+#live2d-widget .vn-topic-list h3::after {
+  content: ""; flex: 1; border-bottom: 1px dotted var(--vn-rule);
 }
 #live2d-widget .vn-topic-list button,
 #live2d-widget .vn-friends-list button {
@@ -950,18 +995,36 @@
 }
 #live2d-widget .vn-history li p {
   margin: 0;
-}
-#live2d-widget .vn-history p:first-child {
   color: var(--vn-ink);
   font-size: 12px;
 }
-#live2d-widget .vn-history > p:only-child {
+#live2d-widget .vn-history .vn-history-empty {
   margin: 0;
   padding: 28px 10px;
   border: 1px dashed color-mix(in srgb, var(--vn-rule) 50%, transparent);
   color: var(--vn-muted);
   text-align: center;
 }
+#live2d-widget .vn-history li strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--vn-light);
+  font: 12px/1.5 var(--vn-font);
+}
+#live2d-widget .vn-history .vn-history-reply {
+  margin-left: 16px;
+  border-left-color: var(--vn-light);
+  background: color-mix(in srgb, var(--vn-light) 9%, var(--vn-panel));
+}
+#live2d-widget .vn-setting-group {
+  min-width: 0;
+  margin: 0 0 12px;
+  border: 1px solid color-mix(in srgb, var(--vn-rule) 55%, transparent);
+  padding: 2px 10px 9px;
+}
+#live2d-widget .vn-setting-group:last-child { margin-bottom: 0; }
+#live2d-widget .vn-setting-group legend { padding: 0 5px; }
+#live2d-widget .vn-setting-group label { margin-top: 4px; }
 #live2d-widget .vn-panel .vn-voice-credits {
   margin-top: 14px;
   padding-top: 10px;
@@ -981,9 +1044,6 @@ html body.live2d-is-hidden #live2d-widget {
     z-index: auto;
     width: 100%;
     max-width: 100%;
-  }
-  #live2d-widget.is-minimized:not(.is-docked) {
-    width: 222px;
   }
   #live2d-widget .companion-footer button {
     padding-inline: 5px;
@@ -1045,9 +1105,6 @@ html body.live2d-is-hidden #live2d-widget {
   filter: brightness(0.32);
   pointer-events: none;
 }
-#live2d-widget.is-docked [data-companion-content] {
-  max-height: none;
-}
 #live2d-widget.is-docked .vn-main-view {
   overflow: visible;
 }
@@ -1060,8 +1117,8 @@ html body.live2d-is-hidden #live2d-widget {
   background: var(--vn-panel);
 }
 
-/* Playground behaves like a desktop window once resized or maximized. */
-#live2d-widget.is-sized {
+/* Keep the title and resize grip visible as the floating content scrolls. */
+#live2d-widget:not(.is-docked) {
   display: flex;
   flex-direction: column;
 }
@@ -1070,19 +1127,19 @@ html body.live2d-is-hidden #live2d-widget {
   min-width: 0;
   min-height: 0;
 }
-#live2d-widget.is-sized .playground-surface {
+#live2d-widget:not(.is-docked) .playground-surface {
+  max-height: var(--vn-available-height);
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow: hidden;
 }
-#live2d-widget.is-sized .companion-titlebar {
+#live2d-widget:not(.is-docked) .companion-titlebar {
   flex-shrink: 0;
 }
-#live2d-widget.is-sized [data-companion-content] {
+#live2d-widget:not(.is-docked) [data-companion-content] {
   flex: 1;
   min-height: 0;
-  max-height: none;
 }
 #live2d-widget .playground-sizebar {
   display: flex;
@@ -1115,6 +1172,58 @@ html body.live2d-is-hidden #live2d-widget {
 }
 #live2d-widget.is-resizing {
   user-select: none;
+}
+/* A second title-bar row on narrow floating windows leaves room for the
+   scene and reading pane by sharing one row between the two launchers. */
+.classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-main-view {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  column-gap: 5px;
+}
+.classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-main-view > :not(.vn-arcade-entry, .vn-weather-strip) {
+  grid-column: 1 / -1;
+}
+.classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-arcade-entry {
+  margin-bottom: 0;
+}
+.classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-cast {
+  padding-block: 3px;
+}
+/* Leave the controls and lyric display at their full size on a phone.
+   Reclaim vertical space from the gaps and the radio cabinet trim. */
+@container playground (max-width: 499px) {
+  .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .companion-conversation {
+    margin-top: 4px;
+  }
+  .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .companion-footer {
+    padding-block: 4px;
+  }
+  .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-bgm {
+    margin-top: 0;
+    padding-block: 4px;
+  }
+  .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-bgm-deck {
+    padding-block: 3px;
+  }
+}
+/* A mid-width floating window fits the receiver beside the dialogue and
+   controls, leaving enough height for the foreground and its room. */
+@container playground (min-width: 500px) {
+  .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-main-view > :is(.companion-conversation, .companion-footer) {
+    grid-column: 1;
+  }
+  .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-main-view > .vn-bgm {
+    grid-column: 2;
+    grid-row: 3 / span 2;
+  }
+}
+/* Reserve the rest of a very wide floating window for the reading desk. */
+.classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="wide"] [data-companion-content] {
+  container-type: size;
+}
+.classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="wide"] .vn-main-view {
+  --vn-controls-width: max(250px, calc((100% - 10px) * 0.393939), calc(100% - 10px - (100cqh - 54px) * 2.25));
 }
 #live2d-widget[data-playground-layout="wide"] .vn-main-view {
   --vn-controls-width: max(250px, calc((100% - 10px) * 0.393939));
@@ -1201,8 +1310,7 @@ html body.live2d-is-hidden #live2d-widget {
 
 @media (pointer: coarse) {
   #live2d-widget .companion-controls > :is(a, button) {
-    width: 30px;
-    height: 32px;
+    min-height: 36px;
   }
   #live2d-widget .vn-cast button {
     min-height: 40px;

@@ -53,6 +53,8 @@ function forecast(mode = "normal") {
     result.hourly.precipitation_probability.fill(null);
   }
   if (mode === "missing") delete result.hourly;
+  if (typeof mode === "number") result.current.weather_code = mode;
+  if (mode === "invalid") delete result.current;
   return result;
 }
 
@@ -70,7 +72,11 @@ async function withinPanel(page, panel, width, height) {
   await settle(page);
   const geometry = await panel.evaluate((element) => {
     const box = element.getBoundingClientRect();
+    const close = element.querySelector("header button");
+    const control = close.getBoundingClientRect();
+    const target = document.elementFromPoint(control.x + control.width / 2, control.y + control.height / 2);
     return {
+      closeReachable: close.contains(target),
       x: box.x,
       y: box.y,
       width: box.width,
@@ -89,6 +95,7 @@ async function withinPanel(page, panel, width, height) {
     geometry.y >= -1 && geometry.bottom <= height + 1,
     `panel vertical bounds: ${JSON.stringify(geometry)}`
   );
+  assert(geometry.closeReachable, "the sticky page index leaves the weather close button clickable");
   assert(
     geometry.scrollWidth <= geometry.clientWidth + 1,
     "weather sheet has no horizontal scroll"
@@ -367,6 +374,7 @@ async function terminalCase(
         await widget.locator("[data-weather-status]").textContent(),
         /更新できません/
       );
+      assert.equal(await widget.locator("[data-weather-signal]").textContent(), "通信待機");
       assert(
         await widget.locator("[data-weather-calendar-gregorian]").isVisible(),
         "calendar survives a failed weather request"
@@ -433,6 +441,15 @@ async function terminalCase(
     );
 
     if (width === 1440 && !home) {
+      for (const [code, phase] of [[80, "rain"], [81, "rain"], [82, "storm"], [85, "snow"], [86, "snow"]]) {
+        await refreshAs(code);
+        assert.equal(await widget.getAttribute("data-weather-phase"), phase, "Weather code " + code);
+      }
+      await refreshAs("invalid");
+      assert.equal(await widget.locator("[data-weather-signal]").textContent(), "通信待機");
+      assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem(
+        "site-weather-v2:52.49:-1.89")).payload.current.weather_code), 86,
+        "A failed response preserves the last usable cached observation");
       await refreshAs("holes");
       assert(
         (
@@ -630,6 +647,7 @@ async function terminalCase(
       await terminalCase(browser, { width, height });
     }
     await terminalCase(browser, { width: 1440, height: 1000, home: true });
+    await terminalCase(browser, { width: 844, height: 390, home: true });
     await terminalCase(browser, { width: 375, height: 812, failFirst: true });
     await terminalCase(browser, {
       width: 375,

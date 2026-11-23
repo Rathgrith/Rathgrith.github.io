@@ -314,8 +314,6 @@
     view.querySelectorAll("[data-danmaku-help-mode]").forEach(function (el) {
       el.hidden = el.dataset.danmakuHelpMode !== battleMode;
     });
-    q("[data-danmaku-kicker]").textContent =
-      battleMode === "flower" ? "花映塚式 · 2本先取" : "無限スコアアタック";
     view.querySelectorAll("[data-danmaku-challenge]").forEach(function (b) {
       b.querySelector("small").textContent =
         battleMode === "flower"
@@ -519,7 +517,7 @@
     var ids = Object.keys(cast);
     view.innerHTML =
       '<header class="danmaku-header"><strong data-danmaku-heading>弾幕遊戯</strong><button type="button" data-danmaku-exit>会話へ</button></header>' +
-      '<div class="danmaku-lobby" data-danmaku-lobby><div class="danmaku-game-modes" aria-label="遊戯の種類"><button type="button" data-danmaku-game-mode="score" aria-pressed="true">スコアアタック</button><button type="button" data-danmaku-game-mode="flower" aria-pressed="false">花映塚式対戦</button></div><div class="danmaku-kicker" data-danmaku-kicker>無限スコアアタック</div><h3>自機を選ぶ</h3><div class="danmaku-pilots">' +
+      '<div class="danmaku-lobby" data-danmaku-lobby><div class="danmaku-game-modes" role="group" aria-label="遊戯の種類"><button type="button" data-danmaku-game-mode="score" aria-pressed="true" aria-labelledby="danmaku-score-title" aria-describedby="danmaku-score-rules"><strong id="danmaku-score-title">スコアアタック</strong><small id="danmaku-score-rules">残機が尽きるまで</small></button><button type="button" data-danmaku-game-mode="flower" aria-pressed="false" aria-labelledby="danmaku-flower-title" aria-describedby="danmaku-flower-rules"><strong id="danmaku-flower-title">花映塚式対戦</strong><small id="danmaku-flower-rules">対CPU・2本先取</small></button></div><h3>自機を選ぶ</h3><div class="danmaku-pilots">' +
       ids
         .map(function (id) {
           return (
@@ -764,10 +762,12 @@
         y: drag.player.y + p.y - drag.origin.y,
       };
     });
-    canvas.addEventListener("pointerup", function () {
-      drag = target = null;
+    canvas.addEventListener("pointerup", function (event) {
+      if (drag && drag.id === event.pointerId) drag = target = null;
     });
-    canvas.addEventListener("pointercancel", pause);
+    canvas.addEventListener("pointercancel", function (event) {
+      if (drag && drag.id === event.pointerId) pause();
+    });
     window.addEventListener("blur", pause);
     window.addEventListener("resize", pause);
     window.addEventListener("pagehide", function () {

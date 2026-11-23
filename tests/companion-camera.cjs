@@ -1,0 +1,194 @@
+// Check the painted room and the actual WebGL rig in the same coordinates.
+const assert = require("node:assert/strict");
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
+const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
+
+(async () => {
+  const browser = await chromium.launch({ channel: "chrome", headless: true });
+  try {
+    const reference = new Map();
+    for (const dpr of [1, 2]) {
+      const page = await browser.newPage({
+        viewport: { width: 1440, height: 900 },
+        deviceScaleFactor: dpr,
+        reducedMotion: "reduce",
+      });
+      await page.route("**/companion-lighting.js*", async (route) => {
+        const response = await route.fetch();
+        await route.fulfill({
+          response,
+          body:
+            (await response.text()) +
+            `
+            const createLighting = CompanionLighting.create;
+            CompanionLighting.create = (app, widget) => {
+              window.cameraTestApp = app;
+              return createLighting(app, widget);
+            };`,
+        });
+      });
+
+      async function check(character, view) {
+        await page.waitForFunction(
+          (id) => {
+            const w = document.querySelector("#live2d-widget");
+            const app = window.cameraTestApp;
+            return (
+              w?.dataset.live2dCharacter === id &&
+              app?.stage.children[0]?.glContextID ===
+                app.renderer.CONTEXT_UID &&
+              !w.classList.contains("is-loading")
+            );
+          },
+          character,
+          { timeout: 60000 }
+        );
+        // Resize is debounced, followed by a ResizeObserver render.
+        await page.waitForFunction(() => {
+          const stage = document.querySelector(".companion-stage");
+          const screen = cameraTestApp.renderer.screen;
+          return (
+            Math.abs(screen.width - stage.clientWidth) <= 1 &&
+            Math.abs(screen.height - stage.clientHeight) <= 1
+          );
+        });
+        const result = await page.evaluate(async () => {
+          const app = cameraTestApp;
+          const model = app.stage.children[0];
+          const stage = document.querySelector(".companion-stage");
+          const room = getComputedStyle(stage, "::before");
+          const image = new Image();
+          image.src = room.backgroundImage.match(/url\("(.+)"\)/)[1];
+          await image.decode();
+          const width = parseFloat(room.width),
+            height = parseFloat(room.height);
+          const scale = Math.max(
+            width / image.naturalWidth,
+            height / image.naturalHeight
+          );
+          const paintedHeight = image.naturalHeight * scale;
+          const frameTop = parseFloat(room.top);
+          const roomTop =
+            frameTop + ((height - paintedHeight) * parseFloat(room.backgroundPositionY)) / 100;
+          const roomLeft = parseFloat(room.left);
+          const modelCenterInRoom = (model.x - roomLeft) / width;
+          return {
+            roomFile: new URL(image.src).pathname,
+            overscan: [
+              -roomLeft,
+              -frameTop,
+              roomLeft + width - stage.clientWidth,
+              frameTop + height - stage.clientHeight,
+            ],
+            stageAspect: stage.clientWidth / stage.clientHeight,
+            center: modelCenterInRoom,
+            height: model.height / paintedHeight,
+            top: (model.y - roomTop) / paintedHeight,
+            bufferWidth: app.view.width,
+            bufferHeight: app.view.height,
+            screenWidth: app.renderer.screen.width,
+            screenHeight: app.renderer.screen.height,
+            resolution: app.renderer.resolution,
+            lightResolution: app.stage.filters?.[0]?.resolution,
+            lighting: stage.closest("#live2d-widget").dataset.sceneLighting !== "false",
+          };
+        });
+        assert(result.roomFile.includes(character), JSON.stringify(result));
+        assert(
+          result.overscan.every((edge) => edge >= 1),
+          view + " painted scenery covers all four edges: " + JSON.stringify(result)
+        );
+        assert(result.stageAspect < 2.32, view + " preserves the half-body framing");
+        assert(
+          Math.abs(result.center - 0.5) < 0.004,
+          view + " centered rig and room"
+        );
+        assert(
+          Math.abs(
+            result.bufferWidth - result.screenWidth * result.resolution
+          ) <= 1
+        );
+        assert(
+          Math.abs(
+            result.bufferHeight - result.screenHeight * result.resolution
+          ) <= 1
+        );
+        if (result.lighting) assert.equal(result.lightResolution, result.resolution);
+        const previous = reference.get(character) || result;
+        for (const key of ["height", "top"]) {
+          assert(
+            Math.abs(result[key] - previous[key]) < 0.006,
+            character +
+              " " +
+              view +
+              " room-relative " +
+              key +
+              ": " +
+              JSON.stringify(result)
+          );
+        }
+        reference.set(character, previous);
+      }
+
+      await page.goto(new URL("playground/", base).href);
+      for (const id of ["alice", "marisa", "patchouli"]) {
+        await page.locator('button[data-vn-character="' + id + '"]').click();
+        for (const [width, height] of [
+          [320, 740],
+          [375, 812],
+          [844, 390],
+          [768, 1024],
+          [1440, 900],
+          [2560, 1080],
+          [3840, 1080],
+        ]) {
+          await page.setViewportSize({ width, height });
+          await page.waitForFunction((width) => {
+            const widget = document.querySelector("#live2d-widget");
+            return (
+              Math.round(
+                parseFloat(widget.style.getPropertyValue("--vn-width"))
+              ) === width
+            );
+          }, width);
+          await check(id, width + "x" + height);
+        }
+      }
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto(base);
+      await page.locator('button[data-vn-character="alice"]').click();
+      await check("alice", "home dock");
+      await page.setViewportSize({ width: 320, height: 740 });
+      await page.waitForFunction(() => document.querySelector("[data-companion-mobile-dock] #live2d-widget"));
+      await check("alice", "phone dock");
+      await page.setViewportSize({ width: 960, height: 720 });
+      await page.waitForFunction(() => document.querySelector(".companion-stage").clientWidth > 355);
+      await check("alice", "tablet dock");
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.waitForFunction(() => document.querySelector("[data-companion-dock] #live2d-widget"));
+      await page.locator("[data-companion-maximize]").click();
+      await check("alice", "floating");
+      await page.setViewportSize({ width: 3840, height: 1080 });
+      await page.waitForFunction(() => document.querySelector("#live2d-widget").getBoundingClientRect().width > 2000);
+      await check("alice", "ultrawide floating");
+      await page.evaluate(() => {
+        const lighting = document.querySelector("[data-vn-lighting]");
+        lighting.checked = false;
+        lighting.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      await check("alice", "lighting disabled");
+      await page.goto(new URL("gallery/", base).href);
+      await check("alice", "gallery dock");
+      console.log(
+        "PASS: three full-bleed room/rig registrations, seven viewport shapes, phone/tablet/desktop docks, floating and disabled lighting at DPR " +
+          dpr
+      );
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+})().catch((e) => {
+  console.error(e);
+  process.exitCode = 1;
+});
