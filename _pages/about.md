@@ -14,17 +14,11 @@ redirect_from:
 
 # About
 
-<div class="home-intro" markdown="1">
-<div class="home-intro__copy" markdown="1">
-
 <p class="classic-welcome">Thanks for stopping by.</p>
 
 I am a PhD student (part-time) in Computer Science at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd), supervised by [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Eyal Ofek](https://eyalofek.org/). Alongside my PhD, I work as a software engineer (part-time) at [Allsee Technology](https://www.allsee-tech.com/).
 
 Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). Pre-PhD entrance, I was lucky to had a RA-ship under supervision of [Prof. Yunchao Wei](https://weiyc.github.io/). Earlier than that, during my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) on some research projects.
-
-</div>
-</div>
 
 <aside class="classic-research" aria-label="Research interests">
   <span class="classic-research-label">Research interests</span>
