@@ -22,7 +22,7 @@
     <div class="classic-frame">
     {% include masthead.html %}
 
-    <main id="main" class="classic-main{% if page.author_profile %} classic-home-grid{% endif %}" tabindex="-1">
+    <main id="main" class="classic-main{% if page.author_profile %} classic-home-grid{% elsif page.section_index %} classic-indexed-grid{% endif %}" tabindex="-1">
       {% include sidebar.html %}
       <div class="classic-mobile-page-index" data-mobile-page-index></div>
 
@@ -30,10 +30,25 @@
         {% if page.title %}<meta itemprop="headline" content="{{ page.title | markdownify | strip_html | strip_newlines | escape_once }}">{% endif %}
         <div class="page__inner-wrap">
           <section class="page__content" itemprop="text">
-            {{ content }}
+            {% assign tables = content | split: '<table>' %}
+            {{ tables.first }}
+            {% for body in tables offset: 1 %}
+              <div class="document-table" tabindex="0" role="region" aria-label="{{ page.title | default: 'Document' | escape }} table {{ forloop.index }}">
+                <table>{{ body | replace_first: '</table>', '</table></div>' }}
+            {% endfor %}
           </section>
         </div>
       </article>
+      {% if page.section_index %}
+      <aside class="classic-index-rail">
+        <nav class="classic-year-navigation" aria-label="On this page">
+          {% for section in page.section_index %}
+          <a class="classic-button" href="#{{ section.id | escape }}">{{ section.title | escape }}</a>
+          {% endfor %}
+        </nav>
+        <div class="classic-companion-dock" data-companion-dock></div>
+      </aside>
+      {% endif %}
       <div class="classic-mobile-footer">
         <div class="classic-companion-mobile-dock" data-companion-mobile-dock></div>
       </div>
@@ -42,6 +57,7 @@
     {% unless site.classic.runtime == false %}{% include site-runtime-footer.html %}{% endunless %}
     {% include classic-credits.html %}
     </div>
+    {% if site.classic.visitor_map_key and site.classic.visitor_map_key != empty %}{% include classic/visitor-map.html %}{% endif %}
     {% include companion-runtime.html %}
     {% include scripts.html %}
   </body>

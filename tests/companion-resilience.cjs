@@ -41,6 +41,15 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     assert((await p.locator("[data-weather-status]").textContent()).length > 0);
     await p.keyboard.press("Escape");
     await p.unroute("**/live2dcubismcore.min.js");
+    const texture = "**/Alice/textures/*.png";
+    await p.route(texture, (route) => route.abort());
+    const textureFailure = p.waitForEvent("requestfailed", (r) =>
+      r.url().includes("/Alice/textures/")
+    );
+    await p.locator("[data-vn-retry]").click();
+    await textureFailure;
+    await p.locator("#live2d-widget.has-live2d-error").waitFor();
+    await p.unroute(texture);
     await p.locator("[data-vn-retry]").click();
     await p.waitForFunction(
       () => {
@@ -128,12 +137,17 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       await q.locator("#live2d-widget").getAttribute("data-dialogue-state"),
       "ready"
     );
-    const halloween = await q.evaluate(
-      () => CompanionStories.characters.patchouli.holidays.halloween.text
-    );
-    assert.equal(
-      await q.locator("[data-live2d-dialogue-text]").textContent(),
-      halloween
+    const halloween = await q.evaluate(() => {
+      const character = CompanionStories.characters.patchouli;
+      return [
+        character.holidays.halloween,
+        ...character.variations.holidays.halloween,
+      ].map((line) => line.text);
+    });
+    assert(
+      halloween.includes(
+        await q.locator("[data-live2d-dialogue-text]").textContent()
+      )
     );
     await q.locator('[data-vn-open="settings"]').click();
     await q.locator("[data-vn-affinity-input]").evaluate((e) => {

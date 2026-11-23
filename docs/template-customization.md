@@ -33,6 +33,38 @@ Jekyll merges custom configuration files, so a local override can contain only t
 
 `site_started_at` controls the uptime date; remove or replace the original author's date and commit when reusing the site. Optional contact fields remain in the author profile include for compatibility; empty entries produce no link.
 
+## Visitor map
+
+**Visitor map** opens from the profile card and the Options menu. The shared dialog uses this site's MapMyVisitors widget key, restored from the project's earlier configuration. For a different site, obtain its own key from the [MapMyVisitors widget setup](https://mapmyvisitors.com/add). Set `classic.visitor_map_key` to an empty string to remove the widget and both entries.
+
+Edit the lists under `classic` in `_config.yml`. Add or remove one item per public address or city. These rules apply to future visits on `visitor_map_host`. Every device sharing an excluded public IP matches that entry. City rules match the English city name and two-letter country code reported by GeoJS. IP geolocation is approximate, particularly for mobile networks and VPNs.
+
+```yaml
+classic:
+  visitor_map_host: "rathgrith.github.io"
+  visitor_map_excluded_cities:
+    - country: GB
+      city: Birmingham
+  visitor_map_excluded_ips:
+    - "203.0.113.17"
+    - "2001:db8::17"
+```
+
+A plain address is visible in the published page and repository. To keep the literal address out of both, add an item containing `sha256:` followed by the SHA-256 digest of its canonical address. Run this command from the network you want to exclude to print its list entry. If the public IP changes, update the entry and rebuild the site.
+
+```sh
+curl -fsS --max-time 8 'https://get.geojs.io/v1/ip/geo.json' | node -e '
+const { createHash } = require("node:crypto");
+const { ip } = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
+if (!require("node:net").isIP(ip)) process.exit(1);
+const host = new URL("http://" + (ip.includes(":") ? "[" + ip + "]" : ip)).hostname;
+const canonical = host.replace(/^\[|\]$/g, "");
+console.log("- " + JSON.stringify("sha256:" + createHash("sha256").update(canonical).digest("hex")));
+'
+```
+
+With either list configured, the public site performs one GeoJS lookup per document before loading MapMyVisitors. A match, an invalid rule or a failed lookup leaves the local world map visible without sending a visit. Set both lists to `[]` to count without a lookup. Previews never send visits. The standalone Playground uses its own full-screen layout. [GeoJS response fields](https://www.geojs.io/docs/v1/endpoints/geo/)
+
 ## Content and artwork
 
 | Change | File |
@@ -50,7 +82,7 @@ Jekyll merges custom configuration files, so a local override can contain only t
 
 Header items accept `title`, `url`, optional `icon` (a filename in `assets/images/classic/icons/16/`), optional `page` for current-page highlighting, and `full_navigation: true` when crossing into another page shell. Keep Playground's full-navigation flag. The section index uses the `main` entries with `/#section-id` URLs; those IDs must exist in the homepage content.
 
-The three character IDs are also used by palettes, conversations, save data, scene art and games. Replacing an existing portrait or model URL is configurable; adding a fourth character requires those corresponding modules and art. Models need the existing Cubism expression/pose conventions. Header icons and profile portraits are separate from battle sprites and conversation-menu artwork, which retain their own small pixel assets.
+The three character IDs are also used by palettes, conversations, save data, scene art and games. Replacing an existing portrait or model URL is configurable; adding a fourth character requires those corresponding modules and art. Models need the existing Cubism expression/pose conventions. The header, theme menu and conversation cast share each character’s configured icon. The bundled 32px pixel portraits also appear in the arcade opponent picker. In-game sprites and the large profile illustrations use their own assets.
 
 ## Gallery storage
 

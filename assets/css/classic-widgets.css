@@ -4,6 +4,11 @@
   z-index: var(--layer-menu);
   flex: none;
 }
+/* A detached companion can overlap the masthead. Keep the disclosure
+   above that window only for as long as it is open. */
+.site-options-fab.is-open {
+  z-index: calc(var(--layer-companion) + 1);
+}
 .site-options-fab__trigger {
   display: grid;
   place-items: center;
@@ -38,11 +43,11 @@
   top: calc(100% + 6px);
   right: 0;
   display: grid;
-  gap: 5px;
+  gap: 1px;
   width: min(232px, calc(100vw - 32px));
   max-height: calc(100dvh - 90px);
   overflow-y: auto;
-  padding: 7px;
+  padding: 4px;
   border: 1px solid;
   border-color: var(--classic-edge-light) var(--classic-edge-dark)
     var(--classic-edge-dark) var(--classic-edge-light);
@@ -52,10 +57,10 @@
 .site-options-fab__menu::before {
   content: "Desktop options";
   display: block;
-  margin-bottom: 2px;
-  padding: 2px 7px 7px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-muted);
+  margin-bottom: 3px;
+  padding: 3px 8px;
+  color: #fff;
+  background: linear-gradient(90deg, var(--classic-title), var(--classic-title-end));
   font-size: 14px;
 }
 .site-options-fab__action {
@@ -64,34 +69,36 @@
   gap: 8px;
   width: 100%;
   min-height: 40px;
-  padding: 6px 8px;
+  padding: 3px 8px 3px 4px;
   border: 1px solid transparent;
-  background: var(--classic-document);
+  background:
+    linear-gradient(90deg, var(--classic-panel) 0 39px, var(--classic-edge-mid) 39px 40px,
+      var(--classic-document) 40px);
   text-align: left;
   font-size: 16px;
 }
 .site-options-fab__action:hover,
 .site-options-fab__action:focus-visible {
   border-color: var(--classic-edge-light);
-  background: var(--classic-soft);
-  color: var(--classic-accent);
+  color: #fff;
+  background: linear-gradient(90deg, var(--classic-title), var(--classic-title-end));
 }
 .site-options-fab__action:focus-visible {
   outline: 1px dotted var(--classic-accent);
   outline-offset: -4px;
 }
 .site-options-fab__action:active {
+  border-color: var(--classic-edge-dark) var(--classic-edge-light) var(--classic-edge-light) var(--classic-edge-dark);
   box-shadow: inset 1px 1px var(--classic-edge-dark);
 }
 .site-options-fab__action-icon {
-  width: 24px;
-  padding: 2px;
-  text-align: center;
-  flex: 0 0 24px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
   color: var(--classic-accent);
 }
-.site-options-fab i {
-  pointer-events: none;
+.site-options-fab__action-icon img {
+  image-rendering: pixelated;
 }
 .hover-photo {
   position: relative;
@@ -214,4 +221,30 @@
   .site-options-fab__action {
     min-height: 44px;
   }
+}
+
+/* Keep the launching control in place while the native map dialog owns focus. */
+html:has(.visitor-map[open]) {
+  overflow-y: hidden;
+}
+
+@media (pointer: coarse) {
+  .visitor-map__titlebar .visitor-map__close {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .classic-theme-button[aria-pressed="true"]::after {
+    animation: classic-theme-selection 120ms steps(3, end);
+  }
+  .visitor-map[open] {
+    animation: classic-panel-enter var(--motion-ui) var(--motion-ease);
+  }
+}
+
+@keyframes classic-theme-selection {
+  from { transform: scaleX(.3); }
+  to { transform: scaleX(1); }
 }

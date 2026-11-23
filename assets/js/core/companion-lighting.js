@@ -30,9 +30,11 @@
     "uniform vec3 uAmbient, uKey, uFill;",
     "uniform vec2 uKeyPosition;",
     "uniform float uStrength;",
+    "uniform vec4 uViewToScene;",
     "void main(void) {",
     "  vec4 source = texture2D(uSampler, vTextureCoord);",
     "  vec2 uv = vTextureCoord * inputSize.xy / max(outputFrame.zw, vec2(1.0));",
+    "  uv = uv * uViewToScene.xy + uViewToScene.zw;",
     "  vec2 keyDistance = (uv - uKeyPosition) * vec2(1.0, 0.65);",
     "  vec2 fillDistance = (uv - vec2(1.1, 0.45)) * vec2(1.2, 0.8);",
     "  float key = exp(-dot(keyDistance, keyDistance) * 1.4);",
@@ -48,19 +50,28 @@
 
   window.CompanionLighting = {
     create: function (app, widget) {
+      var sceneLight = widget.querySelector(".vn-scene-light");
       var filter = new window.PIXI.Filter(null, fragment, {
         uAmbient: scenes.alice.ambient.slice(),
         uKey: scenes.alice.key.slice(),
         uFill: scenes.alice.fill.slice(),
         uKeyPosition: scenes.alice.position.slice(),
         uStrength: 0.75,
+        uViewToScene: [1, 1, 0, 0],
       });
-      filter.resolution = app.renderer.resolution;
       filter.padding = 0;
       // Bound the extra render pass to the visible close-up, not the full rig.
       app.stage.filterArea = app.renderer.screen;
       app.stage.filters = [filter];
       return function sync() {
+        filter.resolution = app.renderer.resolution;
+        if (sceneLight.offsetWidth && sceneLight.offsetHeight) {
+          var sx = app.screen.width / sceneLight.offsetWidth;
+          filter.uniforms.uViewToScene = [
+            sx, app.screen.height / sceneLight.offsetHeight,
+            (1 - sx) / 2, -sceneLight.offsetTop / sceneLight.offsetHeight,
+          ];
+        }
         var scene = scenes[widget.dataset.vnCharacter] || scenes.alice;
         var night = widget.dataset.sceneTime === "night";
         var wet = /^(rain|storm|snow)$/.test(widget.dataset.sceneWeather);

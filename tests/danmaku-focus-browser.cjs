@@ -38,6 +38,7 @@ function instrumentation(global) {
     for (const mode of ["score", "flower"]) {
       const page = await browser.newPage({
         viewport: { width: 1440, height: 1100 },
+        hasTouch: true,
       });
       const errors = [];
       page.on("pageerror", (error) => errors.push(error.message));
@@ -206,9 +207,32 @@ function instrumentation(global) {
         assert.equal(released.input.x, 0);
         assert.equal(released.input.y, 0);
         await advanceAndCheck(false, "all keys released");
+        // Lifting a second finger on the playfield must not drop the pilot
+        // controlled by the first finger (both games share this controller).
+        const canvas = await page.locator("[data-danmaku-canvas]").boundingBox();
+        const pilot = {
+          x: Math.round(canvas.x + canvas.width / 4),
+          y: Math.round(canvas.y + canvas.height / 2),
+          id: 1,
+        };
+        const extra = { ...pilot, x: pilot.x + 45, id: 2 };
+        const cdp = await page.context().newCDPSession(page);
+        const touch = (type, touchPoints) =>
+          cdp.send("Input.dispatchTouchEvent", { type, touchPoints });
+        await touch("touchStart", [pilot]);
+        await touch("touchStart", [pilot, extra]);
+        await touch("touchEnd", [extra]);
+        await touch("touchMove", [{ ...pilot, x: pilot.x + 20 }]);
+        assert(
+          (await sample()).input.target?.x > 120,
+          "pilot still follows the held finger"
+        );
+        await touch("touchEnd", []);
+        assert.equal((await sample()).input.target, null);
+        await cdp.detach();
         assert.deepEqual(errors, [], `${mode}: no browser exceptions`);
         console.log(
-          `PASS ${mode}: Shift/button takeover preserves both firing fields and resources.`
+          `PASS ${mode}: Shift/button takeover preserves both firing fields and resources. The pilot follows the active touch.`
         );
       } catch (error) {
         failures.push(`${mode}: ${error.message}`);

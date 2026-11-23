@@ -1,0 +1,20 @@
+<dialog id="visitor-map-dialog" class="visitor-map" aria-labelledby="visitor-map-title">
+  <header class="visitor-map__titlebar">
+    <img src="{{ '/assets/images/classic/icons/16/mailbox_world-1.png' | relative_url }}" width="16" height="16" alt="">
+    <h2 id="visitor-map-title">Visitor map</h2>
+    <form method="dialog"><button type="submit" class="visitor-map__close" autofocus aria-label="Close visitor map"><svg width="16" height="16" aria-hidden="true"><use href="#classic-icon-close"></use></svg></button></form>
+  </header>
+  <div class="visitor-map__body">
+    <div class="visitor-map__display">
+      <div class="visitor-map__mount" data-visitor-map-mount
+           data-visitor-map-host="{{ site.classic.visitor_map_host | escape }}"
+           data-visitor-map-excluded-ips="{{ site.classic.visitor_map_excluded_ips | jsonify | escape }}"
+           data-visitor-map-excluded-cities="{{ site.classic.visitor_map_excluded_cities | jsonify | escape }}"></div>
+    </div>
+    <p class="visitor-map__status" data-visitor-map-status role="status" hidden></p>
+    <noscript><p class="visitor-map__status">Enable JavaScript to view visitor locations.</p></noscript>
+    <template id="visitor-map-embed">
+      <script async id="mapmyvisitors" src="https://mapmyvisitors.com/map.js?d={{ site.classic.visitor_map_key | url_encode | escape }}&amp;w=250&amp;t=tt&amp;cl=7f9db3&amp;co=17212d&amp;cmo=f4ad64&amp;cmn=fcdf8b&amp;ct=e5e8df"></script>
+    </template>
+  </div>
+</dialog>

@@ -14,15 +14,21 @@ redirect_from:
 
 # About
 
+<div class="home-intro" markdown="1">
+<div class="home-intro__copy" markdown="1">
+
 <p class="classic-welcome">Thanks for stopping by.</p>
 
 I am a PhD student (part-time) in Computer Science at [University of Birmingham](https://www.birmingham.ac.uk/study/postgraduate/subjects/computer-science-and-data-science-courses/computer-science-phd), supervised by [Prof. Jianbo Jiao](https://jianbojiao.com/) and [Prof. Eyal Ofek](https://eyalofek.org/). Alongside my PhD, I work as a software engineer (part-time) at [Allsee Technology](https://www.allsee-tech.com/).
 
 Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/graduate/meng-degree) and [BSc ICS @ UoL & XJTLU](https://www.liverpool.ac.uk/courses/computer-science-bsc-hons). Pre-PhD entrance, I was lucky to had a RA-ship under supervision of [Prof. Yunchao Wei](https://weiyc.github.io/). Earlier than that, during my undergraduate studies, I was supervised by [Dr. Erick Purwanto](https://www.researchgate.net/profile/Erick-Purwanto) and [Prof. Jie Zhang](https://scholar.google.com.hk/citations?user=NVdWSwoAAAAJ&hl=en) on some research projects.
 
+</div>
+</div>
+
 <aside class="classic-research" aria-label="Research interests">
   <span class="classic-research-label">Research interests</span>
-  <p>Correspondences <span aria-hidden="true">·</span> Vision for Animation <span aria-hidden="true">·</span> Open Problems</p>
+  <ul><li>Correspondences</li><li>Vision for Animation</li><li>Open Problems</li></ul>
 </aside>
 
 # Education
@@ -47,11 +53,14 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 # Recent Publications
 
 <div class="publication-filter" role="group" aria-label="Choose which publications to show">
-  <span class="publication-filter__label">Show</span>
-  <button class="publication-filter__button is-active" type="button" data-publication-filter="selected" aria-pressed="true">Selected</button>
-  <button class="publication-filter__button" type="button" data-publication-filter="all" aria-pressed="false">More</button>
-  <a class="publication-filter__button" href="{{ site.author.googlescholar | escape }}" target="_blank" rel="noopener noreferrer" aria-label="All publications on Google Scholar" title="All publications on Google Scholar">All</a>
-  <span class="publication-filter__count" aria-live="polite"><span data-publication-count>3</span> papers</span>
+  <div class="publication-filter__choices">
+    <button class="publication-filter__button is-active" type="button" data-publication-filter="selected" aria-pressed="true">Selected</button>
+    <button class="publication-filter__button" type="button" data-publication-filter="all" aria-pressed="false">All listed</button>
+  </div>
+  <div class="publication-filter__meta">
+    <span class="publication-filter__count" aria-live="polite"><span data-publication-count>3</span> papers</span>
+    <a class="publication-filter__scholar" href="{{ site.author.googlescholar | escape }}" target="_blank" rel="noopener noreferrer">Google Scholar <span aria-hidden="true">↗</span></a>
+  </div>
 </div>
 
 <div class="publication-list" data-publication-list data-publication-mode="selected">
@@ -59,11 +68,14 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://arxiv.org/abs/2608.00903">PeCA: Palette Context Assisted Inference for Test-Time Paint-Bucket Colourisation on Animation Videos</a><span class="publication-authors"><strong>Dongheng Lin</strong>, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://arxiv.org/abs/2608.00903" target="_blank" rel="noopener noreferrer">
-        <img src="{{ '/images/peca_eccv2026.gif' | relative_url }}" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview" width="640" height="387" loading="lazy" decoding="async">
+        <picture>
+          <source media="(prefers-reduced-motion: reduce)" srcset="{{ '/images/papers/peca-still.png' | relative_url }}">
+          <img src="{{ '/images/peca_eccv2026.gif' | relative_url }}" alt="ECCV 2026 PeCA paper preview" class="publication-thumb paper-preview" width="640" height="387" loading="lazy" decoding="async">
+        </picture>
       </a>
     </div>
   </div>
-  <div class="publication-item" data-publication-selected="false" hidden>
+  <div class="publication-item" data-publication-selected="false">
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">ECCV 2026</span><a href="https://happy-new-bears.github.io/scav-project-page/">Whence the Voice? Self-supervised Dual-source Audio-Visual Localisation via Selective Convergence</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Yuqi Hou, Haotian Li, Hyung Jin Chang, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://happy-new-bears.github.io/scav-project-page/" target="_blank" rel="noopener noreferrer">
@@ -87,7 +99,7 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
       </a>
     </div>
   </div>
-  <div class="publication-item" data-publication-selected="false" hidden>
+  <div class="publication-item" data-publication-selected="false">
     <div class="publication-item-inner">
       <div class="publication-line"><span class="publication-tag conference">BMVC 2025</span><a href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf">Audio-Visual Separation with Hierarchical Fusion and Representation Alignment</a><span class="publication-authors">Han Hu<sup>*</sup>, <strong>Dongheng Lin<sup>*</sup></strong>, Qiming Huang, Yuqi Hou, Hyung Jin Chang, Jianbo Jiao</span></div>
       <a class="publication-thumb-wrap" href="https://bmva-archive.org.uk/bmvc/2025/assets/papers/Paper_493/paper.pdf" target="_blank" rel="noopener noreferrer">
@@ -126,9 +138,11 @@ Previously, I completed [MEng ECE @ UIUC](https://ece.illinois.edu/admissions/gr
 
 <script id="gallery-hover-preview-data" type="application/json">[{% for item in site.data.gallery_captions %}{{ item[0] | jsonify }}{% unless forloop.last %},{% endunless %}{% endfor %}]</script>
 
-> 力強い竹の下には、さらに力強い根が張り巡らされている。<br>
-> Beneath the sturdy bamboo, even sturdier roots spread out.<br>
-> From:[『東方永夜抄 ～ Imperishable Night.』](https://www16.big.or.jp/~zun/html/th08top.html)~ Stage 4
+<blockquote class="classic-quotation">
+  <p lang="ja">力強い竹の下には、さらに力強い根が張り巡らされている。</p>
+  <p lang="en">Beneath the sturdy bamboo, even sturdier roots spread out.</p>
+  <cite>From: <a href="https://www16.big.or.jp/~zun/html/th08top.html">『東方永夜抄 ～ Imperishable Night.』</a> ~ Stage 4</cite>
+</blockquote>
 
 My <a href="https://en.wikipedia.org/wiki/Erd%C5%91s_number">Erdős number</a> is 4, calculated via:
 

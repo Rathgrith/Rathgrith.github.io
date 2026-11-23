@@ -108,6 +108,7 @@
     }
 
     update();
+    elapsedNode.hidden = false;
 
     if (tickTimer) {
       clearInterval(tickTimer);

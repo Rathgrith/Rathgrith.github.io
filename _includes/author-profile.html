@@ -5,9 +5,12 @@
 
   <div class="author__avatar">
     <div class="author__avatar-frame">
-      <div class="author__avatar-media" role="img" aria-label="{{ author.name | escape }}">
+      <div class="author__avatar-media">
         {% for character in site.data.characters %}
-        <img src="{{ character.portrait | relative_url }}" class="author__avatar-image" data-avatar-character="{{ character.id }}" data-avatar-theme="light" alt="" decoding="async">
+        {% assign portrait_url = character.portrait | relative_url | escape %}
+        <a class="author__avatar-link" data-avatar-character="{{ character.id | escape }}" href="{{ portrait_url }}" aria-label="Open full-size {{ character.name | escape }} portrait">
+          <img src="{{ portrait_url }}" class="author__avatar-image" alt="{{ character.name | escape }} portrait" decoding="async">
+        </a>
         {% endfor %}
       </div>
       {% include avatar-ornaments.html %}
@@ -108,7 +111,7 @@
         <li><a href="https://vine.co/u/{{ author.vine }}"><i class="fab fa-fw fa-vine" aria-hidden="true"></i> Vine</a></li>
       {% endif %}
       {% if author.googlescholar %}
-        <li class="author__contact-wide"><a href="{{ author.googlescholar }}"><img class="classic-contact-icon" src="{{ '/assets/images/classic/icons/16/contact-scholar.svg' | relative_url }}" alt="" aria-hidden="true" width="16" height="16"> Google Scholar</a></li>
+        <li><a href="{{ author.googlescholar }}"><img class="classic-contact-icon" src="{{ '/assets/images/classic/icons/16/contact-scholar.svg' | relative_url }}" alt="" aria-hidden="true" width="16" height="16"> Google Scholar</a></li>
       {% endif %}
       {% if author.pubmed %}
         <li><a href="{{ author.pubmed }}"><i class="ai ai-pubmed-square ai-fw"></i> PubMed</a></li>
@@ -122,6 +125,9 @@
       {% if author.wikipedia %}
         <li><a href="https://en.wikipedia.org/wiki/User:{{ author.wikipedia }}"><i class="fab fa-fw fa-wikipedia-w" aria-hidden="true"></i> Wikipedia</a></li>
 {% endif %}
+      {% if site.classic.visitor_map_key and site.classic.visitor_map_key != empty %}
+        <li><button type="button" class="profile-map-trigger" data-visitor-map-open commandfor="visitor-map-dialog" command="show-modal" aria-haspopup="dialog" aria-controls="visitor-map-dialog"><img class="classic-contact-icon" src="{{ '/assets/images/classic/icons/16/mailbox_world-1.png' | relative_url }}" width="16" height="16" alt=""> Visitor map</button></li>
+      {% endif %}
     </ul>
   </div>
 </div>

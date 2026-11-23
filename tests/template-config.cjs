@@ -111,6 +111,15 @@ let browser, server;
   );
   await page.goto(base);
   await page.locator(".vn-bgm").waitFor({ state: "attached" });
+  const selectorIcons = await page.locator(".classic-theme-button img").evaluateAll(
+    async (images) => {
+      await Promise.all(images.map((image) => image.decode()));
+      return images.map((image) => new URL(image.src).pathname);
+    }
+  );
+  assert.deepEqual(selectorIcons, ["alice", "marisa", "patchouli"].map(
+    (id) => "/portfolio/assets/images/classic/characters/" + id + ".svg"
+  ));
   assert.equal(await page.title(), "A & B - Homepage");
   assert.equal(
     await page.locator(".classic-site-name").textContent(),
@@ -127,6 +136,10 @@ let browser, server;
   assert.equal(
     await page.locator("html").getAttribute("data-live2d-character"),
     "patchouli"
+  );
+  assert.equal(
+    await page.locator(".author__avatar-link:visible").getAttribute("href"),
+    "/portfolio/images/avatars/patchouli-portrait.png"
   );
   assert.equal(
     await page.locator("link[rel=canonical]").getAttribute("href"),
@@ -190,6 +203,9 @@ let browser, server;
   );
   await page.goto(base + "playground/");
   await page.locator("[data-danmaku-open]").waitFor({ state: "visible" });
+  assert.deepEqual(await page.locator(".vn-cast img").evaluateAll(
+    (images) => images.map((image) => new URL(image.src).pathname).sort()
+  ), selectorIcons.slice().sort());
   assert.equal(await page.title(), "Playground · A & B");
   assert.equal(
     await page.locator('script[src*="page-transition.js"]').count(),
@@ -248,6 +264,10 @@ let browser, server;
   assert.equal(
     await page.locator("html").getAttribute("data-live2d-character"),
     "marisa"
+  );
+  assert.equal(
+    await page.locator(".author__avatar-link:visible").getAttribute("href"),
+    "/portfolio/images/avatars/marisa-portrait.png"
   );
   console.log(
     "PASS: customized project-subpath build, config switches, SEO/manifest, soft navigation, all game asset families and saved theme override"

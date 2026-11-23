@@ -10,6 +10,7 @@ fs.mkdirSync(out, { recursive: true });
     for (const [width, height] of [
       [1440, 1000],
       [1920, 1080],
+      [1024, 1366],
       [768, 1000],
       [375, 812],
       [320, 740],
@@ -50,6 +51,10 @@ fs.mkdirSync(out, { recursive: true });
       assert(!fit.documentOverflow && !fit.viewXOverflow, JSON.stringify(fit));
       // Entry is shuffled: every title must fit the fixed radio column, not
       // merely whichever short title happened to be selected for this run.
+      const radioDetails = p.locator(".pg-radio");
+      const initiallyOpen = await radioDetails.evaluate(element => element.open);
+      assert.equal(initiallyOpen, width >= 960 && height >= 590 && width >= height * 1.2);
+      if (!initiallyOpen) await radioDetails.locator("summary").click();
       const tracks = await p.locator("[data-radio-station] option").count();
       assert(tracks > 1, "radio stations are populated before layout checks");
       for (let i = 0; i < tracks; i++) {
@@ -72,6 +77,7 @@ fs.mkdirSync(out, { recursive: true });
           `${width}x${height} ${JSON.stringify(radioFit)}`
         );
       }
+      if (!initiallyOpen) await radioDetails.locator("summary").click();
       assert(!(await p.locator(".classic-masthead").count()));
       assert(!(await p.locator("[data-site-options-floating]").count()));
       assert(!(await p.locator("[data-companion-minimize]").isVisible()));
@@ -117,9 +123,9 @@ fs.mkdirSync(out, { recursive: true });
       }
       if (width === 1440) {
         if (await p.locator("[data-companion-maximize]").isVisible()) {
-          await p.locator("[data-companion-maximize]").click();
+          await p.getByRole("button", { name: "全画面", exact: true }).click();
           await p.waitForFunction(() => document.fullscreenElement);
-          await p.locator("[data-companion-maximize]").click();
+          await p.getByRole("button", { name: "全画面を終了", exact: true }).click();
           await p.waitForFunction(() => !document.fullscreenElement);
         }
         await p.locator("[data-playground-home]").click();

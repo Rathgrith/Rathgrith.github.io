@@ -45,6 +45,7 @@ for (const clips of Object.values(manifest)) for (const names of Object.values(c
    assert.equal(await page.evaluate(()=>playedReactions.length),count,'rapidly advancing text must not spam voices');
    await page.locator('[data-vn-open="settings"]').click();
    await page.locator('[data-reaction-volume]').fill('30');
+   assert.equal(await page.locator('[data-reaction-volume-output]').textContent(),'30%');
    assert.equal(await page.locator('[data-companion-reaction-audio]').evaluate(a=>a.volume),.3);
    assert(await page.locator('.vn-voice-credits').textContent().then(s=>s.includes('あみたろの声素材工房')));
    await page.keyboard.press('Escape');

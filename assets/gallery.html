@@ -12,12 +12,14 @@ classic_unframed: true
 {% for photo in site.data.gallery_captions %}{% unless grouped_files contains photo[0] %}{% assign ungrouped_count = ungrouped_count | plus: 1 %}{% endunless %}{% endfor %}
 <div class="classic-archive-grid">
   <div class="classic-document classic-showcase gallery-container" data-thumbnail-dir="{{ '/images/gallery/thumbnails/' | relative_url }}" data-original-dir="{{ site.gallery.originals_url | default: '/images/gallery/originals/' | relative_url }}">
-    <h1 class="classic-section-heading">Gallery</h1>
-    <p class="classic-gallery-intro">Photography, figures, and quiet observations.</p>
-    <p class="classic-gallery-help">Open a photograph to browse full-size images. Use <kbd>←</kbd> <kbd>→</kbd> to move and <kbd>Esc</kbd> to close.</p>
+    <header class="classic-gallery-heading">
+      <h1 class="classic-section-heading">Gallery</h1>
+      <p class="classic-gallery-intro">Photography, figures, and quiet observations.</p>
+      <p class="classic-gallery-help"><span class="classic-gallery-keys">Use <kbd>←</kbd> <kbd>→</kbd> to browse photos and <kbd>Esc</kbd> to close.</span><span class="classic-gallery-touch">Tap a photo to open it. Swipe to browse, or pinch to zoom.</span></p>
+    </header>
     <div id="gallery" class="classic-showcase-groups">
     {% for group in site.data.gallery_groups %}
-      <section class="classic-archive-year" aria-labelledby="gallery-group-{{ group.id }}">
+      <section class="classic-archive-year" data-gallery-collection="{{ group.title | escape }}" aria-labelledby="gallery-group-{{ group.id }}">
         <h2 id="gallery-group-{{ group.id }}">{{ group.title | escape }} <span class="classic-tag">{{ group.items.size }}</span></h2>
         <p>{{ group.description | escape }}</p>
         <div class="classic-showcase-grid">
@@ -26,7 +28,7 @@ classic_unframed: true
       </section>
     {% endfor %}
     {% if ungrouped_count > 0 %}
-      <section class="classic-archive-year" aria-labelledby="gallery-group-other">
+      <section class="classic-archive-year" data-gallery-collection="Other" aria-labelledby="gallery-group-other">
         <h2 id="gallery-group-other">Other</h2>
         <div class="classic-showcase-grid">
         {% for photo in site.data.gallery_captions %}{% unless grouped_files contains photo[0] %}{% assign filename = photo[0] %}{% include classic/gallery-card.html filename=filename %}{% endunless %}{% endfor %}
@@ -54,32 +56,28 @@ classic_unframed: true
     aria-modal="true"
     aria-label="Image preview"
   >
-    <button
-      type="button"
-      class="gallery-modal__close"
-      data-gallery-close
-      aria-label="Close preview"
-    >
-      <i class="fas fa-times" aria-hidden="true"></i>
-    </button>
-    <button
-      type="button"
-      class="gallery-modal__nav gallery-modal__nav--prev"
-      data-gallery-prev
-      aria-label="Previous image"
-    >
-      <i class="fas fa-chevron-left" aria-hidden="true"></i>
-    </button>
+    <header class="gallery-modal__toolbar">
+      <span class="gallery-modal__title" data-gallery-collection-title>Image viewer</span>
+      <button type="button" class="gallery-modal__nav gallery-modal__nav--prev" data-gallery-prev aria-label="Previous image"><i aria-hidden="true"></i></button>
+      <button type="button" class="gallery-modal__nav gallery-modal__nav--next" data-gallery-next aria-label="Next image"><i aria-hidden="true"></i></button>
+      <button type="button" class="gallery-modal__close" data-gallery-close aria-label="Close preview"><svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><use href="#classic-icon-window-close"></use></svg></button>
+    </header>
     <figure class="gallery-modal__figure">
       <div class="gallery-modal__image-stage">
         <img class="classic-photo-placeholder" data-gallery-placeholder alt="" aria-hidden="true">
-        <img id="gallery-modal-image" class="gallery-modal__image" alt="">
+        <img id="gallery-modal-image" class="gallery-modal__image" alt="" hidden>
+        <div class="gallery-modal__feedback">
+          <span class="classic-photo-status" data-gallery-status role="status"></span>
+          <button type="button" data-gallery-retry hidden>Retry</button>
+        </div>
       </div>
       <figcaption class="gallery-modal__meta">
         <div class="gallery-modal__meta-text">
           <span
             id="gallery-modal-caption"
             class="gallery-modal__caption"
+            aria-live="polite"
+            aria-atomic="true"
           ></span>
           <span
             id="gallery-modal-gear"
@@ -87,8 +85,10 @@ classic_unframed: true
             hidden
           ></span>
         </div>
-        <span class="classic-photo-status" data-gallery-status role="status"></span>
-        <span id="gallery-modal-counter" class="gallery-modal__counter"></span>
+        <div class="gallery-modal__actions">
+          <span id="gallery-modal-counter" class="gallery-modal__counter"></span>
+          <a data-gallery-original target="_blank" rel="noopener" aria-label="Open full-size original in a new tab">Original ↗</a>
+        </div>
       </figcaption>
       <div
         id="gallery-modal-strip"
@@ -97,14 +97,7 @@ classic_unframed: true
         aria-label="Thumbnail carousel"
       ></div>
     </figure>
-    <button
-      type="button"
-      class="gallery-modal__nav gallery-modal__nav--next"
-      data-gallery-next
-      aria-label="Next image"
-    >
-      <i class="fas fa-chevron-right" aria-hidden="true"></i>
-    </button>
+
   </div>
 </div>
 

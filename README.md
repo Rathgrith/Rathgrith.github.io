@@ -32,7 +32,7 @@ Read [template customization](docs/template-customization.md) for the settings, 
 
 ## Current experience
 
-- Alice, Marisa and Patchouli share the dark desktop style with blue-grey, warm-gold and violet palettes. User-supplied portraits have themed frames; small pixel icons and full-resolution squadron insignia remain distinct assets. Local W95FA and Fusion Pixel fonts keep the interface consistent. Palette choice persists across pages.
+- Alice, Marisa and Patchouli share the dark desktop style with blue-grey, warm-gold and violet palettes. The theme buttons and Playground cast selector share three 32px pixel portraits. The profile rail retains its full-size character illustrations. Local W95FA and Fusion Pixel fonts keep the interface consistent. Palette choice persists across pages.
 - The profile rail follows desktop scrolling, with the companion below its section index. Publication previews match their text height on wide layouts and stay compact on phones. Section links scroll smoothly with reading-position highlights; compact indexes stay above the content as horizontal sticky bars. Gallery has five columns on wide screens, consistent 4:3 thumbnails, fresh per-collection shuffling and a keyboard-accessible viewer that preserves original proportions. Static cards also work without JavaScript.
 - Playground docks, drags, resizes, minimizes and resets, with a maximum floating size of roughly 75% of the viewport. Dialogue and choices scroll within a fixed reading area without changing model framing. Mobile starts enabled below the article, with separate saved visibility preferences. The standalone app uses a large scene, fixed conversation desk and separate radio panel.
 - Japanese dialogue includes affinity tiers, branches, known friends, holidays and weather/time variants. Explicit expressions and poses use the original three Live2D models; mouth motion follows reviewed kana. Optional recorded interjections start off on each visit. [Companion system](docs/companion-system.md) · [voice credits](docs/companion-voices.md).
@@ -40,7 +40,9 @@ Read [template customization](docs/template-customization.md) for the settings, 
 - Music-synchronized score attack and a Flower-style CPU duel share three pilots, distinct shots, animated sprites, rank progression, spell/nonspell phases, Bombs, supplies and automatic play. Battle audio is independent of radio and defaults enabled only on the standalone route. [Game guide](docs/danmaku-game.md) · [battle music credits](assets/music/danmaku/README.md).
 - **非想天則** combines a local dot-matrix map, observation marker, 24-hour forecast and Touhou-inspired weather symbols. The compact calendar shows Gregorian, Japanese old-calendar and Gensokyo dates in the visitor's local time. [Calendar conventions](docs/weather-calendar.md).
 
-There is no visitor tracking or analytics. Remote models, weather and gallery originals retain their configured providers, with fallback UI for unavailable services. The frontend uses one modular style system; retired theme bundles, jQuery plugins and the earlier standalone player are not loaded. [Component ownership and checks](docs/frontend-architecture.md).
+Open **Visitor map** from the profile card or Options to view the site's MapMyVisitors widget. The public site checks configured IP addresses and cities before counting a visit. [Map configuration](docs/template-customization.md#visitor-map).
+
+Remote models, weather and gallery originals retain their configured providers, with fallback UI for unavailable services. The frontend uses one modular style system; retired theme bundles, jQuery plugins and the earlier standalone player are not loaded. [Component ownership and checks](docs/frontend-architecture.md).
 
 ## Release and credits
 

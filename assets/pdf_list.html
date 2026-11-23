@@ -3,6 +3,11 @@ layout: default
 title: "Notes"
 permalink: /notes/
 author_profile: false
+section_index:
+  - title: Notes and Homework
+    id: notes-homework-heading
+  - title: University Projects
+    id: notes-projects-heading
 body_class: "standalone-page notes-page"
 ---
 <header class="page-header">
@@ -19,7 +24,7 @@ body_class: "standalone-page notes-page"
   </blockquote>
 
   <section class="notes-index" aria-labelledby="notes-homework-heading">
-    <h1 id="notes-homework-heading">Notes and Homework</h1>
+    <h2 class="notes-heading" id="notes-homework-heading">Notes and Homework</h2>
 
     <ul>
       <li>
@@ -56,9 +61,11 @@ body_class: "standalone-page notes-page"
     </ul>
   </section>
 
-        <h1>University Projects</h1>
-        <div class="project">
-            <h2>Arxiv Explorer</h2>
+  <section aria-labelledby="notes-projects-heading">
+    <h2 class="notes-heading" id="notes-projects-heading">University Projects</h2>
+    <div class="notes-projects">
+      <article class="project">
+            <h3>Arxiv Explorer</h3>
             <p><strong>Project:</strong> Paper Recommendation System</p>
             <ul>
                 <li>Developed an efficient paper recommendation system for the complete Arxiv dataset.</li>
@@ -66,10 +73,10 @@ body_class: "standalone-page notes-page"
                 <li>Created coauthorship mapping for authority/hub based HITS reranking.</li>
                 <li>Project available at: <a href="https://github.com/Rathgrith/CS410Project">GitHub Repository</a></li>
             </ul>
-        </div>
+      </article>
 
-        <div class="project">
-            <h2>MapleJuice</h2>
+      <article class="project">
+            <h3>MapleJuice</h3>
             <p><strong>Project:</strong> Lightweight Hadoop Alternative with SQL Support</p>
             <ul>
                 <li>Built a distributed system with GFS-like architecture including NameNode and DataNode.</li>
@@ -77,10 +84,10 @@ body_class: "standalone-page notes-page"
                 <li>Achieved 25% faster performance compared to Hadoop in small clusters.</li>
                 <li>Project available at: <a href="https://github.com/Rathgrith/ece428_mp4">GitHub Repository</a></li>
             </ul>
-        </div>
+      </article>
 
-        <div class="project">
-            <h2>StyleDiffuser</h2>
+      <article class="project">
+            <h3>StyleDiffuser</h3>
             <p><strong>Project:</strong> Cartoon-Style Image Generation System</p>
             <ul>
                 <li>Developed a fusion system combining GANs with Stable Diffusion Model.</li>
@@ -88,9 +95,9 @@ body_class: "standalone-page notes-page"
                 <li>Optimized diffusion steps for faster image generation.</li>
                 <li>Thesis available at: <a href="{{ '/assets/FYP_Thesis.pdf' | relative_url }}">View Thesis</a></li>
             </ul>
-        </div>
-        <div class="project">
-            <h2>Mobile Computing Group Project</h2>
+      </article>
+      <article class="project">
+            <h3>Mobile Computing Group Project</h3>
             <p><strong>Project:</strong> Android University Library Seat Manager App (Java, Android Development)</p>
             <p><strong>Duration:</strong> October 2022 - November 2022</p>
             <ul>
@@ -98,10 +105,10 @@ body_class: "standalone-page notes-page"
                 <li>Created responsive user interfaces and connected the front-end with a Spring Boot-based back-end server using the OkHttp API.</li>
                 <li>Project archived at: <a href="https://github.com/Rathgrith/CAN301">GitHub Repository</a></li>
             </ul>
-        </div>
+      </article>
 
-        <div class="project">
-            <h2>Software Engineering Group Project</h2>
+      <article class="project">
+            <h3>Software Engineering Group Project</h3>
             <p><strong>Project:</strong> XJTLU Bonding Forum Program (Spring Boot, Vue.js, Axios, MyBatis)</p>
             <p><strong>Duration:</strong> April 2022 - June 2022</p>
             <ul>
@@ -109,10 +116,10 @@ body_class: "standalone-page notes-page"
                 <li>Led front-end development, designed consistent pages, built complex routing logic, and managed data transmission between Spring Boot and Vue.js.</li>
                 <li>Project available at: <a href="https://github.com/Rathgrith/XJTLUbonding">GitHub Repository</a></li>
             </ul>
-        </div>
+      </article>
 
-        <div class="project">
-            <h2>Computer Networking Project</h2>
+      <article class="project">
+            <h3>Computer Networking Project</h3>
             <p><strong>Project:</strong> LEFT: Large, Efficient, Flexible, and Trustworthy File Sharing System (Socket Programming)</p>
             <p><strong>Duration:</strong> November 2021 - January 2022</p>
             <ul>
@@ -120,10 +127,10 @@ body_class: "standalone-page notes-page"
                 <li>Achieved efficient transfer of large files (up to 10GB) between VMs in 5 seconds.</li>
                 <li>Code available at: <a href="https://github.com/Rathgrith/python_peer_file_sharing">GitHub Repository</a></li>
             </ul>
-        </div>
+      </article>
 
-        <div class="project">
-            <h2>Video Game Design Project</h2>
+      <article class="project">
+            <h3>Video Game Design Project</h3>
             <p><strong>Project:</strong> Warzone Scavenger Unity Game (C#, Unity3D)</p>
             <p><strong>Duration:</strong> April 2023 - May 2023</p>
             <ul>
@@ -131,6 +138,7 @@ body_class: "standalone-page notes-page"
                 <li>Implemented Singleton Generators following design patterns for events such as supplies and bombardments, ensuring a robust and efficient game system.</li>
                 <li>Partial code and demo available at: <a href="https://github.com/Rathgrith/Warzone_Scavenger_Unity">GitHub Repository</a></li>
             </ul>
-        </div>
+      </article>
     </div>
-    
+  </section>
+</div>

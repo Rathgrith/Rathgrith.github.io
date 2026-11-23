@@ -1,13 +1,23 @@
-/* Small, finite transitions keep the desktop responsive without softening pixels.
-   Only the replaced article fades: the persistent Playground is never captured,
-   transformed or paused while the visitor changes pages. */
-@keyframes classic-content-enter {
+/* A document gains focus at its beveled leading edge. Its title settles from
+   the same side while the masthead, radio and companion keep their own layers. */
+@keyframes classic-document-enter {
   from {
-    opacity: 0.45;
+    opacity: .84;
+    border-left-color: var(--entry-left-edge);
+    border-right-color: var(--entry-right-edge);
   }
-  to {
-    opacity: 1;
+}
+
+@keyframes classic-document-title {
+  from {
+    transform: translateX(var(--entry-offset));
   }
+}
+
+@keyframes classic-document-rule {
+  from { clip-path: var(--entry-rule-start); opacity: 1; }
+  65% { clip-path: inset(0); opacity: 1; }
+  to { clip-path: inset(0); opacity: 0; }
 }
 
 @keyframes classic-panel-enter {
@@ -30,10 +40,67 @@
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .is-content-entering > article {
-    animation: classic-content-enter var(--motion-panel) var(--motion-ease);
+.classic-document[data-document-entry]::before,
+.playground-page .companion-titlebar::after {
+  content: "";
+  position: absolute;
+  inset: 1px 2px auto;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  background: repeating-linear-gradient(90deg, var(--classic-accent) 0 4px, transparent 4px 6px);
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .classic-document[data-document-entry] {
+    position: relative;
+    --entry-offset: 8px;
+    --entry-rule-start: inset(0 0 0 90%);
+    --entry-left-edge: var(--classic-edge-dark);
+    --entry-right-edge: var(--classic-accent);
+    animation: classic-document-enter var(--motion-panel) var(--motion-ease);
   }
+  .classic-document[data-document-entry="back"] {
+    --entry-offset: -8px;
+    --entry-rule-start: inset(0 90% 0 0);
+    --entry-left-edge: var(--classic-accent);
+    --entry-right-edge: var(--classic-edge-light);
+  }
+  .classic-document[data-document-entry]::before {
+    animation: classic-document-rule var(--motion-panel) var(--motion-ease) both;
+  }
+  .document-entry-heading {
+    animation: classic-document-title var(--motion-panel) var(--motion-ease);
+  }
+}
+
+/* The standalone stage keeps its canvas fixed. Starting styles run only when
+   the title bar first appears, including when the model is still loading. */
+.playground-page .companion-titlebar {
+  position: relative;
+}
+.playground-page .companion-titlebar::after {
+  clip-path: inset(0);
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .playground-page .companion-titlebar::after {
+    transition: clip-path var(--motion-panel) var(--motion-ease), opacity 90ms linear 150ms;
+  }
+  .playground-page .companion-title {
+    transition: transform var(--motion-panel) var(--motion-ease);
+  }
+  @starting-style {
+    .playground-page .companion-titlebar::after {
+      clip-path: inset(0 0 0 90%);
+      opacity: 1;
+    }
+    .playground-page .companion-title {
+      transform: translateX(8px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
   .classic-frame,
   .classic-document,
   .classic-toolbar,
@@ -113,7 +180,7 @@ html[data-navigation-pending] .classic-toolbar::after {
       )
       no-repeat;
     background-size: 25% 100%;
-    animation: classic-navigation-progress 900ms linear infinite;
+    animation: classic-navigation-progress 900ms linear 120ms infinite backwards;
   }
 }
 @media print, (forced-colors: active) {
@@ -121,8 +188,42 @@ html[data-navigation-pending] .classic-toolbar::after {
     display: none;
   }
 }
-@media print {
-  .is-content-entering > article {
-    animation: none;
+
+/* Reveal the existing section divider while its heading stays readable. */
+@property --reading-rule-end {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 0%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .page__content h1::after,
+  .classic-archive-year > h2::after,
+  .thought-detail__content > h2::after {
+    clip-path: inset(0 var(--reading-rule-end, 0%) 0 0);
   }
+  :is(.classic-page-index, .classic-year-navigation) a[aria-current="location"] {
+    position: relative;
+  }
+  :is(.classic-page-index, .classic-year-navigation) a[aria-current="location"]::after {
+    content: "";
+    position: absolute;
+    inset: auto 4px 1px;
+    height: 2px;
+    background: repeating-linear-gradient(to right, var(--classic-accent) 0 3px, transparent 3px 5px);
+    clip-path: inset(0 calc(100% - var(--section-read, 0%)) 0 0);
+    pointer-events: none;
+  }
+}
+.gallery-page .classic-archive-year > h2::after {
+  flex: 1 1 24px;
+  margin-left: 4px;
+  mask: linear-gradient(#000, #000) left center / calc(100% - 22px) 1px no-repeat,
+    var(--classic-section-mark) right center / 16px 16px no-repeat;
+}
+.thought-detail__content > h2::after {
+  content: "";
+  display: block;
+  margin-top: 4px;
+  height: 1px;
+  background: var(--classic-rule);
 }

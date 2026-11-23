@@ -11,11 +11,13 @@
     root.setAttribute("data-site-options-floating", "true");
     root.innerHTML = [
       '<button type="button" class="site-options-fab__trigger" data-site-options-trigger aria-label="Open options" aria-controls="site-options-menu" aria-expanded="false">',
-      '<i class="fas fa-sliders-h" aria-hidden="true"></i>',
-      '<span class="visually-hidden">Options</span>',
+      window.SiteAssets.icon("options"),
       "</button>",
       '<div id="site-options-menu" class="site-options-fab__menu" data-site-options-menu role="group" aria-label="Options" hidden>',
-      '<button type="button" class="site-options-fab__action" data-live2d-toggle data-live2d-toggle-style="menu" aria-pressed="true"></button>',
+      '<button type="button" class="site-options-fab__action" data-live2d-toggle data-live2d-toggle-style="menu" lang="ja"></button>',
+      document.getElementById("visitor-map-dialog")
+        ? '<button type="button" class="site-options-fab__action" data-visitor-map-open aria-haspopup="dialog" aria-controls="visitor-map-dialog"><span class="site-options-fab__action-icon"><img width="16" height="16" alt="" src="' + window.SiteAssets.url("/assets/images/classic/icons/16/mailbox_world-1.png") + '"></span>Visitor map</button>'
+        : "",
       "</div>",
     ].join("");
 
@@ -36,10 +38,8 @@
     function setOpen(isOpen) {
       root.classList.toggle("is-open", isOpen);
       trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      trigger.setAttribute(
-        "aria-label",
-        isOpen ? "Close options" : "Open options"
-      );
+      trigger.title = isOpen ? "Close options" : "Open options";
+      trigger.setAttribute("aria-label", trigger.title);
       menu.hidden = !isOpen;
     }
 
@@ -71,7 +71,10 @@
       }, 0);
     });
     menu.addEventListener("click", function (event) {
-      if (!event.target.closest("button")) return;
+      // An action can replace its icon or label before this event bubbles.
+      if (!event.composedPath().some(function (node) {
+        return node instanceof HTMLButtonElement;
+      })) return;
       setOpen(false);
       trigger.focus({ preventScroll: true });
     });
@@ -86,12 +89,36 @@
       var actions = Array.from(menu.querySelectorAll("button:not([hidden])"));
       if (!actions.length) return;
       var index = actions.indexOf(document.activeElement);
-      actions[
-        (index + (event.key === "ArrowDown" ? 1 : -1) + actions.length) %
-          actions.length
-      ].focus();
+      var step = event.key === "ArrowDown" ? 1 : -1;
+      if (index < 0 && step < 0) index = 0;
+      actions[(index + step + actions.length) % actions.length].focus();
     });
     setOpen(false);
+  }
+
+  var mapDialog = document.getElementById("visitor-map-dialog");
+  if (mapDialog) {
+    var mapOpener;
+    document.addEventListener("click", function (event) {
+      var opener = event.target.closest("[data-visitor-map-open]");
+      if (!opener || mapDialog.open) return;
+      event.preventDefault();
+      mapOpener = opener.closest("[data-site-options-menu]")
+        ? document.querySelector("[data-site-options-trigger]") : opener;
+      mapDialog.showModal();
+    });
+    mapDialog.addEventListener("close", function () {
+      if (mapOpener && mapOpener.isConnected) mapOpener.focus({ preventScroll: true });
+    });
+    mapDialog.addEventListener("click", function (event) {
+      if (event.target !== mapDialog) return;
+      var box = mapDialog.getBoundingClientRect();
+      if (event.clientX < box.left || event.clientX > box.right ||
+          event.clientY < box.top || event.clientY > box.bottom) mapDialog.close();
+    });
+    document.addEventListener("site:before-content-replace", function () {
+      if (mapDialog.open) mapDialog.close();
+    });
   }
 
   function init() {

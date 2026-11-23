@@ -85,10 +85,13 @@
       closeButton: root.querySelector(".gallery-modal__close"),
       placeholder: root.querySelector("[data-gallery-placeholder]"),
       status: root.querySelector("[data-gallery-status]"),
+      retry: root.querySelector("[data-gallery-retry]"),
+      original: root.querySelector("[data-gallery-original]"),
+      title: root.querySelector("[data-gallery-collection-title]"),
     };
     // Loading feedback overlays the image; finishing a download must not change
     // the caption height and resize the photograph beneath the viewer.
-    if (state.modalRefs.status && state.modalRefs.stage)
+    if (state.modalRefs.status && state.modalRefs.stage && !state.modalRefs.stage.contains(state.modalRefs.status))
       state.modalRefs.stage.appendChild(state.modalRefs.status);
     return state.modalRefs;
   }
@@ -128,21 +131,9 @@
   }
 
   function modalStripIndices(total, current) {
-    if (total <= MODAL_STRIP_RADIUS * 2 + 1) {
-      return Array.from({ length: total }, function (_, index) {
-        return index;
-      });
-    }
-
-    var indices = [];
-    for (
-      var offset = -MODAL_STRIP_RADIUS;
-      offset <= MODAL_STRIP_RADIUS;
-      offset += 1
-    ) {
-      indices.push(wrapIndex(current + offset, total));
-    }
-    return indices;
+    var count = Math.min(total, MODAL_STRIP_RADIUS * 2 + 1);
+    var first = Math.max(0, Math.min(current - MODAL_STRIP_RADIUS, total - count));
+    return Array.from({ length: count }, function (_, offset) { return first + offset; });
   }
 
   function centerModalActiveThumbnail(refs) {
@@ -153,6 +144,11 @@
       if (!active) return;
       var stripRect = refs.strip.getBoundingClientRect();
       var activeRect = active.getBoundingClientRect();
+      if (refs.strip.scrollHeight > refs.strip.clientHeight + 2) {
+        refs.strip.scrollTop += activeRect.top - stripRect.top -
+          (refs.strip.clientHeight - activeRect.height) / 2;
+        return;
+      }
       refs.strip.scrollLeft +=
         activeRect.left -
         stripRect.left -
@@ -177,6 +173,8 @@
       button.id = buttonId;
       button.setAttribute("data-gallery-thumb-index", String(index));
       button.setAttribute("role", "option");
+      button.setAttribute("aria-posinset", String(index + 1));
+      button.setAttribute("aria-setsize", String(total));
       button.setAttribute(
         "aria-selected",
         index === current ? "true" : "false"
@@ -205,11 +203,54 @@
     var restoreStripFocus = refs.strip.contains(document.activeElement);
     refs.strip.replaceChildren(fragment);
     if (activeId) {
-      refs.strip.setAttribute("aria-activedescendant", activeId);
       if (restoreStripFocus)
         document.getElementById(activeId).focus({ preventScroll: true });
       centerModalActiveThumbnail(refs);
     }
+  }
+
+  function loadOriginal(refs, item, entry) {
+    // The visible preview always belongs to the current photo. Replace the
+    // old image only with a fully decoded original from the current request.
+    var requestId = (state.imageRequestId || 0) + 1;
+    state.imageRequestId = requestId;
+    function current() { return state.isOpen && state.imageRequestId === requestId; }
+    if (refs.retry) {
+      if (document.activeElement === refs.retry) refs.strip.querySelector(".is-active").focus({ preventScroll: true });
+      refs.retry.hidden = true;
+    }
+    refs.image.hidden = true;
+    refs.placeholder.hidden = false;
+    refs.status.textContent = "Loading full-size image…";
+    refs.stage.setAttribute("aria-busy", "true");
+    var fullImage = new Image();
+    fullImage.id = refs.image.id;
+    fullImage.className = refs.image.className;
+    fullImage.alt = entry.caption || "Gallery image";
+    // Install the legacy load listeners before setting src, including for
+    // cached originals. Modern browsers wait for decoded pixels.
+    var loaded = fullImage.decode ? null : new Promise(function (resolve, reject) {
+      fullImage.onload = resolve;
+      fullImage.onerror = reject;
+    });
+    fullImage.src = imageUrl(state.originalDir, item.filename);
+    (loaded || fullImage.decode()).then(function () {
+      if (!current()) return;
+      refs.image.replaceWith(fullImage);
+      refs.image = fullImage;
+      refs.status.textContent = "";
+      refs.stage.setAttribute("aria-busy", "false");
+      // The matching thumbnail stays under the short opacity transition.
+      function hidePreview() { if (current()) refs.placeholder.hidden = true; }
+      var animation = fullImage.getAnimations && fullImage.getAnimations()[0];
+      if (animation) animation.finished.then(hidePreview, hidePreview);
+      else hidePreview();
+    }).catch(function () {
+      if (!current()) return;
+      refs.status.textContent = "Full-size image unavailable. Showing preview.";
+      refs.stage.setAttribute("aria-busy", "false");
+      if (refs.retry) refs.retry.hidden = false;
+    });
   }
 
   function updateModalContent() {
@@ -221,44 +262,10 @@
     state.currentIndex = wrapIndex(state.currentIndex, total);
     var item = state.items[state.currentIndex];
     var entry = normaliseCaption(item.filename);
-
-    // Show the local thumbnail until the large original has decoded.
-    // A request token prevents a slow previous photo replacing the next one.
-    var requestId = (state.imageRequestId || 0) + 1;
-    state.imageRequestId = requestId;
-    refs.image.style.opacity = "0";
     refs.placeholder.src = imageUrl(state.thumbnailDir, item.filename);
-    refs.placeholder.hidden = false;
-    refs.status.textContent = "Loading full-size image…";
-    refs.stage.setAttribute("aria-busy", "true");
-    var fullImage = new Image();
-    fullImage.src = imageUrl(state.originalDir, item.filename);
-    var ready = fullImage.decode
-      ? fullImage.decode()
-      : new Promise(function (resolve, reject) {
-          fullImage.onload = resolve;
-          fullImage.onerror = reject;
-        });
-    ready
-      .then(function () {
-        if (requestId !== state.imageRequestId || !state.isOpen) return;
-        refs.image.src = fullImage.src;
-        return refs.image.decode ? refs.image.decode() : Promise.resolve();
-      })
-      .then(function () {
-        if (requestId !== state.imageRequestId || !state.isOpen) return;
-        refs.image.style.opacity = "1";
-        refs.placeholder.hidden = true;
-        refs.status.textContent = "";
-        refs.stage.setAttribute("aria-busy", "false");
-      })
-      .catch(function () {
-        if (requestId !== state.imageRequestId || !state.isOpen) return;
-        refs.status.textContent =
-          "Full-size image unavailable. Showing preview.";
-        refs.stage.setAttribute("aria-busy", "false");
-      });
-    refs.image.alt = entry.caption || "Gallery image";
+    if (refs.title) refs.title.textContent = item.collection || "Image viewer";
+    if (refs.original) refs.original.href = item.anchor.href;
+    loadOriginal(refs, item, entry);
     refs.caption.textContent = entry.caption;
     refs.counter.textContent = state.currentIndex + 1 + " / " + total;
     renderGear(refs.gear, entry);
@@ -310,6 +317,7 @@
     refs.root.hidden = false;
     refs.root.setAttribute("aria-hidden", "false");
     document.body.classList.add("gallery-modal-open");
+    syncViewportZoom();
     updateModalContent();
 
     window.requestAnimationFrame(function () {
@@ -340,6 +348,15 @@
       state.items.length
     );
     updateModalContent();
+    var arrow = state.modalRefs.root.querySelector(offset < 0 ? "[data-gallery-prev] i" : "[data-gallery-next] i");
+    if (arrow && arrow.animate && window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+      arrow.getAnimations().forEach(function (animation) { animation.cancel(); });
+      arrow.animate([
+        {transform: "translateX(0)"},
+        {transform: "translateX(" + (offset * 2) + "px)", offset: 0.45},
+        {transform: "translateX(0)"}
+      ], {duration: 130, easing: "ease-out"});
+    }
   }
 
   function bindModalEvents() {
@@ -354,7 +371,10 @@
       var nextTarget = event.target.closest("[data-gallery-next]");
       var thumb = event.target.closest("[data-gallery-thumb-index]");
 
-      if (closeTarget) closeModal();
+      if (event.target.closest("[data-gallery-retry]")) {
+        var currentItem = state.items[state.currentIndex];
+        loadOriginal(refs, currentItem, normaliseCaption(currentItem.filename));
+      } else if (closeTarget) closeModal();
       else if (previousTarget) stepModal(-1);
       else if (nextTarget) stepModal(1);
       else if (thumb) {
@@ -372,7 +392,7 @@
     var touchStart = null;
     refs.stage.addEventListener("pointerdown", function (event) {
       touchStart =
-        event.isPrimary && event.pointerType !== "mouse"
+        event.isPrimary && event.pointerType !== "mouse" && !refs.root.classList.contains("is-zoomed")
           ? { id: event.pointerId, x: event.clientX, y: event.clientY }
           : null;
     });
@@ -382,7 +402,7 @@
     refs.stage.addEventListener("pointerup", function (event) {
       var start = touchStart;
       touchStart = null;
-      if (!start || start.id !== event.pointerId || !state.isOpen) return;
+      if (!start || start.id !== event.pointerId || !state.isOpen || refs.root.classList.contains("is-zoomed")) return;
       var dx = event.clientX - start.x;
       var dy = event.clientY - start.y;
       if (Math.abs(dx) >= 44 && Math.abs(dx) > Math.abs(dy) * 1.5)
@@ -390,10 +410,19 @@
     });
   }
 
+  function syncViewportZoom() {
+    if (state.isOpen && window.visualViewport) {
+      state.modalRefs.root.classList.toggle("is-zoomed", window.visualViewport.scale > 1.01);
+    }
+  }
+
   function bindGlobalKeyboardEvents() {
     if (window.__siteGalleryModalKeyBound) return;
     window.__siteGalleryModalKeyBound = true;
 
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", syncViewportZoom);
+    }
     window.addEventListener("resize", function () {
       if (state.isOpen) centerModalActiveThumbnail(getModalRefs());
     });
@@ -404,7 +433,7 @@
       if (event.key === "Tab") {
         var refs = getModalRefs();
         var controls = refs.root.querySelectorAll(
-          'button:not([disabled]), a[href], [tabindex="0"]'
+          'button:not([disabled], [hidden], [tabindex="-1"]), a[href], [tabindex="0"]'
         );
         var first = controls[0];
         var last = controls[controls.length - 1];
@@ -509,10 +538,11 @@
     state.items = Array.prototype.map.call(
       gallery.querySelectorAll("a[data-gallery-filename]"),
       function (anchor) {
+        var group = anchor.closest("[data-gallery-collection]");
         return {
           filename: anchor.getAttribute("data-gallery-filename"),
           anchor: anchor,
-          element: anchor.closest("figure"),
+          collection: group ? group.dataset.galleryCollection : "",
         };
       }
     );

@@ -14,7 +14,7 @@
 <div class="classic-toolbar">
   <nav class="classic-navigation" aria-label="Main navigation">
     {% for link in site.data.navigation.header %}
-    <a class="classic-tab" href="{{ link.url | relative_url }}"{% if link.page %} data-classic-page="{{ link.page | escape }}"{% endif %}{% if link.full_navigation %} data-full-navigation{% endif %}>{% if link.icon %}<img class="classic-nav-icon" src="{{ '/assets/images/classic/icons/16/' | append: link.icon | relative_url }}" alt="" width="16" height="16">{% endif %}{{ link.title | escape }}</a>
+    <a class="classic-tab" href="{{ link.url | relative_url }}"{% if link.url == page.url %} aria-current="page"{% endif %}{% if link.page %} data-classic-page="{{ link.page | escape }}"{% endif %}{% if link.full_navigation %} data-full-navigation{% endif %}>{% if link.icon %}<img class="classic-nav-icon" src="{{ '/assets/images/classic/icons/16/' | append: link.icon | relative_url }}" alt="" width="16" height="16">{% endif %}{{ link.title | escape }}</a>
     {% endfor %}
   </nav>
 </div>

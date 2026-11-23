@@ -202,38 +202,117 @@
         if(bayer[(yy%4)*4+xx%4] / 16 < dissolve) ctx.clearRect(xx,yy,1,1);
     }
   }
-  function create(stage, character) {
+  // Eye-white meshes, ordered from the viewer's left to right. Patchouli's
+  // source rig exports its original PSD layer numbers instead of descriptive IDs.
+  var eyes = {
+    alice: ["EyeWhiteR", "EyeWhiteL"],
+    marisa: ["EyeWhite", "EyeWhite2"],
+    patchouli: ["D_PSD1_74", "D_PSD1_83"],
+  };
+
+  // Offsets and size are measured in eye separations along the moving head.
+  var floating = { lateral: 1.38, vertical: -0.50, size: 1.00 };
+  var attachments = {
+    blush: { lateral: 0.63, vertical: 0.34, size: 0.52 },
+    sweat: { lateral: 0.97, vertical: -0.15, size: 0.82 },
+    anger: { lateral: 0.88, vertical: -0.62, size: 0.76 },
+    sigh:  { lateral: 0.87, vertical: 0.65, size: 0.88 },
+  };
+
+  function create(stage, character, model, renderer) {
+    var internal = model && model.internalModel;
+    var landmarks = eyes[character];
+    if (!internal || !landmarks) return null;
+    var leftEye = internal.getDrawableIndex(landmarks[0]);
+    var rightEye = internal.getDrawableIndex(landmarks[1]);
+    if (leftEye < 0 || rightEye < 0) return null;
     var canvas = stage.ownerDocument.createElement("canvas");
     canvas.width = canvas.height = SIZE;
     canvas.className = "vn-reaction";
     canvas.setAttribute("aria-hidden", "true");
     canvas.hidden = true;
     stage.appendChild(canvas);
-    var lastFrame = -1, lastKind = "", size = {width:stage.clientWidth,height:stage.clientHeight};
-    var observer = new ResizeObserver(function () {
-      size = {width:stage.clientWidth,height:stage.clientHeight};
-      lastFrame = -1;
-    });
+    var left = {}, right = {}, bounds = {};
+    var kind = "", lastFrame = -1, queued = false;
+
+    function projectEye(index, point) {
+      internal.getDrawableBounds(index, bounds);
+      point.x = bounds.x + bounds.width / 2;
+      point.y = bounds.y + bounds.height / 2;
+      internal.localTransform.apply(point, point);
+      model.toGlobal(point, point);
+      // CSS can resize the canvas one frame before PIXI resizes its screen.
+      // Project into the same visible canvas even through that transition.
+      if (renderer && renderer.screen.width && renderer.screen.height) {
+        point.x *= stage.clientWidth / renderer.screen.width;
+        point.y *= stage.clientHeight / renderer.screen.height;
+      }
+    }
+
+    function position() {
+      queued = false;
+      if (canvas.hidden || !stage.clientWidth || !stage.clientHeight) return;
+      projectEye(leftEye, left);
+      projectEye(rightEye, right);
+      var dx = right.x - left.x, dy = right.y - left.y;
+      var gap = Math.hypot(dx, dy);
+      if (!gap) return;
+      var side = character === "alice" ? -1 : 1;
+      // Eye separation supplies both stage units and head roll. Skin accents
+      // sit on the cheek/temple; breath exits beside the mouth. Floating
+      // symbols clear the eyes without climbing above a witch's hat.
+      var anchor = attachments[kind] || floating;
+      var size = Math.min(stage.clientWidth, stage.clientHeight,
+        Math.max(kind === "blush" ? 18 : 28, Math.min(144, Math.round(gap * anchor.size))));
+      var midX = (left.x + right.x) / 2 - dy * anchor.vertical;
+      var midY = (left.y + right.y) / 2 + dx * anchor.vertical;
+      var half = size / 2, margin = half + 2;
+      var x = midX + side * dx * anchor.lateral;
+      // On the narrowest crop use the other side if it has more room.
+      if ((x < margin || x > stage.clientWidth - margin) &&
+          (stage.clientWidth / 2 - midX) * side < 0) side = -side;
+      x = Math.max(margin, Math.min(stage.clientWidth - margin, midX + side * dx * anchor.lateral));
+      var y = Math.max(margin, Math.min(stage.clientHeight - margin, midY + side * dy * anchor.lateral));
+      var rect = stage.getBoundingClientRect();
+      var scale = (rect.width / stage.offsetWidth || 1);
+      var dpr = stage.ownerDocument.defaultView.devicePixelRatio || 1;
+      function snap(value, origin) {
+        return (Math.round((origin + value * scale) * dpr) / dpr - origin) / scale;
+      }
+      canvas.style.width = canvas.style.height = size + "px";
+      canvas.style.left = snap(x - half, rect.left + stage.clientLeft * scale) + "px";
+      canvas.style.top = snap(y - half, rect.top + stage.clientTop * scale) + "px";
+    }
+
+    // The acting hook updates parameters immediately before Cubism deforms
+    // its drawables. Read the new mesh after that synchronous render finishes.
+    function schedulePosition() {
+      if (!queued && !canvas.hidden) {
+        queued = true;
+        queueMicrotask(position);
+      }
+    }
+    var observer = new ResizeObserver(schedulePosition);
     observer.observe(stage);
     return {
-      draw: function (kind, age, offsets, disabled) {
+      reposition: schedulePosition,
+      draw: function (nextKind, age, disabled) {
+        canvas.hidden = disabled || !nextKind || age < 0 || age >= DURATION;
+        canvas.dataset.reaction = nextKind;
+        if (canvas.hidden) { lastFrame = -1; return; }
+        schedulePosition();
         var frame = Math.floor(age * 24);
-        canvas.hidden = disabled || !kind || age < 0 || age >= DURATION;
-        canvas.dataset.reaction = kind;
-        if (canvas.hidden || (frame === lastFrame && kind === lastKind)) return;
-        lastFrame = frame; lastKind = kind;
-        var x = character === "alice" ? 0.25 : 0.81;
-        var y = kind === "sigh" ? 0.59 : character === "alice" ? 0.36 : 0.40;
-        var bounds = stage.getBoundingClientRect();
-        var scale = bounds.width / stage.offsetWidth || 1;
-        var left = Math.max(0, Math.min(size.width-SIZE, size.width*x-SIZE/2)) + offsets.x;
-        var top = size.height*y-SIZE/2 + offsets.y;
-        // Snap the final viewport position, including fractional grid columns.
-        canvas.style.left = (Math.round(bounds.left + left * scale) - bounds.left) / scale + "px";
-        canvas.style.top = (Math.round(bounds.top + top * scale) - bounds.top) / scale + "px";
-        draw(canvas,kind,age,character);
+        if (frame !== lastFrame || kind !== nextKind) {
+          draw(canvas, nextKind, age, character);
+          lastFrame = frame;
+        }
+        kind = nextKind;
       },
-      destroy: function () { observer.disconnect(); canvas.remove(); },
+      destroy: function () {
+        observer.disconnect();
+        canvas.hidden = true;
+        canvas.remove();
+      },
     };
   }
   var api = {create:create, draw:draw, duration:DURATION, types:TYPES};

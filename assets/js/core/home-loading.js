@@ -30,9 +30,9 @@
   function ready() {
     if (hidden) return;
     var portrait = document.querySelector(
-      '.author__avatar-image[data-avatar-character="' +
+      '.author__avatar-link[data-avatar-character="' +
         document.documentElement.dataset.live2dCharacter +
-        '"]'
+        '"] img'
     );
     var assets = [];
     if (portrait && portrait.decode) assets.push(portrait.decode());

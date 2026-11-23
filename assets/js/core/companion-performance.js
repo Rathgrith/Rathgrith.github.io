@@ -7,6 +7,28 @@
     marisa: { energy: 1.15, mouth: 0.82, blink: 3.6, tilt: -1, breath: 4.9, smile: 0.92, face: 1.20 },
     patchouli: { energy: 0.48, mouth: 0.48, blink: 5.1, tilt: 0.7, breath: 6.7, smile: 0.72, face: 1.10 },
   };
+  // Two destinations per gesture. X/Y describe a look to the side or up/down;
+  // roll is in degrees. The gentle torso turn follows the head, eyes lead it.
+  var idleGestures = {
+    alice: [
+      { name: "doll", duration: 3.7,
+        first: { x: 0.92, y: 0.08, roll: 5.6 }, second: { x: 0.62, y: -0.12, roll: 3.4 } },
+      { name: "inspect", duration: 3.5,
+        first: { x: -0.24, y: -0.76, roll: 3.2 }, second: { x: 0.14, y: -0.43, roll: 1.1 } },
+    ],
+    marisa: [
+      { name: "survey", duration: 4.0,
+        first: { x: -0.65, y: 0.52, roll: 2.5 }, second: { x: 0.79, y: 0.32, roll: -3.1 } },
+      { name: "curious", duration: 3.3,
+        first: { x: 0.23, y: 0.04, roll: 7.6 }, second: { x: 0.40, y: 0.18, roll: 5.2 } },
+    ],
+    patchouli: [
+      { name: "read", duration: 4.5,
+        first: { x: -0.12, y: -0.80, roll: 2.1 }, second: { x: 0.12, y: 0.22, roll: -0.5 } },
+      { name: "scan", duration: 3.8,
+        first: { x: -0.45, y: -0.47, roll: 1.8 }, second: { x: 0.43, y: -0.50, roll: -1.2 } },
+    ],
+  };
   // Each directed face keeps its meaning throughout a line. These accents
   // never cycle to a different emotion while the visitor is reading.
   var accents = {
@@ -43,6 +65,15 @@
     if (age < 0 || age >= duration) return 0;
     return Math.pow(Math.sin(Math.PI * age / duration), 2);
   }
+  function blendIdlePose(phase, weights, blend) {
+    // Ease in, pause at the first destination, look to the second, pause,
+    // then return to the body's current authored pose.
+    var between = smooth((phase - 0.43) / 0.23);
+    var first = smooth(phase / 0.24) * (1 - between);
+    var second = between * (1 - smooth((phase - 0.76) / 0.24));
+    weights.first += (first - weights.first) * blend;
+    weights.second += (second - weights.second) * blend;
+  }
   function create(model, character, widget, expressions, options) {
     options = options || {};
     var reduced = options.reducedMotion || function () { return false; };
@@ -65,12 +96,74 @@
     var reaction = null, reactionType = "", effectAt = -10;
     var stage = widget.querySelector && widget.querySelector("[data-companion-stage]");
     if (stage && scope.CompanionReactions)
-      reaction = scope.CompanionReactions.create(stage, character);
+      reaction = scope.CompanionReactions.create(stage, character, model, options.renderer);
     var offsets = { x: 0, y: 0, z: 0, brow: 0 };
     function attr(name, value) {
       var key = "data-live2d-" + name;
       if (value === null) widget.removeAttribute(key);
       else if (widget.getAttribute(key) !== String(value)) widget.setAttribute(key, String(value));
+    }
+    var gestures = idleGestures[character], nextGesture = 0, gesture;
+    var idleDue = null, idleStart = null;
+    var head = { first: 0, second: 0 }, eyes = { first: 0, second: 0 };
+
+    function interruptIdle() {
+      idleDue = null;
+      if (idleStart !== null) {
+        idleStart = null;
+        attr("idle", null);
+      }
+    }
+
+    function updateIdle(dt, quiet, saying) {
+      if (!gestures || !options.canIdle) return;
+      if (quiet) {
+        interruptIdle();
+        head.first = head.second = eyes.first = eyes.second = 0;
+        return;
+      }
+      var allowed = !saying && options.canIdle() &&
+        widget.getAttribute("data-live2d-resting") === "true";
+      if (!allowed) interruptIdle();
+      else if (idleDue === null) idleDue = time + 2.2 + random();
+      else if (time >= idleDue && idleStart === null && time - lineAt >= 2.15) {
+        idleStart = time;
+        gesture = gestures[nextGesture];
+        nextGesture = (nextGesture + 1) % gestures.length;
+        if (options.releaseIdleGaze) options.releaseIdleGaze();
+        attr("idle", gesture.name);
+      }
+      if (idleStart === null && head.first + head.second + eyes.first + eyes.second < 0.001) return;
+      var phase = idleStart === null ? 0 : (time - idleStart) / gesture.duration;
+      if (phase >= 1) {
+        interruptIdle();
+        idleDue = time + 4.0 + random() * 3.5;
+        phase = 0;
+      }
+      // A new line or pointer movement releases the eyes sooner than the
+      // head. Reduced motion takes the authored pose on this very frame.
+      var eyePhase = phase + 0.38 * phase * (1 - phase);
+      blendIdlePose(phase, head, 1 - Math.exp(-dt / 0.13));
+      blendIdlePose(eyePhase, eyes, 1 - Math.exp(-dt / 0.065));
+      var a = gesture.first, b = gesture.second;
+      var yaw = a.x * head.first + b.x * head.second;
+      var pitch = a.y * head.first + b.y * head.second;
+      var roll = a.roll * head.first + b.roll * head.second;
+      core.addParameterValueById("ParamAngleX", yaw * 14);
+      core.addParameterValueById("ParamAngleY", pitch * 10.5);
+      core.addParameterValueById("ParamAngleZ", roll);
+      core.addParameterValueById("ParamBodyAngleX", yaw * 3.1);
+      core.addParameterValueById("ParamBodyAngleY", pitch * 2.2);
+      core.addParameterValueById("ParamBodyAngleZ", roll * 0.32);
+      core.addParameterValueById("ParamEyeBallX", (a.x * eyes.first + b.x * eyes.second) * 0.80);
+      core.addParameterValueById("ParamEyeBallY", (a.y * eyes.first + b.y * eyes.second) * 0.82);
+      if (gesture.name === "doll") {
+        // The independently rigged doll answers Alice's first glance.
+        core.addParameterValueById("ParamDollAngleX", -9 * head.second);
+        core.addParameterValueById("ParamDollAngleY", 3 * head.second);
+        core.addParameterValueById("ParamDollX", -2.0 * head.second);
+        core.addParameterValueById("ParamDollY", 1.8 * head.second);
+      }
     }
     function setSpeaking(value) {
       if (value === speaking) return;
@@ -78,6 +171,7 @@
       attr("speaking", value ? "true" : null);
     }
     function setLine(line) {
+      interruptIdle();
       faceId = accents[line.expressionMotionId] ? line.expressionMotionId : "01";
       face = Object.assign({ ParamMouthForm: 0, ParamMouthFormScale: 1 }, expressions["01"] || {}, expressions[faceId] || {});
       // Amplify the authored direction, never guess a different emotion from
@@ -105,7 +199,7 @@
       // chooses the accent; a face alone must never imply sparkling stars.
       reactionType = scope.CompanionReactions && scope.CompanionReactions.types.indexOf(line.effect) >= 0
         ? line.effect : "";
-      if (reaction) reaction.draw(reactionType, 0, { x: 0, y: 0 }, reduced());
+      if (reaction) reaction.draw(reactionType, 0, reduced());
       nextAccent = time + 0.7;
       stopSpeaking();
       attr("expression-id", faceId);
@@ -232,16 +326,20 @@
       }
       if (character === "marisa" && faceId === "07")
         core.addParameterValueById("ParamMouthTooth", effect * mouth * 0.6);
-      if (reaction) reaction.draw(reactionType, effectAge, offsets, quiet);
+      if (reaction) reaction.draw(reactionType, effectAge, quiet);
+      updateIdle(dt, quiet, saying);
       attr("breathing", quiet ? null : "true");
     }
     setLine({ expressionMotionId: "01" });
     internal.on("beforeModelUpdate", frame);
     return {
       perform: setLine,
+      interruptIdle: interruptIdle,
       speak: speak,
       stopSpeaking: stopSpeaking,
+      refreshReaction: function () { if (reaction) reaction.reposition(); },
       destroy: function () {
+        interruptIdle();
         internal.off("beforeModelUpdate", frame);
         internal.eyeBlink = sdkBlink;
         if (reaction) reaction.destroy();
