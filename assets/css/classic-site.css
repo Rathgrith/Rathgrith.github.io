@@ -398,53 +398,27 @@ body.gallery-page.classic-site .page__content h1::before {
   vertical-align: middle;
 }
 
-/* Give the theme insignia its own place beside the introduction. */
+/* Keep the theme insignia in the spare space beside the greeting. */
 .home-page .page.classic-document { background-image: none; }
 .home-page .page__content > h1 {
   padding-bottom: 0;
   border-bottom: 0;
 }
-.home-intro { container-type: inline-size; }
-.home-intro__copy > p { max-width: 80ch; }
-.home-intro__copy > p:last-child { margin-bottom: 0; }
 .page__content .classic-welcome {
-  margin: 0 0 16px;
+  display: grid;
+  grid-template-columns: fit-content(100%) minmax(0, 1fr);
+  margin: 0 0 22px;
   color: var(--text);
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.16;
+  font-size: clamp(28px, 2.8vw, 38px);
+  line-height: 1.22;
   text-wrap: balance;
 }
-@container (300px <= width < 660px) {
-  .home-intro .classic-welcome {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .home-intro .classic-welcome::after {
-    content: "";
-    flex: 0 0 40px;
-    height: 40px;
-    background: var(--classic-corner-art) center / contain no-repeat;
-  }
-}
-@container (min-width: 660px) {
-  .home-intro__copy {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(96px, 14cqi, 160px);
-    align-items: start;
-    column-gap: clamp(20px, 3cqi, 40px);
-  }
-  .home-intro__copy > p { grid-column: 1; }
-  .home-intro__copy::after {
-    content: "";
-    grid-column: 2;
-    grid-row: 1 / 4;
-    align-self: start;
-    aspect-ratio: 1;
-    margin-top: 4px;
-    background: var(--classic-corner-art) center / contain no-repeat;
-  }
+.classic-welcome::after {
+  content: "";
+  justify-self: end;
+  width: 100%;
+  max-width: 1.22em;
+  background: var(--classic-corner-art) right center / contain no-repeat;
 }
 .classic-research {
   display: flex;
