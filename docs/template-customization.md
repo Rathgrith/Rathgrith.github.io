@@ -35,35 +35,11 @@ Jekyll merges custom configuration files, so a local override can contain only t
 
 ## Visitor map
 
-**Visitor map** opens from the profile card and the Options menu. The shared dialog uses this site's MapMyVisitors widget key, restored from the project's earlier configuration. For a different site, obtain its own key from the [MapMyVisitors widget setup](https://mapmyvisitors.com/add). Set `classic.visitor_map_key` to an empty string to remove the widget and both entries.
+**Visitor map** opens the Visitors tab of the World atlas from the profile card or the Options menu. The Weather tab displays the current Playground observing station and shares its forecast request and cache. The Visitors tab uses this site’s MapMyVisitors widget key. For a different site, obtain its own key from the [MapMyVisitors widget setup](https://mapmyvisitors.com/add). Set `classic.visitor_map_key` to an empty string to remove the widget and both entries.
 
-Edit the lists under `classic` in `_config.yml`. Add or remove one item per public address or city. These rules apply to future visits on `visitor_map_host`. Every device sharing an excluded public IP matches that entry. City rules match the English city name and two-letter country code reported by GeoJS. IP geolocation is approximate, particularly for mobile networks and VPNs.
+Set `classic.visitor_map_host` to the public hostname and `classic.visitor_map_report` to that site’s public MapMyVisitors report URL. The widget loads once on that host. Local builds and preview hosts display the themed map without counting a visit.
 
-```yaml
-classic:
-  visitor_map_host: "rathgrith.github.io"
-  visitor_map_excluded_cities:
-    - country: GB
-      city: Birmingham
-  visitor_map_excluded_ips:
-    - "203.0.113.17"
-    - "2001:db8::17"
-```
-
-A plain address is visible in the published page and repository. To keep the literal address out of both, add an item containing `sha256:` followed by the SHA-256 digest of its canonical address. Run this command from the network you want to exclude to print its list entry. If the public IP changes, update the entry and rebuild the site.
-
-```sh
-curl -fsS --max-time 8 'https://get.geojs.io/v1/ip/geo.json' | node -e '
-const { createHash } = require("node:crypto");
-const { ip } = JSON.parse(require("node:fs").readFileSync(0, "utf8"));
-if (!require("node:net").isIP(ip)) process.exit(1);
-const host = new URL("http://" + (ip.includes(":") ? "[" + ip + "]" : ip)).hostname;
-const canonical = host.replace(/^\[|\]$/g, "");
-console.log("- " + JSON.stringify("sha256:" + createHash("sha256").update(canonical).digest("hex")));
-'
-```
-
-With either list configured, the public site performs one GeoJS lookup per document before loading MapMyVisitors. A match, an invalid rule or a failed lookup leaves the local world map visible without sending a visit. Set both lists to `[]` to count without a lookup. Previews never send visits. The standalone Playground uses its own full-screen layout. [GeoJS response fields](https://www.geojs.io/docs/v1/endpoints/geo/)
+For a 30-day view, open the provider’s statistics report and select **Last 30 Days**. MapMyVisitors applies this setting to the report. The embedded map uses the provider’s own recent-visit window. [MapMyVisitors date ranges](https://mapmyvisitors.com/learn/guides/how-to-choose-a-traffic-date-range/)
 
 ## Content and artwork
 

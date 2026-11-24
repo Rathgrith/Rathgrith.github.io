@@ -104,39 +104,119 @@ async function withinPanel(page, panel, width, height) {
 }
 
 async function checkMap(page) {
-  const map = page.locator(".weather-map > img");
-  await map.evaluate((image) => image.decode());
-  const boxes = await page.locator(".weather-map").evaluate((element) => {
-    const image = element.querySelector("img").getBoundingClientRect();
-    const svg = element.querySelector("svg").getBoundingClientRect();
+  const map = page.locator("[data-weather-widget] .classic-map-surface");
+  const geometry = await map.evaluate((surface) => {
+    const bounds = surface.getBoundingClientRect();
+    const overlay = surface.querySelector("svg").getBoundingClientRect();
+    const marker = surface.querySelector("[data-weather-map-marker]");
+    const { e: longitudeX, f: latitudeY } = marker.transform.baseVal.getItem(0).matrix;
+    const point = new DOMPoint(0, 0).matrixTransform(marker.getScreenCTM());
     return {
-      image: {
-        width: image.width,
-        height: image.height,
-        x: image.x,
-        y: image.y,
-      },
-      svg: { width: svg.width, height: svg.height, x: svg.x, y: svg.y },
+      aspectRatio: bounds.width / bounds.height,
+      sizeError: Math.max(Math.abs(bounds.width - overlay.width), Math.abs(bounds.height - overlay.height)),
+      positionError: Math.max(
+        Math.abs(point.x - (bounds.x + longitudeX * bounds.width / 360)),
+        Math.abs(point.y - (bounds.y + latitudeY * bounds.height / 180))
+      ),
+      land: getComputedStyle(surface, "::before").maskImage,
+      crosshair: surface.querySelector("[data-weather-map-crosshair]").getAttribute("d"),
+      expectedCrosshair: `M${longitudeX.toFixed(2)} 0V180M0 ${latitudeY.toFixed(2)}H360`,
+      sight: getComputedStyle(surface.querySelector(".weather-map__sights")).animationName,
+      halo: getComputedStyle(surface.querySelector(".weather-map__echo")).opacity,
     };
   });
-  assert(
-    Math.abs(boxes.image.width / boxes.image.height - 2) < 0.01,
-    "world map preserves 2:1 geography"
-  );
-  assert(
-    Math.abs(boxes.svg.width / boxes.svg.height - 2) < 0.01,
-    "map crosshair uses the same aspect ratio"
-  );
-  assert(
-    Math.abs(boxes.image.width - boxes.svg.width) < 1 &&
-      Math.abs(boxes.image.height - boxes.svg.height) < 1,
-    "map and geographic overlay align"
-  );
-  assert(
-    Math.abs(boxes.image.x - boxes.svg.x) < 1 &&
-      Math.abs(boxes.image.y - boxes.svg.y) < 1,
-    "map marker origin aligns"
-  );
+  assert(Math.abs(geometry.aspectRatio - 2) < 0.01, "world map preserves 2:1 geography");
+  assert(geometry.sizeError < 1 && geometry.positionError < 1, "station projects onto the land at its exact coordinates");
+  assert.match(geometry.land, /weather\/world-map\.svg/);
+  assert.equal(geometry.crosshair, geometry.expectedCrosshair);
+  assert.equal(geometry.sight, "none", "reduced motion uses a static crosshair");
+  assert.equal(geometry.halo, "0", "reduced motion keeps the transient halo hidden");
+}
+
+async function checkAtlas(page, widget, compact, refreshAs, requestCount) {
+  const dialog = page.locator("#visitor-map-dialog");
+  const visitor = dialog.locator("#atlas-visitors-tab");
+  const weather = dialog.locator("#atlas-weather-tab");
+  const atlas = dialog.locator("[data-atlas-weather]");
+  const monitor = widget.locator("[data-atlas-weather-open]");
+  const options = page.locator("[data-site-options-trigger]");
+  const profile = page.locator(".profile-map-trigger");
+
+  async function selected(tab, other) {
+    assert.equal(await tab.getAttribute("aria-selected"), "true");
+    assert.equal(await tab.evaluate(el => el.tabIndex), 0);
+    assert.equal(await other.getAttribute("aria-selected"), "false");
+    assert.equal(await other.getAttribute("tabindex"), "-1");
+    const activePanel = await tab.getAttribute("aria-controls");
+    const hiddenPanel = await other.getAttribute("aria-controls");
+    assert(await dialog.locator("#" + activePanel).isVisible());
+    assert(await dialog.locator("#" + hiddenPanel).isHidden());
+  }
+  async function closeAndCheckFocus(opener, escape = false) {
+    if (escape) await page.keyboard.press("Escape");
+    else await dialog.locator(".visitor-map__close").click();
+    await dialog.waitFor({ state: "hidden" });
+    await page.waitForFunction((el) => document.activeElement === el, await opener.elementHandle());
+  }
+  async function sameStation(fix, coordinates) {
+    for (const root of [widget, atlas]) {
+      assert.equal(await root.locator("[data-weather-map-marker]").getAttribute("transform"), fix);
+    }
+    assert.equal(await atlas.locator("[data-weather-coordinates]").textContent(), coordinates);
+    for (const field of ["coordinates", "location", "name", "temperature", "signal"]) {
+      const selector = "[data-weather-" + field + "]";
+      const reading = (await widget.locator(selector).textContent()).trim();
+      assert(reading.length > 0);
+      assert.equal((await atlas.locator(selector).textContent()).trim(), reading, field);
+    }
+    const overlay = atlas.locator(".weather-map__overlay");
+    const sharedProjection = await overlay.evaluate((svg) => {
+      const map = svg.closest(".classic-map-surface");
+      const a = svg.getBoundingClientRect(), b = map.getBoundingClientRect();
+      return a.width > 0 && Math.abs(a.width / a.height - 2) < 0.03 &&
+        Math.abs(a.left - b.left) < 2 && Math.abs(a.top - b.top) < 2 &&
+        Math.abs(a.right - b.right) < 2 && Math.abs(a.bottom - b.bottom) < 2;
+    });
+    assert(sharedProjection, "the atlas marker overlay fills the map at the native 2:1 projection");
+  }
+
+  if (compact) await page.setViewportSize({ width: 390, height: 844 });
+  const activations = requestCount();
+  await profile.click();
+  await selected(visitor, weather);
+  if (compact) {
+    await weather.tap();
+  } else {
+    await visitor.focus();
+    await page.keyboard.press("ArrowRight");
+    await selected(weather, visitor);
+    await page.keyboard.press("ArrowLeft");
+    await selected(visitor, weather);
+    await page.keyboard.press("End");
+    assert(await weather.evaluate(el => el === document.activeElement));
+  }
+  await selected(weather, visitor);
+  await sameStation("translate(178.11 37.51)", "52.49°N / 1.89°W");
+  await closeAndCheckFocus(profile, !compact);
+  await options.click();
+  await page.locator("[data-site-options-menu] [data-visitor-map-open]").click();
+  await selected(visitor, weather);
+  await closeAndCheckFocus(options);
+  assert.equal(requestCount(), activations, "switching atlas layers reuses the terminal observation");
+
+  await page.evaluate(() => { window.__weatherLocateDenied = false; });
+  await widget.locator('[data-weather-action="locate"]').click();
+  await widget.locator('[data-weather-map-marker][transform="translate(319.65 54.32)"]').waitFor({ state: "attached" });
+  await page.waitForFunction(() => document.querySelector("[data-weather-widget]").getAttribute("aria-busy") === "false");
+  const beforeRefresh = requestCount();
+  await refreshAs(82);
+  await monitor.click();
+  await selected(weather, visitor);
+  await sameStation("translate(319.65 54.32)", "35.68°N / 139.65°E");
+  assert.equal(await widget.getAttribute("data-weather-phase"), "storm");
+  assert.equal(requestCount(), beforeRefresh + 1, "a single refresh updates both views");
+  await page.screenshot({ path: path.join(output, "atlas-weather-" + page.viewportSize().width + ".png") });
+  await closeAndCheckFocus(monitor);
 }
 
 async function terminalCase(
@@ -152,6 +232,7 @@ async function terminalCase(
   const context = await browser.newContext({
     viewport: { width, height },
     timezoneId: zone,
+    hasTouch: home && width < 1000,
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
@@ -214,7 +295,9 @@ async function terminalCase(
   });
   await context.route("**/*", async (route) => {
     const url = new URL(route.request().url());
-    if (url.hostname === "api.open-meteo.com") {
+    if (url.hostname === "api.open-meteo.com" && (url.searchParams.get("latitude") || "").includes(",")) {
+      await route.fulfill({ json: [] }); // Regional samples have their own integration suite.
+    } else if (url.hostname === "api.open-meteo.com") {
       calls++;
       assert.equal(url.searchParams.get("forecast_days"), "2");
       assert(
@@ -502,6 +585,22 @@ async function terminalCase(
         await widget.locator("[data-weather-coordinates]").textContent(),
         "35.68°N / 139.65°E"
       );
+      await checkMap(page);
+      const mapViewport = widget.locator("[data-atlas-viewport]");
+      await mapViewport.focus();
+      mode = "failure";
+      const failedPick = page.waitForRequest(request =>
+        new URL(request.url()).searchParams.get("cell_selection") === "nearest");
+      await mapViewport.press("Shift+ArrowRight");
+      await mapViewport.press("Enter");
+      await failedPick;
+      await widget.locator("[data-weather-status]").filter({hasText: "現在地の観測を表示しています"}).waitFor();
+      assert.equal(await widget.locator("[data-weather-coordinates]").textContent(), "35.68°N / 139.65°E");
+      mode = "normal";
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      assert.equal(await widget.locator(".weather-map__sights").first().evaluate(sight =>
+        getComputedStyle(sight).animationName), "none", "the crosshair stays fixed while a station settles");
+      await page.emulateMedia({ reducedMotion: "reduce" });
     }
 
     await page.clock.setFixedTime(new Date(Date.parse(midnight) + 60000));
@@ -548,6 +647,7 @@ async function terminalCase(
         `${home ? "docked" : failFirst ? "recovered" : "standalone"}-${width}${zone === "America/Los_Angeles" ? "" : "-" + zone.replace("/", "-")}.png`
       ),
     });
+    if (home) await checkAtlas(page, widget, width < 1000, refreshAs, () => calls);
     assert.deepEqual(
       errors,
       [],

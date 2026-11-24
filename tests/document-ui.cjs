@@ -44,6 +44,50 @@ const url = route => new URL(route, base).href;
     assert.equal(await page.evaluate(() => document.activeElement.id), "notes-projects-heading");
     assert.equal(await page.locator(".notes-index a[href]").count(), 11);
 
+    const touch = await browser.newPage({
+      viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: "reduce",
+    });
+    touch.on("pageerror", error => errors.push(error.message));
+    const shortcut = touch.locator("[data-reading-playground]");
+    const dock = touch.locator("[data-companion-mobile-dock]");
+    const popup = touch.locator("[data-companion-mobile-dock]:popover-open");
+    for (const route of ["gallery/", "notes/", ""]) {
+      await touch.goto(url(route));
+      await dock.locator("#live2d-widget").waitFor({ state: "attached" });
+      await touch.evaluate(() => { window.readingWidget = document.querySelector("#live2d-widget"); scrollTo(0, 1050); });
+      await shortcut.waitFor();
+      const position = await touch.evaluate(() => [scrollY, document.documentElement.scrollHeight]);
+      await shortcut.tap();
+      await popup.waitFor();
+      assert.deepEqual(await touch.evaluate(() => [scrollY, document.documentElement.scrollHeight]), position);
+      assert(await popup.evaluate(e => e.contains(window.readingWidget)), "Opening the panel keeps the same live widget");
+      const bounds = await popup.boundingBox();
+      assert(bounds.y >= 0 && bounds.y + bounds.height < 844, "The open panel fits above its shortcut");
+      await touch.keyboard.press("Escape");
+      await touch.waitForFunction(() => !document.querySelector("[data-companion-mobile-dock]").hasAttribute("popover"));
+      assert(await shortcut.evaluate(e => e === document.activeElement), "Escape returns focus to the shortcut");
+      assert.deepEqual(await touch.evaluate(() => [scrollY, document.documentElement.scrollHeight]), position);
+      if (route === "gallery/") {
+        await shortcut.tap();
+        const title = popup.locator("[data-companion-titlebar]");
+        await title.focus();
+        await touch.keyboard.press("ArrowLeft");
+        const floating = touch.locator("body > #live2d-widget");
+        await floating.waitFor();
+        await floating.locator("[data-companion-reset-position]").tap();
+        await touch.waitForFunction(() => document.activeElement.matches("[data-reading-playground]"));
+        assert.equal(await touch.evaluate(() => scrollY), position[0], "Returning the panel keeps the current photograph in view");
+      }
+      if (route === "notes/") {
+        const navigation = touch.locator(".classic-index-rail");
+        const box = await navigation.boundingBox();
+        assert(Math.abs(box.y - 8) < 1, "The Notes chapters stay at the top on touch screens");
+        await navigation.locator('a[href="#notes-projects-heading"]').tap();
+        await touch.waitForURL("**/#notes-projects-heading");
+        assert((await touch.locator("#notes-projects-heading").boundingBox()).y >= box.y + box.height);
+      }
+    }
+    await touch.close();
     const plain = await browser.newPage({ viewport: { width: 320, height: 700 }, javaScriptEnabled: false });
     await plain.goto(base);
     assert.equal(await plain.locator(".publication-item:visible").count(), 5);

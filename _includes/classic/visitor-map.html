@@ -1,20 +1,46 @@
 <dialog id="visitor-map-dialog" class="visitor-map" aria-labelledby="visitor-map-title">
   <header class="visitor-map__titlebar">
     <img src="{{ '/assets/images/classic/icons/16/mailbox_world-1.png' | relative_url }}" width="16" height="16" alt="">
-    <h2 id="visitor-map-title">Visitor map</h2>
-    <form method="dialog"><button type="submit" class="visitor-map__close" autofocus aria-label="Close visitor map"><svg width="16" height="16" aria-hidden="true"><use href="#classic-icon-close"></use></svg></button></form>
+    <h2 id="visitor-map-title">World atlas</h2>
+    <form method="dialog"><button type="submit" class="visitor-map__close" autofocus aria-label="Close map"><svg width="16" height="16" aria-hidden="true"><use href="#classic-icon-close"></use></svg></button></form>
   </header>
   <div class="visitor-map__body">
-    <div class="visitor-map__display">
-      <div class="visitor-map__mount" data-visitor-map-mount
-           data-visitor-map-host="{{ site.classic.visitor_map_host | escape }}"
-           data-visitor-map-excluded-ips="{{ site.classic.visitor_map_excluded_ips | jsonify | escape }}"
-           data-visitor-map-excluded-cities="{{ site.classic.visitor_map_excluded_cities | jsonify | escape }}"></div>
+    <div class="atlas-tabs" role="tablist" aria-label="Map layers" hidden>
+      <button type="button" role="tab" id="atlas-visitors-tab" aria-selected="true" aria-controls="atlas-visitors-panel">Visitors</button>
+      <button type="button" role="tab" id="atlas-weather-tab" aria-selected="false" aria-controls="atlas-weather-panel" tabindex="-1">Weather</button>
     </div>
-    <p class="visitor-map__status" data-visitor-map-status role="status" hidden></p>
-    <noscript><p class="visitor-map__status">Enable JavaScript to view visitor locations.</p></noscript>
+    <section id="atlas-visitors-panel" role="tabpanel" tabindex="0" aria-labelledby="atlas-visitors-tab" data-atlas-zoom>
+      <div class="atlas-zoom__viewport" data-atlas-viewport tabindex="0" role="group" aria-label="Visitor locations map">
+        <div class="classic-map-surface visitor-map__display atlas-zoom__layer" data-atlas-layer>
+          <div class="visitor-map__mount" data-visitor-map-mount
+               data-visitor-map-host="{{ site.classic.visitor_map_host | escape }}"></div>
+          <span class="visitor-map__scan" aria-hidden="true"></span>
+        </div>
+      </div>
+      {% include classic/map-zoom-controls.html %}
+      <footer class="visitor-map__footer">
+        <p class="visitor-map__status" data-visitor-map-status role="status"></p>
+        <noscript><p class="visitor-map__status">Enable JavaScript to view the map.</p></noscript>
+        {% if site.classic.visitor_map_report and site.classic.visitor_map_report != empty %}
+        <a class="visitor-map__source" data-visitor-map-report href="{{ site.classic.visitor_map_report | escape }}" target="_blank" rel="noopener noreferrer">MapMyVisitors report ↗</a>
+        {% else %}<span class="visitor-map__source">MapMyVisitors</span>{% endif %}
+      </footer>
+    </section>
+    <section id="atlas-weather-panel" role="tabpanel" aria-labelledby="atlas-weather-tab" tabindex="0" data-atlas-weather hidden>
+      {% include classic/weather-map.html %}
+      <div class="atlas-station" lang="ja">
+        <span data-weather-location>ウェスト・ミッドランズ</span>
+        <span data-weather-coordinates>52.49°N / 1.89°W</span>
+      </div>
+      <div class="atlas-observation" lang="ja">
+        <span><span data-weather-name>観測待ち</span> <b data-weather-temperature>--°C</b></span>
+        <span data-weather-signal>受信待機</span>
+      </div>
+      <p class="atlas-observation" data-weather-status role="status" lang="ja" hidden></p>
+      <footer class="visitor-map__footer"><a class="visitor-map__source" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo ↗</a></footer>
+    </section>
     <template id="visitor-map-embed">
-      <script async id="mapmyvisitors" src="https://mapmyvisitors.com/map.js?d={{ site.classic.visitor_map_key | url_encode | escape }}&amp;w=250&amp;t=tt&amp;cl=7f9db3&amp;co=17212d&amp;cmo=f4ad64&amp;cmn=fcdf8b&amp;ct=e5e8df"></script>
+      <script async id="mapmyvisitors" src="https://mapmyvisitors.com/map.js?d={{ site.classic.visitor_map_key | url_encode | escape }}&amp;w=400&amp;t=tt&amp;cl=7f9db3&amp;co=17212d&amp;cmo=f4ad64&amp;cmn=fcdf8b&amp;ct=e5e8df"></script>
     </template>
   </div>
 </dialog>

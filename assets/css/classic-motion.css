@@ -33,10 +33,10 @@
 
 @keyframes classic-navigation-progress {
   from {
-    background-position: -34% 0;
+    background-position: -48px 0;
   }
   to {
-    background-position: 134% 0;
+    background-position: calc(100% + 48px) 0;
   }
 }
 
@@ -172,15 +172,10 @@ html[data-navigation-pending] .classic-toolbar::after {
 }
 @media (prefers-reduced-motion: no-preference) {
   html[data-navigation-pending] .classic-toolbar::after {
-    background: linear-gradient(
-        90deg,
-        transparent,
-        var(--classic-accent),
-        transparent
-      )
-      no-repeat;
-    background-size: 25% 100%;
-    animation: classic-navigation-progress 900ms linear 120ms infinite backwards;
+    background: linear-gradient(90deg, transparent, var(--classic-accent) 63% 76%,
+      transparent 76% 84%, var(--classic-accent) 84% 92%, transparent 92% 96%,
+      var(--classic-accent) 96%) left center / 48px 100% no-repeat;
+    animation: classic-navigation-progress 1.3s ease-in-out 120ms infinite backwards;
   }
 }
 @media print, (forced-colors: active) {

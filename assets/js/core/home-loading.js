@@ -1,31 +1,41 @@
-/* A short entrance tied to local critical assets, never remote model/weather loading. */
+/* The entrance waits for local assets and gives the wind chimes time to read. */
 (function () {
   "use strict";
   var overlay = document.getElementById("home-loading-screen");
   if (!overlay) return;
-  var hidden = false,
-    started = performance.now(),
-    finishTimer = 0;
-  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var main = document.getElementById("main");
+  var loader = overlay.querySelector("[data-loading-min-ms]");
+  var minimumMs = Number(loader.dataset.loadingMinMs);
+  var hidden = false;
+  var minimumElapsed = false;
+  var assetsReady = false;
+  var minimumTimer;
+  var deadline;
   if (main) main.setAttribute("aria-busy", "true");
-  var deadline = setTimeout(hide, 1800);
+  overlay.classList.add("is-visible");
+  // Time spent parsing before the first paint does not count as visible time.
+  var firstFrame = requestAnimationFrame(function () {
+    minimumTimer = setTimeout(function () {
+      minimumElapsed = true;
+      if (assetsReady) hide();
+    }, minimumMs);
+    deadline = setTimeout(hide, 1800);
+  });
+
   function hide() {
     if (hidden) return;
     hidden = true;
+    cancelAnimationFrame(firstFrame);
+    clearTimeout(minimumTimer);
     clearTimeout(deadline);
-    clearTimeout(finishTimer);
     overlay.classList.add("is-hidden");
     document.body.classList.remove("home-loading");
     if (main) main.setAttribute("aria-busy", "false");
     document.removeEventListener("pointerdown", hide, true);
     document.removeEventListener("keydown", hide, true);
-    setTimeout(
-      function () {
-        overlay.remove();
-      },
-      reduced ? 0 : 200
-    );
+    setTimeout(function () {
+      overlay.remove();
+    }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160);
   }
   function ready() {
     if (hidden) return;
@@ -41,18 +51,13 @@
       assets.push(document.fonts.load('12px "Fusion Pixel"'));
     }
     Promise.allSettled(assets).then(function () {
-      if (!hidden)
-        finishTimer = setTimeout(
-          hide,
-          Math.max(0, (reduced ? 0 : 600) - (performance.now() - started))
-        );
+      assetsReady = true;
+      if (minimumElapsed) hide();
     });
   }
   document.addEventListener("pointerdown", hide, true);
   document.addEventListener("keydown", hide, true);
-  document.addEventListener("site:before-content-replace", hide, {
-    once: true,
-  });
+  document.addEventListener("site:before-content-replace", hide, { once: true });
   window.addEventListener("pageshow", function (event) {
     if (event.persisted) hide();
   });

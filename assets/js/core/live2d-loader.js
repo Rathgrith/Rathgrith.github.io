@@ -176,6 +176,7 @@
   var preferenceStorageKey = "site-live2d-enabled";
   var characterStorageKey = "site-live2d-character";
   var companionWidget = null;
+  var readingShortcut = null;
   var companionMinimized = false;
   var companionVisibilityChosen = false;
   var companionPosition = null;
@@ -359,6 +360,9 @@
       ? document.querySelector(".playground-host")
       : dock || document.body;
     if (widget.parentNode !== parent) {
+      var previousDock = widget.parentElement;
+      if (previousDock && previousDock.hasAttribute("popover") && previousDock.matches(":popover-open"))
+        previousDock.hidePopover();
       var focused = widget.contains(document.activeElement)
         ? document.activeElement
         : null;
@@ -474,6 +478,16 @@
     restoredWindow = null;
     companionPosition = null;
     applyResponsiveSize();
+  }
+  function focusDockedWindow(widget) {
+    var title = widget.querySelector("[data-companion-titlebar]");
+    var bounds = title.getBoundingClientRect();
+    if (readingShortcut && innerWidth < 1000 && widget.closest("[data-companion-mobile-dock]") &&
+        (bounds.bottom <= 0 || bounds.top >= innerHeight) &&
+        document.querySelector(".classic-toolbar").getBoundingClientRect().bottom <= 0) {
+      readingShortcut.hidden = false;
+      readingShortcut.focus({ preventScroll: true });
+    } else title.focus({ preventScroll: true });
   }
 
   function toggleCompanionMaximized() {
@@ -681,7 +695,7 @@
       .querySelector("[data-companion-reset-position]")
       .addEventListener("click", function () {
         resetCompanionPosition();
-        widget.querySelector("[data-companion-titlebar]").focus({ preventScroll: true });
+        focusDockedWindow(widget);
       });
     widget
       .querySelector("[data-companion-minimize]")
@@ -743,6 +757,7 @@
       if (event.key === "Home") {
         event.preventDefault();
         resetCompanionPosition();
+        focusDockedWindow(widget);
         return;
       } else {
         var directions = {
@@ -783,6 +798,7 @@
         if (syncModelLighting) syncModelLighting();
       },
       retry: function () {
+        window.SiteCompanion.setReady("loading");
         window.__sitePixiLibraryPromise = null;
         window.__siteCubismCoreLibraryPromise = null;
         window.__siteLive2DDisplayLibraryPromise = null;
@@ -1110,6 +1126,7 @@
     widget.querySelector(".playground-sizebar").hidden =
       standalone || companionMinimized;
     if (!stageObserver) {
+      bindReadingShortcut(widget);
       stageObserver = new ResizeObserver(function () {
         if (!stageFrame) stageFrame = requestAnimationFrame(syncStageRenderer);
       });
@@ -1154,6 +1171,69 @@
       applyResponsiveSize();
       if (shouldRenderLive2D() && !application) initLive2D();
     }, 80);
+  }
+
+  // Use the existing mobile dock in the top layer so the conversation, model
+  // and game keep their state. Reserve its space while it is out of flow.
+  function bindReadingShortcut(widget) {
+    var button = document.querySelector("[data-reading-playground]");
+    if (!button || !button.showPopover || !window.IntersectionObserver) return;
+    readingShortcut = button;
+    var toolbar = document.querySelector(".classic-toolbar");
+    var toolbarVisible = true, widgetVisible = false, openDock = null;
+    function syncShortcut() {
+      button.hidden = !openDock && (toolbarVisible || widgetVisible);
+      button.setAttribute("aria-expanded", String(Boolean(openDock)));
+      button.setAttribute("aria-label", openDock ? "Hide Playground panel" : "Show Playground panel");
+    }
+    function dismiss() {
+      if (openDock && openDock.matches(":popover-open")) openDock.hidePopover();
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.target === toolbar) toolbarVisible = entry.isIntersecting;
+        else widgetVisible = entry.isIntersecting;
+      });
+      syncShortcut();
+    });
+    observer.observe(toolbar);
+    observer.observe(widget);
+    button.addEventListener("click", function () {
+      if (openDock) { dismiss(); return; }
+      var dock = widget.closest("[data-companion-mobile-dock]");
+      if (!dock) return;
+      var footer = dock.parentElement;
+      footer.style.minHeight = footer.offsetHeight + "px";
+      dock.setAttribute("popover", "auto");
+      openDock = dock;
+      dock.addEventListener("toggle", function onToggle() {
+        if (dock.matches(":popover-open")) return;
+        dock.removeEventListener("toggle", onToggle);
+        dock.removeAttribute("popover");
+        footer.style.removeProperty("min-height");
+        openDock = null;
+        var bounds = widget.getBoundingClientRect();
+        widgetVisible = bounds.bottom > 0 && bounds.top < innerHeight;
+        syncShortcut();
+        if (document.activeElement === document.body || dock.contains(document.activeElement))
+          button.focus({ preventScroll: true });
+      });
+      dock.showPopover({ source: button });
+      if (companionMinimized) setCompanionMinimized(false);
+      syncShortcut();
+      widget.querySelector("[data-companion-titlebar]").focus({ preventScroll: true });
+    });
+    widget.addEventListener("click", function (event) {
+      if (event.target.closest("[data-companion-close], [data-companion-minimize], [data-companion-maximize]"))
+        dismiss();
+    }, true);
+    document.addEventListener("site:before-content-replace", dismiss);
+    document.addEventListener("site:live2d-toggle", function () {
+      if (shouldDisableLive2D()) dismiss();
+    });
+    matchMedia("(min-width: 1000px)").addEventListener("change", function (event) {
+      if (event.matches) dismiss();
+    });
   }
 
   function bindResponsiveEvents() {
@@ -1824,7 +1904,6 @@
     var generation = ++modelLoadGeneration;
     var elements = ensureWidget();
     if (currentModel && currentCharacterId === character.id) {
-      elements.widget.classList.remove("is-loading", "has-live2d-error");
       currentModel.visible = true;
       fitCurrentModel();
       updateInteractionUI(character);

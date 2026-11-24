@@ -219,17 +219,6 @@
     });
     return screened ? Math.min(p.y, home) : support;
   }
-  function steerDollFormation(input, field, target, slowSpeed) {
-    if (!input.focus) return;
-    var reach = target && target.kind === "spirit" ? 120 : field.focus ? 100 : 78;
-    if (target && distance(target, field.player) < reach) return;
-    // Precision steering at a distance keeps the dolls deployed. Use an analog
-    // input of the same velocity so the path that the planner checked is exact.
-    var scale = slowSpeed / cast.alice.speed;
-    input.x *= scale;
-    input.y *= scale;
-    input.focus = false;
-  }
   function flightBank(p, dx, dy, dt) {
     var response = 1 - Math.exp(-dt * 9);
     p.bank = (p.bank || 0) + (clamp(dx / Math.max(0.01, dt * 90), -1, 1) - (p.bank || 0)) * response;
@@ -274,8 +263,6 @@
     var count = Math.min(6, 2 + Math.floor(power / 5));
     var span = close ? 13 + (count - 2) * 2 : 20 + (count - 2) * 8;
     var centre = clamp(p.x, 7 + span, W - 7 - span);
-    var changed = w.focus !== undefined && w.focus !== close;
-    w.focus = close;
     w.guardClock = Math.max(0, w.guardClock - dt);
     w.scoutClock = Math.max(0, w.scoutClock - dt);
     w.dolls.length = Math.min(count, w.dolls.length);
@@ -289,9 +276,8 @@
           age: 0, swing: 0, tension: 0, scouting: false, mark: null, facing: -Math.PI / 2, cooldown: i * 0.089 };
         w.dolls.push(d);
       }
-      d.role = close || d.arm === "shield" ? "guard" : d.arm === "lance" ? "lancer" : "blade";
-      var range = close ? 67 : d.arm === "lance" ? 188 : d.arm === "blade" ? 158 : 112;
-      if ((changed || !canFire || (!d.scouting && distance(d, p) > range + 48)) &&
+      var reach = d.arm === "lance" ? 188 : d.arm === "blade" ? 158 : 112;
+      if ((!canFire || (!d.scouting && distance(d, p) > reach + 48)) &&
           (d.phase === "sortie" || d.phase === "windup" || d.phase === "strike")) {
         d.phase = "return"; d.age = 0; d.mark = null;
       }
@@ -321,13 +307,16 @@
         var rx = homeX - d.x, ry = homeY - d.y;
         var dist = Math.hypot(rx, ry);
         var returning = d.phase === "return";
-        var returnSpeed = d.scouting && !close ? 200 : 460;
+        var returnSpeed = d.scouting ? 200 : 460;
         var travel = Math.min(dist, (returning ? returnSpeed : 310) * dt);
         if (dist) { d.x += rx / dist * travel; d.y += ry / dist * travel; }
         if (d.phase === "return" && dist <= travel + 1) {
           d.phase = "home"; d.age = 0; d.swing = 0; d.facing = -Math.PI / 2;
           d.scouting = false;
         }
+        // Pick the stance at home so switching speeds never changes a strike in flight.
+        if (d.phase === "home")
+          d.role = d.arm === "lance" ? "lancer" : close || d.arm === "shield" ? "guard" : "blade";
         if (!returning || !d.scouting) d.cooldown = Math.max(0, d.cooldown - dt * tempo);
         if (close && d.arm !== "lance" && d.phase === "home" && canFire && !w.guardClock) {
           var blocked = (field.bullets || []).findIndex(function (b) {
@@ -342,8 +331,9 @@
           }
         }
         if (!canFire || d.phase !== "home" || d.cooldown > 0 || dist > 12) continue;
+        var range = close && d.role === "guard" ? 67 : reach;
         var target = orderTarget(d, homeX, homeY, range, targets, w.dolls, p);
-        if (!target && !close && d.arm === "lance" && !w.scoutClock) {
+        if (!target && d.arm === "lance" && !w.scoutClock) {
           var visible = targets.filter(function (t) {
             return t.x >= -4 && t.x <= W + 4 && t.y < p.y + 12;
           });
@@ -1146,7 +1136,6 @@
         speed: cast[player].speed, slowSpeed: 56, top: 28,
         previous: autoInput.nextAction, laserPose: laserPose,
       });
-      if (player === "alice") steerDollFormation(autoInput, state, target, 56);
       if (autoInput.impact < 0.14 && p.invulnerable < 0.1) bomb();
       return autoInput;
     }
@@ -1580,7 +1569,6 @@
     advanceImpacts: advanceImpacts,
     markDurability: markDurability,
     flightBank: flightBank,
-    steerDollFormation: steerDollFormation,
     dollSupportY: dollSupportY,
     width: W,
     height: H,

@@ -53,6 +53,18 @@ fs.mkdirSync(out, { recursive: true });
       .evaluate((e) => e.parentElement.hasAttribute("data-companion-dock")),
     true
   );
+  await page.evaluate(() => {
+    const profile = document.querySelector(".profile_box");
+    scrollBy({ top: profile.getBoundingClientRect().bottom + 160, behavior: "instant" });
+  });
+  await page.waitForFunction(() => {
+    const profile = document.querySelector(".profile_box").getBoundingClientRect();
+    const tools = document.querySelector(".classic-profile-tools").getBoundingClientRect();
+    const index = document.querySelector(".classic-page-index").getBoundingClientRect();
+    const widget = document.querySelector("#live2d-widget").getBoundingClientRect();
+    return profile.bottom < 0 && Math.abs(tools.top - 16) <= 1 &&
+      index.top >= 0 && index.bottom <= widget.top && widget.bottom <= innerHeight - 15;
+  });
   for (const id of ["alice", "marisa", "patchouli"]) {
     await page.locator(`button[data-vn-character="${id}"]`).click();
     await page.waitForFunction(
@@ -183,8 +195,9 @@ fs.mkdirSync(out, { recursive: true });
   );
   assert.equal(await page.locator("[data-weather-widget]").count(), 1);
   assert.equal(await page.locator(".classic-photo").count(), 110);
-  for (const width of [1000, 1280, 1440, 1920]) {
-    await page.setViewportSize({ width, height: 1000 });
+  for (const [width, height] of [[1000, 430], [1280, 720], [1440, 900], [1920, 1000]]) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => scrollTo({ top: 2000, behavior: "instant" }));
     await page.waitForTimeout(150);
     const galleryDock = await page.locator("#live2d-widget").evaluate((e) => {
       const r = e.getBoundingClientRect();
@@ -192,17 +205,41 @@ fs.mkdirSync(out, { recursive: true });
       const rail = e.closest(".classic-gallery-rail");
       const photos = document.querySelector(".gallery-container").getBoundingClientRect();
       const nav = document.querySelector(".classic-year-navigation").getBoundingClientRect();
+      const content = e.querySelector(".vn-main-view");
       return {
         docked: !!dock && !!rail,
         besidePhotos: r.left >= photos.right,
         belowIndex: r.top >= nav.bottom,
+        pinned: Math.abs(rail.getBoundingClientRect().top - 16) <= 1 &&
+          nav.top >= 0 && r.bottom <= innerHeight - 15,
+        scrollable: content.scrollHeight > content.clientHeight && getComputedStyle(content).overflowY === "auto",
         fits: !!dock && r.width <= dock.clientWidth && r.right <= innerWidth,
         overflow: document.documentElement.scrollWidth > innerWidth,
       };
     });
-    assert(galleryDock.docked && galleryDock.besidePhotos && galleryDock.belowIndex && galleryDock.fits && !galleryDock.overflow,
-      JSON.stringify({ width, ...galleryDock }));
+    assert(galleryDock.docked && galleryDock.besidePhotos && galleryDock.belowIndex &&
+      galleryDock.pinned && galleryDock.scrollable && galleryDock.fits && !galleryDock.overflow,
+      JSON.stringify({ width, height, ...galleryDock }));
   }
+  const galleryPosition = await page.evaluate(() => scrollY);
+  await page.locator('[data-vn-open="settings"]').click();
+  await page.locator('[data-vn-panel="settings"]').waitFor();
+  await page.keyboard.press("Escape");
+  assert(Math.abs((await page.evaluate(() => scrollY)) - galleryPosition) <= 1,
+    "Using the dock's lower controls keeps the same photograph in view");
+  await page.setViewportSize({ width: 1024, height: 430 });
+  await page.locator("[data-danmaku-open]").click();
+  await page.locator('[data-danmaku-challenge="patchouli"]').click();
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector("[data-danmaku-canvas]").getBoundingClientRect();
+    const clip = document.querySelector(".danmaku-battle").getBoundingClientRect();
+    return canvas.height >= 145 && canvas.top >= clip.top && canvas.bottom <= clip.bottom;
+  });
+  await page.locator("[data-danmaku-exit]").click();
+  await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+  assert(await page.locator(".classic-gallery-rail").evaluate((rail) =>
+    rail.getBoundingClientRect().bottom <= rail.parentElement.getBoundingClientRect().bottom + 1),
+    "The pinned Gallery rail ends with the photo grid");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator(".classic-photo a").first().click();
   await page.keyboard.press("Escape");
@@ -275,6 +312,7 @@ fs.mkdirSync(out, { recursive: true });
         r = e.getBoundingClientRect(),
         f = document.querySelector(".classic-frame").getBoundingClientRect(),
         article = document.querySelector(".page").getBoundingClientRect(),
+        chat = e.querySelector(".vn-main-view"),
         docked = e.classList.contains("is-docked");
       return {
         width: innerWidth,
@@ -289,9 +327,9 @@ fs.mkdirSync(out, { recursive: true });
         contentOverflow:
           document.querySelector("[data-companion-content]").scrollWidth >
           e.clientWidth,
-        chatOverflows:
-          document.querySelector(".vn-main-view").scrollHeight >
-          document.querySelector(".vn-main-view").clientHeight + 1,
+        chatAccessible: chat.scrollHeight <= chat.clientHeight + 1 ||
+          (innerWidth >= 1000 && !!e.closest(".classic-pinned-rail") &&
+            getComputedStyle(chat).overflowY === "auto" && chat.clientHeight > 0),
       };
     });
     assert(
@@ -299,7 +337,7 @@ fs.mkdirSync(out, { recursive: true });
         info.widgetFits &&
         !info.overlapsWide &&
         !info.contentOverflow &&
-        !info.chatOverflows,
+        info.chatAccessible,
       JSON.stringify(info)
     );
     assert.equal(info.docked, true);

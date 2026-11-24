@@ -1112,7 +1112,7 @@ html[data-live2d-character="patchouli"]
 }
 
 .visitor-map {
-  width: min(288px, calc(100vw - 20px));
+  width: min(428px, calc(100vw - 24px));
   max-height: calc(100dvh - 20px);
   margin: auto;
   padding: 3px;
@@ -1123,6 +1123,53 @@ html[data-live2d-character="patchouli"]
   background: var(--classic-panel);
   box-shadow: var(--classic-bevel-raised), 4px 4px 0 #0005;
 }
+.atlas-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--classic-rule);
+}
+.atlas-tabs button {
+  min-height: 34px;
+  padding: 4px 14px;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font: 15px/1.2 var(--classic-font);
+  background: transparent;
+  cursor: pointer;
+}
+.atlas-tabs button:hover,
+.atlas-tabs button[aria-selected="true"] {
+  color: var(--classic-accent);
+  background: var(--classic-soft);
+}
+.atlas-tabs button[aria-selected="true"] { border-bottom-color: currentColor; }
+.atlas-tabs button:focus-visible,
+.visitor-map [role="tabpanel"]:focus-visible { outline-offset: -2px; }
+.atlas-station {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid var(--classic-rule);
+  font: 15px/1.4 var(--classic-font);
+}
+.atlas-station [data-weather-coordinates] {
+  color: var(--text-muted);
+  font: 12px/1.5 monospace;
+}
+.atlas-observation {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 3px 0 0;
+  font: 14px/1.4 var(--classic-font);
+}
+.atlas-observation [data-weather-signal] { color: var(--text-muted); }
 .visitor-map::backdrop { background: rgb(10 15 24 / 55%); }
 .visitor-map__titlebar {
   display: flex;
@@ -1150,7 +1197,7 @@ html[data-live2d-character="patchouli"]
   fill: currentColor;
   cursor: pointer;
 }
-.visitor-map__body { padding: 12px 6px 5px; }
+.visitor-map__body { padding: 10px; }
 .visitor-map__titlebar .visitor-map__close:hover {
   color: var(--classic-accent);
   background: var(--classic-soft);
@@ -1158,58 +1205,91 @@ html[data-live2d-character="patchouli"]
 .visitor-map__titlebar .visitor-map__close:active {
   box-shadow: inset 1px 1px var(--classic-edge-dark);
 }
-.visitor-map__display {
+.visitor-map .visitor-map__display {
+  width: min(100%, 400px);
+  margin-inline: auto;
+}
+.visitor-map__mount {
   position: relative;
-  width: 250px;
-  max-width: 100%;
-  margin: 0 auto;
-  min-height: 125px;
-  background: color-mix(in srgb, var(--classic-accent) 6%, var(--classic-desktop));
-  box-shadow: 0 0 0 1px var(--classic-edge-dark), 0 0 0 4px var(--classic-chrome),
-    0 0 0 5px var(--classic-edge-mid);
+  z-index: 1;
+  width: var(--visitor-map-width, 100%);
+  margin-inline: auto;
+  zoom: var(--visitor-map-zoom, 1);
 }
-.visitor-map__display::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--classic-accent);
-  opacity: 0.85;
-  mask: url("../images/classic/weather/world-map.svg") center / contain no-repeat;
-  pointer-events: none;
+/* Preserve the provider's Miller projection, including its original link,
+   marker positions, legend and counters. Its own content sets the live height. */
+.visitor-map .visitor-map__display:has(#mapmyvisitors-widget) {
+  aspect-ratio: auto;
 }
-/* Twelve ticks follow the 30-degree longitude divisions along the bezel. */
-.visitor-map__display::after {
-  content: "";
-  position: absolute;
-  inset: -4px 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(90deg, var(--classic-edge-light) 0 1px, transparent 1px 8.3333%)
-    left top / 100% 3px no-repeat;
+.visitor-map .visitor-map__display:has(#mapmyvisitors-widget)::before {
+  opacity: 0;
 }
-.visitor-map__mount { position: relative; overflow-x: clip; }
-.visitor-map__status {
+.visitor-map .mapmyvisitors-map-container {
+  background-color: var(--map-sea) !important;
+}
+.visitor-map .mapmyvisitors-map {
+  background-color: var(--map-land);
+  background-blend-mode: luminosity;
+}
+.visitor-map .mapmyvisitors-visitors,
+.visitor-map .mapmyvisitors-date {
+  color: var(--text) !important;
+}
+.visitor-map .mapmyvisitors-map .jvectormap-marker {
+  stroke: var(--map-sea);
+  stroke-opacity: 1;
+  stroke-width: 1.75px;
+  paint-order: stroke fill;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 .8px var(--map-beacon));
+}
+.visitor-map .mapmyvisitors-map .jvectormap-marker:hover {
+  stroke: var(--classic-accent);
+  stroke-width: 2px;
+}
+.visitor-map #mapmyvisitors-widget:focus-visible {
+  outline: 2px solid var(--classic-accent);
+  outline-offset: -3px;
+}
+.visitor-map__scan { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .visitor-map[open] #atlas-visitors-panel:not([hidden]) .visitor-map__scan {
+    position: absolute;
+    display: block;
+    z-index: 2;
+    inset: 0 0 auto;
+    height: 23%;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--map-grid) 96%, var(--map-frame) 100%);
+    opacity: 0;
+    animation: visitor-map-scan .78s ease-out;
+  }
+}
+@keyframes visitor-map-scan {
+  from { transform: translateY(-100%); opacity: 0; }
+  15% { opacity: .75; }
+  82% { opacity: .5; }
+  to { transform: translateY(435%); opacity: 0; }
+}
+.visitor-map__footer {
   display: flex;
   align-items: baseline;
-  gap: 7px;
-  margin: 13px 0 0;
-  padding: 4px 7px;
-  border: 1px solid;
-  border-color: var(--classic-edge-dark) var(--classic-edge-mid) var(--classic-edge-mid) var(--classic-edge-dark);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 3px;
+  margin-top: 9px;
+  padding-top: 6px;
+  border-top: 1px solid var(--classic-rule);
   color: var(--text-muted);
-  background: var(--classic-document);
-  font: 14px/1.35 var(--classic-font);
+  font: 13px/1.45 var(--classic-font);
 }
-.visitor-map__status::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  flex: none;
-  align-self: flex-start;
-  margin-top: 7px;
-  background: var(--classic-accent);
-}
-.visitor-map:has([data-visitor-map-state="unavailable"]) .visitor-map__status::before {
-  background: #d6ac75;
+.visitor-map__status { margin: 0; flex: 1 1 145px; }
+.visitor-map__status:empty { display: none; }
+.visitor-map__source {
+  margin-inline-start: auto;
+  color: var(--classic-accent);
+  font-size: 12px;
 }
 @media print {
   .visitor-map, .profile-map-trigger { display: none; }
@@ -1349,18 +1429,17 @@ body.live2d-is-hidden .classic-companion-dock {
   display: none;
 }
 
-/* The entire desktop rail follows the document. Tall rails scroll through before
-   resting at the viewport edge; the main grid keeps them above the footer. */
+.classic-profile-tools { display: contents; }
+
+/* The profile scrolls away before its reading tools reach the top. */
 @media (min-width: 1000px) {
   .profile_box .author__avatar {
     width: 100%;
     max-width: 260px;
   }
-  .classic-profile-rail {
-    position: sticky;
-    top: var(--classic-rail-top, 16px);
-    align-self: start;
-  }
+  .classic-profile-rail { align-self: stretch; }
+  .classic-profile-tools { margin-top: 18px; }
+  .classic-profile-tools > .classic-page-index { margin: 0; }
 }
 
 .classic-mobile-page-index,
@@ -1370,12 +1449,46 @@ body.live2d-is-hidden .classic-companion-dock {
 .classic-companion-mobile-dock:empty {
   display: none;
 }
+.classic-reading-playground { display: none; }
 body.live2d-is-hidden .classic-companion-mobile-dock {
   display: none;
 }
 
 /* Tablet: profile above the document. */
 @media (max-width: 999px) {
+  body:not(.live2d-is-hidden, .gallery-modal-open):has(#live2d-widget.is-docked)
+    .classic-reading-playground:not([hidden]) {
+    position: fixed;
+    z-index: 30;
+    inset: auto max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 42px;
+    padding: 6px 10px;
+    border: 1px solid var(--classic-rule);
+    background: var(--classic-chrome);
+    color: var(--reading-shortcut-ink, var(--text));
+    box-shadow: 2px 2px 0 var(--classic-edge-dark);
+    font: 15px/1 var(--classic-font);
+    cursor: pointer;
+  }
+  .classic-reading-playground img { image-rendering: pixelated; }
+  .classic-reading-playground[aria-expanded="true"] { --reading-shortcut-ink: var(--classic-accent); }
+  .classic-companion-mobile-dock:popover-open {
+    position: fixed;
+    inset: auto max(8px, env(safe-area-inset-right)) calc(max(10px, env(safe-area-inset-bottom)) + 50px) auto;
+    width: min(400px, calc(100% - 20px));
+    max-height: calc(100dvh - max(10px, env(safe-area-inset-bottom)) - max(8px, env(safe-area-inset-top)) - 50px);
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--classic-rule);
+    background: var(--classic-panel);
+    color: var(--text);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
   .classic-mobile-page-index:not(:empty) {
     display: block;
     position: sticky;
@@ -1412,7 +1525,7 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
     scroll-margin-top: var(--classic-index-clearance, 84px);
   }
   .classic-mobile-footer {
-    display: block;
+    display: flow-root;
     grid-column: 1 / -1;
     min-width: 0;
     padding: 0 4px;

@@ -332,10 +332,11 @@ screen.field.focus = true;
 screen.frame();
 // Measure contact damage through the same finite-radius target, not against
 // a stationary doll origin. Simulate the approach, lunge, return, then rearm.
-function puppetTrial(power, distance, moving = false) {
+function puppetTrial(power, distance, moving = false, focus = false) {
   const mark = {x: 120, y: 60, radius: 6, hp: 1e7};
   const range = firingRange("alice", [mark], power);
   range.field.player.y = 60 + distance;
+  range.field.focus = focus;
   const riders = new Set(), old = new Map();
   let returned = 0, largest = 0;
   for (let i = 0; i < 900; i++) {
@@ -355,23 +356,48 @@ function puppetTrial(power, distance, moving = false) {
   return {total:range.hits.get(mark) || 0, riders:riders.size, returned, largest};
 }
 for (const power of [1, 10, 32]) {
-  const near = puppetTrial(power, 48), mid = puppetTrial(power, 125), far = puppetTrial(power, 254);
-  assert(near.total > mid.total && mid.total > far.total && far.total > 0);
-  assert.equal(far.riders, power >= 10 ? 2 : 1);
-  assert(far.returned >= far.riders && far.largest < 8);
-  assert(puppetTrial(power, 254, true).total > 0, "A long sortie can reach a moving opponent");
-  if (process.env.REPORT_GROWTH)
-    console.log("Alice P" + power + " DPS at 48/125/254px", [near, mid, far].map(m => (m.total / 15).toFixed(1)));
+  for (const focus of [false, true]) {
+    const trial = (distance, moving = false) => puppetTrial(power, distance, moving, focus);
+    const near = trial(48), mid = trial(125), far = trial(254);
+    assert(near.total > mid.total && mid.total > far.total && far.total > 0);
+    assert.equal(far.riders, power >= 10 ? 2 : 1);
+    assert(far.returned >= far.riders && far.largest < 8);
+    assert(trial(254, true).total > 0, "A long sortie can reach a moving opponent");
+    if (process.env.REPORT_GROWTH)
+      console.log("Alice P" + power, focus ? "focused" : "spread", "DPS at 48/125/254px",
+        [near, mid, far].map(m => (m.total / 15).toFixed(1)));
+  }
 }
-const recallTarget = {x:120, y:40, hp:1e4}, recall = firingRange("alice", [recallTarget], 10);
-for (let i=0; i<48; i++) recall.frame();
-const patrol = recall.field.weapon.dolls.find(d => d.phase === "sortie");
-assert(patrol && patrol.y < 210);
-recall.field.focus = true;
-recall.frame();
-assert.equal(patrol.phase, "return");
-for (let i=0; i<200; i++) recall.frame();
-assert(patrol.phase === "home" && !patrol.scouting && !recall.hits.size);
+const patrolTarget = {x:120, y:40, hp:1e4}, patrol = firingRange("alice", [patrolTarget], 10);
+for (let i = 0; i < 48; i++) patrol.frame();
+const rider = patrol.field.weapon.dolls.find(d => d.phase === "sortie");
+assert(rider && rider.y < 210);
+const sortieY = rider.y;
+patrol.field.focus = true;
+patrol.frame();
+assert(rider.phase === "sortie" && rider.y < sortieY, "Switching to focus keeps a deployed rider on target");
+for (let i = 0; i < 240; i++) {
+  patrol.field.focus = i % 2 === 0;
+  patrol.frame();
+}
+assert(patrol.hits.get(patrolTarget) > 0, "Feathering focus cannot starve an attack");
+for (const startedFocused of [false, true]) {
+  const spar = firingRange("alice", [{x:130, y:250, radius:6, hp:999}]);
+  spar.field.focus = startedFocused;
+  spar.frame();
+  const sword = spar.field.weapon.dolls.find(d => d.arm === "blade");
+  for (let i = 0; i < 30 && sword.phase === "home"; i++) spar.frame();
+  assert.equal(sword.phase, "windup");
+  const stance = sword.role;
+  spar.field.focus = !startedFocused;
+  for (let i = 0; i < 90 && sword.phase !== "return"; i++) {
+    spar.frame();
+    assert.equal(sword.role, stance, "The drawn sword keeps its committed arc across a focus switch");
+  }
+  assert(sword.hits.size && sword.phase === "return");
+  for (let i = 0; i < 90 && sword.phase === "return"; i++) spar.frame();
+  assert.notEqual(sword.role, stance, "The sword adopts the new formation on arriving home");
+}
 const sentry = screen.field.weapon.dolls.find(d => d.arm === "blade");
 const bullet = {x:sentry.x, y:sentry.y - 5, radius:2};
 screen.field.bullets = [{...bullet, hard:true}, {...bullet, radius:4}, {...bullet}, {...bullet}];
