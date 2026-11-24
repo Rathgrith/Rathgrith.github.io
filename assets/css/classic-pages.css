@@ -69,7 +69,14 @@
 }
 @media (max-width: 999px) {
   #main.classic-indexed-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .classic-index-rail { grid-row: 1; }
+  .classic-index-rail {
+    grid-row: 1;
+    position: sticky;
+    top: 8px;
+    z-index: 20;
+  }
+  .notes-page .notes-heading { scroll-margin-top: var(--classic-index-clearance); }
+  .classic-indexed-grid { --classic-index-clearance: 84px; }
   .classic-index-rail .classic-year-navigation {
     display: grid;
     position: static;
@@ -121,7 +128,10 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     & > .page { grid-area: archive; }
-    & .classic-companion-dock { grid-area: dock; margin: 0; }
+    & .classic-companion-dock {
+      grid-area: dock;
+      margin: 0;
+    }
   }
 }
 .gallery-page .page__content {
@@ -140,21 +150,98 @@
 }
 .classic-gallery-rail {
   min-width: 0;
-  align-self: stretch;
   padding: 0 10px;
 }
-.classic-gallery-rail .classic-year-navigation {
-  position: static;
-}
-.classic-gallery-rail .classic-companion-dock {
-  margin: 20px 0 0;
-}
-/* A tall conversation stays in page flow; the index can stick when it stands alone. */
-@media (min-width: 1000px) {
-  .classic-gallery-rail:has(.classic-companion-dock:empty)
-    .classic-year-navigation,
-  body.live2d-is-hidden .classic-gallery-rail .classic-year-navigation {
+@media screen and (min-width: 1000px) {
+  .classic-pinned-rail {
     position: sticky;
+    top: 16px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: calc(100dvh - 32px);
+  }
+  .classic-pinned-rail > :is(.classic-year-navigation, .classic-page-index) {
+    position: static;
+    flex: none;
+    max-height: 44dvh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .classic-pinned-rail > .classic-companion-dock {
+    min-height: 0;
+    margin: 0;
+  }
+  /* Fit the live reading surface beneath the index. Its title and resize
+     handle remain available while the conversation or battle scrolls inside. */
+  .classic-pinned-rail > :where(.classic-companion-dock:not(:empty)),
+  .classic-pinned-rail #live2d-widget.is-docked,
+  .classic-pinned-rail #live2d-widget.is-docked .playground-surface {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .classic-pinned-rail #live2d-widget.is-docked .companion-titlebar {
+    flex: none;
+  }
+  .classic-pinned-rail #live2d-widget.is-docked [data-companion-content] {
+    min-height: 0;
+  }
+  .classic-pinned-rail #live2d-widget.is-docked .vn-main-view {
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .classic-pinned-rail #live2d-widget.is-docked .vn-danmaku-view {
+    max-height: 100%;
+  }
+  .classic-gallery-rail .classic-year-navigation {
+    gap: 3px;
+  }
+  .classic-gallery-rail .classic-year-navigation .classic-button {
+    padding-block: 5px;
+  }
+}
+@media screen and (min-width: 1000px) and (max-height: 740px) {
+  .classic-gallery-rail > .classic-year-navigation {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .classic-gallery-rail .classic-rail-heading { grid-column: 1 / -1; }
+  .classic-gallery-rail .classic-collection-count,
+  .classic-gallery-rail .classic-small { display: none; }
+  /* On a short desktop the statistics would squeeze the arena to a few
+     pixels. Keep the field and controls together and scroll to the readouts. */
+  .classic-pinned-rail #live2d-widget.is-docked .danmaku-battle {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+  }
+  .classic-pinned-rail #live2d-widget.is-docked .danmaku-arena {
+    order: -2;
+    flex: 1 0 clamp(150px, 28dvh, 236px);
+  }
+  .classic-pinned-rail #live2d-widget.is-docked .danmaku-controls {
+    order: -1;
+    flex: none;
+  }
+}
+@media screen and (min-width: 1000px) and (max-height: 600px) {
+  .classic-pinned-rail > :is(.classic-year-navigation, .classic-page-index) {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 5px;
+    gap: 4px;
+    scroll-padding-inline: 5px;
+  }
+  .classic-pinned-rail > nav .classic-rail-heading,
+  .classic-pinned-rail > nav .classic-small { display: none; }
+  .classic-pinned-rail > nav a {
+    flex: none;
+    min-height: 34px;
+    font-size: 14px;
+    white-space: nowrap;
   }
 }
 .classic-archive-grid > .classic-document {

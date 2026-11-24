@@ -8,5 +8,5 @@
         characters: {{ site.data.characters | jsonify }}
       };
     </script>
-    <template id="prayer-loader-template">{% include prayer-loader.html %}</template>
+    <template id="prayer-loader-template">{% include prayer-loader.html place="companion" %}</template>
     <div hidden data-companion-weather-source>{% include weather-widget.html %}</div>

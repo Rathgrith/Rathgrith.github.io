@@ -66,6 +66,7 @@ function instrumentation(global) {
         await page.locator("[data-danmaku-open]").click();
         if (mode === "flower")
           await page.locator('[data-danmaku-game-mode="flower"]').click();
+        await page.locator('[data-danmaku-player="alice"]').click();
         await page.locator('[data-danmaku-challenge="marisa"]').click();
         await page.waitForFunction(() => window.focusQA?.frames > 0);
         await page.evaluate(() => {
@@ -230,6 +231,24 @@ function instrumentation(global) {
         await touch("touchEnd", []);
         assert.equal((await sample()).input.target, null);
         await cdp.detach();
+        if (mode === "score") await page.keyboard.down("Shift");
+        else await page.locator("[data-danmaku-slow]").tap();
+        assert((await sample()).input.focus);
+        const cut = await page.evaluate(() => {
+          const q = focusQA, s = q.game.state, f = s.mode === "flower" ? s.fields[0] : s;
+          const target = {x:120, y:65, hp:999, maxHp:999, radius:9, age:0};
+          f.player.x = 120; f.player.y = 310;
+          if (s.mode === "flower") {
+            f.enemies = [Object.assign(target, {origin:120, phase:0, kind:"fairy", vy:0, fire:99})];
+          } else {
+            s.run.nextWave = 999;
+            s.foes = [Object.assign(target, {lane:120, offset:0, kind:"keeper", salvos:0})];
+          }
+          for (let i = 0; i < 300 && target.hp === target.maxHp; i++) q.advance();
+          return f.focus && target.hp < target.maxHp &&
+            f.impacts.some(impact => impact.kind === "lance" || impact.kind === "blade");
+        });
+        assert(cut, mode + ": holding low speed reaches a distant target and draws an actual hit");
         assert.deepEqual(errors, [], `${mode}: no browser exceptions`);
         console.log(
           `PASS ${mode}: Shift/button takeover preserves both firing fields and resources. The pilot follows the active touch.`

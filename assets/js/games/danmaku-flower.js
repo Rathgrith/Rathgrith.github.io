@@ -730,7 +730,6 @@
         preferFocus: nearest && nearest.kind === "spirit" && distance(nearest, p) < 120,
         previous: f.aiInput.nextAction, laserPose: base.laserPose,
       });
-      if (f.id === "alice") base.steerDollFormation(chosen, f, opponent, 58);
       if (chosen.impact < 0.14 && p.invulnerable < 0.1 && f.gauge >= 200 && !f.cooldown)
         card(f, Math.min(4, Math.floor(f.gauge / 100)), true);
       var target = f.boss ? 4 : [2, 3, 4][f.cards % 3];

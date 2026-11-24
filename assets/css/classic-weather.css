@@ -109,54 +109,98 @@
   margin: 0;
   overflow: hidden;
 }
-/* The image retains intrinsic 2:1 sizing; the mask tints the same artwork. */
-.weather-map > img {
-  display: block;
-  width: 100%;
-  height: auto;
-  opacity: 0;
+/* Weather and the visitor preview share this 60° × 30° equirectangular grid.
+   A live visitor map renders the provider’s own geography above it. */
+.classic-map-surface {
+  --map-sea: color-mix(in srgb, var(--classic-desktop) 70%, var(--classic-title));
+  --map-land: color-mix(in srgb, var(--classic-accent) 75%, var(--classic-title));
+  --map-grid: color-mix(in srgb, var(--classic-accent) 15%, transparent);
+  --map-frame: color-mix(in srgb, var(--classic-accent) 76%, transparent);
+  --map-beacon: color-mix(in srgb, #ffdc94 80%, var(--classic-accent));
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  background-color: var(--map-sea);
+  background-image:
+    linear-gradient(to right, var(--map-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--map-grid) 1px, transparent 1px);
+  background-size: calc(100% / 6) 100%, 100% calc(100% / 6);
+  box-shadow: inset 0 0 0 1px var(--map-grid);
 }
-.weather-map::before {
+.classic-map-surface::before,
+.classic-map-surface::after {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  aspect-ratio: 2;
-  background: currentColor;
-  opacity: 0.78;
-  mask: url("../images/classic/weather/world-map.svg") center / contain
-    no-repeat;
   pointer-events: none;
+}
+.classic-map-surface::before {
+  inset: 0;
+  background: var(--map-land);
+  mask: url("../images/classic/weather/world-map.svg") center / 100% 100% no-repeat;
+}
+.classic-map-surface::after {
+  --map-tick: linear-gradient(var(--map-frame), var(--map-frame));
+  z-index: 2;
+  inset: 3px;
+  background:
+    var(--map-tick) left top / 7px 1px, var(--map-tick) left top / 1px 5px,
+    var(--map-tick) right top / 7px 1px, var(--map-tick) right top / 1px 5px,
+    var(--map-tick) left bottom / 7px 1px, var(--map-tick) left bottom / 1px 5px,
+    var(--map-tick) right bottom / 7px 1px, var(--map-tick) right bottom / 1px 5px;
+  background-repeat: no-repeat;
 }
 .weather-map__overlay {
   position: absolute;
+  z-index: 1;
   inset: 0;
   width: 100%;
-  height: auto;
-  overflow: visible;
+  height: 100%;
   fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
+  color: var(--map-beacon);
+  pointer-events: none;
 }
-.weather-map__overlay [data-weather-map-marker] > :not(.weather-map__point) {
+.weather-map__overlay :is(path, circle) {
   vector-effect: non-scaling-stroke;
+  stroke: currentColor;
   stroke-width: 1px;
 }
 .weather-map__crosshair {
-  vector-effect: non-scaling-stroke;
-  stroke-width: 0.65px;
   stroke-dasharray: 2 3;
-  opacity: 0.3;
+  opacity: .55;
 }
-.weather-map__point {
-  fill: currentColor;
-  stroke: none;
+.weather-map__point { fill: var(--map-beacon); }
+.weather-map [data-atlas-viewport] { cursor: crosshair; }
+/* The reticle follows its coordinates while the map underneath pans or zooms. */
+.weather-map__reticle { transform: scale(calc(1 / var(--atlas-zoom-scale, 1))); }
+.weather-map__cursor { color: var(--map-beacon); }
+.weather-map__echo { opacity: 0; }
+.weather-map__overlay:has([data-weather-cursor][visibility="visible"]) :is([data-weather-map-marker], .weather-map__crosshair) {
+  visibility: hidden;
 }
 .weather-map figcaption {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
+  gap: 3px;
   margin-top: 2px;
   font-size: 10px;
   opacity: 0.8;
+}
+.weather-map__open {
+  min-height: 24px;
+  padding: 1px 3px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.weather-map__open:focus-visible {
+  outline: 2px solid var(--classic-link, currentColor);
+  outline-offset: -2px;
 }
 .weather-terminal__reading {
   display: grid;
@@ -508,4 +552,169 @@
 .classic-site:not(.playground-page) #live2d-widget .vn-panel[data-vn-panel="weather"] {
   max-height: min(calc(100% - 24px), calc(100dvh - var(--classic-index-clearance, 8px) - 16px));
   scroll-margin-block: var(--classic-index-clearance, 8px) 8px;
+}
+
+/* The viewport clips the complete map, so land and observations always move together. */
+.atlas-zoom__viewport {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  touch-action: pan-x pan-y;
+}
+.atlas-zoom__viewport:focus-visible {
+  outline: 2px solid var(--classic-accent);
+  outline-offset: -2px;
+}
+.atlas-zoom__layer {
+  position: relative;
+  width: 100%;
+  transform-origin: 0 0;
+}
+[data-atlas-magnified] .atlas-zoom__viewport {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+[data-atlas-magnified] .atlas-zoom__viewport a { cursor: inherit; }
+.atlas-zoom__viewport[data-atlas-dragging] { cursor: grabbing; }
+.atlas-zoom__viewport::after {
+  content: "";
+  z-index: 3;
+  position: absolute;
+  inset: 3px;
+  pointer-events: none;
+  --map-tick: linear-gradient(var(--classic-accent), var(--classic-accent));
+  background:
+    var(--map-tick) left top / 7px 1px, var(--map-tick) left top / 1px 5px,
+    var(--map-tick) right top / 7px 1px, var(--map-tick) right top / 1px 5px,
+    var(--map-tick) left bottom / 7px 1px, var(--map-tick) left bottom / 1px 5px,
+    var(--map-tick) right bottom / 7px 1px, var(--map-tick) right bottom / 1px 5px;
+  background-repeat: no-repeat;
+  opacity: .76;
+}
+.atlas-zoom__viewport .classic-map-surface::after { display: none; }
+
+.atlas-zoom__controls {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  padding: 2px;
+  margin-top: 2px;
+  width: max-content;
+  max-width: 100%;
+  color: var(--text);
+  background: var(--classic-document);
+  border: 1px solid var(--classic-edge-mid);
+  font: 12px/1.15 ui-monospace, monospace;
+}
+.atlas-zoom__controls button,
+#live2d-widget .atlas-zoom__controls button {
+  display: grid;
+  place-items: center;
+  flex: 1 1 26px;
+  min-width: 20px;
+  min-height: 25px;
+  padding: 1px 5px;
+  border: 1px solid var(--classic-edge-mid);
+  color: var(--classic-accent);
+  background: var(--classic-chrome);
+  font: bold 15px/1 ui-monospace, monospace;
+}
+.atlas-zoom__controls button:hover:not(:disabled),
+#live2d-widget .atlas-zoom__controls button:hover:not(:disabled) {
+  border-color: var(--classic-accent);
+  background: var(--classic-soft);
+}
+.atlas-zoom__controls button:focus-visible { outline: 2px solid var(--classic-accent); outline-offset: -2px; }
+.atlas-zoom__controls button:disabled,
+#live2d-widget .atlas-zoom__controls button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+.atlas-zoom__controls output,
+#live2d-widget .atlas-zoom__controls output {
+  display: grid;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  place-items: center;
+  min-width: 4.7ch;
+  padding-inline: 2px;
+  color: var(--text);
+  font: 11px/1 ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+@media (pointer: coarse) {
+  .atlas-zoom__controls button,
+  #live2d-widget .atlas-zoom__controls button { min-height: 32px; }
+  .visitor-map .atlas-zoom__controls button { min-width: 44px; min-height: 44px; }
+}
+
+/* Station seals keep a constant screen-pixel size so their names read at any zoom. */
+.weather-map { container: weather-map / inline-size; }
+.weather-map__samples [data-weather-sample] {
+  --sample-ink: #b7def3;
+  color: var(--sample-ink);
+  pointer-events: auto;
+  cursor: crosshair;
+}
+.weather-map__samples [data-phase="clear"],
+.weather-map__samples [data-phase="heat"] { --sample-ink: #f5d79a; }
+.weather-map__samples [data-phase="rain"] { --sample-ink: #91d4ef; }
+.weather-map__samples [data-phase="snow"] { --sample-ink: #d5f6fa; }
+.weather-map__samples [data-phase="storm"],
+.weather-map__samples [data-phase="aurora"] { --sample-ink: #ddb4ee; }
+.weather-map__samples [data-phase="calm"] { --sample-ink: #aee3c0; }
+.weather-map__samples [visibility="hidden"] { pointer-events: none; }
+.weather-map__sample-badge {
+  fill: color-mix(in srgb, #f2e4c8 73%, var(--classic-accent));
+  stroke: color-mix(in srgb, var(--classic-title) 80%, #000);
+  stroke-width: 1px;
+}
+.weather-map__sample-seal { fill: var(--map-sea); }
+.weather-map__sample-pin { fill: var(--sample-ink); stroke: var(--map-sea); stroke-width: .8; }
+.weather-map__samples .weather-map__sample-leader { stroke: var(--sample-ink); }
+.weather-map__sample-name {
+  fill: var(--classic-desktop);
+  font: 12px "Fusion Pixel", sans-serif;
+  pointer-events: none;
+}
+.weather-map__samples use,
+.weather-map__samples .weather-map__sample-flourish { pointer-events: none; }
+.weather-map__sample-flourish { opacity: 0; }
+.weather-map__samples [data-weather-sample]:hover .weather-map__sample-badge {
+  fill: #fff1d8;
+  stroke: var(--sample-ink);
+}
+.weather-sample-status { font-variant-numeric: tabular-nums; }
+@container weather-map (max-width: 229px) {
+  .weather-sample-status { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .weather-map__sample-flourish {
+    animation: weather-sample-trace .8s calc(var(--sample-delay) + .12s) ease-out both;
+  }
+  .weather-map__samples use {
+    animation: weather-sample-glint .68s var(--sample-delay) ease-out both;
+  }
+  .weather-map__samples :is([data-phase="rain"], [data-phase="snow"]) use {
+    animation-name: weather-sample-fall;
+  }
+  .weather-map__samples :is([data-phase="mist"], [data-phase="cloud"], [data-phase="aurora"]) use {
+    animation-name: weather-sample-drift;
+  }
+  .weather-map__samples [data-phase="storm"] use { animation-name: weather-sample-strike; }
+}
+@keyframes weather-sample-glint { from { opacity: .3; } 60% { opacity: .96; } }
+@keyframes weather-sample-fall { from { transform: translate(1px,-3px); opacity: .35; } }
+@keyframes weather-sample-drift { from { transform: translate(-3px,0); opacity: .4; } }
+@keyframes weather-sample-strike { from { transform: translate(0,-2px); opacity: .4; } 55% { transform: translate(1px,1px); } }
+
+@keyframes weather-sample-trace {
+  0% { opacity: 0; stroke-dasharray: 1 12; }
+  45% { opacity: .9; stroke-dasharray: 8 2; }
+  100% { opacity: 0; stroke-dasharray: 8 2; }
 }

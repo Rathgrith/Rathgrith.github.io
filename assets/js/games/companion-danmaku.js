@@ -452,7 +452,7 @@
   function renderSelection() {
     view.dataset.mode = battleMode;
     q("[data-pilot-brief]").textContent = {
-      alice: "近づくほど騎士人形の一撃が重くなる。遠方には槍騎が出撃。低速で全員を呼び戻す。",
+      alice: "近づくほど騎士人形の一撃が重くなる。低速でも槍騎は遠くの敵を追い、剣士はそばで迎え撃つ。",
       marisa: "左右の星弾砲台が交互に援護。低速で砲列を絞り、中央のレールを蓄光する。",
       patchouli: "高速で七曜の書が散開し、低速で連鎖する。火力が上がると日・月の書も加わる。",
     }[playerId];
@@ -580,7 +580,7 @@
       battleMode === "flower" ? "ボム X" : "霊撃 X";
     q("[data-flower-charge]").hidden = battleMode !== "flower";
     var slowButton = q("[data-danmaku-slow]");
-    slowButton.textContent = {alice: "近衛", marisa: "蓄光", patchouli: "詠唱陣"}[playerId];
+    slowButton.textContent = {alice: "密集陣", marisa: "蓄光", patchouli: "詠唱陣"}[playerId];
     slowButton.title = "低速 / Shift · " + q("[data-pilot-brief]").textContent;
     slowButton.setAttribute("aria-label", slowButton.textContent + "・低速切替 (Shift)");
     canvas.setAttribute(

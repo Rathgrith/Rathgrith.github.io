@@ -15,7 +15,7 @@
     {% include browser-upgrade.html %}
     {% if classic_home_loading %}
       <div class="home-loading-screen" id="home-loading-screen" role="status" lang="ja" aria-label="少女祈祷中…">
-        {% include prayer-loader.html %}
+        {% include prayer-loader.html place="home" %}
       </div>
     {% endif %}
     <a class="classic-skip-link" href="#main">Skip to content</a>
@@ -40,7 +40,7 @@
         </div>
       </article>
       {% if page.section_index %}
-      <aside class="classic-index-rail">
+      <aside class="classic-index-rail classic-pinned-rail">
         <nav class="classic-year-navigation" aria-label="On this page">
           {% for section in page.section_index %}
           <a class="classic-button" href="#{{ section.id | escape }}">{{ section.title | escape }}</a>
@@ -57,6 +57,9 @@
     {% unless site.classic.runtime == false %}{% include site-runtime-footer.html %}{% endunless %}
     {% include classic-credits.html %}
     </div>
+    <button class="classic-reading-playground" data-reading-playground type="button" aria-expanded="false" aria-controls="live2d-widget" hidden>
+      <img src="{{ '/assets/images/classic/icons/16/playground.svg' | relative_url }}" alt="" width="16" height="16">Playground
+    </button>
     {% if site.classic.visitor_map_key and site.classic.visitor_map_key != empty %}{% include classic/visitor-map.html %}{% endif %}
     {% include companion-runtime.html %}
     {% include scripts.html %}

@@ -25,12 +25,7 @@ classic:
   runtime: true
   visitor_map_key: "vado6mrOqi-LMvCclR9j8Aopy8TQUgeT5OtQqChUSDY"
   visitor_map_host: "rathgrith.github.io"
-  visitor_map_excluded_cities:
-    - country: GB
-      city: Birmingham
-  # Exact public addresses or sha256:<digest of canonical IP>.
-  visitor_map_excluded_ips:
-    - "sha256:bf1c55497e0431c436c77759033f8814a9f8f6f4756cfff54d9c67df63788b00"
+  visitor_map_report: "https://mapmyvisitors.com/web/1c5dg"
   model_repository: "https://github.com/n0099/TouhouCannonBall-Live2d-Models"
 
 gallery:

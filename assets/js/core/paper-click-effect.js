@@ -49,7 +49,7 @@
     )
       return;
     if (shouldReduceMotion()) return;
-    if (event.target && event.target.closest("#live2d-widget")) return;
+    if (event.target && event.target.closest("#live2d-widget, [data-atlas-zoom]")) return;
     if (
       !event ||
       typeof event.clientX !== "number" ||

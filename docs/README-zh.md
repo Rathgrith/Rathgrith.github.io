@@ -40,7 +40,7 @@ LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 bundle exec jekyll build
 
 电台在所有页面都等待手动播放；独立页面的弹幕战默认启用音乐与音效，两者偏好互相独立。Gallery 每次进入重新打乱各组顺序，不写回数据；缩略图统一 4:3，查看器保留原比例。
 
-资料卡和 Options 中的 **Visitor map** 可以打开本站的 MapMyVisitors 地图。正式站点会先核对 IP 及城市，默认排除当前配置的公网地址和定位为英国伯明翰的访问。列表支持多个 IPv4、IPv6 和城市，核验失败时暂停该次计数。[地图配置](template-customization.md#visitor-map)
+从资料卡或 Options 点击 **Visitor map** 可打开世界地图窗口，在访客分布和天气观测站之间切换。两张地图都支持缩放和平移。天气图从 11 个地点取样，每种天候选一个代表地点显示图标和日文名称，点击任意位置可查看该地实况和预报。正式站点对所有地区启用统计，本地预览不计数。[地图配置](template-customization.md#visitor-map)
 
 - [对话系统](companion-system.md)
 - [弹幕游戏](danmaku-game.md)

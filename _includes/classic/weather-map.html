@@ -1,0 +1,32 @@
+<figure class="weather-map" data-atlas-zoom aria-label="観測地点の世界地図">
+  <div class="atlas-zoom__viewport" data-atlas-viewport tabindex="0" role="group" aria-label="Weather station map. Click to observe here, or move the cursor with Shift and arrow keys and press Enter.">
+    <div class="classic-map-surface atlas-zoom__layer" data-atlas-layer>
+      <svg class="weather-map__overlay" viewBox="0 0 360 180" focusable="false">
+        <g class="weather-map__samples" data-weather-samples></g>
+        <path class="weather-map__crosshair" aria-hidden="true" data-weather-map-crosshair d="M178.11 0V180M0 37.51H360"/>
+        <g data-weather-map-marker transform="translate(178.11 37.51)" aria-hidden="true">
+          <g class="weather-map__reticle">
+            <circle class="weather-map__echo" r="7"/>
+            <path class="weather-map__sights" d="M-7-3v-3h3m8 0h3v3m0 6v3H4m-8 0h-3V3"/>
+            <rect class="weather-map__point" data-atlas-focal x="-1.5" y="-1.5" width="3" height="3"/>
+          </g>
+        </g>
+        <g class="weather-map__cursor" data-weather-cursor aria-hidden="true" visibility="hidden">
+          <g class="weather-map__reticle">
+            <path class="weather-map__sights" d="M-7-3v-3h3m8 0h3v3m0 6v3H4m-8 0h-3V3"/>
+            <rect x="-1.5" y="-1.5" width="3" height="3" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+  {% include classic/map-zoom-controls.html %}
+  <figcaption>
+    <span>地点を選んで観測</span>
+    {% if include.launch %}
+    <button hidden class="weather-map__open" type="button" data-atlas-weather-open aria-haspopup="dialog" aria-controls="visitor-map-dialog" aria-label="観測地点を地図帳で開く">地図帳 ↗</button>
+    {% endif %}
+    <span data-weather-daylight>--</span>
+  </figcaption>
+  <small class="weather-sample-status" data-weather-sample-status hidden></small>
+</figure>

@@ -20,6 +20,9 @@
     panel = "",
     visible = true,
     gameActive = false;
+  var minimumLoadingMs = 0,
+    loadingUntil = 0,
+    readyTimer = 0;
   var history = [],
     originalIndices = {},
     pick = data.createPicker(),
@@ -522,6 +525,8 @@
   }
   function setCharacter(id) {
     if (!root || !data.characters[id] || currentId === id) return;
+    clearTimeout(readyTimer);
+    loadingUntil = 0;
     currentId = id;
     closePanel();
     cancel();
@@ -553,6 +558,18 @@
   }
   function setReady(status) {
     if (!root) return;
+    clearTimeout(readyTimer);
+    if (status === "loading") {
+      // Library and model loading belong to the same visible loading interval.
+      if (!loadingUntil) loadingUntil = performance.now() + minimumLoadingMs;
+    } else {
+      var remaining = Math.ceil(loadingUntil - performance.now());
+      if (status === "ready" && remaining > 0) {
+        readyTimer = setTimeout(function () { setReady("ready"); }, remaining);
+        return;
+      }
+      loadingUntil = 0;
+    }
     root.classList.toggle("is-loading", status === "loading");
     root.classList.toggle("has-live2d-error", status === "error");
     q("[data-companion-stage]").setAttribute(
@@ -652,6 +669,7 @@
     loader.replaceChildren(
       document.getElementById("prayer-loader-template").content.cloneNode(true)
     );
+    minimumLoadingMs = Number(loader.querySelector(".prayer-loader").dataset.loadingMinMs) || 0;
     loader
       .querySelector("[data-prayer-label]")
       .setAttribute("data-vn-load-label", "");

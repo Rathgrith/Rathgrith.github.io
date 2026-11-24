@@ -1,187 +1,184 @@
-/* Shared pixel prayer animation for the homepage entrance and model loading. */
 .prayer-loader {
-  --prayer-size: 76px;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  color: var(--classic-accent);
-  font:
-    12px/1.6 "Fusion Pixel",
-    "W95FA",
-    sans-serif;
+  --twig: color-mix(in srgb, var(--classic-accent) 43%, #60483a);
+  --leaf: color-mix(in srgb, var(--classic-title-end) 47%, #678672);
+  --leaf-light: color-mix(in srgb, var(--classic-accent) 60%, #8ead88);
+  --left-chime: translate(24px, 35px);
+  --right-chime: translate(104px, 35px);
+  display: inline-grid;
+  justify-items: center;
+  width: min(100%, 128px);
+  gap: 4px;
+  color: var(--text);
 }
-.prayer-loader__seal {
-  position: relative;
+.prayer-loader__plate {
   display: block;
-  width: var(--prayer-size);
-  height: var(--prayer-size);
-}
-.prayer-loader__orbit {
-  position: absolute;
-  inset: 1px;
-  border: 1px dashed currentColor;
-  border-radius: 50%;
-  opacity: 0.5;
-  animation: prayer-orbit 9s steps(36) infinite;
-}
-.prayer-loader__orbit::before,
-.prayer-loader__orbit::after {
-  content: "";
-  position: absolute;
-  inset: 10%;
-  border: 1px solid currentColor;
-  transform: rotate(45deg);
-}
-.prayer-loader__orbit::after {
-  transform: rotate(15deg);
-}
-.prayer-loader__cast {
-  position: absolute;
-  inset: 0 -5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-}
-.prayer-loader__cast img {
-  display: block;
-  width: 26px;
+  width: 100%;
   height: auto;
   image-rendering: pixelated;
-  opacity: 0.65;
-  animation: prayer-float 1.6s steps(4, end) infinite;
 }
-.prayer-loader__cast img:nth-child(2) {
-  animation-delay: -0.53s;
+.prayer-loader__chime[data-chime="alice"] {
+  --ink: #293449;
+  --glass: #497185;
+  --shade: #37576c;
+  --rim: #91b4bd;
+  --gleam: #d9eeee;
+  --thread: #dea1a4;
+  --ribbon: #bd596f;
+  --gust: -.125s;
+  transform: var(--left-chime);
 }
-.prayer-loader__cast img:nth-child(3) {
-  animation-delay: -1.06s;
+.prayer-loader__chime[data-chime="marisa"] {
+  --ink: #463a3e;
+  --glass: #9c764c;
+  --shade: #775a46;
+  --rim: #ceb37d;
+  --gleam: #ffe4b2;
+  --thread: #d2a672;
+  --ribbon: #9d7048;
+  --gust: 0s;
+  transform: var(--left-chime);
 }
-html[data-live2d-character="alice"] [data-prayer-character="alice"],
-html[data-live2d-character="marisa"] [data-prayer-character="marisa"],
-html[data-live2d-character="patchouli"] [data-prayer-character="patchouli"] {
-  opacity: 1;
+.prayer-loader__chime[data-chime="patchouli"] {
+  --ink: #3d354f;
+  --glass: #7a6789;
+  --shade: #604e6c;
+  --rim: #bc9ebf;
+  --gleam: #f1dce9;
+  --thread: #c4a0b9;
+  --ribbon: #966389;
+  --gust: -.25s;
+  transform: var(--right-chime);
 }
+.prayer-loader__large { display: var(--large, none); }
+.prayer-loader__small { display: var(--small, inline); }
+html[data-live2d-character="patchouli"] .prayer-loader__chime[data-chime="alice"] { transform: var(--right-chime); }
+html[data-live2d-character="alice"] .prayer-loader__chime[data-chime="alice"],
+html[data-live2d-character="marisa"] .prayer-loader__chime[data-chime="marisa"],
+html[data-live2d-character="patchouli"] .prayer-loader__chime[data-chime="patchouli"] {
+  --large: inline;
+  --small: none;
+  transform: translate(64px, 44px);
+}
+
+.prayer-loader__left,
+.prayer-loader__right { opacity: 0; }
 .prayer-loader__label {
-  letter-spacing: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: .75em;
+  font: 12px/1.5 "Fusion Pixel", "W95FA", sans-serif;
+  letter-spacing: .08em;
   white-space: nowrap;
 }
-.prayer-loader__track {
-  display: flex;
-  gap: 4px;
-}
-.prayer-loader__track i {
-  display: block;
-  width: 5px;
-  height: 3px;
-  background: currentColor;
-  animation: prayer-pulse 1.4s steps(2, end) infinite;
-}
-.prayer-loader__track i:nth-child(2) {
-  animation-delay: -1.2s;
-}
-.prayer-loader__track i:nth-child(3) {
-  animation-delay: -1s;
-}
-.prayer-loader__track i:nth-child(4) {
-  animation-delay: -0.8s;
-}
-.prayer-loader__track i:nth-child(5) {
-  animation-delay: -0.6s;
-}
-.prayer-loader__track i:nth-child(6) {
-  animation-delay: -0.4s;
-}
-.prayer-loader__track i:nth-child(7) {
-  animation-delay: -0.2s;
+.prayer-loader__label::before,
+.prayer-loader__label::after {
+  content: "";
+  width: 10px;
+  height: 2px;
+  background: var(--twig);
 }
 .home-loading-screen {
   position: fixed;
   inset: 0;
   z-index: var(--layer-loading);
-  display: grid;
+  display: none;
   place-items: center;
   pointer-events: none;
-  color: var(--classic-accent);
-  background: var(--classic-desktop);
-  background-image: radial-gradient(
-    circle at center,
-    var(--classic-soft),
-    transparent 65%
-  );
-  transition:
-    opacity 180ms ease,
-    visibility 0s 180ms;
-  animation: prayer-failsafe 0s 6s forwards;
+  background: radial-gradient(ellipse at center, var(--classic-panel), var(--classic-desktop) 69%);
+  transition: opacity 160ms ease-out, visibility 0s 160ms;
 }
+.home-loading-screen.is-visible { display: grid; }
 .home-loading-screen .prayer-loader {
-  --prayer-size: 144px;
-  gap: 20px;
-  padding: 32px;
+  width: min(100%, 256px);
+  gap: 8px;
 }
-.home-loading-screen .prayer-loader__cast {
-  gap: 7px;
+@media (min-width: 440px) and (min-height: 350px) {
+  .home-loading-screen .prayer-loader { width: 384px; gap: 12px; }
+  .home-loading-screen .prayer-loader__label { font-size: 16px; }
 }
-.home-loading-screen .prayer-loader__cast img {
-  width: 38px;
+#live2d-widget .companion-load-status {
+  container: prayer-stage / size;
+  padding: 8px 0;
 }
-.home-loading-screen .prayer-loader__label {
-  font-size: 16px;
-  letter-spacing: 4px;
+@container prayer-stage (max-height: 100px) {
+  .prayer-loader { max-width: max(0px, calc((100cqh - 22px) * 128 / 76)); }
 }
-.home-loading-screen.is-hidden {
-  opacity: 0;
-  visibility: hidden;
-}
-.no-js .home-loading-screen {
-  display: none;
-}
-#live2d-widget.has-live2d-error .prayer-loader__seal,
-#live2d-widget.has-live2d-error .prayer-loader__track {
-  display: none;
-}
-@keyframes prayer-orbit {
-  to {
-    transform: rotate(360deg);
+@media (min-resolution: 2dppx) {
+  @container prayer-stage (min-width: 192px) and (min-height: 146px) {
+    .prayer-loader { width: 192px; }
   }
 }
-@keyframes prayer-float {
-  0%,
-  100% {
-    transform: translateY(2px);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
+@container prayer-stage (min-width: 256px) and (min-height: 180px) {
+  .prayer-loader { width: 256px; }
 }
-@keyframes prayer-pulse {
-  0%,
-  100% {
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 1;
-  }
+@container prayer-stage (min-width: 480px) and (min-height: 282px) {
+  .prayer-loader { width: 384px; gap: 8px; }
+  .prayer-loader__label { font-size: 16px; }
 }
-@keyframes prayer-failsafe {
-  to {
-    opacity: 0;
-    visibility: hidden;
+.home-loading-screen.is-hidden { opacity: 0; visibility: hidden; }
+.no-js .home-loading-screen,
+#live2d-widget.has-live2d-error .prayer-loader__plate,
+#live2d-widget.has-live2d-error .prayer-loader__label::before,
+#live2d-widget.has-live2d-error .prayer-loader__label::after { display: none; }
+#live2d-widget.has-live2d-error .prayer-loader { width: auto; }
+
+/* Shift whole pixels. The paper catches the gust two frames after the glass. */
+@keyframes chime-glass {
+  0%, 100% { transform: translateX(0); }
+  12.5%, 18.75% { transform: translateX(-1px); }
+  25% { transform: translateX(-2px); }
+  37.5% { transform: translateX(-1px); }
+  43.75%, 68.75% { transform: translateX(0); }
+  56.25% { transform: translateX(1px); }
+}
+@keyframes chime-clapper {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-1px); }
+  37.5% { transform: translateX(-2px); }
+  50% { transform: translateX(-1px); }
+  56.25%, 81.25% { transform: translateX(0); }
+  68.75% { transform: translateX(1px); }
+}
+@keyframes chime-paper-rest {
+  0%, 43.75%, 81.25%, 100% { opacity: 1; }
+  18.75%, 62.5% { opacity: 0; }
+}
+@keyframes chime-paper-left {
+  0%, 43.75%, 100% { opacity: 0; }
+  18.75% { opacity: 1; }
+}
+@keyframes chime-paper-right {
+  0%, 81.25%, 100% { opacity: 0; }
+  62.5% { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (transition-behavior: allow-discrete) {
+    #live2d-widget .companion-load-status {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease-out, display 160ms allow-discrete;
+    }
+    #live2d-widget.is-loading .companion-load-status,
+    #live2d-widget.has-live2d-error .companion-load-status {
+      opacity: 1;
+      pointer-events: auto;
+      transition: none;
+    }
   }
+  .prayer-loader__bell,
+  .prayer-loader__pendant,
+  .prayer-loader__pose {
+    animation: 2s step-end var(--gust) infinite;
+  }
+  .prayer-loader__bell { animation-name: chime-glass; }
+  .prayer-loader__pendant { animation-name: chime-clapper; }
+  .prayer-loader__rest { animation-name: chime-paper-rest; }
+  .prayer-loader__left { animation-name: chime-paper-left; }
+  .prayer-loader__right { animation-name: chime-paper-right; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .prayer-loader__orbit,
-  .prayer-loader__cast img,
-  .prayer-loader__track i {
-    animation: none;
-  }
-  .home-loading-screen {
-    transition: none;
-  }
+  .home-loading-screen { transition: none; }
 }
 @media print {
-  .home-loading-screen {
-    display: none;
-  }
+  .home-loading-screen.is-visible { display: none; }
 }

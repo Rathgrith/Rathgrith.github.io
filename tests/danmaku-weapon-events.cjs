@@ -33,6 +33,41 @@ for (const mode of [E, F]) {
   }
 }
 
+// Both game entry points use physical lance contact while Shift stays down.
+// Flower's independent charge input interrupts a sortie until it is released.
+for (const mode of [E, F]) {
+  const audio = [], animation = new Set(), game = mode.create("alice", "marisa", 91,
+    (name, id, voice) => { if (id === "alice") audio.push([name, voice]); });
+  const s = game.state, field = mode === E ? s : s.fields[0];
+  s.countdown = 0; s.intro = null;
+  field.player.y = 310; field.player.invulnerable = 99;
+  const target = {x:120, y:65, hp:999, maxHp:999, radius:9, age:0};
+  if (mode === E) {
+    s.run.nextWave = 99;
+    s.foes = [Object.assign(target, {lane:120, offset:0, kind:"keeper", salvos:0})];
+  } else {
+    field.waveClock = 99;
+    field.enemies = [Object.assign(target, {origin:120, phase:0, vy:0, kind:"fairy", fire:99})];
+  }
+  function frame(charge = false) {
+    game.step(dt, {focus:true, charge});
+    for (const doll of field.weapon.dolls) if (doll.arm === "lance") animation.add(doll.phase);
+  }
+  frame();
+  assert(field.focus && animation.has("sortie"));
+  if (mode === F) {
+    for (let i = 0; i < 30; i++) frame(true);
+    assert(field.charging && field.charge > 0 && field.charge < 100);
+    assert.equal(target.hp, target.maxHp);
+    assert(!field.weapon.dolls.some(d => ["sortie", "strike", "windup"].includes(d.phase)));
+  }
+  for (let i = 0; i < 240 && target.hp === target.maxHp; i++) frame();
+  assert(target.hp < target.maxHp && animation.has("windup") && animation.has("strike"));
+  assert(field.weapon.traces.some(t => t.kind === "thrust") && field.impacts.some(t => t.kind === "lance"));
+  assert(audio.some(([key,voice]) => key === "shot" && voice === "lance") &&
+    audio.some(([key,voice]) => key === "hit" && voice === "lance"));
+}
+
 for (const id of ["marisa", "patchouli"]) {
   const field = E.create(id, "alice", 3).state, events = [];
   field.shots = Array.from({length: 140}, () => ({x: -80, y: -30, vx: 0, vy: -5, kind: "comet"}));

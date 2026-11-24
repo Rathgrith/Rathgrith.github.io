@@ -64,13 +64,12 @@ console.log(
   "PASS: 12 moving openings with curved crossfire and a wall-side start"
 );
 
-// A planner that camps near the bottom, or always focuses while stationary,
-// cannot use the front-line dolls against a distant opponent.
+// Follow the normal pilot decisions and count genuine melee contacts made in focus.
 const flower = require("../assets/js/games/danmaku-flower.js");
 for (const [mode, sim] of [["score", engine], ["flower", flower]]) {
   const g = sim.create("alice", "patchouli", 0x53013);
   g.setAuto(true);
-  let launched = 0, returned = 0, contacts = 0;
+  let launched = 0, returned = 0, contacts = 0, focusedHits = 0;
   const phases = new WeakMap(), seen = new WeakSet();
   for (let i = 0; i < 22 * 60; i++) {
     g.step(1 / 60);
@@ -82,11 +81,14 @@ for (const [mode, sim] of [["score", engine], ["flower", flower]]) {
       phases.set(doll, doll.phase);
     }
     for (const trace of field.weapon.traces) {
-      if (!seen.has(trace) && ["cleave","thrust"].includes(trace.kind)) contacts++;
+      if (!seen.has(trace) && ["cleave","thrust"].includes(trace.kind)) {
+        contacts++;
+        if (field.focus) focusedHits++;
+      }
       seen.add(trace);
     }
   }
-  assert(launched >= 4 && returned >= 3 && contacts >= 2,
+  assert(launched >= 4 && returned >= 3 && contacts >= 2 && focusedHits >= 1,
     mode + ": Alice dispatches dolls, connects and returns for the next order");
 }
 console.log("PASS: Alice AUTO brings both fields into melee support range");

@@ -87,14 +87,7 @@
           <span class="weather-terminal__range" data-weather-range>-- / --</span>
           <div class="weather-terminal__observed"><span>観測</span><time data-weather-time>--:--</time></div>
         </div>
-        <figure class="weather-map" aria-label="観測地点の世界地図">
-          <img src="{{ '/assets/images/classic/weather/world-map.svg' | relative_url }}" width="360" height="180" alt="" draggable="false">
-          <svg class="weather-map__overlay" viewBox="0 0 360 180" aria-hidden="true">
-            <path class="weather-map__crosshair" data-weather-map-crosshair d="M178.11 0V180M0 37.51H360"/>
-            <g data-weather-map-marker transform="translate(178.11 37.51)"><circle r="6"/><circle r="2" class="weather-map__point"/><path d="M-10 0h-4m24 0h4M0-10v-4m0 24v4"/></g>
-          </svg>
-          <figcaption><span>世界座標</span><span data-weather-daylight>--</span></figcaption>
-        </figure>
+        {% include classic/weather-map.html launch=true %}
       </div>
       <div class="weather-dial__description" data-weather-description>空模様を観測しています</div>
     </div>

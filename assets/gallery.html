@@ -37,7 +37,7 @@ classic_unframed: true
     {% endif %}
     </div>
   </div>
-  <aside class="classic-gallery-rail">
+  <aside class="classic-gallery-rail classic-pinned-rail">
     <nav class="classic-year-navigation" aria-label="Gallery collections">
       <h2 class="classic-rail-heading">Collections</h2>
       {% for group in site.data.gallery_groups %}<a class="classic-button" href="#gallery-group-{{ group.id }}"><span>{{ group.title | escape }}</span><span class="classic-collection-count">{{ group.items.size }}</span></a>{% endfor %}

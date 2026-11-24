@@ -99,12 +99,49 @@
   var mapDialog = document.getElementById("visitor-map-dialog");
   if (mapDialog) {
     var mapOpener;
+    var tabList = mapDialog.querySelector('[role="tablist"]');
+    var mapTabs = Array.from(tabList.querySelectorAll('[role="tab"]'));
+    tabList.hidden = false;
+
+    function selectMapTab(tab) {
+      mapTabs.forEach(function (other) {
+        var selected = other === tab;
+        other.setAttribute("aria-selected", String(selected));
+        other.tabIndex = selected ? 0 : -1;
+        document.getElementById(other.getAttribute("aria-controls")).hidden = !selected;
+      });
+    }
+
+    tabList.addEventListener("click", function (event) {
+      var tab = event.target.closest('[role="tab"]');
+      if (tab) selectMapTab(tab);
+    });
+    tabList.addEventListener("keydown", function (event) {
+      var index = mapTabs.indexOf(event.target);
+      if (index === -1) return;
+      switch (event.key) {
+        case "ArrowRight": index = (index + 1) % mapTabs.length; break;
+        case "ArrowLeft": index = (index + mapTabs.length - 1) % mapTabs.length; break;
+        case "Home": index = 0; break;
+        case "End": index = mapTabs.length - 1; break;
+        default: return;
+      }
+      event.preventDefault();
+      selectMapTab(mapTabs[index]);
+      mapTabs[index].focus();
+    });
+    document.querySelectorAll("[data-atlas-weather-open]").forEach(function (button) {
+      button.hidden = false;
+    });
     document.addEventListener("click", function (event) {
-      var opener = event.target.closest("[data-visitor-map-open]");
+      var opener = event.target.closest("[data-visitor-map-open], [data-atlas-weather-open]");
       if (!opener || mapDialog.open) return;
       event.preventDefault();
       mapOpener = opener.closest("[data-site-options-menu]")
         ? document.querySelector("[data-site-options-trigger]") : opener;
+      selectMapTab(document.getElementById(
+        opener.hasAttribute("data-atlas-weather-open") ? "atlas-weather-tab" : "atlas-visitors-tab"
+      ));
       mapDialog.showModal();
     });
     mapDialog.addEventListener("close", function () {

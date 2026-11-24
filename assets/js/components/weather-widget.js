@@ -24,7 +24,7 @@
     台風: { icon: "typhoon", description: "勝負が荒れる程度の天気" },
     極光: { icon: "aurora", description: "何が起こるか不明程度の天気" },
     凪: { icon: "calm", description: "傷が癒える程度の天気" },
-    钻石尘: {
+    ダイヤモンドダスト: {
       icon: "diamond",
       description: "眠ったら死ぬ程度の天気",
     },
@@ -80,7 +80,7 @@
       includesCode(code, [56, 57, 66, 67]) ||
       (snowfall > 0 && temperature <= -4)
     ) {
-      return { name: "钻石尘", phase: "snow" };
+      return { name: "ダイヤモンドダスト", phase: "snow" };
     }
 
     if (includesCode(code, [71, 73, 75, 77, 85, 86]) || snowfall > 0) {
@@ -149,6 +149,13 @@
     return { name: "快晴", phase: "clear" };
   }
 
+  function classifyStation(current) {
+    var weather = classifyWeather(current);
+    var details = WEATHER_DETAILS[weather.name] || DEFAULT_WEATHER_DETAILS;
+    return { name: weather.name, phase: weather.phase, icon: details.icon, description: details.description };
+  }
+  window.SiteWeatherSymbols = { classify: classifyStation };
+
   function cacheKey(latitude, longitude) {
     return (
       "site-weather-v2:" + latitude.toFixed(2) + ":" + longitude.toFixed(2)
@@ -183,10 +190,11 @@
     }
   }
 
-  function buildForecastUrl(latitude, longitude) {
+  function buildForecastUrl(latitude, longitude, useNearestCell) {
     var url = new URL(API_ENDPOINT);
     url.searchParams.set("latitude", latitude.toFixed(4));
     url.searchParams.set("longitude", longitude.toFixed(4));
+    if (useNearestCell) url.searchParams.set("cell_selection", "nearest");
     url.searchParams.set(
       "current",
       [
@@ -314,20 +322,37 @@
     );
   }
 
+  function renderStationMap(view, latitude, longitude, pickedView) {
+    var x = (longitude + 180).toFixed(2);
+    var y = (90 - latitude).toFixed(2);
+    var marker = view.querySelector("[data-weather-map-marker]");
+    var fix = "translate(" + x + " " + y + ")";
+    if (marker.getAttribute("transform") === fix) return;
+    marker.setAttribute("transform", fix);
+    view.querySelector("[data-weather-map-crosshair]")
+      .setAttribute("d", "M" + x + " 0V180M0 " + y + "H360");
+    // Keep the point under the pointer, even if the forecast arrives after another pan.
+    if (view !== pickedView) marker.dispatchEvent(new CustomEvent("atlas:focal-change", { bubbles: true }));
+    var echo = marker.querySelector(".weather-map__echo");
+    if (echo.animate && marker.getClientRects().length && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      echo.getAnimations().forEach(function (animation) { animation.cancel(); });
+      echo.animate([{ opacity: .65 }, { opacity: 0 }], { duration: 240, easing: "ease-out" });
+    }
+  }
+
   function initWeatherWidget(root) {
     if (!root || root.getAttribute("data-weather-bound") === "true") return;
     root.setAttribute("data-weather-bound", "true");
 
-    var nameNode = root.querySelector("[data-weather-name]");
+    var atlas = document.querySelector("[data-atlas-weather]");
+    var views = atlas ? [root, atlas] : [root];
     var timeNode = root.querySelector("[data-weather-time]");
-    var temperatureNode = root.querySelector("[data-weather-temperature]");
     var descriptionNode = root.querySelector("[data-weather-description]");
     var iconUseNode = root.querySelector("[data-weather-icon-use]");
     var humidityNode = root.querySelector("[data-weather-humidity]");
     var windNode = root.querySelector("[data-weather-wind]");
     var rangeNode = root.querySelector("[data-weather-range]");
     var locationNode = root.querySelector("[data-weather-location]");
-    var statusNode = root.querySelector("[data-weather-status]");
     var refreshButton = root.querySelector('[data-weather-action="refresh"]');
     var locateButton = root.querySelector('[data-weather-action="locate"]');
 
@@ -348,6 +373,7 @@
       label: defaultLocation,
     };
     var requestController = null;
+    var selectionVersion = 0;
     var lastUpdatedAt = 0;
     var calendarDay = "";
     var clockNode = root.querySelector("[data-weather-calendar-time]");
@@ -391,45 +417,42 @@
       });
     }
 
-    function renderStation() {
-      var lat = activeLocation.latitude,
-        lon = activeLocation.longitude;
-      root.querySelector("[data-weather-coordinates]").textContent =
-        Math.abs(lat).toFixed(2) +
-        "°" +
-        (lat < 0 ? "S" : "N") +
-        " / " +
-        Math.abs(lon).toFixed(2) +
-        "°" +
-        (lon < 0 ? "W" : "E");
-      var x = (lon + 180).toFixed(2),
-        y = (90 - lat).toFixed(2);
-      root
-        .querySelector("[data-weather-map-marker]")
-        .setAttribute("transform", "translate(" + x + " " + y + ")");
-      root
-        .querySelector("[data-weather-map-crosshair]")
-        .setAttribute("d", "M" + x + " 0V180M0 " + y + "H360");
+    function setReading(field, value) {
+      views.forEach(function (view) {
+        view.querySelector("[data-weather-" + field + "]").textContent = value;
+      });
+    }
+
+    function renderStation(pickedView) {
+      var lat = activeLocation.latitude;
+      var lon = activeLocation.longitude;
+      var coordinates = Math.abs(lat).toFixed(2) + "°" + (lat < 0 ? "S" : "N") +
+        " / " + Math.abs(lon).toFixed(2) + "°" + (lon < 0 ? "W" : "E");
+      setReading("location", activeLocation.label);
+      setReading("coordinates", coordinates);
+      views.forEach(function (view) {
+        renderStationMap(view, lat, lon, pickedView);
+      });
     }
 
     function setBusy(isBusy) {
-      root.setAttribute("aria-busy", isBusy ? "true" : "false");
+      views.forEach(function (view) {
+        view.setAttribute("aria-busy", String(isBusy));
+      });
       if (refreshButton) refreshButton.disabled = isBusy;
       if (locateButton) locateButton.disabled = isBusy;
-      root.querySelector("[data-weather-signal]").textContent = isBusy
-        ? "受信中"
-        : lastUpdatedAt
-          ? "観測済"
-          : "受信待機";
+      setReading("signal", isBusy ? "受信中" : lastUpdatedAt ? "観測済" : "受信待機");
     }
 
     function setStatus(message) {
-      if (!statusNode) return;
-      statusNode.textContent = message || "";
-      statusNode.hidden = !message;
+      views.forEach(function (view) {
+        var status = view.querySelector("[data-weather-status]");
+        status.textContent = message || "";
+        status.hidden = !message;
+      });
     }
 
-    function renderWeather(payload, locationLabel) {
+    function renderWeather(payload, station, pickedView) {
       if (!payload || !payload.current) {
         throw new Error(
           "Forecast response did not include current conditions."
@@ -438,8 +461,8 @@
 
       var current = payload.current;
       var daily = payload.daily || {};
-      var weather = classifyWeather(current);
-      var details = WEATHER_DETAILS[weather.name] || DEFAULT_WEATHER_DETAILS;
+      var weather = classifyStation(current);
+      var locationLabel = station.label;
       var temperature = Math.round(toNumber(current.temperature_2m, 0));
       var humidity = Math.round(toNumber(current.relative_humidity_2m, 0));
       var wind = Math.round(toNumber(current.wind_speed_10m, 0));
@@ -450,22 +473,23 @@
         ? Math.round(toNumber(daily.temperature_2m_min[0], temperature))
         : temperature;
 
-      nameNode.textContent = weather.name;
-      descriptionNode.textContent = details.description;
-      iconUseNode.setAttribute("href", "#weather-icon-" + details.icon);
-      iconUseNode.setAttribute("xlink:href", "#weather-icon-" + details.icon);
+      setReading("name", weather.name);
+      descriptionNode.textContent = weather.description;
+      iconUseNode.setAttribute("href", "#weather-icon-" + weather.icon);
+      iconUseNode.setAttribute("xlink:href", "#weather-icon-" + weather.icon);
       timeNode.textContent = stationClock(
         current.time,
         payload.timezone_abbreviation
       );
       timeNode.dateTime = current.time;
-      temperatureNode.textContent = temperature + "°C";
+      setReading("temperature", temperature + "°C");
       humidityNode.textContent = humidity + "%";
       windNode.textContent = wind + " km/h";
       rangeNode.textContent = high + "° / " + low + "°";
-      locationNode.textContent = locationLabel;
-      root.setAttribute("data-weather-phase", weather.phase);
-      root.setAttribute("data-weather-icon", details.icon);
+      views.forEach(function (view) {
+        view.setAttribute("data-weather-phase", weather.phase);
+      });
+      root.setAttribute("data-weather-icon", weather.icon);
       var cloud = toNumber(current.cloud_cover, null),
         pressure = toNumber(current.surface_pressure, null);
       var direction = toNumber(current.wind_direction_10m, null);
@@ -482,8 +506,8 @@
             " " +
             Math.round(direction) +
             "°";
-      root.querySelector("[data-weather-daylight]").textContent =
-        toNumber(current.is_day, 1) === 1 ? "昼間" : "夜間";
+      var daylight = toNumber(current.is_day, null);
+      setReading("daylight", daylight === null ? "--" : daylight === 1 ? "昼間" : "夜間");
       ["humidity", "cloud"].forEach(function (key) {
         var value =
           key === "humidity"
@@ -493,7 +517,8 @@
         meter.hidden = value === null;
         meter.value = value === null ? 0 : value;
       });
-      renderStation();
+      activeLocation = station;
+      renderStation(pickedView);
       renderForecast(root, payload);
       root.setAttribute(
         "aria-label",
@@ -503,7 +528,7 @@
         name: weather.name,
         phase: weather.phase,
         temperature: temperature,
-        description: details.description,
+        description: weather.description,
         location: locationLabel,
         isDay: toNumber(current.is_day, 1) === 1,
       };
@@ -517,18 +542,22 @@
 
     async function loadWeather(options) {
       var settings = options || {};
-      var latitude = activeLocation.latitude;
-      var longitude = activeLocation.longitude;
-      var key = cacheKey(latitude, longitude);
+      var station = settings.station || activeLocation;
+      var latitude = station.latitude;
+      var longitude = station.longitude;
+      var key = cacheKey(latitude, longitude) + (station.mapPoint ? ":nearest" : "");
       var cached = settings.force ? null : readCachedWeather(key);
 
+      if (requestController) {
+        requestController.abort();
+        requestController = null;
+      }
       if (cached) {
-        renderWeather(cached, activeLocation.label);
+        renderWeather(cached, station, settings.pickedView);
         setBusy(false);
         return;
       }
 
-      if (requestController) requestController.abort();
       var controller = new AbortController();
       requestController = controller;
       var timeoutId = window.setTimeout(function () {
@@ -536,12 +565,13 @@
       }, REQUEST_TIMEOUT_MS);
 
       setBusy(true);
-      if (!settings.quiet) setStatus("天気を観測中…");
+      // The signal row already announces reception. Keep the map still while picking.
+      if (!settings.quiet) setStatus(station.mapPoint ? "" : station.label + "の天気を観測中…");
 
       var failure;
       try {
         var response = await window.fetch(
-          buildForecastUrl(latitude, longitude),
+          buildForecastUrl(latitude, longitude, station.mapPoint),
           {
             headers: { Accept: "application/json" },
             signal: controller.signal,
@@ -553,7 +583,7 @@
 
         var payload = await response.json();
         if (controller !== requestController) return;
-        renderWeather(payload, activeLocation.label);
+        renderWeather(payload, station, settings.pickedView);
         cacheWeather(key, payload);
       } catch (error) {
         if (controller !== requestController) return;
@@ -566,8 +596,9 @@
           requestController = null;
           setBusy(false);
           if (failure) {
-            setStatus(failure);
-            root.querySelector("[data-weather-signal]").textContent = "通信待機";
+            setStatus(station !== activeLocation && lastUpdatedAt
+              ? failure + activeLocation.label + "の観測を表示しています。" : failure);
+            setReading("signal", "通信待機");
             if (!lastUpdatedAt)
               root.querySelector("[data-weather-chart-empty]").textContent = "予報を取得できません";
             document.dispatchEvent(new CustomEvent("site:weather-error"));
@@ -582,18 +613,21 @@
         return;
       }
 
+      var version = ++selectionVersion;
       setBusy(true);
       setStatus("位置情報の許可を待っています…");
       window.navigator.geolocation.getCurrentPosition(
         function (position) {
-          activeLocation = {
+          if (version !== selectionVersion) return;
+          var station = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             label: "現在地",
           };
-          loadWeather({ force: true });
+          loadWeather({ force: true, station: station });
         },
         function () {
+          if (version !== selectionVersion) return;
           setBusy(false);
           setStatus(
             "現在地を取得できません。" + (lastUpdatedAt ? locationNode.textContent + "を表示しています。" : "")
@@ -617,8 +651,64 @@
       locateButton.addEventListener("click", locateVisitor);
     }
 
+    views.forEach(function (view) {
+      var viewport = view.querySelector("[data-atlas-viewport]");
+      var svg = viewport.querySelector(".weather-map__overlay");
+      var cursor = svg.querySelector("[data-weather-cursor]");
+      var target;
+
+      function moveCursor(x, y) {
+        target = { x: Math.max(0, Math.min(360, x)), y: Math.max(0, Math.min(180, y)) };
+        cursor.setAttribute("transform", "translate(" + target.x + " " + target.y + ")");
+        cursor.setAttribute("visibility", "visible");
+      }
+      function clearCursor() {
+        target = null;
+        cursor.setAttribute("visibility", "hidden");
+      }
+      async function observe(x, y, label, pickedView) {
+        ++selectionVersion;
+        moveCursor(x, y);
+        var pending = target;
+        var station = {
+          longitude: +(target.x - 180).toFixed(2),
+          latitude: +(90 - target.y).toFixed(2),
+          label: label || "選択地点",
+          mapPoint: true,
+        };
+        await loadWeather({ station: station, pickedView: pickedView });
+        if (target === pending) clearCursor();
+      }
+      viewport.addEventListener("click", function (event) {
+        if (event.defaultPrevented || !event.detail) return;
+        var sample = event.target.closest("[data-weather-sample]");
+        if (sample) {
+          observe(180 + Number(sample.dataset.longitude), 90 - Number(sample.dataset.latitude), sample.dataset.label, view);
+          return;
+        }
+        var matrix = svg.getScreenCTM();
+        if (!matrix) return;
+        var point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+        observe(point.x, point.y, null, view);
+      });
+      viewport.addEventListener("keydown", function (event) {
+        if (event.target !== viewport) return;
+        var dx = { ArrowLeft: -1, ArrowRight: 1 }[event.key] || 0;
+        var dy = { ArrowUp: -1, ArrowDown: 1 }[event.key] || 0;
+        if (event.shiftKey && (dx || dy)) {
+          event.preventDefault();
+          var origin = target || { x: 180 + activeLocation.longitude, y: 90 - activeLocation.latitude };
+          moveCursor(origin.x + dx, origin.y + dy);
+        } else if (event.key === "Enter" && target) {
+          event.preventDefault();
+          observe(target.x, target.y);
+        }
+      });
+      viewport.addEventListener("blur", clearCursor);
+    });
+
     window.setInterval(function () {
-      if (document.visibilityState !== "visible") return;
+      if (document.visibilityState !== "visible" || root.getAttribute("aria-busy") === "true") return;
       if (Date.now() - lastUpdatedAt < REFRESH_INTERVAL_MS) return;
       loadWeather({ quiet: true });
     }, REFRESH_INTERVAL_MS);
