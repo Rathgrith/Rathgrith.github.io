@@ -291,6 +291,10 @@ body.playground-page {
   /* The three replies and footer each gain 6–8px for touch. */
   .playground-page #live2d-widget .pg-dialogue-desk { height: 278px; }
 }
+@media (max-width: 384px) and (pointer: coarse) {
+  /* A third line of dialogue wraps above the same three replies. */
+  .playground-page #live2d-widget .pg-dialogue-desk { height: 305px; }
+}
 .playground-page #live2d-widget .pg-dialogue-desk > :is(.companion-conversation, .companion-footer) {
   grid-area: auto;
   min-width: 0;
