@@ -655,7 +655,7 @@
       var viewport = view.querySelector("[data-atlas-viewport]");
       var svg = viewport.querySelector(".weather-map__overlay");
       var cursor = svg.querySelector("[data-weather-cursor]");
-      var target;
+      var target, touchRelease;
 
       function moveCursor(x, y) {
         target = { x: Math.max(0, Math.min(360, x)), y: Math.max(0, Math.min(180, y)) };
@@ -679,16 +679,26 @@
         await loadWeather({ station: station, pickedView: pickedView });
         if (target === pending) clearCursor();
       }
+      viewport.addEventListener("pointerup", function (event) {
+        // A browser can move its synthesized click onto a nearby station badge.
+        // Keep the finger's actual release position for the accepted tap.
+        touchRelease = event.pointerType === "touch"
+          ? { clientX: event.clientX, clientY: event.clientY } : null;
+      });
       viewport.addEventListener("click", function (event) {
         if (event.defaultPrevented || !event.detail) return;
-        var sample = event.target.closest("[data-weather-sample]");
+        var pointer = touchRelease || event;
+        var hit = touchRelease ? document.elementFromPoint(pointer.clientX, pointer.clientY) : event.target;
+        touchRelease = null;
+        if (!hit || !viewport.contains(hit)) return;
+        var sample = hit.closest("[data-weather-sample]");
         if (sample) {
           observe(180 + Number(sample.dataset.longitude), 90 - Number(sample.dataset.latitude), sample.dataset.label, view);
           return;
         }
         var matrix = svg.getScreenCTM();
         if (!matrix) return;
-        var point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+        var point = new DOMPoint(pointer.clientX, pointer.clientY).matrixTransform(matrix.inverse());
         observe(point.x, point.y, null, view);
       });
       viewport.addEventListener("keydown", function (event) {
