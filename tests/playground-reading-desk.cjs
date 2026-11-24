@@ -174,6 +174,35 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     await openBranch();
     assert.equal(await options.count(), 3);
     await assertComplete();
+    const phone = await browser.newPage({
+      viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3,
+    });
+    await phone.addInitScript(() => localStorage.setItem("site-companion-v1", JSON.stringify({ speed: 0 })));
+    await phone.goto(base + "playground/", { waitUntil: "domcontentloaded" });
+    assert(await phone.evaluate(() => matchMedia("(pointer: coarse)").matches));
+    await phone.locator('[data-vn-open="topics"]').tap();
+    await phone.locator('[data-vn-topic-start="branch:daily"]').tap();
+    const phoneReplies = phone.locator("[data-vn-choices] button");
+    await phoneReplies.first().waitFor();
+    const touchLayout = await phoneReplies.evaluateAll((buttons) => {
+      const body = buttons[0].closest(".vn-dialogue-body");
+      const top = body.getBoundingClientRect().top + body.clientTop;
+      return { top, bottom: top + body.clientHeight, scroll: body.scrollTop,
+        targets: buttons.map((button) => {
+          const { top, bottom, width, height } = button.getBoundingClientRect();
+          return { top, bottom, width, height };
+        }) };
+    });
+    assert.equal(touchLayout.targets.length, 3);
+    assert.equal(touchLayout.scroll, 0);
+    for (const button of touchLayout.targets) {
+      assert(button.height >= 40 && button.width >= 40, "Replies retain their touch target");
+      assert(button.top >= touchLayout.top - 1 && button.bottom <= touchLayout.bottom + 1,
+        "All three ordinary replies must fit without scrolling the dialogue: " + JSON.stringify(touchLayout));
+    }
+    await phoneReplies.last().tap();
+    await phone.waitForFunction(() => document.querySelector("#live2d-widget").dataset.vnBranchNode !== "daily");
+    await phone.close();
     console.log("PASS: stable Japanese ink reveal and choice geometry, keyboard replies, character switch, instant reduced motion in both dialogue views and accessible history");
   } finally {
     await browser.close();
