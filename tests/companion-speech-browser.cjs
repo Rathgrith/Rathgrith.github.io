@@ -92,10 +92,14 @@ fs.mkdirSync(out, {recursive:true});
       await page.waitForTimeout(200);
       const geometry=await page.locator('.vn-reaction').evaluate(el=>{
         const r=el.getBoundingClientRect(),s=el.parentElement.getBoundingClientRect();
-        return {x:r.x,y:r.y,width:r.width,inside:r.left>=s.left&&r.right<=s.right,rendering:getComputedStyle(el).imageRendering};
+        return {x:r.x,y:r.y,width:r.width,height:r.height,source:[el.width,el.height],
+          inside:r.left>=s.left&&r.right<=s.right&&r.top>=s.top&&r.bottom<=s.bottom,
+          rendering:getComputedStyle(el).imageRendering};
       });
       assert(Math.abs(geometry.x-Math.round(geometry.x))<0.01&&Math.abs(geometry.y-Math.round(geometry.y))<0.01,JSON.stringify(geometry));
-      assert.equal(geometry.width,64);
+      assert.deepEqual(geometry.source,[64,64], 'The reaction keeps its native pixel raster');
+      assert(geometry.width>0 && Math.abs(geometry.width-geometry.height)<0.01,
+        'The displayed reaction scales uniformly with the face');
       assert(geometry.inside);
       assert.equal(geometry.rendering,'pixelated');
     }

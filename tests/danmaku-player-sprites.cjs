@@ -14,6 +14,9 @@ const scripts = [
   "patterns-patchouli",
   "patterns",
   "scroll",
+  "run",
+  "pilot",
+  "scenery",
   "engine",
   "boss-sprites",
   "player-sprites",
@@ -162,7 +165,7 @@ async function renderModes(page) {
         output.fillRect(0, 0, sheet.width, sheet.height);
         const cell = document.createElement("canvas");
         cell.width = cell.height = 64;
-        const ctx = cell.getContext("2d");
+        const ctx = cell.getContext("2d", { willReadFrequently: true });
         ctx.imageSmoothingEnabled = false;
         const results = [];
         function metrics() {
@@ -267,6 +270,36 @@ async function renderModes(page) {
             poses: poses.map(({ first, ...p }) => p),
           });
         }
+        function puppet(arm, role, phase, swing, time) {
+          ctx.clearRect(0, 0, 64, 64);
+          const field = {player: {x: 32, y: 58}, shots: [], weapon: {traces: [],
+            dolls: [{x: 32, y: 31, age: 0.1, arm, role, phase, swing, facing: -Math.PI / 2}]}};
+          DanmakuPlayerSprites.drawWeapons(ctx, field, "alice", reduced, time);
+          DanmakuPlayerSprites.drawPuppeteerHands(ctx, field, reduced, time);
+          return {pixels: cell.toDataURL(), bounds: metrics()};
+        }
+        const knights = [["lance", "lancer"], ["blade", "blade"], ["shield", "guard"]]
+          .map(([arm, role]) => puppet(arm, role, "home", 0, 0).pixels);
+        if (new Set(knights).size !== 3) throw Error("Shield, lance and blade need distinct silhouettes");
+        const left = puppet("blade", "blade", "strike", 0.58, 0).bounds;
+        const right = puppet("blade", "blade", "strike", 1, 0).bounds;
+        if (!(left.x0 < 12 && right.x1 > 52)) throw Error("The greatblade must sweep across both ends of its damage arc");
+        if (puppet("lance", "lancer", "strike", 1, 0).bounds.y0 > 13)
+          throw Error("Lance art must reach the 19px thrust tip");
+        if (reduced && puppet("shield", "guard", "home", 0, 0.35).pixels !== knights[2])
+          throw Error("Reduced motion must hold the resting puppet and control hand steady");
+        function volume(element, flash) {
+          ctx.clearRect(0, 0, 64, 64);
+          const field = {player: {x:32,y:55}, shots:[], focus:false, weapon:{
+            traces:[], grimoires:[{element, x:32, y:22, tilt:0, flash}]}};
+          DanmakuPlayerSprites.drawWeapons(ctx, field, "patchouli", reduced, 0);
+          return cell.toDataURL();
+        }
+        const tomes = ["fire","water","wood","metal","earth","sun","moon"];
+        if (new Set(tomes.map(element => volume(element, 0))).size !== tomes.length)
+          throw Error("The seven open spellbooks need distinguishable ink and seals");
+        if (!reduced && volume("fire", 0.21) === volume("fire", 0.06))
+          throw Error("A volume must turn its page on its casting beat");
         ctx.clearRect(0, 0, 64, 64);
         if (
           DanmakuPlayerSprites.draw(
@@ -291,8 +324,8 @@ async function renderModes(page) {
         );
         for (const pose of character.poses) {
           assert(
-            reducedMotion === "reduce" ? pose.unique === 1 : pose.unique >= 2,
-            `${character.id}/${pose.pose}: motion preference`
+            reducedMotion === "reduce" ? pose.unique === 1 : pose.unique >= 3,
+            `${character.id}/${pose.pose}: ${reducedMotion} produced ${pose.unique} distinct frames`
           );
           assert(
             pose.drift < 4.5,

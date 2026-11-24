@@ -12,6 +12,7 @@ function attack(enemy, card, rank) {
   const index = patterns.cards[enemy].findIndex((entry) => entry.id === card);
   const phrase = engine.score.getTrack(enemy).phrases[index];
   s.countdown = 0;
+  s.run.nextWave = Infinity;
   s.intro = null;
   s.time = phrase.start;
   // The production engine still computes its usual time-based HUD level. This
@@ -79,9 +80,39 @@ function attack(enemy, card, rank) {
     peak,
   };
 }
+// The score changes where attacks land in the measure, without adding tempo debt.
+for (const id of Object.keys(engine.cast)) {
+  const s = engine.create(id, id, 19).state;
+  const phrases = [];
+  for (let part = 0; part < 3; part++) {
+    const rates = Array.from({length: 8}, (_, beat) => {
+      s.rhythm.beat = beat;
+      return patterns.phraseRate(s, {stage: 0, part});
+    });
+    assert(Math.abs(mean(rates) - 1) < 1e-9);
+    assert(Math.max(...rates) - Math.min(...rates) >= 1);
+    phrases.push(rates.join());
+  }
+  assert.equal(new Set(phrases).size, 3);
+}
 const rows = [];
 for (const enemy of Object.keys(engine.cast)) {
   for (const { id } of patterns.cards[enemy]) {
+    const state = engine.create("alice", enemy, 1977).state;
+    state.enemySpell.id = id;
+    const base = patterns.difficulty(state);
+    state.level = 25;
+    const hard = patterns.difficulty(state);
+    assert.equal(
+      hard.speed,
+      base.speed,
+      `${id}: rank does not accelerate the shot profile`
+    );
+    assert.equal(
+      hard.warning,
+      base.warning,
+      `${id}: telegraph duration survives rank growth`
+    );
     const low = attack(enemy, id, 1),
       high = attack(enemy, id, 25);
     assert(
@@ -94,7 +125,7 @@ for (const enemy of Object.keys(engine.cast)) {
     );
     assert(
       high.lower > low.lower,
-      `${id}: lower-field density must rise despite higher velocity`
+      `${id}: lower-field density must rise while speed stays fixed`
     );
     assert(high.peak < 720, `${id}: rank respects the shared bullet budget`);
     rows.push({
@@ -136,7 +167,7 @@ function duel(rank, bossId) {
       f.player.invulnerable = Infinity;
       f.aiClock = 999;
       f.aiInput = {};
-      f.shotClock = 999;
+      f.weapon.clock = 999;
       f.shots = [];
     });
     game.step(dt);

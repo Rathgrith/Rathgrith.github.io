@@ -14,5 +14,15 @@
       "id": "patchouli",
       "prompt": "Use case: stylized-concept. Asset type: production background tile for a vertically scrolling Touhou-inspired bullet-hell game, portrait 2:3 composition. Create exquisite hand-crafted 16-bit Japanese pixel scenery, deliberate clean pixel clusters, restrained 24-color palette, no anti-aliased painting, no 3D rendering, no text, no UI, no people, no projectiles. Orthographic top-down view, no horizon or perspective vanishing point. Seamless vertical repetition: top and bottom must meet with the same architectural/mottled surface pattern. The middle 65 percent is dark, calm negative space for readable bullets; richer detail hugs the far side edges. Deep navy values, never bright white. Professional GBA/late SNES quality, detailed rather than crude block outlines. No frame, no montage. Patchouli's immense Scarlet Devil Mansion magic library viewed from above: endless rows of dark burgundy and violet antique bookshelves along both edges, carved walnut shelves with tiny aged gold bindings, a broad quiet dark plum stone aisle in the center, occasional dim purple stained-glass light pools and pairs of subdued brass lamp bases. Elaborate but low contrast gothic stone tiling, dusty teal shadows. No large magic circle, no bright center decoration. Thoughtful book details concentrated at outer edges."
     }
-  ]
+  ],
+  "expansion": {
+    "generator": "Built-in image_gen",
+    "date": "2026-11-23",
+    "files": [
+      "alice-theatre.webp",
+      "marisa-observatory.webp",
+      "patchouli-vault.webp"
+    ],
+    "description": "Three original illustrations painted as a single triptych and cropped into individual stages. A midnight marionette theatre, a comet observatory and a subterranean star atlas vault. Silhouettes and illumination are concentrated along the outer edges."
+  }
 }

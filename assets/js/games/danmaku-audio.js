@@ -3,10 +3,31 @@
   "use strict";
   var base = document.currentScript.dataset.sfxBase;
   var samples = {
-    shot_alice: ["shot1", 0.13, 0.1],
-    shot_marisa: ["shot2", 0.11, 0.1],
-    shot_patchouli: ["shot3", 0.13, 0.1],
+    shot_alice: ["blade_swing", 0.23, 0.13],
+    shot_alice_lance: ["lance_thrust", 0.22, 0.12],
+    shot_alice_shield: ["blade_swing", 0.18, 0.16, 1.22],
+    parry: ["shield_parry", 0.51, 0.15],
+    shot_marisa: ["rail_shot", 0.23, 0.14],
+    shot_marisa_charged: ["rail_charged", 0.40, 0.25],
+    shot_marisa_pod: ["pod_shot", 0.13, 0.19],
+    shot_patchouli: ["page_turn", 0.24, 0.14],
+    shot_patchouli_seal: ["seal_release", 0.22, 0.17],
+    enemy_volley_alice: ["needle_cast", 0.14, 0.85],
+    enemy_volley_marisa: ["prism_cast", 0.14, 0.85],
+    enemy_volley_patchouli: ["folio_cast", 0.16, 0.85],
     hit: ["hit", 0.1, 0.09],
+    hit_alice: ["hit_alice", 0.27, 0.11],
+    hit_alice_lance: ["haft_impact", 0.35, 0.12],
+    hit_marisa: ["hit_marisa", 0.34, 0.13],
+    hit_patchouli: ["hit_patchouli", 0.26, 0.14],
+    hit_heavy_alice: ["hit_alice", 0.45, 0.2, 0.74],
+    hit_heavy_alice_lance: ["haft_impact", 0.5, 0.2, 0.78],
+    hit_heavy_marisa: ["hit_marisa", 0.52, 0.2, 0.72],
+    hit_heavy_patchouli: ["hit_patchouli", 0.44, 0.2, 0.78],
+    foe_break: ["foe_break", 0.39, 0.12],
+    armor_break: ["armor_break", 0.46, 0.26],
+    boss_break: ["boss_break", 0.55, 0.4],
+    upgrade: ["upgrade", 0.48, 0.30],
     bomb_impact: ["bomb_impact", 0.38, 0.15],
     graze: ["graze", 0.42, 0.07],
     power: ["powerup", 0.42, 0.18],
@@ -32,7 +53,9 @@
       volume = 0.35;
     var timelineTime = 0,
       timelineRunning = false,
-      lastTimelineSeek = -Infinity;
+      lastTimelineSeek = -Infinity,
+      lastRateCheck = -Infinity,
+      nextResumeAt = 0;
     var phase = "closed",
       enemy = "alice",
       visible = true;
@@ -50,7 +73,10 @@
       effectsError = false,
       loading = false,
       fadeFrame = 0,
-      musicPriming = false;
+      musicPriming = false,
+      playPending = false,
+      download = null,
+      localTrack = "";
     var bar = document.createElement("div");
     bar.className = "danmaku-audio";
     bar.innerHTML =
@@ -105,6 +131,7 @@
     }
     function stopMusic() {
       musicEpoch++;
+      playPending = false;
       musicPriming = false;
       cancelAnimationFrame(fadeFrame);
       if (music) {
@@ -112,9 +139,69 @@
         music.pause();
       }
     }
+    function cancelDownload() {
+      if (!download) return;
+      download.abort();
+      download = null;
+      status.textContent = "";
+    }
+    function releaseTrack() {
+      cancelDownload();
+      if (localTrack) URL.revokeObjectURL(localTrack);
+      localTrack = "";
+    }
+    function trackPosition() {
+      return timelineTime % DanmakuScore.getTrack(enemy).duration;
+    }
+    function seekMusic(tolerance) {
+      var target = trackPosition();
+      if (music.readyState < 1 || Math.abs(music.currentTime - target) <= tolerance)
+        return;
+      music.currentTime = target;
+      lastTimelineSeek = performance.now();
+    }
+    function musicFailed(message) {
+      musicError = true;
+      stopMusic();
+      update();
+      status.textContent = message || "BGM を読み込めませんでした。再試行してください。";
+    }
+    function mediaFailed() {
+      if (!musicOn || download || !music.error) return;
+      // A streamed MP3 can fail only when the browser asks for a later byte
+      // range. Fetch the complete recording once and seek within local bytes.
+      if (music.error.code !== 2 || localTrack || !canPlay()) {
+        musicFailed();
+        return;
+      }
+      stopMusic();
+      var request = new AbortController();
+      download = request;
+      status.textContent = "BGM を読み込み直しています。";
+      fetch(DanmakuScore.getTrack(enemy).src, {
+        cache: "no-store",
+        signal: request.signal,
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error("Recording unavailable");
+          return response.blob();
+        })
+        .then(function (blob) {
+          if (download !== request) return;
+          localTrack = URL.createObjectURL(blob);
+          download = null;
+          status.textContent = "";
+          syncMusic();
+        })
+        .catch(function () {
+          if (download !== request) return;
+          download = null;
+          musicFailed();
+        });
+    }
     function syncMusic(prime) {
       stopMusic();
-      if (!musicOn || !canPlay() || (!timelineRunning && !prime)) {
+      if (!musicOn || !canPlay() || download || (!timelineRunning && !prime)) {
         update();
         return;
       }
@@ -125,31 +212,22 @@
         music.loop = false;
         view.appendChild(music);
         music.addEventListener("loadedmetadata", function () {
-          if (musicOn && canPlay())
-            music.currentTime =
-              timelineTime % DanmakuScore.getTrack(enemy).duration;
+          if (musicOn && canPlay()) seekMusic(0.1);
         });
-        music.addEventListener("error", function () {
-          if (!musicOn) return;
-          musicError = true;
-          stopMusic();
-          update();
-          status.textContent =
-            "BGM を読み込めませんでした。再試行してください。";
-        });
+        music.addEventListener("error", mediaFailed);
         music.addEventListener("playing", function () {
           if (!musicOn || !canPlay() || (!timelineRunning && !musicPriming))
             stopMusic();
         });
       }
       var track = DanmakuScore.getTrack(enemy);
-      var src = new URL(track.src, location.href).href;
-      if (music.src !== src || musicError) {
+      var src = localTrack || new URL(track.src, location.href).href;
+      if (music.src !== src || music.error || musicError) {
         music.src = src;
         music.load();
       }
-      if (music.readyState >= 1)
-        music.currentTime = timelineTime % track.duration;
+      seekMusic(0.1);
+      if (music.playbackRate !== 1) music.playbackRate = 1;
       musicError = false;
       music.muted = false;
       music.volume = 0;
@@ -157,19 +235,20 @@
       // while the intro is silent. It must not depend on prior radio playback.
       musicPriming = !timelineRunning;
       var token = musicEpoch;
+      playPending = true;
+      nextResumeAt = performance.now() + 1200;
       music
         .play()
         .then(function () {
           if (token !== musicEpoch) return;
-          musicPriming = false;
+          playPending = musicPriming = false;
           if (!timelineRunning) {
             music.muted = true;
             music.pause();
             update();
             return;
           }
-          music.currentTime =
-            timelineTime % DanmakuScore.getTrack(enemy).duration;
+          if (!music.seeking) seekMusic(0.18);
           var start = performance.now();
           function fade(now) {
             if (token !== musicEpoch) return;
@@ -180,16 +259,11 @@
           fadeFrame = requestAnimationFrame(fade);
         })
         .catch(function (error) {
-          if (token !== musicEpoch || error.name === "AbortError") return;
-          // A browser/transport failure changes availability, not the user's
-          // independently chosen battle-music setting.
-          musicError = true;
-          stopMusic();
-          update();
-          status.textContent =
-            error.name === "NotAllowedError"
-              ? "BGM ボタンを押してください。"
-              : "BGM を読み込めませんでした。再試行してください。";
+          if (token !== musicEpoch) return;
+          playPending = musicPriming = false;
+          if (error.name === "AbortError") return;
+          if (music.error) mediaFailed();
+          else musicFailed(error.name === "NotAllowedError" ? "BGM ボタンを押してください。" : "");
         });
       update();
     }
@@ -249,9 +323,14 @@
         if (!voices.length) context.suspend().catch(function () {});
       }
     }
-    function play(name, player) {
-      if (name === "shot" || name === "bomb" || name === "spell")
-        name += "_" + player;
+    function play(name, player, voice) {
+      // Mechanics report the action and actual weapon. A dropped or omitted
+      // articulation uses the same character's basic cue.
+      var action = name + "_" + player;
+      if (samples[action]) {
+        name = action;
+        if (voice && samples[action + "_" + voice]) name += "_" + voice;
+      }
       var sample = samples[name];
       if (
         !effectsOn ||
@@ -270,7 +349,7 @@
       // Bound polyphony; collision bursts cannot drown out spell or pickup cues.
       if (voices.length >= 12) {
         var disposable = voices.find(function (v) {
-          return v.name.indexOf("shot_") === 0 || v.name === "hit";
+          return v.name.indexOf("shot_") === 0 || v.name === "hit" || v.name.indexOf("hit_") === 0;
         });
         if (!disposable) return;
         disposable.stop();
@@ -278,6 +357,7 @@
       var source = context.createBufferSource(),
         gain = context.createGain();
       source.buffer = buffers[sample[0]];
+      if (sample[3]) source.playbackRate.value = sample[3];
       gain.gain.value = sample[1];
       source.connect(gain);
       gain.connect(master);
@@ -306,6 +386,8 @@
     }
     musicButton.addEventListener("click", function () {
       musicOn = musicError || !musicOn;
+      if (!musicOn) cancelDownload();
+      if (musicError && music && music.error) releaseTrack();
       status.textContent = "";
       syncMusic(true);
     });
@@ -324,22 +406,20 @@
         loading = true;
         // Resume in the trusted click stack, including on mobile Safari.
         var unlocked = context.resume();
-        Promise.all([unlocked].concat(Object.keys(samples).map(load)))
-          .then(function () {
+        // Finish the whole batch before exposing Retry. A second attempt must
+        // never inherit still-failing requests from the first attempt.
+        Promise.allSettled([unlocked].concat(Object.keys(samples).map(load)))
+          .then(function (results) {
             if (token !== effectsEpoch) return;
+            if (results.some(function (r) { return r.status === "rejected"; })) {
+              effectsOn = false;
+              effectsError = true;
+              status.textContent =
+                "効果音を読み込めませんでした。再試行してください。";
+            }
             loading = false;
             syncEffects();
             update();
-          })
-          .catch(function () {
-            if (token !== effectsEpoch) return;
-            loading = false;
-            effectsOn = false;
-            effectsError = true;
-            syncEffects();
-            update();
-            status.textContent =
-              "効果音を読み込めませんでした。再試行してください。";
           });
       } catch (_) {
         effectsOn = false;
@@ -374,33 +454,35 @@
           timelineRunning = running;
           syncMusic();
         }
-        if (
-          !musicOn ||
-          !canPlay() ||
-          !running ||
-          !music ||
-          music.paused ||
-          music.readyState < 2 ||
-          music.seeking
-        )
+        if (!musicOn || !canPlay() || !running || !music || musicError || download || playPending)
           return;
-        var target = timelineTime % DanmakuScore.getTrack(enemy).duration;
-        var error = target - music.currentTime;
-        // Correct small device/render jitter gradually. A seek is expensive and
-        // can itself delay playback, so never chase that delay on every frame.
-        // Large discontinuities (including song wrap) still align immediately.
         var now = performance.now();
-        if (
-          Math.abs(error) > 0.75 ||
-          (Math.abs(error) > 0.15 && now - lastTimelineSeek > 750)
-        ) {
-          music.currentTime = target;
-          lastTimelineSeek = now;
-          music.playbackRate = 1;
-        } else
-          music.playbackRate = Math.max(0.97, Math.min(1.03, 1 + error * 0.3));
+        if (music.ended || music.paused) {
+          // Score mode stops at the recording boundary. A Flower match can
+          // continue into the next lap before its next round or countdown.
+          if (music.ended && DanmakuScore.getTrack(enemy).duration - trackPosition() < 0.3)
+            return;
+          if (now >= nextResumeAt) syncMusic();
+          return;
+        }
+        if (music.readyState < 2 || music.seeking) return;
+        var drift = trackPosition() - music.currentTime;
+        if (Math.abs(drift) > 0.85 && now - lastTimelineSeek >= 3000) {
+          seekMusic(0.85);
+          if (music.playbackRate !== 1) music.playbackRate = 1;
+        } else if (now - lastRateCheck >= 250) {
+          lastRateCheck = now;
+          // Leave the audio clock alone inside the normal render jitter band.
+          var rate = 1;
+          if (Math.abs(drift) >= 0.09) {
+            var correction = Math.round((1 + drift * 0.24) * 100) / 100;
+            rate = Math.max(0.94, Math.min(1.06, correction));
+          }
+          if (music.playbackRate !== rate) music.playbackRate = rate;
+        }
       },
       setScene: function (value, id, restart) {
+        if ((id && id !== enemy) || value === "closed" || value === "lobby") releaseTrack();
         phase = value;
         if (value === "playing" && effectsOn && !context && !loading)
           enableEffects();
@@ -409,7 +491,6 @@
         if (restart) {
           timelineTime = 0;
           stopVoices(false);
-          if (music && music.readyState >= 1) music.currentTime = 0;
         }
         syncMusic(value === "playing");
         syncEffects();

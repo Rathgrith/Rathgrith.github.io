@@ -50,7 +50,7 @@ assert(
 );
 assert(
   engine.laserGap({ x: 160, y: 300 }, beam({ width: 14, spread: 0.16 })) < 0,
-  "Master Spark spreads with distance"
+  "A tapered beam spreads with distance"
 );
 
 const orbit = beam({
@@ -89,7 +89,7 @@ for (const id of Object.keys(engine.cast)) {
       s = g.state;
     s.countdown = 0;
     s.intro = null;
-    s.attackReadyAt = 999;
+    s.run.nextWave = Infinity;
     s.bombs = 0;
     s.player.invulnerable = 0;
     s.player.y = 300;
@@ -123,6 +123,8 @@ for (const id of Object.keys(engine.cast)) {
       s.items = [{ x: 165, y: 300, type: "power", age: 0 }];
     g.setAuto(true);
     for (let i = 0; i < 150; i++) {
+      // A first-frame declaration resets this gate. Isolate the supplied beam.
+      s.attackReadyAt = 999;
       s.bullets = [];
       g.step(1 / 60);
     }

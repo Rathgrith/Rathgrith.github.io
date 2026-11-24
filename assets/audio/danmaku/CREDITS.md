@@ -11,7 +11,7 @@ apply to these sound effects.
 
 | Game event | Upstream file (in `resources/00-taisei.pkgdir/sfx/`) |
 | --- | --- |
-| Alice / Marisa / Patchouli player volley | `shot1.opus` / `shot2.opus` / `shot3.opus` |
+| Original generic volleys (retained source assets) | `shot1.opus` / `shot2.opus` / `shot3.opus` |
 | Enemy hit | `hit.opus` |
 | Graze | `graze.opus` |
 | Power / extra life / Bomb-stock pickup | `powerup.opus` / `extra_life.opus` / `extra_bomb.opus` |
@@ -31,8 +31,8 @@ Official [Touhou fan-work guidelines](https://touhou-project.news/guideline/)
 exclude directly republishing original game materials. These licensed fan-game
 sounds provide the corresponding event cues instead. Music reuses the credited
 character arrangements in [the dBu recording credits](../../music/danmaku/README.md).
-Both battle music and effects are opt-in and start disabled on every page load.
+The standalone Playground enables battle music and effects on entry after a player gesture. The widget starts with both off.
 
 ## Original synthesized cues
 
-`spell_alice.wav`, `spell_marisa.wav`, and `spell_patchouli.wav` are distinct chime, electric and organ-style declarations. `laser_charge.wav`, `laser_fire.wav`, `spell_break.wav`, `spell_capture.wav` and `score_collect.wav` supply the warning, firing, transition and collection cues. `bomb_impact.wav` adds a short pitch-falling, gated percussion hit at each Bomb damage pulse. These contain no samples from the original games. Reproduce the deterministic PCM files using `python3 scripts/render-danmaku-cues.py` (Python standard library only). These generated effects follow the repository’s software license, separately from the upstream Taisei samples and the music recordings.
+`spell_alice.wav`, `spell_marisa.wav`, and `spell_patchouli.wav` are distinct chime, electric and organ-style declarations. `laser_charge.wav`, `laser_fire.wav`, `spell_break.wav`, `spell_capture.wav` and `score_collect.wav` supply the warning, firing, transition and collection cues. `bomb_impact.wav` adds a short pitch-falling, gated percussion hit at each Bomb damage pulse. The player weapon set includes separate sword air, thrust, blade contact, haft impact and shield-parry sounds, coil and charged rail reports with softer pod shots, and page rustles with a pitched seal release. Opposing casters use needle, prism or folio accents. The foe, armor and boss break cues layer two fracture transients over a falling pitch. The upgrade cue uses a rising three-note arpeggio. These contain no samples from the original games. Reproduce the deterministic PCM files using `python3 scripts/render-danmaku-cues.py` (Python standard library only). These generated effects follow the repository’s software license, separately from the upstream Taisei samples and the music recordings.

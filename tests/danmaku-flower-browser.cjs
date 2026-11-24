@@ -134,10 +134,13 @@ fs.mkdirSync(out, { recursive: true });
           overflow: view.scrollHeight > view.clientHeight + 1,
           internal: canvas.width,
           phase: flowerGame.state.phase,
+          widgetHeight: document.querySelector("#live2d-widget").getBoundingClientRect().height,
         };
       });
       assert(fit.fit && !fit.overflow, JSON.stringify({ width, height, fit }));
       assert.equal(fit.phase, "playing");
+      if (height < 500)
+        assert(fit.widgetHeight <= height, "docked arcade fits the landscape screen");
       assert(
         fit.canvas.h > 150,
         "landscape must retain a playable arena, not merely avoid overflow"

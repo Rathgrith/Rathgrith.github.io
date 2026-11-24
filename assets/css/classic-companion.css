@@ -600,6 +600,10 @@
   min-height: 112px;
   padding: 2px 0 14px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#live2d-widget .vn-reading[aria-disabled="true"] {
+  cursor: default;
 }
 #live2d-widget .live2d-dialogue__text {
   margin: 0;
@@ -610,6 +614,13 @@
   letter-spacing: 0.5px;
   line-break: strict;
   overflow-wrap: anywhere;
+}
+/* Lay out the unread ending in the same inline flow. Even a closing Japanese
+   punctuation mark at the wrap boundary occupies its final place from the start. */
+#live2d-widget .live2d-dialogue__text[data-unread]::after {
+  content: attr(data-unread);
+  visibility: hidden;
+  user-select: none;
 }
 #live2d-widget .vn-nameplate .vn-voice-toggle {
   flex-shrink: 0;
@@ -688,7 +699,24 @@
 #live2d-widget[data-dialogue-state="choice"] .vn-next-mark {
   visibility: hidden;
 }
+#live2d-widget .companion-conversation:has(.vn-choices > button) .vn-next-mark {
+  visibility: hidden;
+}
 @media (prefers-reduced-motion: no-preference) {
+  #live2d-widget .vn-ink {
+    animation: vn-ink-in 155ms ease-out;
+  }
+  #live2d-widget .vn-speaker-name {
+    animation: vn-ink-in 220ms ease-out;
+  }
+  #live2d-widget .vn-choices button {
+    animation: vn-reply-in 175ms ease-out backwards;
+  }
+  #live2d-widget .vn-choices button:nth-child(2) { animation-delay: 28ms; }
+  #live2d-widget .vn-choices button:nth-child(n+3) { animation-delay: 56ms; }
+  #live2d-widget[data-dialogue-state="ready"] .vn-next-mark {
+    animation: vn-next-arrive 300ms ease-out;
+  }
   #live2d-widget
     :is(
       .vn-cast button,
@@ -714,6 +742,17 @@
   #live2d-widget .vn-main-view {
     transition: filter var(--motion-ui, 180ms) var(--motion-ease, ease-out);
   }
+}
+@keyframes vn-ink-in {
+  from { opacity: .55; color: var(--classic-accent); }
+}
+@keyframes vn-reply-in {
+  from { opacity: .45; }
+}
+@keyframes vn-next-arrive {
+  from { opacity: .25; transform: translateY(-3px); }
+  65% { opacity: 1; transform: translateY(1px); }
+  to { transform: translateY(0); }
 }
 @keyframes vn-sheet-reveal {
   from {

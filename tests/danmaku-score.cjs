@@ -19,11 +19,18 @@ for (const id of Object.keys(engine.cast)) {
   const g = ready(id);
   g.state.player.invulnerable = Infinity;
   const seen = new Set();
+  const guarded = new Set(), vulnerable = new Set();
   let beams = 0;
   for (let i = 0; i < track.duration * 60; i++) {
     g.state.enemySpell.hp = Infinity;
     g.step(1 / 60);
     seen.add(g.state.enemySpell.id);
+    const card = g.state.enemySpell;
+    if (!card.nonspell && !g.state.intermission) {
+      const age = g.state.time - g.state.rhythm.sectionStart;
+      (age < 10 ? guarded : vulnerable).add(card.id);
+      assert(Math.abs(card.guardRemaining - Math.max(0, 10 - age)) < 1e-8);
+    }
     beams = Math.max(beams, g.state.lasers.length);
     assert(
       g.state.bullets.length <= 720 &&
@@ -32,6 +39,8 @@ for (const id of Object.keys(engine.cast)) {
     );
   }
   assert.equal(seen.size, 6, id + " must reach six distinct cards");
+  assert.deepEqual(guarded, seen, "each declaration starts a fresh guard");
+  assert.deepEqual(vulnerable, seen, "each spell leaves a playable vulnerable interval");
   if (id !== "patchouli") assert(beams > 0, id + " has real laser hazards");
 }
 const g = ready();
@@ -73,6 +82,7 @@ const capture = ready();
 capture.step(1 / 60);
 capture.state.player.invulnerable = 0;
 const originalCard = capture.state.enemySpell.id;
+const originalBar = capture.state.enemySpell.maxHp;
 function emptyBar(g) {
   g.state.enemySpell.hp = 1;
   g.state.bullets = [{ x: 40, y: 40, vx: 0, vy: 0, radius: 2.4 }];
@@ -85,9 +95,25 @@ function emptyBar(g) {
   });
   g.step(1 / 60);
 }
+capture.state.time = 9.96;
+emptyBar(capture);
+assert.equal(capture.state.enemySpell.hp, 1);
+assert.equal(capture.state.enemySpell.clears, 0);
+assert(capture.state.hits > 0 && capture.state.impacts.length > 0,
+  "a guarded boss still registers weapon contacts");
+const guardedAt = capture.state.enemySpell.guardRemaining;
+capture.pause();
+tick(capture, 1);
+capture.resume();
+tick(capture, 0.5);
+assert.equal(capture.state.enemySpell.guardRemaining, guardedAt,
+  "pause and its resume countdown preserve the remaining protection");
+capture.state.countdown = 0;
+capture.state.time = 9.99;
 emptyBar(capture);
 assert(!capture.state.enemySpell.nonspell && !capture.state.breakNotice);
 assert.equal(capture.state.enemySpell.clears, 1);
+assert.equal(capture.state.enemySpell.maxHp, originalBar * 2);
 assert.equal(capture.state.scoreItems.length, 1);
 assert.equal(
   capture.state.player.invulnerable,
@@ -100,6 +126,7 @@ assert(capture.state.enemySpell.hp > 0);
 assert(capture.state.enemySpell.remaining < remaining);
 emptyBar(capture);
 assert.equal(capture.state.enemySpell.clears, 2);
+assert.equal(capture.state.enemySpell.maxHp, originalBar * 4);
 assert.equal(capture.state.enemySpell.id, originalCard);
 capture.pause();
 const pressureSnapshot = JSON.stringify(capture.state);
@@ -114,7 +141,16 @@ assert.equal(capture.state.breakNotice.bonus, 5000);
 assert(!("health" in capture.state.boss));
 const bombed = ready();
 bombed.step(1 / 60);
+bombed.state.enemySpell.hp = 1;
+bombed.state.foes.push({kind: "scout", x: 30, lane: 30, y: 100, hp: 1, maxHp: 1,
+  radius: 7, offset: 0, salvos: 0, age: 0});
 bombed.bomb();
+tick(bombed, 0.3);
+assert.equal(bombed.state.enemySpell.hp, 1, "bomb pulses cannot break the opening guard");
+assert.equal(bombed.state.run.kills, 1, "the guard only protects the boss");
+bombed.state.time = 10;
+tick(bombed, 0.3);
+assert.equal(bombed.state.enemySpell.clears, 1, "later pulses can break the unlocked bar");
 bombed.state.time = bombed.state.rhythm.spellEnd - 0.01;
 bombed.step(1 / 60);
 assert(bombed.state.enemySpell.nonspell && !bombed.state.breakNotice.captured);
@@ -220,43 +256,186 @@ for (const id of Object.keys(engine.cast)) {
   assert.equal(entry.state.boss.x, 120);
   tick(entry, 1.5);
   assert(entry.state.time > 0);
-  assert(entry.state.shots.length > 0);
+  assert.equal(entry.state.weapon.dolls.length, 2, "Her two knights enter formation with combat");
 }
 console.log(
   "PASS: enemy entry, paused entry resumes in place, countdown and combat clock separation."
 );
 
-// Seeking shots supplement aimed damage, including at maximum power.
-for (const power of [1, 4, 8]) {
-  const results = {};
-  for (const id of Object.keys(engine.cast)) {
-    results[id] = {};
-    for (const aim of ["aligned", "offAxis"]) {
-      const shotGame = engine.create(id, "alice", 1977),
-        s = shotGame.state;
-      s.countdown = 0;
-      shotGame.step(1 / 60);
-      s.power = power;
-      s.player.invulnerable = Infinity;
-      s.enemySpell.hp = 1e8;
-      for (let f = 0; f < 600; f++) {
-        s.player.x = aim === "aligned" ? s.boss.x : 16;
-        s.items = [];
-        shotGame.step(1 / 60, { focus: true });
+// The same weapons service real stage targets and both duel fields. Exercise
+// their hit callbacks with controlled formations so movement cannot mask a miss.
+function firingRange(id, targets, power = 1) {
+  const field = { player: { x: 120, y: 300 }, shots: [], focus: false, weapon: engine.newWeapon() };
+  const hits = new Map();
+  function frame(fire = true) {
+    engine.stepWeapons(field, id, power, 1 / 60, fire, targets, (t, damage) => {
+      hits.set(t, (hits.get(t) || 0) + damage);
+    }, () => {});
+  }
+  return { field, hits, frame };
+}
+const formation = [{ x: 120, y: 230 }, { x: 120, y: 120 }, { x: 140, y: 120 }]
+  .map((p) => ({ ...p, radius: 4, hp: 999 }));
+const rail = firingRange("marisa", formation);
+rail.frame();
+assert.equal(rail.hits.size, 2, "The same rail penetrates two aligned targets");
+const normalRail = rail.hits.get(formation[0]);
+// Only the outer mounts can hit these targets. They keep shooting while the main rail charges.
+const leftWing = {x: 86, y: 174, radius: 4, hp: 999}, rightWing = {...leftWing, x: 154};
+const flanks = firingRange("marisa", [leftWing, rightWing]);
+for (let i = 0; i < 83; i++) flanks.frame();
+assert(flanks.hits.has(leftWing) && flanks.hits.has(rightWing));
+assert.equal(flanks.field.weapon.starPods.length, 2);
+const chargingPods = firingRange("marisa", []);
+chargingPods.field.focus = true;
+for (let i = 0; i < 25; i++) chargingPods.frame();
+assert(chargingPods.field.shots.some(s => s.kind === "comet" && s.vx < 0) &&
+  chargingPods.field.shots.some(s => s.kind === "comet" && s.vx > 0));
+const sixPods = firingRange("marisa", [], 32);
+for (let i = 0; i < 60; i++) sixPods.frame();
+assert.equal(sixPods.field.weapon.starPods.length, 6);
+const chargedRail = firingRange("marisa", formation);
+chargedRail.field.focus = true;
+for (let i = 0; i < 30; i++) chargedRail.frame();
+assert(!chargedRail.field.weapon.traces.some(fx => fx.kind === "rail"), "Focus stores light before the main rail fires");
+chargedRail.field.focus = false;
+chargedRail.frame();
+assert(chargedRail.hits.get(formation[0]) > normalRail * 2, "Focus release discharges partial energy");
+
+const knightTargets = [{ x: 99, y: 173 }, { x: 143, y: 161 }]
+  .map(p => ({...p, radius: 5, hp: 999}));
+const party = firingRange("alice", knightTargets);
+const phases = new Set(), effects = new Set();
+for (let i = 0; i < 56; i++) {
+  party.frame();
+  party.field.weapon.dolls.forEach(d => phases.add(d.phase));
+  party.field.weapon.traces.forEach(fx => effects.add(fx.kind));
+}
+assert.deepEqual([...effects].sort(), ["cleave", "thrust"]);
+assert(phases.has("windup") && phases.has("strike") && phases.has("return"));
+assert.equal(party.hits.size, 2, "The two wings can engage separate targets");
+assert.equal(party.field.shots.length, 0, "Dolls carry their own weapons to the target");
+const distant = firingRange("alice", [{x:120,y:30,radius:12,hp:99}]);
+for (let i = 0; i < 48; i++) distant.frame();
+assert.equal(distant.hits.size, 0, "A rider cannot hit the far wall before travelling there");
+for (let i = 0; i < 90; i++) distant.frame();
+assert.equal(distant.hits.size, 1, "A distant enemy can be struck after the lancer closes in");
+const evading = {x:100,y:170,radius:4,hp:99};
+const feint = firingRange("alice", [evading]);
+for (let i = 0; i < 8; i++) feint.frame();
+assert(feint.field.weapon.dolls.every(d => d.aimX === evading.x));
+evading.x = 224;
+for (let i = 0; i < 48; i++) feint.frame();
+assert.equal(feint.hits.size, 0, "An enemy that escapes the locked strike can evade");
+const screen = firingRange("alice", []);
+screen.field.focus = true;
+screen.frame();
+// Measure contact damage through the same finite-radius target, not against
+// a stationary doll origin. Simulate the approach, lunge, return, then rearm.
+function puppetTrial(power, distance, moving = false) {
+  const mark = {x: 120, y: 60, radius: 6, hp: 1e7};
+  const range = firingRange("alice", [mark], power);
+  range.field.player.y = 60 + distance;
+  const riders = new Set(), old = new Map();
+  let returned = 0, largest = 0;
+  for (let i = 0; i < 900; i++) {
+    if (moving) mark.x = 120 + 22 * Math.sin(i / 60);
+    range.frame();
+    for (const doll of range.field.weapon.dolls) {
+      const previous = old.get(doll.index);
+      if (doll.scouting) riders.add(doll.index);
+      if (previous?.phase === "sortie" && doll.phase === "sortie") {
+        assert(Math.hypot(doll.x - previous.x, doll.y - previous.y) <= 150 / 60 + 1e-6);
       }
-      results[id][aim] = (1e8 - s.enemySpell.hp) / 10;
-      assert.equal(engine.options(s).length, Math.floor(power / 2));
-      assert(s.shots.length <= 140);
+      if (previous?.scouting && !doll.scouting) returned++;
+      if (previous) largest = Math.max(largest, Math.hypot(doll.x - previous.x, doll.y - previous.y));
+      old.set(doll.index, {x:doll.x, y:doll.y, phase:doll.phase, scouting:doll.scouting});
     }
   }
-  assert(
-    results.patchouli.offAxis < results.patchouli.aligned * 0.25,
-    "homing cannot replace aiming at P" + power
-  );
-  assert(
-    results.patchouli.aligned < results.marisa.aligned,
-    "Marisa retains the concentrated-damage advantage"
-  );
+  return {total:range.hits.get(mark) || 0, riders:riders.size, returned, largest};
+}
+for (const power of [1, 10, 32]) {
+  const near = puppetTrial(power, 48), mid = puppetTrial(power, 125), far = puppetTrial(power, 254);
+  assert(near.total > mid.total && mid.total > far.total && far.total > 0);
+  assert.equal(far.riders, power >= 10 ? 2 : 1);
+  assert(far.returned >= far.riders && far.largest < 8);
+  assert(puppetTrial(power, 254, true).total > 0, "A long sortie can reach a moving opponent");
+  if (process.env.REPORT_GROWTH)
+    console.log("Alice P" + power + " DPS at 48/125/254px", [near, mid, far].map(m => (m.total / 15).toFixed(1)));
+}
+const recallTarget = {x:120, y:40, hp:1e4}, recall = firingRange("alice", [recallTarget], 10);
+for (let i=0; i<48; i++) recall.frame();
+const patrol = recall.field.weapon.dolls.find(d => d.phase === "sortie");
+assert(patrol && patrol.y < 210);
+recall.field.focus = true;
+recall.frame();
+assert.equal(patrol.phase, "return");
+for (let i=0; i<200; i++) recall.frame();
+assert(patrol.phase === "home" && !patrol.scouting && !recall.hits.size);
+const sentry = screen.field.weapon.dolls.find(d => d.arm === "blade");
+const bullet = {x:sentry.x, y:sentry.y - 5, radius:2};
+screen.field.bullets = [{...bullet, hard:true}, {...bullet, radius:4}, {...bullet}, {...bullet}];
+screen.frame();
+assert.equal(screen.field.bullets.length, 3, "A braced shield stops one actual light bullet");
+assert(screen.field.weapon.traces.some(fx => fx.kind === "parry"));
+for (let i = 0; i < 30; i++) screen.frame();
+assert.equal(screen.field.bullets.length, 3, "The entire formation shares the guard cooldown");
+const shelf = [{ x: 168, y: 192 }, { x: 201, y: 192 }, { x: 207, y: 149 }]
+  .map((p) => ({ ...p, radius: 5, hp: 999 }));
+const reader = firingRange("patchouli", shelf);
+reader.frame();
+for (let i = 0; i < 100 && !reader.hits.size; i++) reader.frame(false);
+assert.equal(reader.hits.size, 3, "One homing bookmark reaches an off-axis group and chains");
+assert(reader.hits.get(shelf[0]) > reader.hits.get(shelf[1]));
+// Each visible volume owns a casting beat and the shot starts on its page.
+const catalogue = [42, 81, 120, 159, 198].map(x => ({x, y:155, radius:4, hp:999}));
+const readerAtPower = firingRange("patchouli", catalogue, 16);
+function readingCycle(range, slots = 6) {
+  const emissions = [];
+  const seen = new Set();
+  for (let t = 0; t < 200 && emissions.length < slots; t++) {
+    range.frame();
+    for (const shot of range.field.shots) {
+      if (shot.age > 1/60 || seen.has(shot)) continue;
+      seen.add(shot);
+      const source = range.field.weapon.grimoires.find(b => b.element === shot.element);
+      if (source) {
+        assert(Math.abs(shot.x - shot.vx/60 - source.x) < 0.001);
+        assert(Math.abs(shot.y - shot.vy/60 - source.y) < 0.001);
+        assert(source.flash > 0);
+      }
+      emissions.push({element:shot.element, mark:shot.mark, relay:shot.relay, t});
+    }
+  }
+  return emissions;
+}
+const scattered = readingCycle(readerAtPower);
+assert.deepEqual(scattered.map(s => s.element), [null,"fire","water","wood","metal","earth"]);
+assert.equal(new Set(scattered.map(s => s.t)).size, 6, "The body and books cast on distinct beats");
+assert.equal(new Set(scattered.slice(1).map(s => s.mark)).size, 5, "Spread books index different nearby enemies");
+readerAtPower.field.focus = true;
+const gathered = readingCycle(readerAtPower);
+assert(gathered.every(s => s.mark === catalogue[2] && s.relay), "The focused circle starts its relay from a common target");
+// Each new edition must actually fire, including on the shorter duel level scale.
+const elements = ["fire","water","wood","metal","earth","sun","moon"];
+for (const [mode, tiers] of [["score", [19,20,24,25]], ["duel", [7,8,9,10]]]) {
+  for (const [i, power] of tiers.entries()) {
+    const range = firingRange("patchouli", [], power);
+    if (mode === "duel") range.field.side = 0;
+    const library = elements.slice(0, [5,6,6,7][i]);
+    const volley = readingCycle(range, library.length + 1);
+    assert.deepEqual(volley.map(shot => shot.element), [null, ...library], mode + " at " + power);
+  }
+}
+const volumes = readerAtPower.field.weapon.grimoires;
+assert(Math.max(...volumes.map(b => b.x)) - Math.min(...volumes.map(b => b.x)) < 45);
+for (const id of Object.keys(engine.cast)) {
+  const atCap = firingRange(id, formation, 32);
+  for (let i = 0; i < 600; i++) {
+    atCap.frame();
+    assert(atCap.field.shots.length <= 140 && atCap.field.weapon.traces.length <= 48);
+  }
+  assert(atCap.hits.size > 0, id + " can damage a live target at maximum power");
 }
 const impactSounds = [],
   strike = engine.create("marisa", "alice", 4, (name) =>
@@ -294,7 +473,7 @@ cone.state.lasers = [
 cone.step(1 / 60);
 assert.equal(cone.state.lives, 2, "Spark widens along its path");
 console.log(
-  "PASS: P1/P4/P8 aim-dependent balance, child-unit counts, Bomb impact cadence, tapered laser collision."
+  "PASS: two melee wings, locked strike geometry and shield parry, piercing rails and charge release, homing chain, P32 projectile budgets, bomb cadence and tapered laser collision."
 );
 
 // A completed recording stops at its exact boundary, with a safe continuation.
@@ -349,31 +528,34 @@ console.log(
   "PASS: track-boundary rest, collection/boss stays, paused countdown, manual/idle continuation, cumulative score/power and end-run choice."
 );
 
-// Regression: laid stars may accelerate, but must never curl back into an orbit.
-const stardust = ready("marisa");
-stardust.state.player.invulnerable = Infinity;
+// Stars in a sampled exposure keep their heading after the shutter closes.
+const exposure = ready("marisa");
+exposure.state.player.invulnerable = Infinity;
+exposure.state.run.nextWave = Infinity;
 let lowerStars = 0,
   peak = 0,
   trackedStars = 0;
 const starTracks = new WeakMap();
+const isExposureEcho = b => b.color === "#ffd57c" && b.shape === "star";
 for (let frame = 0; frame < 18 * 60; frame++) {
-  stardust.state.enemySpell.hp = 1e9;
-  stardust.state.items = [];
-  stardust.step(1 / 60);
-  peak = Math.max(peak, stardust.state.bullets.length);
+  exposure.state.enemySpell.hp = 1e9;
+  exposure.state.items = [];
+  exposure.step(1 / 60);
+  peak = Math.max(peak, exposure.state.bullets.length);
   lowerStars = Math.max(
     lowerStars,
-    stardust.state.bullets.filter(
-      (b) => b.y > 230 && ["star", "bigstar"].includes(b.shape)
+    exposure.state.bullets.filter(
+      (b) => b.y > 230 && isExposureEcho(b)
     ).length
   );
-  for (const b of stardust.state.bullets) {
+  for (const b of exposure.state.bullets) {
+    if (!isExposureEcho(b)) continue;
     const previous = starTracks.get(b);
     if (previous) {
       assert(
         Math.abs(b.vx * previous.vy - b.vy * previous.vx) < 1e-7 &&
           b.vx * previous.vx + b.vy * previous.vy > 0,
-        "Stardust accelerates along its original ray"
+        "Exposure echo keeps its original direction"
       );
       const elapsed = b.age - previous.age;
       assert(
@@ -389,13 +571,13 @@ for (let frame = 0; frame < 18 * 60; frame++) {
 }
 assert(
   lowerStars >= 6,
-  "Stardust main lanes must travel downfield even at the introductory firing rate"
+  "Exposure echoes must travel downfield even at the introductory firing rate"
 );
 assert(
-  trackedStars > 400,
+  trackedStars >= 7 * 2 * 2 * 3,
   "track multiple complete volleys, not just a handful of escaping stars"
 );
 assert(peak < 650, "opening stars must not orbit forever and exhaust the pool");
 console.log(
-  "PASS: every Stardust projectile travels outward on a fixed ray; rotating volleys reach the player area without pool saturation."
+  "PASS: sampled exposure volleys keep their heading, reach the player area and retire naturally."
 );

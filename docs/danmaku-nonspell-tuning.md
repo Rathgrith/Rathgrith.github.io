@@ -1,5 +1,7 @@
 # Nonspell difficulty tuning — 2026-10-11
 
+> Historical design notes for the retired reconstruction. The [current spell catalogue](danmaku-spells.md) describes the playable cards.
+
 Only the `enemySpell.nonspell` branch was tuned. Named spells, shared difficulty scaling, collision radii, and laser warning durations are unchanged. Existing one-time aiming remains one-time aiming; no continuous homing was added.
 
 ## Measurement

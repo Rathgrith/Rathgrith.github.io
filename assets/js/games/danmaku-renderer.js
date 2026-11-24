@@ -12,9 +12,8 @@
   function create(canvas) {
     var ctx = canvas.getContext("2d"),
       images = {},
-      tiles = {},
-      bulletSprites = {},
-      reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      motionPref = matchMedia("(prefers-reduced-motion: reduce)"),
+      reduced = motionPref.matches;
     canvas.width = W * 2;
     canvas.height = H * 2;
     var ready = Promise.all(
@@ -24,7 +23,6 @@
             id,
             id + "-player",
             id + "-flight",
-            id + "-background",
             id + "-portraits"
           );
         }, [])
@@ -36,27 +34,18 @@
               resolve();
             };
             image.onerror = resolve;
-            var backgrounds = {
-              alice: "alice-workshop",
-              marisa: "marisa-forest",
-              patchouli: "patchouli-library",
-            };
             image.src = id.endsWith("-portraits")
               ? assetBase +
                 "/assets/images/classic/danmaku/portraits/" +
                 id.split("-")[0] +
                 "-expressions.png"
-              : id.endsWith("-background")
-                ? assetBase +
-                  "/assets/images/classic/danmaku/backgrounds/" +
-                  backgrounds[id.split("-")[0]] +
-                  ".png"
-                : assetBase + "/assets/images/classic/danmaku/" + id + ".svg";
+              : assetBase + "/assets/images/classic/danmaku/" + id + ".svg";
           });
         })
     );
     ready = Promise.all([
       ready,
+      DanmakuScenery.load(),
       DanmakuBossSprites.load(),
       window.DanmakuPlayerSprites && DanmakuPlayerSprites.load(),
     ]);
@@ -70,7 +59,7 @@
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.stroke();
     }
-    function witch(id, x, y, width, rear, pose, time) {
+    function witch(id, x, y, width, rear, pose, time, flight) {
       if (
         rear &&
         window.DanmakuPlayerSprites &&
@@ -82,7 +71,7 @@
           time,
           pose,
           reduced,
-          (width * 4) / 3
+          (width * 4) / 3, flight
         )
       )
         return;
@@ -122,275 +111,113 @@
         rect(x - 3, y - 6, 6, rear ? 9 : 5, rear ? "#b39c85" : "#f7ddba");
       }
     }
-    function star(x, y, r, color) {
-      ctx.beginPath();
-      for (var i = 0; i < 10; i++) {
-        var a = -Math.PI / 2 + (i * Math.PI) / 5,
-          radius = i % 2 ? r * 0.48 : r;
-        var px = x + Math.cos(a) * radius,
-          py = y + Math.sin(a) * radius;
-        if (!i) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.strokeStyle = "#24192f";
-      ctx.stroke();
+    function drawBackground(s) {
+      DanmakuScenery.draw(ctx, s.enemyId, DanmakuRun.sceneIndex(s),
+        s.rhythm.sectionKey % 2 === 0 ? s.time - s.rhythm.sectionStart : 2,
+        s.time, s.scroll, reduced, s.bullets.length > 120);
     }
-    function drawBackground(s, palette) {
-      rect(0, 0, W, H, palette[0]);
-      var image = images[s.enemyId + "-background"];
-      var scroll = reduced ? 0 : s.scroll;
-      if (image) {
-        if (!tiles[s.enemyId]) {
-          var tile = document.createElement("canvas");
-          tile.width = W * 2;
-          tile.height = H * 2;
-          var paint = tile.getContext("2d");
-          paint.imageSmoothingEnabled = false;
-          paint.drawImage(image, 0, 0, tile.width, tile.height);
-          // Overlapping feathered ends remove a hard seam without mirroring rooms.
-          paint.globalCompositeOperation = "destination-in";
-          var mask = paint.createLinearGradient(0, 0, 0, H * 2);
-          mask.addColorStop(0, "transparent");
-          mask.addColorStop(24 / H, "#000");
-          mask.addColorStop(1 - 24 / H, "#000");
-          mask.addColorStop(1, "transparent");
-          paint.fillStyle = mask;
-          paint.fillRect(0, 0, W * 2, H * 2);
-          tiles[s.enemyId] = tile;
+    function casterCues(s) {
+      var sources = Object.create(null), body = {since:Infinity, until:Infinity};
+      function cue(source, elapsed) {
+        if (elapsed < -0.30 || elapsed >= 0.32) return;
+        var timing = sources[source] || (sources[source] = {since:Infinity, until:Infinity});
+        if (elapsed < 0) {
+          timing.until = Math.min(timing.until, -elapsed);
+          body.until = Math.min(body.until, -elapsed);
+        } else {
+          timing.since = Math.min(timing.since, elapsed);
+          body.since = Math.min(body.since, elapsed);
         }
-        // Interpolate only the scrolling artwork so subpixel motion cannot snap
-        // a detailed room by a whole pixel. Gameplay sprites remain nearest-neighbor.
-        ctx.imageSmoothingEnabled = true;
-        var period = H - 24,
-          offset = scroll % period;
-        for (var row = -1; row <= 1; row++)
-          ctx.drawImage(tiles[s.enemyId], 0, row * period + offset, W, H);
-        ctx.imageSmoothingEnabled = false;
       }
+      s.casting.forEach(function (event) { cue(event.source, s.time - event.time); });
+      s.lasers.forEach(function (beam) { cue(beam.castSource, beam.age - beam.warning); });
+      s.bullets.forEach(function (shot) {
+        var writing = shot.motion && shot.motion.inscription;
+        if (writing) cue(shot.castSource, shot.age - writing.launch);
+      });
+      return {sources:sources, body:DanmakuBossSprites.castPose(body.since, body.until)};
+    }
+    function drawCasting(s, t, sources, color) {
+      if (!sources.length || s.enemySpell.nonspell) return;
+      var x = s.boss.x, y = s.boss.y;
+      var pulse = reduced ? 0.5 : (1 - Math.cos(s.rhythm.progress * Math.PI * 2)) * 0.5;
       ctx.save();
-      // Slow light and fast foreground streaks make the forward motion legible.
-      // Keep the fast layer at the edges, away from the bullet-reading corridor.
-      var vignette = ctx.createLinearGradient(0, 0, W, 0);
-      vignette.addColorStop(0, "#060b18aa");
-      vignette.addColorStop(0.22, "#080c1820");
-      vignette.addColorStop(0.5, "#080c182d");
-      vignette.addColorStop(0.78, "#080c1820");
-      vignette.addColorStop(1, "#060b18aa");
-      ctx.fillStyle = vignette;
-      ctx.fillRect(0, 0, W, H);
-      var pulse = reduced
-        ? 0
-        : Math.pow(1 - s.rhythm.progress, 3) * s.rhythm.energy;
-      ctx.globalAlpha = 0.06 + pulse * 0.055;
-      ctx.fillStyle = palette[2];
-      for (var shaft = 0; shaft < 3; shaft++) {
-        var y = ((shaft * 147 + scroll * 0.45) % 440) - 40;
+      ctx.strokeStyle = color; ctx.lineWidth = 0.7;
+      ctx.globalAlpha = (s.bullets.length > 160 ? 0.23 : 0.32) + 0.07 * pulse;
+      ctx.beginPath();
+      if (s.enemyId === "alice") {
+        // Sagging marionette cords and the crossed threads of a suspended loom.
+        sources.forEach(function (needle, i) {
+          var hand = i % 2 ? 12 : -12;
+          ctx.moveTo(x + hand, y - 2);
+          ctx.quadraticCurveTo((x + needle.x) / 2 + hand, y + 19 + pulse * 2, needle.x, needle.y);
+          ctx.moveTo(needle.x - 3, needle.y - 7); ctx.lineTo(needle.x, needle.y - 10); ctx.lineTo(needle.x + 3, needle.y - 7);
+        });
+        ctx.moveTo(x - 22, y - 9); ctx.lineTo(x + 19, y + 9);
+        ctx.moveTo(x + 22, y - 9); ctx.lineTo(x - 19, y + 9);
+      } else if (s.enemyId === "marisa") {
+        // The lenses sit in a brass orrery. Its slanted meridians meet at the caster.
+        for (var k = 0; k < 3; k++) {
+          var tilt = (k - 1) * 0.74 + 0.12 * Math.sin(t * 0.36);
+          ctx.moveTo(x + Math.cos(tilt) * 30, y + Math.sin(tilt) * 30);
+          ctx.ellipse(x, y, 30, 9 + pulse * 2, tilt, 0, 2 * Math.PI);
+        }
+        sources.forEach(function (lens) {
+          ctx.moveTo(x, y); ctx.lineTo(lens.x, lens.y);
+          ctx.moveTo(lens.x + 8, lens.y); ctx.arc(lens.x, lens.y, 8, 0, 2 * Math.PI);
+        });
+      } else {
+        // Two curved leaves and a spine unfold behind the three elemental books.
+        [-1, 1].forEach(function (side) {
+          for (var leaf = 0; leaf < 3; leaf++) {
+            var edge = x + side * (22 + leaf * 8 + 3 * pulse);
+            ctx.moveTo(x, y + 15);
+            ctx.quadraticCurveTo(x + side * 14, y + 9 - leaf * 2, edge, y + 13 - leaf * 2);
+            ctx.lineTo(edge, y - 12 - leaf * 2);
+            ctx.quadraticCurveTo(x + side * 13, y - 14 - leaf * 2, x, y - 5);
+          }
+        });
+        ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 15);
+      }
+      ctx.stroke();
+      if (!reduced) s.casting.forEach(function (mark) {
+        var age = s.time - mark.time;
+        if (age < 0 || age > 0.30) return;
+        // Short source flashes follow actual releases, behind the hostile shots.
+        ctx.globalAlpha = (1 - age / 0.30) * 0.6;
+        ctx.strokeStyle = mark.color;
+        var r = 4 + age * 26;
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(80, y + 30);
-        ctx.lineTo(80, y + 37);
-        ctx.lineTo(0, y + 8);
-        ctx.fill();
-      }
-      var speed = reduced ? 0 : s.scrollSpeed;
-      ctx.globalAlpha = 0.13 + Math.min(1, speed / 200) * 0.09;
-      for (var i = 0; i < 22; i++) {
-        var side = i % 2 ? 1 : -1,
-          x = W / 2 + side * (W / 2 - 7 - ((i * 13) % 28));
-        var depth = i % 3 === 0 ? 2.5 : 1.7,
-          y = ((i * 59 + scroll * depth) % (H + 40)) - 20;
-        var length = speed ? Math.min(22, 4 + speed * depth * 0.035) : 1;
-        rect(x, y - length, 1, length, palette[2]);
-        rect(x, y, 1, i % 4 === 0 ? 2 : 1, palette[2]);
-      }
+        if (s.enemyId === "alice") {
+          ctx.moveTo(mark.x - r, mark.y - r * 0.45); ctx.lineTo(mark.x + r * 0.6, mark.y + r * 0.5);
+          ctx.moveTo(mark.x + r, mark.y - r * 0.45); ctx.lineTo(mark.x - r * 0.6, mark.y + r * 0.5);
+        } else if (s.enemyId === "marisa") {
+          ctx.arc(mark.x, mark.y, r, -0.8, 0.7);
+          ctx.moveTo(mark.x + Math.cos(2.3) * r, mark.y + Math.sin(2.3) * r);
+          ctx.arc(mark.x, mark.y, r, 2.3, 3.8);
+        } else {
+          ctx.moveTo(mark.x - r, mark.y - 2); ctx.lineTo(mark.x, mark.y + r * 0.5);
+          ctx.lineTo(mark.x + r, mark.y - 2);
+        }
+        ctx.stroke();
+      });
       ctx.restore();
     }
-    function bulletSprite(shape, color) {
-      var key = shape + color;
-      if (bulletSprites[key]) return bulletSprites[key];
-      var sprite = document.createElement("canvas");
-      sprite.width = sprite.height = 24;
-      var paint = sprite.getContext("2d");
-      paint.translate(12, 12);
-      function block(x, y, w, h, c) {
-        paint.fillStyle = c;
-        paint.fillRect(x, y, w, h);
-      }
-      function polygon(points, c) {
-        paint.beginPath();
-        points.forEach(function (p, i) {
-          if (i) paint.lineTo(p[0], p[1]);
-          else paint.moveTo(p[0], p[1]);
-        });
-        paint.closePath();
-        paint.fillStyle = c;
-        paint.fill();
-        paint.strokeStyle = "#191b30";
-        paint.lineWidth = 1;
-        paint.stroke();
-      }
-      if (shape === "rice") {
-        polygon(
-          [
-            [0, -6],
-            [2, -3],
-            [2, 3],
-            [0, 6],
-            [-2, 3],
-            [-2, -3],
-          ],
-          color
-        );
-        block(0, -3, 1, 6, "#fff8e8");
-      } else if (shape === "kunai") {
-        polygon(
-          [
-            [0, -7],
-            [3, -1],
-            [1, 2],
-            [1, 5],
-            [-1, 5],
-            [-1, 2],
-            [-3, -1],
-          ],
-          color
-        );
-        block(0, -4, 1, 5, "#fff9ec");
-        block(-1, 3, 2, 1, "#e9e3d2");
-      } else if (shape === "scale") {
-        // Broad, white-centred scale with a cupped trailing edge (PCB), rather
-        // than a tiny triangular arrow that disappears inside dense necklaces.
-        polygon(
-          [
-            [0, -4],
-            [2, -3],
-            [4, 0],
-            [4, 3],
-            [2, 3],
-            [0, 1],
-            [-2, 3],
-            [-4, 3],
-            [-4, 0],
-            [-2, -3],
-          ],
-          color
-        );
-        paint.fillStyle = "#fff8e9";
-        paint.beginPath();
-        paint.moveTo(0, -2);
-        paint.lineTo(2, 0);
-        paint.lineTo(2, 1);
-        paint.lineTo(0, 0);
-        paint.lineTo(-2, 1);
-        paint.lineTo(-2, 0);
-        paint.closePath();
-        paint.fill();
-      } else if (shape === "amulet") {
-        block(-4, -6, 8, 12, "#1d2034");
-        block(-3, -5, 6, 10, color);
-        block(-2, -4, 4, 8, "#f4edde");
-        block(0, -3, 1, 6, color);
-        block(-1, -1, 3, 1, color);
-        block(-1, 1, 2, 1, color);
-      } else if (shape === "butterfly") {
-        polygon(
-          [
-            [-1, -2],
-            [-5, -5],
-            [-6, -2],
-            [-4, 1],
-            [-5, 4],
-            [-2, 3],
-            [0, 1],
-          ],
-          color
-        );
-        polygon(
-          [
-            [1, -2],
-            [5, -5],
-            [6, -2],
-            [4, 1],
-            [5, 4],
-            [2, 3],
-            [0, 1],
-          ],
-          color
-        );
-        block(-1, -3, 2, 6, "#fff3ea");
-        block(-4, -2, 2, 2, "#f8e4f5");
-        block(3, -2, 2, 2, "#f8e4f5");
-      } else if (shape === "darkorb") {
-        // PCB's large hollow orb has a small bright collision core. Keep its
-        // dark translucent body distinct from the small water bullets.
-        paint.beginPath();
-        paint.arc(0, 0, 10, 0, Math.PI * 2);
-        paint.fillStyle = "#241435dd";
-        paint.fill();
-        paint.strokeStyle = color;
-        paint.lineWidth = 2;
-        paint.stroke();
-        paint.beginPath();
-        paint.arc(0, 0, 8, 0, Math.PI * 2);
-        paint.strokeStyle = "#f1d5ffb0";
-        paint.lineWidth = 1;
-        paint.stroke();
-        block(-2, -2, 4, 4, "#f8e7ff");
-        block(-1, -1, 2, 2, "#ffffff");
-      } else if (shape === "bubble") {
-        paint.beginPath();
-        paint.arc(0, 0, 6, 0, Math.PI * 2);
-        paint.fillStyle = "#152839aa";
-        paint.fill();
-        paint.lineWidth = 2;
-        paint.strokeStyle = "#191b30";
-        paint.stroke();
-        paint.lineWidth = 1;
-        paint.strokeStyle = color;
-        paint.stroke();
-        paint.beginPath();
-        paint.arc(0, 0, 4, 0, Math.PI * 2);
-        paint.stroke();
-        block(-2, -4, 3, 1, "#f2fcff");
-        block(-3, -3, 1, 2, "#f2fcff");
-        block(2, 2, 1, 1, color);
-      } else if (shape === "flame") {
-        polygon(
-          [
-            [0, -7],
-            [2, -3],
-            [4, -1],
-            [3, 4],
-            [0, 6],
-            [-3, 4],
-            [-4, 0],
-            [-2, -3],
-            [-1, 0],
-          ],
-          color
-        );
-        polygon(
-          [
-            [0, -2],
-            [2, 1],
-            [1, 4],
-            [-1, 4],
-            [-2, 1],
-          ],
-          "#ffe8b2"
-        );
-        block(0, 1, 1, 2, "#fffdf0");
-      } else {
-        block(-2, -2, 4, 4, "#20233b");
-        block(-1, -2, 2, 4, color);
-        block(-2, -1, 4, 2, color);
-        block(-1, -1, 2, 2, "#fff9e8");
-      }
-      bulletSprites[key] = sprite;
-      return sprite;
+    function drawFoes(s) {
+      s.foes.forEach(function (f) {
+        if (f.hp <= 0) return;
+        var x = Math.round(f.x), y = Math.round(f.y);
+        ctx.save();
+        ctx.translate(x, y);
+        DanmakuBossSprites.escort(ctx, f, reduced);
+        DanmakuBossSprites.muzzle(ctx, f.warning > 0 ? f.aim : f.fireAngle,
+          f.warning, s.time - f.firedAt, reduced);
+        if (f.kind === "keeper") {
+          rect(-5, 8, 10, 2, "#292031");
+          rect(-5, 8, Math.ceil(10 * f.hp / f.maxHp), 1, "#f0c784");
+        }
+        ctx.restore();
+      });
     }
     function drawLasers(s) {
       s.lasers.forEach(function (l) {
@@ -513,22 +340,36 @@
       });
       if (line) ctx.fillText(line, x, y + row * lineHeight);
     }
-    function cutIn(id, title, age, duration, bomb) {
+    function cutIn(id, title, age, duration, bomb, cue) {
       var envelope = Math.min(1, age / 0.12, (duration - age) / 0.3);
       if (envelope <= 0) return;
       ctx.save();
       ctx.globalAlpha = envelope;
       var slide = reduced ? 0 : Math.max(0, 1 - age / 0.26) * W;
       ctx.translate(slide, 0);
+      if (bomb) {
+        rect(4, 32, 177, 28, "#121728bf");
+        rect(4, 59, 177, 1, DanmakuEngine.cast[id].color);
+        portrait(id, 1, 6, 32, 27);
+        ctx.textAlign = "left"; ctx.fillStyle = DanmakuEngine.cast[id].color;
+        fittedText("霊撃", 36, 42, 138, 8);
+        ctx.fillStyle = "#fff1d7"; fittedText(title, 36, 54, 140, 9);
+        ctx.restore();
+        return;
+      }
       rect(0, 103, W, 70, "#101528ee");
       rect(0, 103, W, 1, DanmakuEngine.cast[id].color);
       rect(0, 172, W, 1, DanmakuEngine.cast[id].color);
       portrait(id, 1, -4, 63, 110);
       ctx.textAlign = "left";
       ctx.fillStyle = DanmakuEngine.cast[id].color;
-      fittedText(bomb ? "BOMB / 霊撃" : "SPELL CARD", 105, 121, 129, 10);
+      fittedText("SPELL CARD", 105, 121, 129, 10);
       ctx.fillStyle = "#fff1d7";
       wrappedText(title, 105, 140, 129, 10, 13);
+      if (cue) {
+        ctx.fillStyle = "#d9d6c9";
+        fittedText(cue, 105, 166, 129, 9);
+      }
       ctx.restore();
     }
     function drawIntro(s) {
@@ -568,16 +409,19 @@
         declaration = DanmakuEngine.declarationDuration;
       if (s.countdown > 0) return;
       if (!card.nonspell) {
+        var guarded = card.guardRemaining > 0;
         rect(16, 4, W - 32, 26, "#080d1970");
         rect(18, 7, W - 36, 3, "#080d19d9");
         var health =
           card.reload > 0 ? 1 - card.reload / 1.1 : card.hp / card.maxHp;
+        if (!card.reload && card.echoHp > card.hp)
+          rect(18, 7, (W - 36) * Math.min(1, card.echoHp / card.maxHp), 3, "#e9bd9b");
         rect(
           18,
           7,
           (W - 36) * Math.max(0, Math.min(1, health)),
           3,
-          palettes[s.enemyId][2]
+          guarded ? "#b9e4f3" : palettes[s.enemyId][2]
         );
         rect(
           18,
@@ -587,13 +431,18 @@
           "#d6be95"
         );
         arcadeText(
-          card.reload > 0 ? "再充填" : "耐久",
+          guarded ? "結界 " + Math.ceil(card.guardRemaining) + "秒" :
+            card.reload > 0 ? "再充填" : card.clears ? "耐久×" + Math.round(card.maxHp / card.baseHp) : "耐久",
           36,
           25,
           8,
           "#c8d1e3",
           42
         );
+        var movement = DanmakuPatterns.difficulty(s).part;
+        for (var segment = 0; segment < 3; segment++)
+          rect(73 + segment * 10, 20, 7, segment === movement ? 3 : 1,
+            segment === movement ? palettes[s.enemyId][2] : "#9292a5");
         arcadeText(
           "TIME  " + card.remaining.toFixed(2),
           W - 43,
@@ -610,7 +459,7 @@
         circle(s.boss.x, s.boss.y, r, palettes[s.enemyId][2]);
         circle(s.boss.x, s.boss.y, r + 6, palettes[s.enemyId][1]);
         ctx.restore();
-        cutIn(s.enemyId, card.name, card.age, declaration, false);
+        cutIn(s.enemyId, card.name, card.age, declaration, false, card.cue);
       }
       if (s.breakNotice) {
         var n = s.breakNotice,
@@ -689,134 +538,48 @@
       }
     }
     function drawSpell(s) {
-      var spell = s.spell;
-      if (!spell) return;
-      var progress = spell.age / spell.duration;
-      var envelope = Math.min(
-        1,
-        (spell.age + 0.08) / 0.18,
-        (spell.duration - spell.age) / 0.3
-      );
-      var phase = reduced ? 0.4 : progress;
-      var x = spell.x,
-        y = spell.y;
-      var color = DanmakuEngine.cast[spell.id].color;
+      if (s.spell && window.DanmakuPlayerSprites)
+        DanmakuPlayerSprites.drawSpiritStrike(ctx, s.spell, s.boss, reduced);
+    }
+    function drawEquipment(s) {
+      if (!s.run || !s.lives) return;
+      var r = s.run, p = s.player, x = Math.round(p.x), y = Math.round(p.y);
       ctx.save();
-      ctx.globalAlpha = envelope * 0.08;
-      rect(0, 0, W, H, color);
-      ctx.lineWidth = 2;
-      if (spell.id === "marisa") {
-        // A sustained fan-shaped magic cannon, with a bright core and star rim.
-        var width = 34 + Math.sin((Math.min(1, phase * 4) * Math.PI) / 2) * 30;
-        ctx.globalAlpha = envelope * 0.26;
-        ctx.fillStyle = "#f7a753";
-        ctx.beginPath();
-        ctx.moveTo(x - 10, y);
-        ctx.lineTo(x - width, 0);
-        ctx.lineTo(x + width, 0);
-        ctx.lineTo(x + 10, y);
-        ctx.closePath();
-        ctx.fill();
-        ctx.globalAlpha = envelope * 0.58;
-        ctx.fillStyle = "#ffe5a4";
-        ctx.beginPath();
-        ctx.moveTo(x - 5, y);
-        ctx.lineTo(x - width * 0.44, 0);
-        ctx.lineTo(x + width * 0.44, 0);
-        ctx.lineTo(x + 5, y);
-        ctx.closePath();
-        ctx.fill();
-        ctx.globalAlpha = envelope * 0.9;
-        rect(x - 3, 0, 6, y, "#fff6d5");
-        circle(x, y - 4, 20, "#ffda79");
-        circle(x, y - 4, 28, "#f39bd5");
-        for (var i = 0; i < 16; i++) {
-          var yy = y - ((i * 29 + phase * 220) % Math.max(1, y));
-          var edge = 14 + (1 - yy / Math.max(1, y)) * width;
-          star(
-            x + (i % 2 ? -edge : edge),
-            yy,
-            4 + (i % 3),
-            i % 2 ? "#f7b5d4" : "#fff1ad"
-          );
+      if (r.overdriveUntil > s.time) {
+        // Two exhausts behind the character mark the whole firing-rate boost.
+        for (var side = -1; side <= 1; side += 2) {
+          var length = reduced ? 8 : 9 + 4 * Math.sin(s.time * 24 + side);
+          ctx.fillStyle = "#bb593e"; ctx.beginPath();
+          ctx.moveTo(x + 4 * side, y + 8); ctx.lineTo(x + 8 * side, y + 8);
+          ctx.lineTo(x + 7 * side, y + 8 + length); ctx.fill();
+          rect(x + 6 * side, y + 8, 1, length * .55, "#ffdc8c");
         }
-      } else if (spell.id === "alice") {
-        // Six dolls draw luminous threads to the opponent, joined by a seal.
-        var radius = 44 + Math.min(1, phase * 3) * 24;
-        var centerY = Math.min(y - 28, H - 75);
-        ctx.globalAlpha = envelope * 0.65;
-        circle(x, centerY, radius, "#a1e4ef");
-        circle(x, centerY, radius + 6, "#eaa9cc");
-        for (var doll = 0; doll < 6; doll++) {
-          var angle = (doll * Math.PI) / 3 + phase * 0.75;
-          var dx = x + Math.cos(angle) * radius,
-            dy = centerY + Math.sin(angle) * radius;
-          ctx.globalAlpha = envelope * 0.2;
-          ctx.lineWidth = 5;
-          ctx.strokeStyle = "#96dff7";
-          ctx.beginPath();
-          ctx.moveTo(dx, dy);
-          ctx.lineTo(s.boss.x, s.boss.y);
-          ctx.stroke();
-          ctx.globalAlpha = envelope * 0.9;
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = doll % 2 ? "#f5b7d6" : "#dcfaff";
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(dx, dy);
-          ctx.lineTo(
-            x + Math.cos(angle + (Math.PI * 2) / 3) * radius,
-            centerY + Math.sin(angle + (Math.PI * 2) / 3) * radius
-          );
-          ctx.stroke();
-          witch("alice", dx, dy, 14);
-          star(dx, dy - 14, 3, "#fff2b9");
+      }
+      var broken = s.time - r.guardBreakAt;
+      if (r.guardReady || (broken >= 0 && broken < .40)) {
+        var split = r.guardReady || reduced ? 0 : broken * 24;
+        ctx.strokeStyle = "#c5c3ff"; ctx.lineWidth = 1.3;
+        ctx.globalAlpha = r.guardReady ? .77 : Math.max(0, 1 - broken / .40);
+        for (var i = -1; i <= 1; i += 2) {
+          ctx.beginPath(); ctx.moveTo(x + i * (8 + split), y - 9);
+          ctx.lineTo(x + i * (13 + split), y - 7); ctx.lineTo(x + i * (12 + split), y + 4);
+          ctx.lineTo(x + i * (8 + split), y + 8); ctx.stroke();
         }
-      } else {
-        // Five elemental sigils form an expanding, rotating double pentagram.
-        var colors = ["#fa9b98", "#8ecef3", "#a9dda9", "#ffe09a", "#d5adf2"];
-        var glyphs = ["火", "水", "木", "金", "土"];
-        var cy = Math.max(135, Math.min(y - 90, 240));
-        var r = 55 + Math.min(1, phase * 3) * 30;
-        ctx.globalAlpha = envelope * 0.75;
-        circle(W / 2, cy, r - 10, "#d5adf2");
-        circle(W / 2, cy, r + 14, "#a4dcf3");
-        for (var element = 0; element < 5; element++) {
-          var a = (element * Math.PI * 2) / 5 - Math.PI / 2 + phase * 0.8;
-          var ex = W / 2 + Math.cos(a) * r,
-            ey = cy + Math.sin(a) * r;
-          ctx.strokeStyle = colors[element];
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(ex, ey);
-          ctx.lineTo(
-            W / 2 + Math.cos(a + (Math.PI * 4) / 5) * r,
-            cy + Math.sin(a + (Math.PI * 4) / 5) * r
-          );
-          ctx.stroke();
-          ctx.globalAlpha = envelope * 0.22;
-          ctx.lineWidth = 5;
-          ctx.beginPath();
-          ctx.moveTo(ex, ey);
-          ctx.lineTo(s.boss.x, s.boss.y);
-          ctx.stroke();
-          ctx.globalAlpha = envelope;
-          ctx.lineWidth = 1;
-          ctx.fillStyle = "#231b38";
-          ctx.beginPath();
-          ctx.arc(ex, ey, 13, 0, Math.PI * 2);
-          ctx.fill();
-          circle(ex, ey, 14, colors[element]);
-          circle(ex, ey, 17, colors[element]);
-          ctx.fillStyle = colors[element];
-          ctx.font = '12px "Fusion Pixel", monospace';
-          ctx.textAlign = "center";
-          ctx.fillText(glyphs[element], ex, ey + 5);
+      }
+      var equip = r.lastUpgrade, age = equip && s.time - equip.time;
+      if (equip && age >= 0 && age < .62) {
+        var radius = reduced ? 15 : 13 + age * 24;
+        ctx.strokeStyle = DanmakuRun.upgrades[equip.id].color; ctx.lineWidth = 1.5;
+        ctx.globalAlpha = Math.min(.8, (.62 - age) * 3);
+        for (var k = 0; k < 4; k++) {
+          var angle = Math.PI / 2 * k + (reduced ? 0 : age);
+          ctx.beginPath(); ctx.arc(x, y, radius, angle, angle + .65); ctx.stroke();
         }
       }
       ctx.restore();
     }
     function draw(s) {
+      reduced = motionPref.matches;
       if (!ctx) return;
       ctx.setTransform(2, 0, 0, 2, 0, 0);
       ctx.imageSmoothingEnabled = false;
@@ -854,27 +617,23 @@
           Math.round(Math.sin(s.time * 113) * shake),
           Math.round(Math.cos(s.time * 97) * shake * 0.65)
         );
-      drawBackground(s, palette);
-      ctx.globalAlpha = 0.4;
-      ctx.lineWidth = 1;
-      circle(s.boss.x, s.boss.y, 30, palette[1]);
-      circle(s.boss.x, s.boss.y, 35, palette[1]);
-      for (var point = 0; point < 6; point++) {
-        var angle = (point * Math.PI) / 3 + t * 0.12;
-        ctx.beginPath();
-        ctx.moveTo(
-          s.boss.x + Math.cos(angle) * 33,
-          s.boss.y + Math.sin(angle) * 33
-        );
-        ctx.lineTo(
-          s.boss.x + Math.cos(angle + (Math.PI * 2) / 3) * 33,
-          s.boss.y + Math.sin(angle + (Math.PI * 2) / 3) * 33
-        );
-        ctx.stroke();
+      drawBackground(s);
+      if (s.spell && s.spell.age < 0.85) {
+        var bombNames = {
+          alice: "魔符「アーティフルサクリファイス」",
+          marisa: "恋符「マスタースパーク」",
+          patchouli: "七曜符「天球暦の綴じ目」",
+        };
+        cutIn(s.spell.id, bombNames[s.spell.id], s.spell.age, 0.85, true);
       }
-      ctx.globalAlpha = 1;
-      if (!s.enemySpell.nonspell && s.countdown <= 0)
-        DanmakuPatterns.emitters(s).forEach(function (e, index) {
+      drawSpell(s);
+      var sources = s.countdown <= 0 && !s.intermission ? DanmakuPatterns.emitters(s) : [];
+      var cues = casterCues(s);
+      drawCasting(s, t, sources, palette[1]);
+      if (sources.length && !s.enemySpell.nonspell)
+        DanmakuBossSprites.drawSight(ctx, s.boss, s.enemySpell.sight, s.time, reduced);
+      drawFoes(s);
+      sources.forEach(function (e, index) {
           var point = DanmakuBossSprites.deploy(
             s.boss,
             e,
@@ -893,6 +652,7 @@
             ctx.stroke();
             ctx.globalAlpha = point.opacity;
           }
+          var timing = cues.sources[e.id || index];
           DanmakuBossSprites.satellite(
             ctx,
             s.enemyId,
@@ -902,7 +662,8 @@
             reduced ? 0 : t,
             point.scale,
             e.color,
-            e.kind
+            e.kind,
+            timing ? DanmakuBossSprites.castPose(timing.since, timing.until) : "idle"
           );
           ctx.restore();
         });
@@ -913,84 +674,35 @@
           s.boss.x,
           s.boss.y,
           t,
-          s.countdown <= 0 && !s.enemySpell.nonspell && !s.intermission
-            ? s.enemySpell.age
+          s.countdown <= 0 && !s.intermission
+            ? (!s.enemySpell.nonspell && s.enemySpell.age < 1.05 ? s.enemySpell.age : DanmakuBossSprites.castingFrame(cues.body))
             : -1,
           reduced
         )
       )
         witch(s.enemyId, s.boss.x, s.boss.y, 26);
-      s.shots.forEach(function (shot) {
-        ctx.save();
-        ctx.translate(shot.x, shot.y);
-        ctx.rotate(Math.atan2(shot.vy, shot.vx) + Math.PI / 2);
-        if (shot.kind === "beam") {
-          ctx.globalAlpha = 0.18;
-          rect(-3, -21, 6, 35, shot.color);
-          ctx.globalAlpha = 0.8;
-          rect(-1, -20, 2, 30, "#fff4b3");
-          rect(0, -22, 1, 29, "#fffef3");
-        } else if (shot.kind === "missile") {
-          ctx.globalAlpha = 0.55;
-          rect(-1, 4, 2, 8, "#f6b97c");
-          ctx.globalAlpha = 1;
-          rect(-2, -5, 4, 9, "#f8e6c9");
-          rect(-1, -7, 2, 3, "#fff9d7");
-          rect(-3, 1, 1, 4, "#c19376");
-          rect(2, 1, 1, 4, "#c19376");
-        } else if (shot.kind === "seeker") {
-          ctx.globalAlpha = 0.23;
-          circle(0, 0, 5, shot.color);
-          ctx.globalAlpha = 0.85;
-          circle(0, 0, 3, shot.color);
-          rect(-1, -1, 2, 2, "#fff7f4");
-        } else {
-          ctx.globalAlpha = 0.22;
-          rect(-2, 0, 4, 12, shot.color);
-          ctx.globalAlpha = 0.9;
-          ctx.fillStyle = shot.color;
-          ctx.beginPath();
-          ctx.moveTo(0, shot.kind === "crystal" ? -7 : -10);
-          ctx.lineTo(shot.kind === "crystal" ? 3 : 1, 0);
-          ctx.lineTo(0, 5);
-          ctx.lineTo(shot.kind === "crystal" ? -3 : -1, 0);
-          ctx.closePath();
-          ctx.fill();
-          rect(0, -5, 1, 7, "#fff9f1");
-        }
-        ctx.restore();
-      });
+      if (window.DanmakuPlayerSprites) DanmakuPlayerSprites.drawWeapons(ctx, s, s.playerId, reduced, t);
+      else s.shots.forEach(function (shot) { rect(shot.x - 1, shot.y - 4, 2, 7, shot.color); });
+      if (!reduced)
+        s.sparks.forEach(function (s) {
+          ctx.globalAlpha = Math.min(1, s.life * 3);
+          rect(s.x, s.y, 2, 2, s.color);
+        });
+      ctx.globalAlpha = 1;
+      if (window.DanmakuPlayerSprites) DanmakuPlayerSprites.drawImpacts(ctx, s, reduced);
+      drawEquipment(s);
       var p = s.player;
-      DanmakuEngine.options(s).forEach(function (o) {
-        ctx.globalAlpha = 0.2;
-        ctx.strokeStyle = DanmakuEngine.cast[s.playerId].color;
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y - 4);
-        ctx.lineTo(o.x, o.y);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        if (s.playerId === "alice") witch("alice", o.x, o.y, 10, true);
-        else if (s.playerId === "marisa") {
-          rect(o.x - 3, o.y - 3, 6, 6, "#5a4939");
-          rect(o.x - 2, o.y - 4, 4, 8, "#d9ba71");
-          rect(o.x - 1, o.y - 2, 2, 4, "#fff4c8");
-          ctx.globalAlpha = 0.3;
-          circle(o.x, o.y, 6, "#f4cf8a");
-        } else {
-          var color = ["#efa5a5", "#a3d9f0", "#bde2ad", "#f0d991"][o.index];
-          rect(o.x - 4, o.y - 3, 8, 7, "#433348");
-          rect(o.x - 3, o.y - 2, 6, 5, color);
-          rect(o.x, o.y - 2, 1, 5, "#f5ebd8");
-          ctx.globalAlpha = 0.4;
-          circle(o.x, o.y, 7, color);
-        }
-      });
-      ctx.globalAlpha = p.invulnerable > 0 ? 0.65 : 1;
-      witch(s.playerId, p.x, p.y, 24, true, p.facing, s.time);
+      ctx.globalAlpha = !s.lives ? 0 : p.invulnerable > 0 ? 0.65 : 1;
+      if (s.lives && s.missBurst && !reduced)
+        ctx.globalAlpha = Math.min(0.65, s.missBurst.age * 1.5);
+      witch(s.playerId, p.x, p.y, 24, true, p.facing, s.time, p);
+      if (s.playerId === "alice" && window.DanmakuPlayerSprites)
+        DanmakuPlayerSprites.drawPuppeteerHands(ctx, s, reduced, s.time);
       ctx.globalAlpha = 1;
       // Boxed pickups cannot be mistaken for round/diamond/star enemy bullets.
-      var itemColors = { power: "#ef8b92", life: "#e6abea", clear: "#92d6e5" };
+      var itemColors = { power: "#ef8b92", life: "#e6abea", clear: "#92d6e5", shard: "#91e7b6" };
       var itemGlyphs = {
+        shard: ["00100","01110","11011","01110","00100"],
         power: ["11110", "10001", "11110", "10000", "10000"],
         life: ["01010", "11111", "11111", "01110", "00100"],
         clear: ["11110", "10001", "11110", "10001", "11110"],
@@ -998,6 +710,16 @@
       s.items.forEach(function (item) {
         var ix = Math.round(item.x),
           iy = Math.round(item.y);
+        if (item.attracted && s.run.mods.magnet && !reduced) {
+          var angle = Math.atan2(iy - p.y, ix - p.x), vx = Math.cos(angle), vy = Math.sin(angle);
+          var tail = s.run.vacuumUntil > s.time ? 25 : 15;
+          ctx.save(); ctx.strokeStyle = "#89cace"; ctx.globalAlpha = .62;
+          for (var side = -2; side <= 2; side += 4) {
+            ctx.beginPath(); ctx.moveTo(ix + 6 * vx - side * vy, iy + 6 * vy + side * vx);
+            ctx.lineTo(ix + tail * vx - side * vy, iy + tail * vy + side * vx); ctx.stroke();
+          }
+          ctx.restore();
+        }
         rect(ix - 7, iy - 7, 14, 14, "#090e1c");
         rect(ix - 6, iy - 6, 12, 12, itemColors[item.type]);
         rect(ix - 4, iy - 4, 8, 8, "#252238");
@@ -1010,61 +732,34 @@
       s.bullets.forEach(function (b) {
         var x = Math.round(b.x),
           y = Math.round(b.y);
-        if (["star", "bigstar", "smallstar"].indexOf(b.shape) >= 0) {
-          // A 9px minimum silhouette stays readable at the native 240px arena
-          // width. Keep the generous collision cores independent of the tips.
+        var script = b.motion && b.motion.inscription;
+        if (script && b.inscribing) {
+          if (b.age < script.delay) return;
+          var armed = b.age >= script.launch - 0.23;
+          // Outline-only ink is harmless. A bright directional nib precedes the beat.
           ctx.save();
-          ctx.lineWidth = 1;
-          star(
-            x,
-            y,
-            b.shape === "bigstar" ? 6.5 : b.shape === "smallstar" ? 4.5 : 5.4,
-            b.color
-          );
-          rect(x - 1, y - 1, 2, 2, "#fff8e8");
-          ctx.restore();
-        } else if (
-          [
-            "rice",
-            "kunai",
-            "scale",
-            "amulet",
-            "butterfly",
-            "bubble",
-            "darkorb",
-            "flame",
-            "pellet",
-          ].indexOf(b.shape) >= 0
-        ) {
-          ctx.save();
-          ctx.translate(x, y);
-          if (["bubble", "darkorb", "pellet"].indexOf(b.shape) < 0)
-            ctx.rotate(
-              (b.heading === undefined ? Math.atan2(b.vy, b.vx) : b.heading) +
-                Math.PI / 2
-            );
-          ctx.drawImage(bulletSprite(b.shape, b.color), -12, -12);
-          ctx.restore();
-        } else if (b.shape === "diamond") {
-          ctx.fillStyle = b.color;
-          ctx.strokeStyle = "#20182d";
+          ctx.globalAlpha = armed ? 0.94 : 0.60;
+          ctx.strokeStyle = armed ? "#fff0c8" : b.color;
+          ctx.lineWidth = armed ? 1.2 : 0.9;
           ctx.beginPath();
-          ctx.moveTo(x, y - 5);
-          ctx.lineTo(x + 3, y);
-          ctx.lineTo(x, y + 5);
-          ctx.lineTo(x - 3, y);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-          rect(x, y - 2, 1, 3, "#fff3dd");
-        } else {
-          ctx.fillStyle = b.color;
-          ctx.beginPath();
-          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-          ctx.fill();
-          circle(x, y, 4, "#20182d");
-          rect(x - 1, y - 2, 2, 2, "#fff8e8");
+          ctx.moveTo(x, y - 2.5); ctx.lineTo(x + 2.1, y);
+          ctx.lineTo(x, y + 2.5); ctx.lineTo(x - 2.1, y); ctx.closePath(); ctx.stroke();
+          if (armed) {
+            ctx.beginPath(); ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(script.angle) * 5, y + Math.sin(script.angle) * 5);
+            ctx.stroke();
+          }
+          ctx.restore();
+          return;
         }
+        if (script && !reduced && b.age < script.launch + 0.13) {
+          ctx.save();
+          ctx.globalAlpha = 0.50 * (1 - (b.age - script.launch) / 0.13);
+          ctx.strokeStyle = b.color; ctx.lineWidth = 1.3;
+          ctx.beginPath(); ctx.moveTo(script.lockX, script.lockY); ctx.lineTo(x, y); ctx.stroke();
+          ctx.restore();
+        }
+        DanmakuBossSprites.projectile(ctx, x, y, b, reduced);
       });
       s.cancelFlashes.forEach(function (f) {
         var t = f.age / 0.28,
@@ -1138,20 +833,18 @@
         ctx.restore();
       }
       // The real 2.2px hitbox stays visible even with a busy character sprite.
-      circle(p.x, p.y, s.focus ? 9 : 4.3, "#142432");
-      circle(p.x, p.y, 2.5, "#fff9e7");
-      rect(p.x - 1, p.y - 1, 2, 2, "#d74a68");
-      if (p.invulnerable > 0) {
+      if (s.lives > 0) {
+        circle(p.x, p.y, s.focus ? 9 : 4.3, "#142432");
+        circle(p.x, p.y, 2.5, "#fff9e7");
+        rect(p.x - 1, p.y - 1, 2, 2, "#d74a68");
+      }
+      if (s.lives && p.invulnerable > 0) {
         ctx.globalAlpha = 0.55;
         circle(p.x, p.y, 15, "#a9e8ed");
         ctx.globalAlpha = 1;
       }
-      if (!reduced)
-        s.sparks.forEach(function (s) {
-          ctx.globalAlpha = Math.min(1, s.life * 3);
-          rect(s.x, s.y, 2, 2, s.color);
-        });
-      ctx.globalAlpha = 1;
+      if (window.DanmakuPlayerSprites)
+        DanmakuPlayerSprites.drawMiss(ctx, s.missBurst, DanmakuEngine.cast[s.playerId].color, reduced);
       if (s.cancelPulse) {
         // A brief local burst belongs to the defeated spell; cancellation itself
         // is drawn at every bullet above, not as a screen-wide expanding ring.
@@ -1172,7 +865,6 @@
           ctx.restore();
         }
       }
-      drawSpell(s);
       ctx.restore();
       // Notices and health/time bars remain stationary while the arena shakes.
       if (s.intermission) {
@@ -1183,16 +875,10 @@
         arcadeText("累計 " + Math.floor(s.score), 120, 121, 10, "#d8e3ee");
         ctx.restore();
       } else drawEnemySpell(s);
-      if (s.spell && s.spell.age < 1.25) {
-        var bombNames = {
-          alice: "魔符「アーティフルサクリファイス」",
-          marisa: "恋符「マスタースパーク」",
-          patchouli: "火水木金土符「賢者の石」",
-        };
-        cutIn(s.spell.id, bombNames[s.spell.id], s.spell.age, 1.25, true);
-      }
       if (s.pickupNotice) {
         var notices = {
+          shard: "経験 +" + s.pickupNotice.xp + (s.pickupNotice.bonusPower ? "　P +" + s.pickupNotice.bonusPower : "") +
+            (s.pickupNotice.bonusScore ? "　+" + s.pickupNotice.bonusScore + "点" : ""),
           power: s.power === DanmakuEngine.maxPower ? "火力 MAX" : "火力 UP",
           life: s.lives === 5 ? "残機 MAX" : "残機 +1",
           clear: s.bombs === 5 ? "霊撃 MAX" : "霊撃 +1",
@@ -1211,6 +897,15 @@
           110
         );
         ctx.restore();
+      }
+      var installed = s.run && s.run.lastUpgrade;
+      if (installed && !s.intermission && !s.countdown && s.time - installed.time < 1.65) {
+        var mod = DanmakuRun.upgrades[installed.id], label = mod.name + " Lv." + installed.tier;
+        ctx.save(); ctx.font = '10px "Fusion Pixel", monospace'; ctx.textAlign = "right";
+        var tagW = Math.min(W - 58, Math.ceil(ctx.measureText(label).width) + 13);
+        rect(W - tagW - 4, H - 18, tagW, 14, "#121827ef");
+        rect(W - tagW - 4, H - 18, 2, 14, mod.color);
+        ctx.fillStyle = mod.color; ctx.fillText(label, W - 9, H - 8); ctx.restore();
       }
       if (s.auto) {
         rect(4, H - 17, 45, 13, "#0c1125d9");

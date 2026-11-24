@@ -5,16 +5,16 @@
   var W = 240,
     H = 360,
     cast = scope.DanmakuEngine.cast;
-  var colors = ["#f3a3ae", "#a0dff5", "#bae29e", "#f3d58f", "#c8adf0"];
+  var colors = scope.DanmakuFlower.elementColors;
   function create(canvas) {
     var ctx = canvas.getContext("2d"),
       images = {},
-      tiles = {},
       compact = false;
-    var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var motionPref = matchMedia("(prefers-reduced-motion: reduce)"),
+      reduced = motionPref.matches;
     var ready = Promise.all(
       Object.keys(cast).flatMap(function (id) {
-        return ["flight", "background", "portraits"].map(function (kind) {
+        return ["flight", "portraits"].map(function (kind) {
           return new Promise(function (resolve) {
             var img = new Image();
             img.onload = function () {
@@ -22,17 +22,10 @@
               resolve();
             };
             img.onerror = resolve;
-            var scene = {
-              alice: "alice-workshop",
-              marisa: "marisa-forest",
-              patchouli: "patchouli-library",
-            }[id];
             img.src =
               assetBase +
               "/assets/images/classic/danmaku/" +
-              (kind === "background"
-                ? "backgrounds/" + scene + ".png"
-                : kind === "portraits"
+              (kind === "portraits"
                   ? "portraits/" + id + "-expressions.png"
                   : id + "-" + kind + ".svg");
           });
@@ -41,6 +34,7 @@
     );
     ready = Promise.all([
       ready,
+      scope.DanmakuScenery.load(),
       DanmakuBossSprites.load(),
       scope.DanmakuPlayerSprites && scope.DanmakuPlayerSprites.load(),
     ]);
@@ -92,8 +86,9 @@
       var p = f.player,
         img = images[f.id + "-flight"];
       ctx.save();
-      if (p.invulnerable > 0)
-        ctx.globalAlpha = 0.45 + (Math.floor(time * 12) % 2) * 0.5;
+      if (!f.health) ctx.globalAlpha = 0;
+      else if (f.missBurst && !reduced) ctx.globalAlpha = Math.min(0.72, f.missBurst.age * 1.5);
+      else if (p.invulnerable > 0) ctx.globalAlpha = 0.72;
       var drawn =
         scope.DanmakuPlayerSprites &&
         scope.DanmakuPlayerSprites.draw(
@@ -104,7 +99,7 @@
           time,
           p.facing,
           reduced,
-          32
+          32, p
         );
       if (!drawn && img) {
         var col = Math.max(
@@ -123,7 +118,10 @@
           36
         );
       } else if (!drawn) star(p.x, p.y, 10, cast[f.id].color);
+      if (f.id === "alice" && scope.DanmakuPlayerSprites)
+        scope.DanmakuPlayerSprites.drawPuppeteerHands(ctx, f, reduced, time);
       ctx.restore();
+      if (!f.health) return;
       if (f.focus || f.charging) {
         line(p.x, p.y, 5, "#eef6ff");
         rect(p.x - 1, p.y - 1, 2, 2, "#fff");
@@ -159,7 +157,7 @@
       "....ss....",
       "...s..s...",
     ];
-    function minion(e, time) {
+    function minion(e, time, field, combat) {
       ctx.save();
       ctx.translate(Math.round(e.x), Math.round(e.y));
       if (e.kind === "spirit") {
@@ -184,6 +182,11 @@
           d: "#8ca8e6",
           s: "#f5dfe7",
         };
+        if (e.leader) {
+          palette.d = "#c2a2c8"; palette.w = "#edd9eb";
+          rect(-4, -8, 1, 2, "#ddb26e"); rect(3, -8, 1, 2, "#ddb26e");
+          rect(-2, -8, 4, 1, "#fff2bb"); rect(-1, -10, 2, 2, "#efc783");
+        }
         fairy.forEach(function (row, y) {
           for (var x = 0; x < row.length; x++) {
             var c = palette[row[x]];
@@ -198,83 +201,10 @@
           }
         });
       }
-      ctx.restore();
-    }
-    function projectile(b) {
-      var x = Math.round(b.x),
-        y = Math.round(b.y);
-      ctx.save();
-      ctx.lineWidth = 1;
-      if (b.shape === "star" || b.shape === "bigstar") {
-        star(x, y, b.shape === "bigstar" ? 6.5 : 4.8, b.color);
-        rect(x - 1, y - 1, 2, 2, "#fff8e7");
-      } else if (b.shape === "diamond" || b.shape === "rice") {
-        ctx.translate(x, y);
-        ctx.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
-        ctx.beginPath();
-        ctx.moveTo(0, -6);
-        ctx.lineTo(3, 0);
-        ctx.lineTo(0, 6);
-        ctx.lineTo(-3, 0);
-        ctx.closePath();
-        ctx.fillStyle = b.color;
-        ctx.fill();
-        ctx.strokeStyle = "#171e36";
-        ctx.stroke();
-        rect(-0.6, -3, 1.2, 5, "#f7f8ff");
-      } else {
-        var r = b.shape === "orb" ? 4.5 : 3.5;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fillStyle = b.hard ? b.color : "#35466c";
-        ctx.fill();
-        ctx.strokeStyle = b.hard ? "#141b2e" : "#ecf3ff";
-        ctx.stroke();
-        rect(x - 1, y - 1, 2, 2, b.hard ? "#fff1da" : "#dcecff");
-      }
-      ctx.restore();
-    }
-    function background(f) {
-      var scroll = reduced ? 0 : f.scroll;
-      rect(0, 0, W, H, "#121c2b");
-      var img = images[f.id + "-background"];
-      if (img) {
-        if (!tiles[f.id]) {
-          var tile = document.createElement("canvas");
-          tile.width = W * 2;
-          tile.height = H * 2;
-          var paint = tile.getContext("2d");
-          paint.drawImage(img, 0, 0, tile.width, tile.height);
-          paint.globalCompositeOperation = "destination-in";
-          var mask = paint.createLinearGradient(0, 0, 0, H * 2);
-          mask.addColorStop(0, "transparent");
-          mask.addColorStop(24 / H, "#000");
-          mask.addColorStop(1 - 24 / H, "#000");
-          mask.addColorStop(1, "transparent");
-          paint.fillStyle = mask;
-          paint.fillRect(0, 0, tile.width, tile.height);
-          tiles[f.id] = tile;
-        }
-        var period = H - 24,
-          offset = scroll % period;
-        ctx.imageSmoothingEnabled = true;
-        for (var row = -1; row <= 1; row++)
-          ctx.drawImage(tiles[f.id], 0, row * period + offset, W, H);
-        ctx.imageSmoothingEnabled = false;
-      }
-      rect(0, 0, W, H, "#090f23a6");
-      ctx.save();
-      var speed = reduced ? 0 : f.scrollSpeed;
-      ctx.globalAlpha = 0.13 + Math.min(1, speed / 200) * 0.09;
-      for (var i = 0; i < 18; i++) {
-        var side = i % 2 ? 1 : -1,
-          x = W / 2 + side * (W / 2 - 6 - ((i * 11) % 24)),
-          depth = i % 3 === 0 ? 2.5 : 1.7;
-        var y = ((i * 47 + scroll * depth) % (H + 40)) - 20,
-          length = speed ? Math.min(22, 4 + speed * depth * 0.035) : 1;
-        rect(x, y - length, 1, length, cast[f.id].color);
-        rect(x, y, 1, 2, cast[f.id].color);
-      }
+      var arming = (!e.leader || Math.hypot(field.player.x - e.x, field.player.y - e.y) >= 76) &&
+        time >= field.recoveryUntil && e.y > 18 && e.y < 215 && e.fire > 0 && e.fire <= 0.35;
+      var bearing = arming ? Math.atan2(field.player.y - e.y, field.player.x - e.x) : e.fireAngle;
+      if (combat) DanmakuBossSprites.muzzle(ctx, bearing, arming ? e.fire : 0, time - e.lastShotAt, reduced);
       ctx.restore();
     }
     function board(f, s) {
@@ -282,7 +212,9 @@
       ctx.beginPath();
       ctx.rect(0, 0, W, H);
       ctx.clip();
-      background(f);
+      var cycle = Math.floor(s.time / 36);
+      scope.DanmakuScenery.draw(ctx, f.id, cycle % 2, s.time % 36,
+        s.time, f.scroll, reduced, f.bullets.length > 80);
       if (f.cast && !reduced && f.cast.level > 1) {
         var shake = Math.max(0, 1 - f.cast.age / 0.32) * 2;
         ctx.translate(
@@ -301,32 +233,42 @@
           a.kind === "white" ? "#d3e5ff" : "#f3b5cb"
         );
       });
+      if (f.cast && scope.DanmakuPlayerSprites) {
+        var c = f.cast;
+        // C1 attacks the release column. Higher charges cancel around their origin.
+        var target = c.level === 1 ? {x: c.x, y: Math.max(12, c.y - 125)} :
+          {x: c.x, y: Math.max(14, c.y - (c.level === 2 ? 58 : 90))};
+        scope.DanmakuPlayerSprites.drawSpiritStrike(ctx, c, target, reduced);
+        if (c.level >= 3 && c.age < 0.75) {
+          ctx.save(); ctx.globalAlpha = Math.min(1, (0.75 - c.age) * 5);
+          rect(4, 47, 121, 26, "#151b30bb");
+          var img = images[f.id + "-portraits"];
+          if (img) ctx.drawImage(img, img.width / 2, 0, img.width / 2, img.height / 2, 4, 47, 26, 26);
+          text(c.level === 4 ? "BOSS ATTACK" : "SPELL ATTACK", 33, 58, 9, cast[f.id].color);
+          text(cast[f.id].name, 33, 70, 9, "#fff1d7"); ctx.restore();
+        }
+      }
+      var combat = !s.intermission && s.phase !== "over";
       f.enemies.forEach(function (e) {
-        minion(e, s.time);
+        minion(e, s.time, f, combat);
       });
       if (f.boss) {
         var b = f.boss;
+        if (combat) DanmakuBossSprites.drawSight(ctx, b, b.sight, s.time, reduced);
         line(b.x, b.y, 21, cast[b.id].color);
-        for (
-          var satellite = 0;
-          satellite < (b.id === "patchouli" ? 5 : b.id === "alice" ? 4 : 2);
-          satellite++
-        ) {
-          var count = b.id === "patchouli" ? 5 : b.id === "alice" ? 4 : 2,
-            angle = (satellite * Math.PI * 2) / count + b.age * 0.35;
-          var target = {
-            x: b.x + Math.cos(angle) * 31,
-            y: b.y + Math.sin(angle) * 18,
-          };
-          var point = DanmakuBossSprites.deploy(
-            b,
-            target,
-            b.age,
-            satellite,
-            reduced
-          );
+        var next = scope.DanmakuFlower.volleySources(b);
+        var until = combat && s.time >= f.recoveryUntil ? b.fire : Infinity;
+        var latest = combat && Number.isFinite(b.bodyCast) ? b.bodyCast : -Infinity;
+        for (var satellite = 0; satellite < scope.DanmakuFlower.satelliteCount(b); satellite++) {
+          var target = scope.DanmakuFlower.satellitePosition(b, satellite);
+          var joined = b.recruited && b.recruited[satellite];
+          var point = DanmakuBossSprites.deploy(b, target,
+            joined ? (b.age - joined) * 1.8 : b.age, joined ? 0 : satellite, reduced);
+          var last = combat && b.lastCast ? b.lastCast[satellite] : -Infinity;
+          if (Number.isFinite(last)) latest = Math.max(latest, last);
+          var pose = DanmakuBossSprites.castPose(s.time - last, next.indexOf(satellite) >= 0 ? until : Infinity);
           ctx.save();
-          ctx.globalAlpha = point.opacity * 0.8;
+          ctx.globalAlpha = point.opacity;
           DanmakuBossSprites.satellite(
             ctx,
             b.id,
@@ -335,7 +277,8 @@
             satellite,
             reduced ? 0 : s.time,
             point.scale * 0.8,
-            colors[satellite]
+            b.id === "patchouli" ? colors[satellite] : cast[b.id].color,
+            null, pose
           );
           ctx.restore();
         }
@@ -346,49 +289,26 @@
             b.x,
             b.y,
             s.time,
-            b.age > 1.2 ? b.age - 1.2 : -1,
+            DanmakuBossSprites.castingFrame(DanmakuBossSprites.castPose(s.time - latest, until)),
             reduced
           )
         )
           star(b.x, b.y, 10, cast[b.id].color);
         rect(b.x - 22, b.y - 25, 44, 2, "#182137");
+        var maxHp = b.maxHp || 100 + Math.min(16, Math.floor(s.roundTime / 18) + s.round - 1) * 8;
+        if (b.echoHp > b.hp)
+          rect(b.x - 22, b.y - 25, 44 * Math.min(1, b.echoHp / maxHp), 2, "#e9bd9b");
         rect(
           b.x - 22,
           b.y - 25,
-          (44 * Math.max(0, b.hp)) /
-            (100 +
-              Math.min(16, Math.floor(s.roundTime / 18) + s.round - 1) * 8),
+          (44 * Math.max(0, b.hp)) / maxHp,
           2,
           cast[b.id].color
         );
       }
-      f.shots.forEach(function (b) {
-        rect(
-          b.x - 1,
-          b.y - 6,
-          b.shape === "orb" ? 3 : 2,
-          b.shape === "beam" ? 18 : 8,
-          cast[f.id].color
-        );
-        rect(b.x, b.y - 5, 1, 5, "#fbfaff");
-      });
-      f.lasers.forEach(function (l) {
-        if (l.age < l.warning) {
-          ctx.save();
-          ctx.setLineDash([3, 4]);
-          ctx.strokeStyle = "#f5dfa5";
-          ctx.beginPath();
-          ctx.moveTo(l.x, 0);
-          ctx.lineTo(l.x, H);
-          ctx.stroke();
-          ctx.restore();
-        } else {
-          rect(l.x - l.width, 0, l.width * 2, H, "#ffc56588");
-          rect(l.x - l.width / 2, 0, l.width, H, "#fff4ce");
-        }
-      });
-      f.bullets.forEach(projectile);
-      pilot(f, s.time);
+      if (scope.DanmakuPlayerSprites) scope.DanmakuPlayerSprites.drawWeapons(ctx, f, f.id, reduced, s.time);
+      else f.shots.forEach(function (shot) { rect(shot.x - 1, shot.y - 4, 2, 7, cast[f.id].color); });
+      if (scope.DanmakuPlayerSprites) scope.DanmakuPlayerSprites.drawImpacts(ctx, f, reduced);
       f.effects.forEach(function (e) {
         ctx.save();
         var t = e.age / (e.kind === "doll" ? 0.8 : 0.4);
@@ -405,88 +325,32 @@
           );
         else if (e.kind === "cancel") {
           star(e.x, e.y, 2 + 3 * t, "#eff2ff");
-        } else {
-          line(e.x, e.y, 8 + t * 26, e.color);
-          for (var i = 0; i < 6; i++)
-            rect(
-              e.x + Math.cos((i * Math.PI) / 3) * (8 + t * 18),
-              e.y + Math.sin((i * Math.PI) / 3) * (8 + t * 18),
-              2,
-              2,
-              "#fff8e3"
-            );
         }
         ctx.restore();
       });
       f.points.forEach(function (p) {
         rect(p.x - 1, p.y - 1, 2, 2, "#f4ecc4");
       });
-      if (f.cast) {
-        var c = f.cast,
-          t = c.age / c.duration,
-          color = cast[f.id].color;
-        ctx.save();
-        ctx.globalAlpha = (1 - t) * 0.8;
-        if (f.id === "marisa") {
-          rect(
-            f.player.x - 16 * (1 - t),
-            0,
-            32 * (1 - t),
-            f.player.y,
-            "#ffe9ac88"
-          );
-          rect(f.player.x - 3, 0, 6, f.player.y, "#fff2cc");
-        } else if (f.id === "alice") {
-          for (var i = 0; i < 6; i++) {
-            var a = (i * Math.PI) / 3 + t;
-            line(
-              f.player.x + Math.cos(a) * (30 + t * 75),
-              f.player.y + Math.sin(a) * (30 + t * 75),
-              7,
-              color
-            );
-          }
-          line(f.player.x, f.player.y, 30 + t * 75, color);
-        } else {
-          for (var i = 0; i < 5; i++) {
-            var a = (i * Math.PI * 2) / 5 - t;
-            line(
-              f.player.x + Math.cos(a) * (25 + t * 60),
-              f.player.y + Math.sin(a) * (25 + t * 60),
-              15,
-              colors[i]
-            );
-          }
-        }
-        ctx.restore();
-        if (c.level >= 3 && c.age < 0.8) {
-          var img = images[f.id + "-portraits"];
+      f.lasers.forEach(function (l) {
+        if (l.age < l.warning) {
           ctx.save();
-          ctx.globalAlpha = Math.min(1, (0.8 - c.age) * 5);
-          rect(0, 86, 240, 58, "#101829cd");
-          if (img)
-            ctx.drawImage(
-              img,
-              img.width / 2,
-              0,
-              img.width / 2,
-              img.height / 2,
-              0,
-              72,
-              74,
-              74
-            );
-          text(
-            c.level === 4 ? "BOSS ATTACK" : "SPELL ATTACK",
-            80,
-            111,
-            12,
-            color
-          );
-          text(cast[f.id].name, 80, 132, 11, "#fff2dd");
+          ctx.setLineDash([3, 4]);
+          ctx.strokeStyle = "#f5dfa5";
+          ctx.beginPath();
+          ctx.moveTo(l.x, 0);
+          ctx.lineTo(l.x, H);
+          ctx.stroke();
           ctx.restore();
+        } else {
+          rect(l.x - l.width, 0, l.width * 2, H, "#ffc56588");
+          rect(l.x - l.width / 2, 0, l.width, H, "#fff4ce");
         }
-      }
+      });
+      f.bullets.forEach(function (b) {
+        DanmakuBossSprites.projectile(ctx, b.x, b.y, b, reduced);
+      });
+      pilot(f, s.time);
+      if (scope.DanmakuPlayerSprites) scope.DanmakuPlayerSprites.drawMiss(ctx, f.missBurst, cast[f.id].color, reduced);
       if (f.notice) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, 2 - f.notice.age);
@@ -563,6 +427,7 @@
       }
     }
     function draw(s) {
+      reduced = motionPref.matches;
       if (!ctx) return;
       ctx.setTransform(2, 0, 0, 2, 0, 0);
       ctx.imageSmoothingEnabled = false;

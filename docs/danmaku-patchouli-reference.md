@@ -1,5 +1,7 @@
 # Patchouli: source inspection and reconstruction
 
+> Historical design notes for the retired reconstruction. The [current spell catalogue](danmaku-spells.md) describes the playable cards.
+
 The six spell IDs retain the original **EoSD Normal base-name versions** (Agni Shine, Princess Undine, Sylphy Horn, Lazy Trilithon) and the **Extra** versions (Royal Flare, Philosopher's Stone). They deliberately do not borrow the Hard/Lunatic upgrade attacks under the base names. Timing and counts are rescaled for the site's 240×360 field and music clock; these are visual/mechanical reconstructions, not recovered ECL scripts or frame-identical ports.
 
 ## Primary visual references inspected

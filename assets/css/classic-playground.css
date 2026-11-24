@@ -283,6 +283,10 @@ body.playground-page {
   height: 228px;
   gap: 3px;
 }
+@media (max-width: 540px) {
+  /* Two lines of Japanese and three stacked replies fit together on a phone. */
+  .playground-page #live2d-widget .pg-dialogue-desk { height: 252px; }
+}
 .playground-page #live2d-widget .pg-dialogue-desk > :is(.companion-conversation, .companion-footer) {
   grid-area: auto;
   min-width: 0;
@@ -568,7 +572,7 @@ body.playground-page {
   box-shadow: inset 3px 0 var(--vn-light);
 }
 .playground-page #live2d-widget .danmaku-game-modes strong { font-size: 16px; }
-.playground-page #live2d-widget .danmaku-lobby :is([data-danmaku-player], [data-danmaku-challenge]) {
+.playground-page #live2d-widget .danmaku-lobby [data-danmaku-player] {
   --pilot-ink: #a6cdee;
   background: linear-gradient(105deg, color-mix(in srgb, var(--pilot-ink) 9%, var(--vn-panel)), var(--vn-panel) 65%);
 }
@@ -1064,14 +1068,7 @@ body.playground-page {
   display: none;
 }
 .playground-page #live2d-widget[data-playground-layout] .companion-conversation .vn-dialogue-ornament {
-  display: block;
-  inset: -1px 0 auto;
-  width: auto;
-  height: 2px;
-  opacity: 0;
-  mask: none;
-  background: repeating-linear-gradient(90deg, var(--classic-accent) 0 5px, transparent 5px 7px);
-  transform-origin: left center;
+  display: none;
 }
 .playground-page #live2d-widget[data-playground-layout] .vn-nameplate {
   display: grid;
@@ -1132,24 +1129,13 @@ body.playground-page {
 .playground-page #live2d-widget .companion-conversation:has(.vn-choices > button) .vn-reading {
   padding-bottom: 0;
 }
-.playground-page #live2d-widget .vn-reading[aria-disabled="true"] {
-  cursor: default;
-}
-/* The invisible full line reserves its eventual line breaks so the first glyph
-   stays on the same baseline throughout typing in a vertically centered block. */
-.playground-page #live2d-widget #live2d-dialogue:has(+ .vn-choices:empty) .vn-reading {
+.playground-page #live2d-widget #live2d-dialogue:has(+ .vn-choices:empty) .vn-reading:not([data-expects-replies]) {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: safe center;
   align-items: start;
   padding: 4px 4px 10px;
 }
-.playground-page #live2d-widget #live2d-dialogue:has(+ .vn-choices:empty) .vn-reading::before {
-  content: attr(data-complete-line);
-  visibility: hidden;
-  pointer-events: none;
-}
-.playground-page #live2d-widget .vn-reading::before,
 .playground-page #live2d-widget .live2d-dialogue__text {
   grid-area: 1 / 1;
   line-break: strict;
@@ -1223,5 +1209,45 @@ body.playground-page {
 @media (pointer: coarse) {
   .playground-page #live2d-widget[data-playground-layout] :is(.vn-choices, .companion-footer) button {
     min-height: 40px;
+  }
+}
+
+@media (min-width: 800px) and (min-height: 500px) {
+  .playground-page #live2d-widget .danmaku-lobby { width: min(100%, 940px); }
+  .playground-page #live2d-widget .danmaku-loadout {
+    display: grid;
+    grid-template-columns: minmax(215px, .76fr) minmax(340px, 1.24fr);
+    gap: clamp(14px, 2vw, 30px);
+  }
+  .playground-page #live2d-widget .danmaku-hangar .danmaku-pilots { grid-template-columns: 1fr; }
+  .playground-page #live2d-widget .danmaku-hangar .danmaku-pilots button {
+    grid-template-columns: 48px 1fr;
+    min-height: 58px;
+    padding: 5px 10px;
+  }
+  .playground-page #live2d-widget .danmaku-hangar .danmaku-pilots img { width: 45px; height: 51px; }
+  .playground-page #live2d-widget .danmaku-routes .danmaku-opponents button { min-height: clamp(100px, 12vh, 140px); gap: 8px; }
+  .playground-page #live2d-widget .danmaku-routes .danmaku-opponents strong { font-size: clamp(13px, 1.2vw, 16px); }
+  .playground-page #live2d-widget .danmaku-hangar .danmaku-mode { margin-top: 12px; }
+}
+@media (min-width: 880px), (orientation: landscape) and (max-height: 550px) {
+  .playground-page #live2d-widget .danmaku-pattern > span { display: block; }
+  .playground-page #live2d-widget .danmaku-pattern > span[hidden] { display: none; }
+  .playground-page #live2d-widget .danmaku-upgrade { margin-inline: 0; }
+}
+
+@media (min-width: 800px) and (min-height: 620px) {
+  .playground-page #live2d-widget .danmaku-lobby { margin-block: auto; }
+  .playground-page #live2d-widget .danmaku-hangar .danmaku-pilots button { min-height: clamp(66px, 8.5vh, 96px); }
+}
+@media (min-width: 880px) and (min-height: 620px) {
+  .playground-page #live2d-widget .vn-danmaku-view[data-mode="score"] .danmaku-build-summary {
+    display: grid;
+    gap: 4px;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--vn-rule);
+    color: var(--vn-muted);
+    font-size: 12px;
   }
 }

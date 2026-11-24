@@ -5,20 +5,6 @@ const mean = (a) =>
   a.reduce((sum, value) => sum + value, 0) / Math.max(1, a.length);
 const quantile = (a, q) =>
   [...a].sort((a, b) => a - b)[Math.floor((a.length - 1) * q)] || 0;
-// Pre-tuning lower-field populations, sampled over the same complete recordings
-// at x=60/120/180. Guard against losing the new pressure without prescribing a
-// common pattern or forcing every card into monotonically denser coverage.
-const prior = {
-  0: [
-    13.726, 6.943, 7, 27.222, 8.007, 22.342, 9.14, 8.548, 4.744, 3.429, 18.682,
-    39.558, 9.064, 9.473, 14.447, 21.313, 8.264, 6.16,
-  ],
-  6: [
-    19.867, 8.943, 8.674, 33, 9.333, 25.329, 12.372, 12.175, 6.163, 4.214,
-    22.457, 49.442, 10.716, 11.194, 13.702, 26.208, 9.276, 6.694,
-  ],
-};
-
 function sample(s, phase) {
   const bullets = s.bullets.filter(
     (b) => b.x > 0 && b.x < 240 && b.y > 155 && b.y < 350
@@ -99,6 +85,7 @@ function measure(cycle) {
       const game = engine.create("alice", enemy, 1977),
         s = game.state;
       s.countdown = 0;
+      s.run.nextWave = Infinity;
       s.intro = null;
       s.time = cycle * track.duration;
       for (let frame = 0; frame < track.duration * 60; frame++) {
@@ -151,8 +138,8 @@ function measure(cycle) {
       assert(mean(phase.gap) >= 72, `${label}: retain room to reposition`);
       const bullets = mean(phase.count);
       assert(
-        bullets >= prior[cycle][rows.length] * 1.1,
-        `${label}: stronger lower-field pressure (${bullets})`
+        bullets >= 7 && mean(phase.coverage) > 0.07,
+        `${label}: interlude must reach the player area (${bullets})`
       );
       rows.push({
         enemy,
@@ -177,12 +164,13 @@ function distinctPatterns() {
     const track = engine.score.getTrack(enemy);
     for (const [stage, card] of patterns.cards[enemy].entries()) {
       const s = engine.create("alice", enemy, 1977).state;
-      s.enemySpell = { ...card, nonspell: true };
+      s.enemySpell = { ...card, age: 0, nonspell: true };
       s.boss = { x: 120, y: 54 };
       const emissions = [];
       for (let tick = 0; tick < 64; tick++) {
         s.time = track.phrases[stage].start + tick * 0.2;
         s.rhythm = engine.score.at(enemy, s.time);
+        s.enemySpell.age = tick * 0.2;
         patterns.emit(s, tick, {
           bullet: (...args) => emissions.push(["bullet", tick, ...args]),
           laser: (...args) => emissions.push(["laser", tick, ...args]),
@@ -217,6 +205,6 @@ if (require.main === module) {
       );
   }
   console.log(
-    "PASS: 18 distinct nonspells at opening/late rounds, stronger lower-field pressure, finite trajectories, readable warnings, real collision gaps and pool headroom."
+    "PASS: 18 distinct nonspells at opening/late rounds, interlude must reach the player area, finite trajectories, readable warnings, real collision gaps and pool headroom."
   );
 }

@@ -27,9 +27,12 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       "patterns-patchouli",
       "patterns",
       "scroll",
+      "run",
+      "pilot",
       "engine",
       "boss-sprites",
       "player-sprites",
+      "scenery",
       "renderer",
     ])
       await p.addScriptTag({
@@ -57,9 +60,37 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           s.countdown = 0;
           s.time = track.phrases[stage].start;
           s.player.invulnerable = Infinity;
-          window.qaCards.push({ game, renderer, start: s.time });
+          window.qaCards.push({ game, canvas, renderer, start: s.time });
         }
       }, enemy);
+      // The cue shares a small band with a wrapped Japanese title. Check the
+      // actual drawn glyphs against that band at native arena coordinates.
+      const cues = await p.evaluate(() => window.qaCards.flatMap(({game, canvas, renderer, start}) => {
+        const state = game.state;
+        while (state.time < start + .5) game.step(1 / 60);
+        const card = state.enemySpell;
+        if (!card.cue) return [];
+        const ctx = canvas.getContext("2d"), drawText = ctx.fillText;
+        const hits = [];
+        ctx.fillText = function(text, x, y, ...args) {
+          if (text === card.cue) {
+            const m = this.measureText(text);
+            hits.push({id:card.id, left:x - m.actualBoundingBoxLeft,
+              right:x + m.actualBoundingBoxRight, top:y - m.actualBoundingBoxAscent,
+              bottom:y + m.actualBoundingBoxDescent});
+          }
+          return drawText.call(this, text, x, y, ...args);
+        };
+        try { renderer.draw(state); } finally { ctx.fillText = drawText; }
+        return hits;
+      }));
+      const expected = {alice:["shuttle","basting","curtaincall"], marisa:["bankshot","slingshot","shutter"],
+        patchouli:["marginalia","concordance","palimpsest"]};
+      for (const id of expected[enemy]) {
+        const cue = cues.find(c => c.id === id);
+        assert(cue && cue.left >= 102 && cue.right <= 236 && cue.top >= 154 && cue.bottom < 172,
+          id + " renders a legible declaration cue below its title");
+      }
       for (const seconds of [4, 8, 14, 22]) {
         const states = await p.evaluate(
           (seconds) =>

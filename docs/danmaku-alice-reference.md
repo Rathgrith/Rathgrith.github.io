@@ -1,5 +1,7 @@
 # Alice: PCB source-layer audit
 
+> Historical design notes for the retired reconstruction. The [current spell catalogue](danmaku-spells.md) describes the playable cards.
+
 This is a compact reconstruction for the 240 × 360 music-driven time-attack
 field. It is not an extraction of PCB scripts or a frame-exact replay. The
 second audit below supersedes the earlier document's claims that Dutch Dolls
