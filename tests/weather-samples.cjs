@@ -37,6 +37,36 @@ async function labelsFit(map) {
   return measurements.length;
 }
 
+async function checkTouchNearBadge(page) {
+  const map = page.locator("[data-atlas-weather] .weather-map");
+  const station = map.locator('[data-weather-sample][data-label="レイキャビク"]');
+  const badge = station.locator(".weather-map__sample-badge");
+  await badge.waitFor();
+  await settle(page);
+  const offBadge = await badge.evaluate(el => {
+    const rect = el.getBoundingClientRect();
+    const x = Math.round(rect.left + rect.width / 2), y = Math.ceil(rect.bottom) + 2;
+    const map = el.closest(".weather-map");
+    const hit = document.elementFromPoint(x, y);
+    if (!hit || !map.contains(hit) || hit.closest("[data-weather-sample]")) return null;
+    const inverse = map.querySelector(".weather-map__overlay").getScreenCTM().inverse();
+    const p = new DOMPoint(x, y).matrixTransform(inverse);
+    return { x, y, latitude: +(90 - p.y).toFixed(2), longitude: +(p.x - 180).toFixed(2) };
+  });
+  assert(offBadge, "the touch lands on empty map just outside the Reykjavík label");
+  const nextForecast = () => page.waitForRequest(req => {
+    const url = new URL(req.url());
+    return url.hostname === "api.open-meteo.com" && url.searchParams.get("cell_selection") === "nearest";
+  }).then(req => new URL(req.url()).searchParams);
+  const [sea] = await Promise.all([nextForecast(), page.touchscreen.tap(offBadge.x, offBadge.y)]);
+  assert.deepEqual([+sea.get("latitude"), +sea.get("longitude")], [offBadge.latitude, offBadge.longitude],
+    "an empty map tap uses the finger coordinate even within the browser's touch adjustment radius");
+  await page.waitForFunction(() => document.querySelector("[data-atlas-weather] [data-weather-location]").textContent === "選択地点");
+  const [land] = await Promise.all([nextForecast(), badge.tap()]);
+  assert.deepEqual([+land.get("latitude"), +land.get("longitude")], [64.15, -21.94],
+    "tapping the same visible label selects its station coordinates");
+}
+
 async function verify(browser) {
   const page = await browser.newPage({ viewport: { width: 1360, height: 900 }, reducedMotion: "reduce", hasTouch: true });
   let batches = 0;
@@ -47,7 +77,7 @@ async function verify(browser) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem("site-live2d-enabled", "false"));
-  await page.route("**/*", async (route) => {
+  async function forecastRoute(route) {
     const url = new URL(route.request().url());
     if (url.origin === origin) return route.continue();
     if (url.hostname !== "api.open-meteo.com") return route.abort();
@@ -77,12 +107,13 @@ async function verify(browser) {
         temperature_2m: index === 2 ? null : 12 }
     }));
     return route.fulfill({ json: batches === 1 ? rows : rows.reverse() });
-  });
+  }
+  await page.route("**/*", forecastRoute);
 
-  async function openWeather() {
-    await page.locator("[data-site-options-trigger]").click();
-    await page.locator("[data-site-options-menu] [data-visitor-map-open]").click();
-    await page.getByRole("tab", { name: "Weather" }).click();
+  async function openWeather(view = page) {
+    await view.locator("[data-site-options-trigger]").click();
+    await view.locator("[data-site-options-menu] [data-visitor-map-open]").click();
+    await view.getByRole("tab", { name: "Weather" }).click();
   }
   const atlas = page.locator("[data-atlas-weather]");
   const sample = atlas.locator("[data-weather-sample]");
@@ -163,16 +194,24 @@ async function verify(browser) {
   assert.deepEqual(await fingerprint(), original, "reordering the provider response preserves every representative");
   const fx = first.locator(".weather-map__sample-flourish");
   assert.equal(await fx.evaluate(el => getComputedStyle(el).animationIterationCount), "1");
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(new URL("playground/", base).href);
-  await page.locator('[data-vn-open="weather"]').click();
-  const compact = page.locator("[data-weather-widget] .weather-map");
+  await page.close();
+  const phone = await browser.newPage({
+    viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true
+  });
+  phone.on("pageerror", e => errors.push(e.message));
+  await phone.route("**/*", forecastRoute);
+  await phone.goto(base);
+  await openWeather(phone);
+  await checkTouchNearBadge(phone);
+  await phone.goto(new URL("playground/", base).href);
+  await phone.locator('[data-vn-open="weather"]').click();
+  const compact = phone.locator("[data-weather-widget] .weather-map");
   await compact.locator('[data-weather-sample][visibility="visible"]').first().waitFor();
   assert(await labelsFit(compact) < 6, "the compact map shows only complete, separated titles");
   await compact.locator("[data-atlas-zoom-in]").click();
   await labelsFit(compact);
   assert.deepEqual(errors, []);
-  await page.close();
+  await phone.close();
 }
 
 (async () => {
