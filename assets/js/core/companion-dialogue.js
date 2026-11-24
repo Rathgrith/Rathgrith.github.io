@@ -6,7 +6,8 @@
     hooks,
     bgm,
     voiceReactions,
-    deskMotion,
+    motion,
+    standalone,
     currentId = "",
     story,
     index = 0,
@@ -57,18 +58,6 @@
   function q(selector) {
     return root.querySelector(selector);
   }
-  function accent(element, frames, duration, delay) {
-    if (!deskMotion || !deskMotion.matches || document.hidden ||
-        !element.animate || !element.getAnimations) return;
-    // A rapid advance replaces the previous pulse on this element immediately.
-    element.getAnimations().forEach(function (animation) {
-      if (animation.id === "playground-dialogue") animation.cancel();
-    });
-    element.animate(frames, {
-      id: "playground-dialogue", duration: duration, delay: delay || 0,
-      easing: "cubic-bezier(.2,.7,.2,1)", fill: "backwards",
-    });
-  }
   function clearTimers() {
     generation++;
     clearTimeout(timer);
@@ -80,11 +69,9 @@
   function setState(value) {
     state = value;
     root.dataset.dialogueState = value;
-    if (deskMotion) {
-      var reading = q("[data-vn-reading]");
-      reading.setAttribute("aria-disabled", String(value === "choice"));
-      reading.tabIndex = value === "choice" ? -1 : 0;
-    }
+    var reading = q("[data-vn-reading]");
+    reading.setAttribute("aria-disabled", String(value === "choice"));
+    reading.tabIndex = value === "choice" ? -1 : 0;
   }
   function updateAffinity() {
     var value = affinity[currentId],
@@ -153,6 +140,11 @@
   }
   function branches() {
     return (window.CompanionBranches || {})[currentId];
+  }
+  function suggestedTopics() {
+    var tree = branches();
+    return tree && ["today", "rest", "weather", "craft"].includes(lastTopic)
+      ? tree.topics : [];
   }
   function renderTopics() {
     var list = q("[data-vn-topic-list]"),
@@ -328,9 +320,8 @@
       action("別の人のこと", "data-vn-friend-back", function () {
         panelOpen("friends");
       });
-    } else if (["today", "rest", "weather", "craft"].indexOf(lastTopic) >= 0) {
-      var tree = branches();
-      (tree ? tree.topics : []).forEach(function (topic) {
+    } else {
+      suggestedTopics().forEach(function (topic) {
         // Suggestions continue a finished line; auto mode never activates one.
         action(topic.label + " ▸", "data-vn-suggest-topic", function () {
           start("branch:" + topic.id);
@@ -357,7 +348,9 @@
     clearTimeout(timer);
     timer = 0;
     if (!line) return;
-    q("[data-live2d-dialogue-text]").textContent = line.text;
+    var text = q("[data-live2d-dialogue-text]");
+    text.removeAttribute("data-unread");
+    text.textContent = line.text;
     hooks.stopSpeaking();
     setState("ready");
     q("#live2d-interact").textContent =
@@ -378,14 +371,6 @@
         data.characters[currentId].name + "：" + line.text;
     }
     renderChoices();
-    if (deskMotion && deskMotion.matches) {
-      q("[data-vn-choices]").querySelectorAll("button").forEach(function (button, n) {
-        accent(button, [
-          { opacity: .72, boxShadow: "inset 3px 0 var(--classic-accent)" },
-          { opacity: 1, boxShadow: "inset 0 0 transparent" },
-        ], 180, Math.min(n, 3) * 32);
-      });
-    }
     scheduleAuto();
   }
   function renderLine() {
@@ -393,33 +378,36 @@
     logged = false;
     line = story.lines[index];
     if (!line) return;
-    if (deskMotion) q("[data-vn-reading]").dataset.completeLine = line.text;
+    // Start a reply-bearing line at its final reading position. Revealing the
+    // buttons then leaves the sentence exactly where the reader's eye was.
+    var reading = q("[data-vn-reading]");
+    reading.toggleAttribute("data-expects-replies", index === story.lines.length - 1 &&
+      Boolean((story.choices && story.choices.length) || branchTopic ||
+        lastTopic.startsWith("friend:") || suggestedTopics().length));
     var choices = q("[data-vn-choices]");
     if (choices.contains(document.activeElement))
       q("[data-vn-reading]").focus({ preventScroll: true });
     choices.replaceChildren();
     q("[data-vn-dialogue-body]").scrollTop = 0;
-    q("[data-live2d-dialogue-text]").textContent = "";
+    var text = q("[data-live2d-dialogue-text]");
+    text.replaceChildren();
+    text.dataset.unread = line.text;
     q("#live2d-interact").textContent = "次へ ▸";
     q("#live2d-interact").disabled = false;
     q("#live2d-dialogue").setAttribute("aria-hidden", "false");
     q("#live2d-dialogue").classList.add("is-visible");
     root.classList.add("has-dialogue");
     setState("typing");
-    accent(q(".vn-dialogue-ornament"), [
-      { opacity: .9, transform: "scaleX(.12)" },
-      { opacity: .75, transform: "scaleX(1)", offset: .65 },
-      { opacity: 0, transform: "scaleX(1)" },
-    ], 300);
     hooks.perform(line);
     if (voiceReactions) voiceReactions.play(currentId, line);
-    if (speed === 0 || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (speed === 0 || !motion.matches) {
       complete();
       return;
     }
     var speech = window.CompanionSpeech.plan(line.text),
       chars = speech.chars,
       position = 0,
+      offset = 0,
       run = generation;
     function tick() {
       if (run !== generation) return;
@@ -427,9 +415,13 @@
         timer = setTimeout(tick, 250);
         return;
       }
-      q("[data-live2d-dialogue-text]").textContent = chars
-        .slice(0, ++position)
-        .join("");
+      var character = chars[position++];
+      var glyph = document.createElement("span");
+      glyph.className = "vn-ink";
+      glyph.textContent = character;
+      text.appendChild(glyph);
+      offset += character.length;
+      text.dataset.unread = line.text.slice(offset);
       var duration = speech.duration(position - 1, speed);
       if (speech.units[position - 1].length)
         hooks.speak(chars[position - 1], duration, speech.units[position - 1]);
@@ -520,8 +512,10 @@
     index = 0;
     setState("idle");
     q("[data-vn-choices]").replaceChildren();
-    q("[data-live2d-dialogue-text]").textContent = "……";
-    if (deskMotion) delete q("[data-vn-reading]").dataset.completeLine;
+    var text = q("[data-live2d-dialogue-text]");
+    text.removeAttribute("data-unread");
+    text.textContent = "……";
+    q("[data-vn-reading]").removeAttribute("data-expects-replies");
     q("[data-vn-announcement]").textContent = "";
     q("#live2d-interact").textContent = "話題 ▸";
     q("#live2d-interact").disabled = false;
@@ -536,17 +530,16 @@
     if (bgm) bgm.setCharacter(id);
     q("[data-companion-name]").textContent = "Playground";
     var nameplate = q("[data-live2d-dialogue-name]");
-    nameplate.textContent = character.name;
-    if (deskMotion) {
+    var name = document.createElement("span");
+    name.className = "vn-speaker-name";
+    name.textContent = character.name;
+    nameplate.replaceChildren(name);
+    if (standalone) {
       var portrait = document.createElement("img");
       portrait.alt = "";
       portrait.src = window.SiteAssets.characterIcon(id);
       nameplate.prepend(portrait);
     }
-    accent(nameplate, [
-      { color: "var(--classic-accent)", transform: "translateX(4px)" },
-      { color: "var(--vn-ink)", transform: "none" },
-    ], 200);
     q("[data-vn-location]").textContent = character.location;
     root.querySelectorAll("[data-vn-character]").forEach(function (button) {
       button.setAttribute(
@@ -644,20 +637,13 @@
     root = widget;
     root.lang = "ja";
     hooks = callbacks;
-    if (document.body.dataset.playgroundStandalone === "true") {
-      deskMotion = matchMedia("(prefers-reduced-motion: no-preference)");
-      var reduceDeskMotion = function () {
-        if (deskMotion.matches) return;
-        if (state === "typing") complete();
-        if (root.getAnimations) {
-          root.getAnimations({ subtree: true }).forEach(function (animation) {
-            if (animation.id === "playground-dialogue") animation.cancel();
-          });
-        }
-      };
-      if (deskMotion.addEventListener) deskMotion.addEventListener("change", reduceDeskMotion);
-      else if (deskMotion.addListener) deskMotion.addListener(reduceDeskMotion);
+    standalone = document.body.dataset.playgroundStandalone === "true";
+    motion = matchMedia("(prefers-reduced-motion: no-preference)");
+    function syncMotionPreference() {
+      if (!motion.matches && state === "typing") complete();
     }
+    if (motion.addEventListener) motion.addEventListener("change", syncMotionPreference);
+    else if (motion.addListener) motion.addListener(syncMotionPreference);
     q("[data-companion-stage]").insertAdjacentHTML(
       "afterbegin",
       '<div class="vn-scene-light" aria-hidden="true"></div><div class="vn-scene-caption" data-vn-location></div>'
@@ -773,7 +759,7 @@
     root.addEventListener("keydown", function (event) {
       var choice = event.target.closest(".vn-choices button");
       var direction = event.key;
-      if (choice && deskMotion) {
+      if (choice && standalone) {
         if (direction === "ArrowRight") direction = "ArrowDown";
         if (direction === "ArrowLeft") direction = "ArrowUp";
       }

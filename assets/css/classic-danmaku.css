@@ -529,6 +529,13 @@
 /* On a short landscape screen, keep the combat area usable. Life and meter
    remain visible inside both fields, so the duplicate HUD can yield its space. */
 @media (max-height: 500px) {
+  /* The arcade already supplies its own title. Reclaim the companion title
+     row during a docked battle so the arena and its controls fit together. */
+  .classic-site:not(.playground-page)
+    #live2d-widget.is-docked:is([data-danmaku-state="playing"], [data-danmaku-state="paused"], [data-danmaku-state="over"])
+    .companion-title {
+    display: none;
+  }
   #live2d-widget .vn-danmaku-view[data-mode="flower"] .flower-hud,
   #live2d-widget .vn-danmaku-view[data-mode="flower"] .danmaku-pattern {
     display: none;
@@ -543,4 +550,113 @@
   #live2d-widget .vn-danmaku-view[data-mode="flower"] .danmaku-controls {
     padding-top: 3px;
   }
+}
+
+#live2d-widget .danmaku-loadout section { min-width: 0; }
+#live2d-widget [data-danmaku-challenge="alice"] { --route-art: url("../images/classic/danmaku/backgrounds/alice-theatre.webp"); }
+#live2d-widget [data-danmaku-challenge="marisa"] { --route-art: url("../images/classic/danmaku/backgrounds/marisa-observatory.webp"); }
+#live2d-widget [data-danmaku-challenge="patchouli"] { --route-art: url("../images/classic/danmaku/backgrounds/patchouli-vault.webp"); }
+#live2d-widget .danmaku-routes [data-danmaku-challenge] {
+  background: linear-gradient(90deg, #0e1423e8 5%, #101529d9 30%, #10152995 65%, #10152965), var(--route-art) center 50% / cover;
+  color: #f6ead7;
+}
+#live2d-widget .danmaku-routes [data-danmaku-challenge] :is(small, .danmaku-record) { color: #d4d1ce; }
+#live2d-widget .danmaku-location {
+  display: inline-block;
+  margin-inline-end: .65em;
+  color: var(--vn-muted);
+}
+#live2d-widget .danmaku-upgrade {
+  display: inline-block;
+  position: relative;
+  min-height: 26px;
+  margin: 2px 4px;
+  padding: 2px 7px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+#live2d-widget .danmaku-upgrade:disabled { opacity: 1; color: var(--vn-muted); background: transparent; border-color: var(--vn-rule); cursor: default; }
+#live2d-widget .danmaku-upgrade[data-ready="true"]:enabled { background: #f3d79b; color: #352724; border-color: #997245; box-shadow: inset 0 -2px #ba9457; }
+#live2d-widget .danmaku-draft {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: grid;
+  align-items: safe center;
+  justify-items: center;
+  overflow: auto;
+  padding: 10px;
+  background: #101526e8;
+  color: #ffebc9;
+}
+#live2d-widget .danmaku-draft > div { width: min(100%, 364px); }
+#live2d-widget .danmaku-draft h3 { margin: 0 0 9px; font-size: 18px; }
+#live2d-widget .danmaku-draft p { margin: 0 0 8px; color: #cdc5b8; font-size: 12px; }
+#live2d-widget .danmaku-draft p:empty { display: none; }
+#live2d-widget [data-run-choices] { display: grid; gap: 6px; }
+#live2d-widget .danmaku-upgrade::after {
+  content: "";
+  position: absolute;
+  inset: auto auto 0 0;
+  width: var(--run-progress, 0%);
+  height: 2px;
+  background: currentColor;
+  opacity: .6;
+}
+#live2d-widget .danmaku-mod-card {
+  display: grid;
+  grid-template-columns: 23px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 8px;
+  padding: 7px 9px;
+  border: 1px solid #666477;
+  border-inline-start: 3px solid var(--mod-ink);
+  border-radius: 2px;
+  background: #232638;
+  color: #fff0dc;
+  text-align: start;
+  line-height: 1.35;
+}
+#live2d-widget .danmaku-mod-card svg {
+  width: 22px; height: 22px;
+  grid-row: 1 / 3;
+  fill: none; stroke: var(--mod-ink); stroke-width: 1.4; stroke-linejoin: round;
+}
+#live2d-widget .danmaku-mod-card strong { font-size: 14px; }
+#live2d-widget .danmaku-mod-card b { font: 600 11px/1.4 monospace; color: var(--mod-ink); }
+#live2d-widget .danmaku-mod-card span { grid-column: 2 / -1; font-size: 12px; color: var(--mod-ink); }
+#live2d-widget .danmaku-mod-card small { grid-column: 2 / -1; color: #d6d2df; font-size: 11px; }
+#live2d-widget button.danmaku-mod-card:is(:hover,:focus-visible) { background: #33394c; border-color: var(--mod-ink); }
+#live2d-widget [data-run-back] { margin-top: 8px; padding: 4px 8px; }
+#live2d-widget .danmaku-draft[hidden], #live2d-widget .danmaku-pattern [hidden] { display: none; }
+
+#live2d-widget .danmaku-route-pilot {
+  display: block;
+  color: #e6cba5;
+  font: 12px/1.4 var(--vn-font);
+}
+#live2d-widget .danmaku-route-pilot[hidden], #live2d-widget .danmaku-build-summary { display: none; }
+#live2d-widget .danmaku-routes .danmaku-record { text-shadow: 0 1px 2px #070a13; }
+
+#live2d-widget .danmaku-pilot-brief {
+  margin: 7px 1px 4px;
+  color: var(--vn-muted);
+  font: 12px/1.55 var(--vn-font);
+  line-break: strict;
+}
+
+/* A landscape phone's narrow playfield cannot also fit a readable equipment sheet. */
+@media (max-height: 520px) and (min-aspect-ratio: 6/5) {
+  .playground-page #live2d-widget .danmaku-draft {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  .playground-page #live2d-widget .danmaku-draft > div { width: min(100%, 660px); }
+  .playground-page #live2d-widget [data-run-choices] {
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+    align-items: stretch;
+  }
+  .playground-page #live2d-widget .danmaku-mod-card { align-content: start; }
 }

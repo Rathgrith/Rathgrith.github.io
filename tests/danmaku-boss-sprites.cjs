@@ -53,6 +53,31 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
         );
         results.push({ id, unique: new Set(frames).size });
       }
+      const silhouettes = new Set();
+      for (const id of ["alice", "marisa", "patchouli"]) {
+        for (const scale of [1, 0.8]) {
+          const poses = new Set();
+          for (const pose of ["idle", "ready", "release", "settle"]) {
+            ctx.clearRect(0, 0, 64, 64);
+            DanmakuBossSprites.satellite(ctx, id, 32, 32, 0, 0, scale, "#aed6da", null, pose);
+            const rgba = ctx.getImageData(0, 0, 64, 64).data;
+            let visible = 0, mask = "";
+            for (let a = 3; a < rgba.length; a += 4) {
+              mask += rgba[a] > 120 ? "#" : ".";
+              if (rgba[a] > 120) visible++;
+            }
+            if (visible < 60 || visible > 370) throw Error(id + " unreadable at " + scale);
+            if (scale === 1 && pose === "idle") silhouettes.add(mask);
+            poses.add(c.toDataURL());
+          }
+          if (poses.size !== 4) throw Error(id + " missing action poses at scale " + scale);
+        }
+      }
+      if (silhouettes.size !== 3) throw Error("All familiar silhouettes must differ");
+      for (const [elapsed, remaining, expected] of [
+        [Infinity, .25, "ready"], [.05, Infinity, "release"],
+        [.22, Infinity, "settle"], [.4, Infinity, "idle"]
+      ]) if (DanmakuBossSprites.castPose(elapsed, remaining) !== expected) throw Error(expected);
       const boss = { x: 120, y: 54 },
         emitter = { x: 194, y: 95 };
       const start = DanmakuBossSprites.deploy(boss, emitter, 0, 4, false),
@@ -94,6 +119,38 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
         throw Error("zero-opacity retirement must not reveal a stale source");
       return results;
     });
+    const rounds = await page.evaluate(() => {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 28;
+      const c = canvas.getContext("2d", {willReadFrequently:true});
+      c.imageSmoothingEnabled = false;
+      const sizes = {saber:2.3, largeorb:4.8, smallorb:1.7, needle:2.1, spool:2.7,
+        bobbin:2.7, ribbon:2.3, comet:3.1, prism:3.1, flare:3.1, stardust:1.9,
+        quill:2.3, folio:2.7, seal:2.7, crystal:2.4};
+      function sample(style, radius, direct, reduced, hard) {
+        c.clearRect(0,0,28,28);
+        const b = {shape:"orb",color:"#e0b297",vx:0,vy:-10,radius,hard};
+        if (direct) b.visualStyle = style; else b.motion = {visualStyle:style};
+        DanmakuBossSprites.projectile(c,14,14,b,reduced);
+        const data = c.getImageData(0,0,28,28).data;
+        let mask="", count=0;
+        for (let i=3; i<data.length; i+=4) {
+          mask += data[i] ? "1" : "0";
+          if (data[i]) count++;
+        }
+        return {mask, count, center:data[(14*28+14)*4+3], pixels:canvas.toDataURL()};
+      }
+      return Object.entries(sizes).map(([style,radius]) => {
+        const normal = sample(style,radius,true,false,false);
+        return {style,count:normal.count,mask:normal.mask,center:normal.center,
+          soft:normal.pixels === sample(style,radius,false,true,false).pixels,
+          hard:normal.pixels !== sample(style,radius,true,false,true).pixels};
+      });
+    });
+    assert.equal(new Set(rounds.map(r=>r.mask)).size, rounds.length,
+      "All new rounds have different silhouettes when colour, angle and lighting are identical");
+    assert(rounds.every(r=>r.soft && r.hard && r.center), "No drifting core; hard rounds retain a physical marking");
+    assert(rounds[1].count > 3.5 * rounds[2].count, "Large and small pearls are different at native mobile size");
     results.forEach((r) => assert(r.unique >= 7, JSON.stringify(r)));
     fs.mkdirSync("/private/tmp/playground-design", { recursive: true });
     await page.screenshot({

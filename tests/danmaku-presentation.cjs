@@ -15,7 +15,7 @@ fs.mkdirSync(out, { recursive: true });
       await page.route(base + "renderer-test", (route) =>
         route.fulfill({
           contentType: "text/html",
-          body: '<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"></head><body><canvas id="field"></canvas><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns-alice.js"></script><script src="/assets/js/games/danmaku-patterns-marisa.js"></script><script src="/assets/js/games/danmaku-patterns-patchouli.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-player-sprites.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script></body></html>',
+          body: '<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"></head><body><canvas id="field"></canvas><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns-alice.js"></script><script src="/assets/js/games/danmaku-patterns-marisa.js"></script><script src="/assets/js/games/danmaku-patterns-patchouli.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-run.js"></script><script src="/assets/js/games/danmaku-pilot.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-player-sprites.js"></script><script src="/assets/js/games/danmaku-scenery.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script></body></html>',
         })
       );
       await page.goto(base + "renderer-test");
@@ -46,6 +46,34 @@ fs.mkdirSync(out, { recursive: true });
           renderer.draw(s);
           const moving = pixels();
           const background = canvas.toDataURL();
+          // Capture the real playfield immediately after the production renderer
+          // paints the scenery. This excludes changing player poses and HUD text.
+          const drawScenery = DanmakuScenery.draw, routeStart = DanmakuScore.getTrack(id).phrases[2].start;
+          let scenePixels;
+          DanmakuScenery.draw = function (...args) {
+            drawScenery(...args);
+            scenePixels = pixels();
+          };
+          const travel = { ...s };
+          function sceneAt(time, distance = 2031) {
+            travel.time = time;
+            travel.rhythm = DanmakuScore.at(id, time);
+            travel.scroll = distance;
+            renderer.draw(travel);
+            return scenePixels;
+          }
+          const oldScene = sceneAt(routeStart - 0.01);
+          const changes = [0.002, 0.25, 1, 1.75, 2.01].map((age) =>
+            difference(oldScene, sceneAt(routeStart + age)));
+          const secondScene = canvas.toDataURL();
+          const staticScene = difference(sceneAt(routeStart + 2.01), sceneAt(routeStart + 6, 415));
+          const seam = difference(sceneAt(routeStart + 5, 335.98), sceneAt(routeStart + 5, 336.02));
+          const duration = DanmakuScore.getTrack(id).duration;
+          const beforeRest = sceneAt(duration - 0.01);
+          travel.round++;
+          const afterRest = sceneAt(duration - 0.01);
+          const restartPop = difference(beforeRest, afterRest);
+          DanmakuScenery.draw = drawScenery;
           s.items = [
             { type: "power", x: 72, y: 175, age: 1 },
             { type: "life", x: 120, y: 175, age: 1 },
@@ -122,10 +150,11 @@ fs.mkdirSync(out, { recursive: true });
           events.declaration = canvas.toDataURL();
           s.enemySpell.age = 3;
           s.eventNotice = { kind: "miss", age: 0.4, value: 2 };
+          s.missBurst = { x: s.player.x, y: s.player.y, age: 0.25 };
           renderer.draw(s);
           events.miss = canvas.toDataURL();
-          s.eventNotice = null;
-          for (const power of [1, 8]) {
+          s.eventNotice = s.missBurst = null;
+          for (const power of [1, 32]) {
             const shotGame = DanmakuEngine.create(id, id, 1977),
               ss = shotGame.state;
             ss.countdown = 0;
@@ -188,7 +217,7 @@ fs.mkdirSync(out, { recursive: true });
             throw Error("World shake must not leak into HUD or next frame");
           renderer.draw(s);
           results.push({
-            id,
+            id, secondScene, changes, staticScene, seam, restartPop,
             captureFrames,
             counts,
             events,
@@ -204,6 +233,18 @@ fs.mkdirSync(out, { recursive: true });
         return results;
       });
       for (const r of results) {
+        const [start, early, middle, late, end] = r.changes;
+        assert(end > 3, `${r.id}: the second route must render distinct artwork (${end})`);
+        assert(r.seam < 1 && r.restartPop < 0.01, `${r.id}: tile and round boundaries stay continuous (tile ${r.seam}, round ${r.restartPop})`);
+        if (reducedMotion === "reduce") {
+          assert(r.staticScene < 0.01 && r.changes.every((v) => Math.abs(v - end) < 0.01),
+            `${r.id}: reduced motion holds the new illustration still`);
+        } else {
+          assert(start < end * 0.05 && early > end * 0.06 && early < end * 0.22 &&
+            middle > end * 0.36 && middle < end * 0.65 && late > end * 0.75 && late < end * 0.98,
+            `${r.id}: background blends over two seconds (${r.changes.map(v => v.toFixed(2))})`);
+          assert(r.staticScene > 0.5, `${r.id}: the second route scrolls during flight`);
+        }
         assert(
           reducedMotion === "reduce"
             ? r.scrollDifference < 0.001
@@ -219,7 +260,7 @@ fs.mkdirSync(out, { recursive: true });
           `${r.id}: X must produce a substantial visible effect, also with reduced motion`
         );
         assert(r.pickupDifference > 0.1, "Distinct boxed pickups must render");
-        for (const type of ["background", "spell", "pickups"])
+        for (const type of ["background", "secondScene", "spell", "pickups"])
           fs.writeFileSync(
             `${out}/${r.id}-${reducedMotion}-${type}.png`,
             Buffer.from(r[type].split(",")[1], "base64")
@@ -242,7 +283,7 @@ fs.mkdirSync(out, { recursive: true });
       await page.close();
     }
     console.log(
-      "PASS: three distinct scrolling scenes, seamless wrap boundaries, substantial X effects and reduced-motion rendering"
+      "PASS: six route illustrations, two-second fades, seamless tile and round boundaries, spell effects and reduced-motion rendering"
     );
   } finally {
     await browser.close();

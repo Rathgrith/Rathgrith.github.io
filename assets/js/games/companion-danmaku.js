@@ -27,7 +27,11 @@
   var records = {},
     storageKey = "site-danmaku-records-v3",
     hudAt = 0,
-    roundShown = false;
+    roundShown = false,
+    draftOpen = false,
+    previousOffer = null,
+    announcedUpgrade = null,
+    announcedSpell = null;
   var cast = DanmakuEngine.cast;
   try {
     var stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
@@ -89,6 +93,37 @@
     if (!game) return;
     var s = game.state,
       flower = s.mode === "flower";
+    var draftButton = q("[data-run-draft-open]");
+    draftButton.hidden = flower;
+    q("[data-run-location]").hidden = flower;
+    if (!flower) {
+      var run = s.run, pending = Boolean(run.offer);
+      var card = s.enemySpell;
+      if (card.cue && card !== announcedSpell && !card.nonspell && s.phase === "playing" &&
+          s.countdown <= 0 && card.age < DanmakuEngine.declarationDuration) {
+        announcedSpell = card;
+        q("[data-danmaku-announcement]").textContent = card.name + "。結界 " + Math.ceil(card.guardRemaining) + "秒。" + card.cue;
+      }
+      q("[data-run-location]").textContent = DanmakuRun.routes[s.enemyId][DanmakuRun.sceneIndex(s)];
+      q("[data-run-kills]").textContent = run.kills;
+      q("[data-run-equipped]").textContent = equipped(run);
+      draftButton.disabled = (!pending && run.level === 1) || draftOpen || s.phase !== "playing" || Boolean(s.intermission);
+      draftButton.dataset.ready = String(pending);
+      draftButton.style.setProperty("--run-progress", (run.next ? Math.min(100, 100 * run.xp / run.next) : 100) + "%");
+      draftButton.title = pending ? "改造をひとつ選ぶ (U)" : run.level > 1 ? "装備中の改造 (U)" : "欠片で経験値を集める";
+      var installed = run.lastUpgrade;
+      if (installed && installed !== announcedUpgrade && s.phase === "playing" && !s.intermission && s.countdown <= 0) {
+        announcedUpgrade = installed;
+        audio.play("upgrade", s.playerId);
+        q("[data-danmaku-announcement]").textContent =
+          DanmakuRun.upgrades[installed.id].name + " Lv." + installed.tier + " を装備";
+      }
+      draftButton.textContent = pending ? "改造を選ぶ · U" : "改造 Lv." + run.level + "　" +
+        (run.next ? run.xp + "/" + run.next + " XP" : "MAX");
+      if (pending && run.offer !== previousOffer)
+        q("[data-danmaku-announcement]").textContent = "改造を選べます。U キーで選択。";
+      previousOffer = run.offer;
+    }
     if (flower) {
       var a = s.fields[0],
         b = s.fields[1];
@@ -203,7 +238,7 @@
   function overlay() {
     var s = game.state,
       over = s.phase === "over";
-    q("[data-danmaku-overlay]").hidden = s.phase === "playing";
+    q("[data-danmaku-overlay]").hidden = s.phase === "playing" || draftOpen;
     q("[data-danmaku-overlay-title]").textContent = over
       ? s.mode === "flower"
         ? s.wins[0] >= 2
@@ -237,6 +272,120 @@
     overlay();
     q("[data-danmaku-announcement]").textContent = "一時停止";
   }
+  function equipped(run) {
+    return Object.keys(run.mods).filter(function (id) { return run.mods[id]; })
+      .map(function (id) { return DanmakuRun.upgrades[id].name + " ×" + run.mods[id]; }).join("　");
+  }
+  function showDraft(visible) {
+    q("[data-run-draft]").hidden = !visible;
+    [".danmaku-header", ".danmaku-audio", ".danmaku-pattern"].forEach(function (selector) {
+      var element = q(selector);
+      if (element) element.inert = visible;
+    });
+  }
+  function resetDraft() {
+    draftOpen = false;
+    previousOffer = null;
+    showDraft(false);
+  }
+  // Six monoline inventory stamps drawn on the same 20-pixel grid.
+  var upgradeStamps = {
+    damage: "M5 3h6l3 3v5l-3 3H5l-3-3V6z M12 13l5 5 2-2-5-5 M5 8h6m-3-3v6",
+    tempo: "M4 6h8l3 3v5l-3 3H6l-3-3V9l3-3 M8 10h3l1 1v2H8z M13 6l3-3m-2-1 4 4",
+    magnet: "M3 3h5v9l2 2 2-2V3h5v10l-4 5H7l-4-5z M3 7h5m4 0h5",
+    salvage: "M6 2h9l2 2v11H6z M3 5v13h11 M8 6h6m-6 3h6m-6 3h4",
+    reactor: "M3 8h14v7l-3 3H6l-3-3z M2 8h16 M7 6l1-4 2 2 2-3 1 5 M7 11l3 4 3-4",
+    guard: "M10 2l7 3v6l-2 4-5 3-5-3-2-4V5z M6 7l7 6m0-6-7 6",
+  };
+  function upgradeStamp(id) {
+    var ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+    var path = document.createElementNS(ns, "path");
+    svg.setAttribute("viewBox", "0 0 20 20");
+    svg.setAttribute("aria-hidden", "true");
+    path.setAttribute("d", upgradeStamps[id]);
+    svg.appendChild(path);
+    return svg;
+  }
+  function upgradeCard(id, i, owned) {
+    var s = game.state, upgrade = DanmakuRun.upgrades[id], tier = s.run.mods[id];
+    var el = document.createElement(owned ? "article" : "button");
+    el.className = "danmaku-mod-card";
+    el.style.setProperty("--mod-ink", upgrade.color);
+    if (!owned) {
+      el.type = "button";
+      el.dataset.runPick = id;
+      el.setAttribute("aria-keyshortcuts", String(i + 1));
+    }
+    var name = document.createElement("strong"), grade = document.createElement("b");
+    var stats = document.createElement("span"), effect = document.createElement("small");
+    name.textContent = upgrade.name;
+    grade.textContent = owned ? "Lv." + tier : tier ? "Lv." + tier + " → " + (tier + 1) : "Lv.1";
+    stats.textContent = DanmakuRun.stats(s, id, DanmakuEngine.maxPower, owned);
+    effect.textContent = DanmakuRun.description(s, id, DanmakuEngine.maxPower, owned);
+    el.append(upgradeStamp(id), name, grade, stats, effect);
+    return el;
+  }
+  function openDraft() {
+    if (!game || game.state.mode === "flower" || game.state.phase !== "playing" || game.state.intermission) return;
+    var run = game.state.run, owned = !run.offer;
+    if (owned && run.level === 1) return;
+    draftOpen = true;
+    pause();
+    var choices = q("[data-run-choices]"), back = q("[data-run-back]");
+    var ids = run.offer || Object.keys(run.mods).filter(function (id) { return run.mods[id] > 0; });
+    choices.replaceChildren();
+    ids.forEach(function (id, i) { choices.appendChild(upgradeCard(id, i, owned)); });
+    var title = owned ? "装備中の改造" : "改造をひとつ選ぶ";
+    q("#run-draft-title").textContent = title;
+    q("[data-run-build]").textContent = owned ? "" : equipped(run);
+    back.textContent = owned ? "戦闘へ戻る" : "あとで選ぶ";
+    showDraft(true);
+    (owned ? back : choices.firstElementChild).focus({ preventScroll: true });
+    q("[data-danmaku-announcement]").textContent = title;
+  }
+  function leaveDraft(id) {
+    if (!draftOpen || (id && !game.chooseUpgrade(id))) return;
+    resetDraft();
+    overlay();
+    resume();
+    if (id) q("[data-danmaku-announcement]").textContent = DanmakuRun.upgrades[id].name + "を装備";
+  }
+  function finishBattle(start) {
+    var finishedGame = game, state = game.state;
+    var fields = state.fields || [state];
+    var hasBurst = fields.some(function (f) { return f.missBurst; });
+    audio.setScene("over");
+    save();
+    stop();
+    function present(now) {
+      if (!active || game !== finishedGame) return;
+      var age = (now - start) / 1000;
+      if (hasBurst && visible && !document.hidden &&
+          !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        // The simulation and record are final. Only advance the ink ring in
+        // this rendering snapshot while the last life dissolves.
+        var visual = Object.assign({}, state);
+        function advance(f) {
+          return f.missBurst ? Object.assign({}, f, {
+            missBurst: Object.assign({}, f.missBurst, { age: Math.min(0.78, age + f.missBurst.age) }),
+          }) : f;
+        }
+        if (state.fields) visual.fields = fields.map(advance);
+        else visual = advance(state);
+        renderer.draw(visual);
+        if (age < 0.78) {
+          raf = requestAnimationFrame(present);
+          return;
+        }
+      }
+      raf = 0;
+      overlay();
+      q("[data-danmaku-announcement]").textContent =
+        "挑戦終了。得点 " + Math.floor(state.score);
+      if (visible && !document.hidden) q("[data-danmaku-retry]").focus({ preventScroll: true });
+    }
+    present(start);
+  }
   function frame(now) {
     raf = 0;
     if (!active || !visible || !game || game.state.phase !== "playing") return;
@@ -257,19 +406,15 @@
     }
     audio.syncTimeline(game.state);
     renderer.draw(game.state);
+    if (game.state.phase === "over") {
+      finishBattle(now);
+      return;
+    }
     if (now - hudAt > 100) {
       syncHUD();
       hudAt = now;
     }
-    if (game.state.phase === "over") {
-      audio.setScene("over");
-      save();
-      stop();
-      overlay();
-      q("[data-danmaku-announcement]").textContent =
-        "挑戦終了。得点 " + Math.floor(game.state.score);
-      q("[data-danmaku-retry]").focus({ preventScroll: true });
-    } else raf = requestAnimationFrame(frame);
+    raf = requestAnimationFrame(frame);
   }
   function resume() {
     if (
@@ -293,6 +438,7 @@
     audio.setScene("lobby", hooks.character());
     save();
     stop();
+    resetDraft();
     game = null;
     roundShown = false;
     view.dataset.intermission = "false";
@@ -305,6 +451,11 @@
   }
   function renderSelection() {
     view.dataset.mode = battleMode;
+    q("[data-pilot-brief]").textContent = {
+      alice: "近づくほど騎士人形の一撃が重くなる。遠方には槍騎が出撃。低速で全員を呼び戻す。",
+      marisa: "左右の星弾砲台が交互に援護。低速で砲列を絞り、中央のレールを蓄光する。",
+      patchouli: "高速で七曜の書が散開し、低速で連鎖する。火力が上がると日・月の書も加わる。",
+    }[playerId];
     view.querySelectorAll("[data-danmaku-game-mode]").forEach(function (b) {
       b.setAttribute(
         "aria-pressed",
@@ -315,12 +466,15 @@
       el.hidden = el.dataset.danmakuHelpMode !== battleMode;
     });
     view.querySelectorAll("[data-danmaku-challenge]").forEach(function (b) {
+      var id = b.dataset.danmakuChallenge;
+      b.querySelector("[data-route-pilot]").hidden = battleMode === "flower";
+      b.querySelector("[data-route-name]").textContent = battleMode === "flower" ? cast[id].name + "に挑む" : DanmakuRun.routes[id].join(" → ");
       b.querySelector("small").textContent =
         battleMode === "flower"
           ? {
               alice: "人形の交差弾 · 幻影攻撃",
               marisa: "星弾 · アースライトレイ",
-              patchouli: "五色の弾幕 · 精霊魔法",
+              patchouli: "七曜の弾幕 · 日月の精霊魔法",
             }[b.dataset.danmakuChallenge]
           : cast[b.dataset.danmakuChallenge].pattern;
     });
@@ -329,14 +483,7 @@
         "aria-pressed",
         String(b.dataset.danmakuPlayer === playerId)
       );
-      b.querySelector("small").textContent =
-        battleMode === "flower"
-          ? {
-              alice: "人形散射",
-              marisa: "集中レーザー",
-              patchouli: "魔弾三連射",
-            }[b.dataset.danmakuPlayer]
-          : cast[b.dataset.danmakuPlayer].shot;
+      b.querySelector("small").textContent = cast[b.dataset.danmakuPlayer].shot;
     });
     view.querySelectorAll("[data-danmaku-record]").forEach(function (e) {
       e.textContent =
@@ -389,6 +536,7 @@
     audio.setScene("closed");
     save();
     stop();
+    resetDraft();
     game = null;
     active = false;
     view.hidden = true;
@@ -400,6 +548,7 @@
     if (!cast[enemyId] || !active) return;
     save();
     stop();
+    resetDraft();
     var seed =
       window.crypto && window.crypto.getRandomValues
         ? window.crypto.getRandomValues(new Uint32Array(1))[0]
@@ -418,7 +567,7 @@
     view.dataset.enemy = enemyId;
     q("[data-danmaku-heading]").textContent =
       cast[enemyId].name +
-      (battleMode === "flower" ? "戦 · 花映塚式" : "戦 · タイムアタック");
+      (battleMode === "flower" ? "戦 · 花映塚式" : "戦 · 遠征");
     q("[data-danmaku-pattern]").textContent = cast[enemyId].pattern;
     q("[data-danmaku-lobby]").hidden = true;
     q("[data-danmaku-battle]").hidden = false;
@@ -430,6 +579,10 @@
     q("[data-danmaku-bomb]").textContent =
       battleMode === "flower" ? "ボム X" : "霊撃 X";
     q("[data-flower-charge]").hidden = battleMode !== "flower";
+    var slowButton = q("[data-danmaku-slow]");
+    slowButton.textContent = {alice: "近衛", marisa: "蓄光", patchouli: "詠唱陣"}[playerId];
+    slowButton.title = "低速 / Shift · " + q("[data-pilot-brief]").textContent;
+    slowButton.setAttribute("aria-label", slowButton.textContent + "・低速切替 (Shift)");
     canvas.setAttribute(
       "aria-label",
       battleMode === "flower"
@@ -450,7 +603,11 @@
       if (active && game) renderer.draw(game.state);
     });
     canvas.focus({ preventScroll: true });
-    canvas.scrollIntoView({ block: "nearest" });
+    // A docked homepage widget and its mixer fit together. Bringing only its
+    // canvas to the viewport edge can leave the controls on the other side.
+    if (!document.body.classList.contains("playground-page") && root.offsetHeight <= window.innerHeight)
+      root.scrollIntoView({block:"center", inline:"nearest", behavior:"instant"});
+    else canvas.scrollIntoView({block:"nearest", inline:"nearest", behavior:"instant"});
     q("[data-danmaku-announcement]").textContent =
       cast[enemyId].name + "に挑戦。自機は" + cast[playerId].name;
     // Local sprites may finish decoding during the countdown; gameplay never awaits a CDN.
@@ -517,7 +674,7 @@
     var ids = Object.keys(cast);
     view.innerHTML =
       '<header class="danmaku-header"><strong data-danmaku-heading>弾幕遊戯</strong><button type="button" data-danmaku-exit>会話へ</button></header>' +
-      '<div class="danmaku-lobby" data-danmaku-lobby><div class="danmaku-game-modes" role="group" aria-label="遊戯の種類"><button type="button" data-danmaku-game-mode="score" aria-pressed="true" aria-labelledby="danmaku-score-title" aria-describedby="danmaku-score-rules"><strong id="danmaku-score-title">スコアアタック</strong><small id="danmaku-score-rules">残機が尽きるまで</small></button><button type="button" data-danmaku-game-mode="flower" aria-pressed="false" aria-labelledby="danmaku-flower-title" aria-describedby="danmaku-flower-rules"><strong id="danmaku-flower-title">花映塚式対戦</strong><small id="danmaku-flower-rules">対CPU・2本先取</small></button></div><h3>自機を選ぶ</h3><div class="danmaku-pilots">' +
+      '<div class="danmaku-lobby" data-danmaku-lobby><div class="danmaku-game-modes" role="group" aria-label="遊戯の種類"><button type="button" data-danmaku-game-mode="score" aria-pressed="true" aria-labelledby="danmaku-score-title" aria-describedby="danmaku-score-rules"><strong id="danmaku-score-title">スコアアタック</strong><small id="danmaku-score-rules">遠征・素材回収と機体改造</small></button><button type="button" data-danmaku-game-mode="flower" aria-pressed="false" aria-labelledby="danmaku-flower-title" aria-describedby="danmaku-flower-rules"><strong id="danmaku-flower-title">花映塚式対戦</strong><small id="danmaku-flower-rules">対CPU・2本先取</small></button></div><div class="danmaku-loadout"><section class="danmaku-hangar"><h3>自機を選ぶ</h3><div class="danmaku-pilots">' +
       ids
         .map(function (id) {
           return (
@@ -535,7 +692,7 @@
           );
         })
         .join("") +
-      '</div><div class="danmaku-mode"><button type="button" data-danmaku-auto aria-pressed="false">自動操作</button><span data-danmaku-mode-label>手動記録</span></div><h3>挑戦する相手</h3><div class="danmaku-opponents">' +
+      '</div><p class="danmaku-pilot-brief" data-pilot-brief aria-live="polite"></p><div class="danmaku-mode"><button type="button" data-danmaku-auto aria-pressed="false">自動操作</button><span data-danmaku-mode-label>手動記録</span></div></section><section class="danmaku-routes"><h3>出撃先を選ぶ</h3><div class="danmaku-opponents">' +
       ids
         .map(function (id) {
           return (
@@ -545,7 +702,8 @@
             assetBase +
             "/assets/images/classic/characters/" +
             id +
-            '.svg" alt=""><span><strong>' +
+            '.svg" alt=""><span><span class="danmaku-route-pilot" data-route-pilot>' + cast[id].name +
+            '</span><strong data-route-name>' +
             cast[id].name +
             "に挑む</strong><small>" +
             cast[id].pattern +
@@ -555,11 +713,11 @@
           );
         })
         .join("") +
-      '</div><details class="danmaku-help"><summary>遊び方</summary><div data-danmaku-help-mode="score"><p data-danmaku-help>射撃は自動。矢印 / WASD で移動、Shift で低速、X で霊撃。タッチは画面をドラッグ。中央の小さな点が当たり判定。周りの輪で擦弾。</p><p>P は火力強化、♥ は残機追加、B は霊撃を1回補給。火力は最大8、残機と霊撃は最大5。被弾すると火力が1段階下がる。</p><p>自動操作 / T で回避・回収・霊撃をおまかせ。移動キーかドラッグで手動に戻る。自動を一度でも使った挑戦は別記録。P / Esc で一時停止。</p><p>命中・生存・擦弾で得点。敵は無敵。符札は時間内に撃破できない。命中で得点と耐久を削り、耐久が空になると消弾して再充填。時間満了か静かな旋律で通常弾幕へ。一曲ごとに休憩し、得点を引き継ぐ。8秒操作しなければもう一戦。消えた弾は得点に変わり、自機へ集まる。20秒ごとに段位が上がる。残機3、霊撃2で開始。</p></div><div data-danmaku-help-mode="flower" hidden><p>左が自機、右がCPU。体力を先に削り切れば一本。2本先取。妖精を撃つと連爆し、近くの白弾を消して相手へ送る。色付きの大弾は連爆では消せない。</p><p>矢印 / WASD で移動。射撃は自動。Shift / 低速で吸霊し、幽霊を活性化すると撃ち落としやすくなる。タッチは左の場地をドラッグ。</p><p>Z / チャージを押して溜め、放すと発動。C1 は強化射撃、C2・C3 は消弾と送り込み、C4 はボス攻撃。必要ゲージは2・3・4、消費は1・2・3。X / B / ボムは溜めずに即発動し、ゲージを全消費。</p><p>ボス攻撃で自分の場地のボスを返せる。撃破・連爆・擦弾でゲージ回復。T / 自動で移動と攻撃をおまかせ。移動キーやドラッグで手動に戻る。P / Esc で一時停止。4分経過時は残体力で判定。同点は引き分け。</p></div></details></div>' +
-      '<div class="danmaku-battle" data-danmaku-battle hidden><div class="danmaku-hud"><div>得点 <strong data-danmaku-score>0000000</strong></div><div>最高 <span data-danmaku-best>0000000</span></div><div>残機 <span data-danmaku-lives>3</span> · 符 <span data-danmaku-bombs>2</span></div><div>火力 <span data-danmaku-power>1/8</span></div><div>段位 <span data-danmaku-level>1</span> · 擦弾 <span data-danmaku-graze>0</span></div><div data-danmaku-record-mode>手動記録</div></div>' +
+      '</div></section></div><details class="danmaku-help"><summary>遊び方</summary><div data-danmaku-help-mode="score"><p data-danmaku-help>射撃は自動。矢印 / WASD で移動、Shift で低速、X で霊撃。タッチは画面をドラッグ。中央の小さな点が当たり判定。周りの輪で擦弾。</p><p>P は火力強化、♥ は残機追加、B は霊撃を1回補給。火力は最大32、残機と霊撃は最大5。被弾すると火力が1段階下がる。</p><p>自動操作 / T で回避・回収・霊撃をおまかせ。移動キーかドラッグで手動に戻る。自動を一度でも使った挑戦は別記録。P / Esc で一時停止。</p><p>道中の使い魔を倒すと経験の欠片を落とす。経験が貯まったら改造ボタン / U で装備を選択。改造はこの遠征の間有効。自動操作では装備も自動選択。ボスへの命中・生存・擦弾で得点。新しい符札の最初の10秒間は結界が耐久を守る。解除後は命中で耐久が減り、空になると全画面を消弾。同じ符札で割るたびに次の耐久が増え、新しい符札で元に戻る。時間満了か静かな旋律で通常弾幕へ。一曲ごとに休憩し、得点を引き継ぐ。8秒操作しなければもう一戦。消えた弾は得点に変わり、自機へ集まる。段位が上がると同じ速さで弾の数が増える。残機3、霊撃2で開始。</p></div><div data-danmaku-help-mode="flower" hidden><p>左が自機、右がCPU。体力を先に削り切れば一本。2本先取。妖精を撃つと連爆し、近くの白弾を消して相手へ送る。色付きの大弾は連爆では消せない。</p><p>矢印 / WASD で移動。射撃は自動。Shift / 低速で吸霊し、幽霊を活性化すると撃ち落としやすくなる。タッチは左の場地をドラッグ。</p><p>Z / チャージを押して溜め、放すと発動。C1 は強化射撃、C2・C3 は消弾と送り込み、C4 はボス攻撃。必要ゲージは2・3・4、消費は1・2・3。X / B / ボムは溜めずに即発動し、ゲージを全消費。</p><p>ボス攻撃で自分の場地のボスを返せる。撃破・連爆・擦弾でゲージ回復。T / 自動で移動と攻撃をおまかせ。移動キーやドラッグで手動に戻る。P / Esc で一時停止。4分経過時は残体力で判定。同点は引き分け。</p></div></details></div>' +
+      '<div class="danmaku-battle" data-danmaku-battle hidden><div class="danmaku-hud"><div>得点 <strong data-danmaku-score>0000000</strong></div><div>最高 <span data-danmaku-best>0000000</span></div><div>残機 <span data-danmaku-lives>3</span> · 符 <span data-danmaku-bombs>2</span></div><div>火力 <span data-danmaku-power>1/32</span></div><div>段位 <span data-danmaku-level>1</span> · 擦弾 <span data-danmaku-graze>0</span></div><div data-danmaku-record-mode>手動記録</div></div>' +
       '<div class="flower-hud"><div>自機 <strong data-flower-player-health>♥♥♥♥♥</strong></div><div>CPU <strong data-flower-cpu-health>♥♥♥♥♥</strong></div><div>得点 <span data-flower-score>0000000</span></div><div>勝数 <span data-flower-wins>0 : 0</span></div><div>霊力 <strong data-flower-gauge>2/4</strong></div><div data-flower-combo>0 HIT</div></div>' +
-      '<div class="danmaku-pattern" data-danmaku-pattern></div><div class="danmaku-arena"><div class="danmaku-canvas-wrap" data-danmaku-canvas-wrap><canvas data-danmaku-canvas tabindex="0" role="img" aria-label="弾幕戦。矢印かWASDで移動、Shiftで低速、Xで霊撃、Tで自動操作、Pで一時停止。タッチはドラッグ。"></canvas></div>' +
-      '<section class="danmaku-round-panel" data-danmaku-round hidden aria-label="一曲終了"><div class="danmaku-round-dialogue"><span class="danmaku-round-portrait" data-danmaku-round-portrait aria-hidden="true"></span><div><h3 data-danmaku-round-title></h3><p data-danmaku-round-line></p></div></div><p data-danmaku-round-score></p><button type="button" data-danmaku-round-next>もう一戦</button><button type="button" data-danmaku-round-finish>ここで終わる</button></section>' +
+      '<div class="danmaku-pattern"><span class="danmaku-location" data-run-location></span><span data-danmaku-pattern></span><button type="button" class="danmaku-upgrade" data-run-draft-open aria-haspopup="dialog" aria-keyshortcuts="U" disabled></button><div class="danmaku-build-summary"><span>使い魔撃破　<b data-run-kills>0</b></span><span data-run-equipped></span></div></div><div class="danmaku-arena"><div class="danmaku-canvas-wrap" data-danmaku-canvas-wrap><canvas data-danmaku-canvas tabindex="0" role="img" aria-label="弾幕戦。矢印かWASDで移動、Shiftで低速、Xで霊撃、Tで自動操作、Pで一時停止。タッチはドラッグ。"></canvas></div>' +
+      '<section class="danmaku-draft" data-run-draft role="dialog" aria-modal="true" aria-labelledby="run-draft-title" hidden><div><h3 id="run-draft-title">改造をひとつ選ぶ</h3><p data-run-build></p><div data-run-choices></div><button type="button" data-run-back>あとで選ぶ</button></div></section><section class="danmaku-round-panel" data-danmaku-round hidden aria-label="一曲終了"><div class="danmaku-round-dialogue"><span class="danmaku-round-portrait" data-danmaku-round-portrait aria-hidden="true"></span><div><h3 data-danmaku-round-title></h3><p data-danmaku-round-line></p></div></div><p data-danmaku-round-score></p><button type="button" data-danmaku-round-next>もう一戦</button><button type="button" data-danmaku-round-finish>ここで終わる</button></section>' +
       '<div class="danmaku-overlay" data-danmaku-overlay hidden><h3 data-danmaku-overlay-title></h3><p data-danmaku-result></p><button type="button" data-danmaku-resume>続ける</button><button type="button" data-danmaku-retry>もう一度</button><button type="button" data-danmaku-menu>相手を選ぶ</button></div></div>' +
       '<div class="danmaku-controls" data-danmaku-controls><button type="button" data-danmaku-slow aria-pressed="false">低速</button><button type="button" data-flower-charge aria-pressed="false" hidden>溜め Z</button><button type="button" data-danmaku-bomb>霊撃 X</button><button type="button" data-danmaku-auto aria-pressed="false">自動</button><button type="button" data-danmaku-pause>一時停止</button></div></div><span class="visually-hidden" data-danmaku-announcement aria-live="polite" aria-atomic="true"></span>';
     root.querySelector("[data-companion-content]").appendChild(view);
@@ -571,6 +729,9 @@
     view.addEventListener("click", function (e) {
       var b = e.target.closest("button");
       if (!b) return;
+      if (b.hasAttribute("data-run-draft-open")) openDraft();
+      if (b.dataset.runPick) leaveDraft(b.dataset.runPick);
+      if (b.hasAttribute("data-run-back")) leaveDraft();
       if (b.hasAttribute("data-danmaku-exit")) close();
       if (b.dataset.danmakuGameMode && !game) {
         battleMode = b.dataset.danmakuGameMode;
@@ -641,6 +802,29 @@
         return;
       }
       var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (draftOpen) {
+        if (key === "Escape" || key === "u") {
+          e.preventDefault();
+          if (!e.repeat) leaveDraft();
+        } else if (/^[1-3]$/.test(key)) {
+          e.preventDefault();
+          var offer = game.state.run.offer, id = offer && offer[Number(key) - 1];
+          if (id && !e.repeat) leaveDraft(id);
+        } else if (key === "Tab") {
+          var buttons = q("[data-run-draft]").querySelectorAll("button");
+          var from = e.shiftKey ? 0 : buttons.length - 1;
+          if (document.activeElement === buttons[from]) {
+            e.preventDefault();
+            buttons[e.shiftKey ? buttons.length - 1 : 0].focus();
+          }
+        }
+        return;
+      }
+      if (key === "u" && game.state.mode !== "flower") {
+        e.preventDefault();
+        if (!e.repeat) openDraft();
+        return;
+      }
       if (
         [
           "ArrowLeft",

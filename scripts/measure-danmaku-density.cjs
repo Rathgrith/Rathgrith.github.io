@@ -23,6 +23,7 @@ function measure(cycle = 0) {
       const game = engine.create("alice", enemy, 1977),
         s = game.state;
       s.countdown = 0;
+      s.run.nextWave = Infinity;
       s.time = cycle * track.duration;
       for (let frame = 0; frame < track.duration * 60; frame++) {
         s.player.x = x;
@@ -55,13 +56,15 @@ function measure(cycle = 0) {
           let gap = 0;
           for (let gx = 12; gx <= 228; gx += 8) {
             const hit =
-              bullets.some((b) =>
-                [0, 0.25].some(
-                  (t) =>
-                    Math.hypot(gx - b.x - b.vx * t, gy - b.y - b.vy * t) <
-                    b.radius + 10.2
-                )
-              ) ||
+              bullets.some((b) => {
+                const dx = gx - b.x,
+                  dy = gy - b.y,
+                  r = b.radius + 10.2;
+                if (dx * dx + dy * dy < r * r) return true;
+                const futureX = dx - b.vx * 0.25,
+                  futureY = dy - b.vy * 0.25;
+                return futureX * futureX + futureY * futureY < r * r;
+              }) ||
               beams.some((l) => {
                 return engine.laserGap({ x: gx, y: gy }, l) < 10.2;
               });

@@ -405,6 +405,7 @@ body.gallery-page.classic-site .page__content h1::before {
   border-bottom: 0;
 }
 .page__content .classic-welcome {
+  position: relative;
   display: grid;
   grid-template-columns: fit-content(100%) minmax(0, 1fr);
   margin: 0 0 22px;
@@ -415,10 +416,27 @@ body.gallery-page.classic-site .page__content h1::before {
 }
 .classic-welcome::after {
   content: "";
-  justify-self: end;
-  width: 100%;
-  max-width: 1.22em;
-  background: var(--classic-corner-art) right center / contain no-repeat;
+  position: absolute;
+  grid-column: 2;
+  inset-inline-end: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(calc(1.22em + 28px), max(0px, calc(100% - 8px)));
+  aspect-ratio: 1;
+  background: var(--classic-corner-art) center / contain no-repeat;
+  pointer-events: none;
+}
+/* The title rule has room for the crest when the greeting fills its line. */
+@media (max-width: 379px) {
+  .classic-welcome::after { content: none; }
+  .home-page #about::after {
+    height: 42px;
+    background:
+      var(--classic-corner-art) right center / 42px 42px no-repeat,
+      linear-gradient(var(--classic-rule), var(--classic-rule)) left center / calc(100% - 52px) 1px no-repeat;
+    mask: none;
+    opacity: 1;
+  }
 }
 .classic-research {
   display: flex;

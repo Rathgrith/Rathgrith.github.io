@@ -13,6 +13,7 @@ for (const player of Object.keys(engine.cast))
   for (const enemy of Object.keys(engine.cast)) {
     const g = ready(player, enemy);
     g.state.player.invulnerable = Infinity;
+    if (player === "alice") g.state.player.y = 178; // Engage bosses inside melee dispatch range.
     tick(g, 120);
     assert.equal(g.state.phase, "playing");
     assert(g.state.hits > 30 && g.state.score > 3000);
@@ -23,7 +24,7 @@ for (const player of Object.keys(engine.cast))
     );
     assert.equal(g.state.lives, Math.min(5, 3 + g.state.pickups.life));
     assert(
-      g.state.items.length <= 12 && g.state.power >= 1 && g.state.power <= 8
+      g.state.items.length <= 12 && g.state.power >= 1 && g.state.power <= engine.maxPower
     );
     assert(!("health" in g.state.boss), "Boss is a permanent score target");
     assert(g.state.level >= 6);
@@ -36,41 +37,52 @@ for (const player of Object.keys(engine.cast))
     tick(early, 4.5);
     tick(late, 4.5);
     // Compare sixty-four beats so long original-pattern cycles are included.
-    function volley(g) {
-      const bullets = [];
-      delete g.state.enemySpell.firstPatternTick;
+    function volley(rank) {
+      const bullets = [], s = structuredClone(early.state);
+      s.level = rank;
+      delete s.enemySpell.firstPatternTick;
       for (let tick = 0; tick < 128; tick++)
-        require("../assets/js/games/danmaku-patterns.js").emit(g.state, tick, {
+        require("../assets/js/games/danmaku-patterns.js").emit(s, tick, {
           bullet: (...b) => bullets.push(b),
           laser: () => {},
         });
       return bullets;
     }
-    const earlyVolley = volley(early),
-      lateVolley = volley(late);
+    const earlyVolley = volley(early.state.level),
+      lateVolley = volley(late.state.level);
     assert(
-      lateVolley.length >= earlyVolley.length,
-      "Later rounds retain the original arm count or add bounded volleys"
+      lateVolley.length > earlyVolley.length,
+      "Higher ranks add projectile grains to the same score"
     );
     const releasedSpeed = (shot) => shot[6]?.release?.speed || shot[3];
-    assert(
-      releasedSpeed(lateVolley[0]) > releasedSpeed(earlyVolley[0]),
-      "Later volleys move faster after any authored placement delay"
-    );
+    // Grains between the same curve anchors have distinct velocities. Compare
+    // the physical speed envelope at identical source positions, per family.
+    for (const shape of new Set(earlyVolley.map(shot => shot[5]))) {
+      const speeds = list => [...new Set(list.filter(shot => shot[5] === shape).map(releasedSpeed))];
+      const slow = speeds(earlyVolley), hard = speeds(lateVolley);
+      assert(Math.abs(Math.max(...hard) - Math.max(...slow)) < .25 &&
+        Math.abs(Math.min(...hard) - Math.min(...slow)) < .25,
+        enemy + " preserves the slowest and fastest " + shape + " at high rank");
+      for (const v of slow) assert(hard.some(w => Math.abs(w - v) < 2),
+        enemy + " retains the authored velocity profile of " + shape);
+    }
   }
-const alice = ready("alice"),
-  marisa = ready("marisa"),
-  patchouli = ready("patchouli");
-[alice, marisa, patchouli].forEach((g) => g.step(1 / 60));
-assert.equal(alice.state.shots.length, 4);
-assert(alice.state.shots.some((s) => Math.abs(s.vx) > 50));
-assert.equal(marisa.state.shots.length, 2);
-assert(marisa.state.shots.every((s) => s.vx === 0 && !s.homing));
-assert(patchouli.state.shots.some((s) => s.homing));
-assert(patchouli.state.shots.some((s) => !s.homing));
-assert(
-  patchouli.state.shots.filter((s) => s.homing).every((s) => s.damage < 0.4)
-);
+const alice = ready("alice"), marisa = ready("marisa"), patchouli = ready("patchouli");
+[alice, marisa, patchouli].forEach((game) => game.step(1 / 60));
+assert.equal(alice.state.shots.length, 0);
+assert.deepEqual(alice.state.weapon.dolls.map(d => d.arm), ["lance", "blade"]);
+const spread = ds => Math.max(...ds.map(d => d.x)) - Math.min(...ds.map(d => d.x));
+const wide = spread(alice.state.weapon.dolls);
+tick(alice, 0.35, { x: 1, focus: true });
+assert(spread(alice.state.weapon.dolls) < wide);
+assert(alice.state.weapon.dolls.every(d => d.role === "guard"));
+const gathered = alice.state.weapon.dolls.map(d => d.x);
+tick(alice, 0.35, { x: 1 });
+assert(spread(alice.state.weapon.dolls) > wide - 2);
+assert(alice.state.weapon.dolls.every((d, i) => d.x > gathered[i] + 5));
+assert(marisa.state.shots.some(shot => shot.kind === "comet"));
+assert(marisa.state.weapon.traces.some((fx) => fx.kind === "rail"));
+assert(patchouli.state.shots.some((s) => s.kind === "bookmark"));
 const shot = {
   x: 120,
   y: 312,
@@ -86,9 +98,16 @@ g.step(1 / 60);
 assert.equal(g.state.grazes, 1);
 tick(g, 0.1);
 assert.equal(g.state.grazes, 1, "One graze per bullet");
-g.state.bullets.push({ ...shot });
+g.state.enemySpell.sight = {x:92, y:287, at:g.state.time, ready:g.state.time + .5};
+g.state.bullets.push({ ...shot }, { ...shot, x: 7, y: 17 });
+g.state.lasers.push({ x: 14, y: 22, angle: 1, age: 0, warning: 0.6, duration: 1, width: 4 });
 g.step(1 / 60);
 assert.equal(g.state.lives, 2);
+assert(g.state.missBurst);
+assert.equal(g.state.enemySpell.sight, undefined, "Revival also cancels a pending aimed burst");
+assert.equal(g.state.bullets.length + g.state.lasers.length, 0, "A miss clears the far corner and warning beams");
+tick(g, 0.35);
+assert.equal(g.state.bullets.length + g.state.lasers.length, 0, "Hazards stay clear during the revival pulse");
 g.state.bullets.push({ ...shot });
 g.step(1 / 60);
 assert.equal(g.state.lives, 2, "Recovery shield prevents stacked hits");
@@ -102,9 +121,11 @@ const finalScore = g.state.score;
 tick(g, 2);
 assert.equal(g.state.score, finalScore);
 const bomb = ready();
+bomb.state.enemySpell.sight = {x:92, y:287, at:0, ready:.5};
 bomb.state.bullets.push({ ...shot });
 assert(bomb.bomb());
 assert.equal(bomb.state.bullets.length, 0);
+assert.equal(bomb.state.enemySpell.sight, undefined, "A spirit strike dismisses the lock cue and its pending fire");
 assert.equal(bomb.state.bombs, 1);
 assert(bomb.state.player.invulnerable > 2);
 assert.equal(bomb.state.spell.id, "alice");
@@ -191,7 +212,7 @@ loot.step(1 / 60);
 assert.equal(loot.state.power, 2);
 assert.equal(loot.state.pickups.power, 1);
 assert.equal(loot.state.items.length, 0);
-for (let i = 0; i < 8; i++) {
+for (let i = 0; i < engine.maxPower; i++) {
   loot.state.items.push(
     item("power", 120, 312),
     item("life", 120, 312),
@@ -201,7 +222,7 @@ for (let i = 0; i < 8; i++) {
 }
 assert.deepEqual(
   [loot.state.power, loot.state.lives, loot.state.bombs],
-  [8, 5, 5]
+  [engine.maxPower, 5, 5]
 );
 loot.state.bullets.push({ ...shot, x: 18, y: 150 });
 loot.state.player.invulnerable = 0;
@@ -228,7 +249,7 @@ assert.equal(loot.state.pickupNotice, null);
 loot.state.player.invulnerable = 0;
 loot.state.bullets.push({ ...shot });
 loot.step(1 / 60);
-assert.equal(loot.state.power, 7, "A hit costs one firepower level");
+assert.equal(loot.state.power, engine.maxPower - 1, "A hit costs one firepower level");
 const missed = ready();
 missed.state.items.push(item("life", 16, 374));
 missed.step(1 / 60);
@@ -237,6 +258,7 @@ for (const id of Object.keys(engine.cast)) {
   const normal = ready(id),
     powered = ready(id);
   powered.state.power = 8;
+  if (id === "alice") normal.state.player.y = powered.state.player.y = 151;
   normal.state.player.invulnerable = powered.state.player.invulnerable =
     Infinity;
   tick(normal, 4);
@@ -254,6 +276,7 @@ for (let seed = 1; seed <= 40; seed++) {
   const a = engine.create("alice", "alice", sampleSeed),
     b = engine.create("alice", "alice", sampleSeed);
   a.state.countdown = b.state.countdown = 0;
+  a.state.player.y = b.state.player.y = 208; // Intercept the opening escort as well as the timed supply.
   a.state.player.invulnerable = b.state.player.invulnerable = Infinity;
   tick(a, 5.1);
   tick(b, 5.1);
@@ -268,7 +291,7 @@ for (let seed = 1; seed <= 40; seed++) {
     dropPositions.add(i.x);
   });
 }
-assert.deepEqual([...dropTypes].sort(), ["clear", "life", "power"]);
+assert.deepEqual([...dropTypes].sort(), ["clear", "life", "power", "shard"]);
 assert(dropPositions.size > 20, "New run seeds vary the drop position");
 
 // The pilot uses normal movement/collision rules and hands control back immediately.

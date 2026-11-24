@@ -17,7 +17,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.route(base + "score-test", (r) =>
       r.fulfill({
         contentType: "text/html",
-        body: `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"><style>body{margin:20px;background:#111a28;color:#ddd;font:14px 'Fusion Pixel';}#cards{display:grid;grid-template-columns:repeat(3,320px);gap:18px;}figure{margin:0}canvas{width:320px;height:480px}figcaption{height:38px;line-height:18px}#flights{margin-top:28px}#flights img{width:1080px;height:288px;image-rendering:pixelated}header{display:flex;width:1080px;}header span{width:120px;text-align:center}</style><div id="cards"></div><div id="flights"></div><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns-alice.js"></script><script src="/assets/js/games/danmaku-patterns-marisa.js"></script><script src="/assets/js/games/danmaku-patterns-patchouli.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script>`,
+        body: `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="/assets/css/classic-companion.css"><style>body{margin:20px;background:#111a28;color:#ddd;font:14px 'Fusion Pixel';}#cards{display:grid;grid-template-columns:repeat(3,320px);gap:18px;}figure{margin:0}canvas{width:320px;height:480px}figcaption{height:38px;line-height:18px}#flights{margin-top:28px}#flights img{width:1080px;height:288px;image-rendering:pixelated}header{display:flex;width:1080px;}header span{width:120px;text-align:center}</style><div id="cards"></div><div id="flights"></div><script src="/assets/js/games/danmaku-score.js"></script><script src="/assets/js/games/danmaku-patterns-alice.js"></script><script src="/assets/js/games/danmaku-patterns-marisa.js"></script><script src="/assets/js/games/danmaku-patterns-patchouli.js"></script><script src="/assets/js/games/danmaku-patterns.js"></script><script src="/assets/js/games/danmaku-scroll.js"></script><script src="/assets/js/games/danmaku-run.js"></script><script src="/assets/js/games/danmaku-pilot.js"></script><script src="/assets/js/games/danmaku-engine.js"></script><script src="/assets/js/games/danmaku-boss-sprites.js"></script><script src="/assets/js/games/danmaku-scenery.js"></script><script src="/assets/js/games/danmaku-player-sprites.js"></script><script src="/assets/js/games/danmaku-renderer.js"></script>`,
       })
     );
     await page.goto(base + "score-test");
@@ -116,8 +116,8 @@ fs.mkdirSync(out, { recursive: true });
     });
     assert(actual.every((s) => s.bullets > 30));
     assert(
-      actual.find((s) => s.spell === "master").lasers > 0,
-      "Master Spark must appear in the real pattern"
+      actual.find((s) => s.spell === "shutter").lasers > 0,
+      "Shutter must actually expose both edges of its safe aisle"
     );
     await page
       .locator("#cards")

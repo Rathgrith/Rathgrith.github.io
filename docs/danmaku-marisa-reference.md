@@ -1,5 +1,7 @@
 # Marisa spell reconstruction notes
 
+> Historical design notes for the retired reconstruction. The [current spell catalogue](danmaku-spells.md) describes the playable cards.
+
 These six patterns are reconstructed from *Imperishable Night* gameplay, with
 coordinates and travel time adapted to the site's 240 × 360 arena. They do not
 claim to reproduce the executable's frame timings or random-number generator.

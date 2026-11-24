@@ -182,7 +182,8 @@ fs.mkdirSync(out, { recursive: true });
     await page.waitForFunction(() => gameForQA.state.pickups.clear > 0);
     await page.waitForFunction(
       () =>
-        document.querySelector("[data-danmaku-power]").textContent === "2/8" &&
+        document.querySelector("[data-danmaku-power]").textContent ===
+          "2/" + DanmakuEngine.maxPower &&
         document.querySelector("[data-danmaku-lives]").textContent === "4" &&
         document.querySelector("[data-danmaku-bombs]").textContent === "3"
     );

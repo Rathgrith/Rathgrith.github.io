@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 const engine = require("../assets/js/games/danmaku-engine.js");
 const patterns = require("../assets/js/games/danmaku-patterns.js");
 const phrase =
-  engine.score.getTrack("alice").phrases[
-    patterns.cards.alice.findIndex((card) => card.id === "holland")
+  engine.score.getTrack("marisa").phrases[
+    patterns.cards.marisa.findIndex((card) => card.id === "exposure")
   ];
 const positions = [
   [12, 344],
@@ -24,10 +24,11 @@ const positions = [
 const rows = [];
 for (const rank of [1, 25]) {
   for (const [x, y] of positions) {
-    const game = engine.create("alice", "alice", 1977),
+    const game = engine.create("alice", "marisa", 1977),
       s = game.state;
     s.countdown = 0;
     s.intro = null;
+    s.run.nextWave = Infinity;
     s.time = phrase.start;
     Object.defineProperty(s, "level", { get: () => rank, set() {} });
     const hits = new Set();
@@ -43,7 +44,7 @@ for (const rank of [1, 25]) {
       peak = Math.max(peak, s.bullets.length);
       for (const b of s.bullets) {
         if (
-          b.color !== "#f0eefb" ||
+          b.color !== "#ffd57c" ||
           Math.hypot(b.x - x, b.y - y) >= b.radius + s.player.radius
         )
           continue;
@@ -69,5 +70,5 @@ for (const rank of [1, 25]) {
 }
 console.table(rows);
 console.log(
-  "PASS: Holland's aimed doll accents repeatedly cross stationary pilots at 13 corner/edge/centre positions, in both opening and maximum rank."
+  "PASS: Marisa’s golden exposure echoes repeatedly cross stationary pilots at 13 corner/edge/centre positions, in both opening and maximum rank."
 );

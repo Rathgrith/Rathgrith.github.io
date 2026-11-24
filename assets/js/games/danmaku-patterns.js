@@ -1,4 +1,4 @@
-/* Recognizable spell motifs, adapted for the 240×360 score-attack arena. */
+/* Original score-attack scores; each half-beat advances one piece of choreography. */
 (function (scope) {
   "use strict";
   var spellPatterns = {
@@ -15,206 +15,317 @@
         ? require("./danmaku-patterns-patchouli.js")
         : scope.DanmakuPatchouliPatterns,
   };
+  var scoreMap = typeof module !== "undefined" && module.exports
+    ? require("./danmaku-score.js") : scope.DanmakuScore;
   var TAU = Math.PI * 2;
-  var cards = {
-    alice: [
-      { id: "france", name: "蒼符「博愛の仏蘭西人形」" },
-      { id: "london", name: "闇符「霧の倫敦人形」" },
-      { id: "holland", name: "紅符「紅毛の和蘭人形」" },
-      { id: "russia", name: "白符「白亜の露西亜人形」" },
-      { id: "shanghai", name: "咒詛「魔彩光の上海人形」" },
-      { id: "tibet", name: "廻符「輪廻の西蔵人形」" },
-    ],
-    marisa: [
-      { id: "stardust", name: "魔符「スターダストレヴァリエ」" },
-      { id: "milky", name: "魔符「ミルキーウェイ」" },
-      { id: "asteroid", name: "魔空「アステロイドベルト」" },
-      { id: "nondirectional", name: "恋符「ノンディレクショナルレーザー」" },
-      { id: "master", name: "恋符「マスタースパーク」" },
-      { id: "finalspark", name: "魔砲「ファイナルスパーク」" },
-    ],
-    patchouli: [
-      { id: "agni", name: "火符「アグニシャイン」" },
-      { id: "undine", name: "水符「プリンセスウンディネ」" },
-      { id: "trilithon", name: "土符「レイジィトリリトン」" },
-      { id: "sylphy", name: "木符「シルフィホルン」" },
-      { id: "flare", name: "日符「ロイヤルフレア」" },
-      { id: "philosopher", name: "火水木金土符「賢者の石」" },
-    ],
-  };
-  var elements = ["#f5a084", "#8cdcf6", "#b3df97", "#f4d883", "#c5a5f1"];
-  var nonspells = {
-    france: "糸繰りの行進",
-    london: "薄霧の輪舞",
-    holland: "風車の小径",
-    russia: "白磁の列",
-    shanghai: "光糸の交差",
-    tibet: "巡る人形",
-    stardust: "星屑の挨拶",
-    asteroid: "小惑星の輪",
-    milky: "流星の交差",
-    nondirectional: "光線の試射",
-    master: "星の連射",
-    finalspark: "彗星の余韻",
-    agni: "火花の連なり",
-    undine: "水面の波紋",
-    sylphy: "木の葉の流れ",
-    trilithon: "石柱の回廊",
-    flare: "陽光の環",
-    philosopher: "五色の調律",
-  };
+  var cards = {},
+    nonspells = {};
+  Object.keys(spellPatterns).forEach(function (id) {
+    cards[id] = spellPatterns[id].cards;
+    cards[id].forEach(function (card) {
+      nonspells[card.id] = card.interlude;
+    });
+  });
+
   function difficulty(s) {
     var stage = Math.max(
       0,
-      cards[s.enemyId].findIndex(function (card) {
-        return card.id === s.enemySpell.id;
+      cards[s.enemyId].findIndex(function (c) {
+        return c.id === s.enemySpell.id;
       })
     );
-    var cycle = Math.min(6, s.rhythm.cycle || 0),
-      energy = s.rhythm.energy;
-    // The HUD rank advances every twenty seconds. Previously only the song's
-    // repeat count reached the emitters, so most RANK UP notices changed no
-    // shots at all. Keep a ceiling: authored formations already use the field.
-    var rank = Number.isFinite(s.level) ? Math.max(0, s.level - 1) : cycle * 4;
-    var pressure = Math.min(1, rank / 24),
-      densityTier = Math.min(6, Math.floor(rank / 4));
-    // Fixed-arm cards gain tighter successive rows instead of extra sources or
-    // changing France's 7×7 split / Spark's 8-way grammar. Variable-count cards
-    // need less cadence gain because their own rings already gain more grains.
-    var cadenceGain = s.enemySpell.nonspell
-      ? 0.12
-      : [
-            "france",
-            "holland",
-            "russia",
-            "milky",
-            "nondirectional",
-            "master",
-            "finalspark",
-            "flare",
-          ].indexOf(s.enemySpell.id) >= 0
-        ? 0.32
-        : ["asteroid", "philosopher"].indexOf(s.enemySpell.id) >= 0
-          ? 0.2
-          : 0.12;
-    var extra = Math.floor(densityTier / 2);
-    if (["agni", "undine", "asteroid"].indexOf(s.enemySpell.id) >= 0)
-      extra = Math.min(1, extra);
+    var rank = Math.max(0, Math.min(24, (s.level || 1) - 1));
     return {
       stage: stage,
-      cycle: cycle,
+      // Strophes follow the recording even when rank advances the firing clock.
+      part: Math.min(2, Math.max(0, Math.floor(3 * (s.time - s.rhythm.sectionStart) /
+        Math.max(1, s.rhythm.spellEnd - s.rhythm.sectionStart)))),
+      cycle: s.rhythm.cycle || 0,
       rank: rank,
-      densityTier: densityTier,
-      cadence: 1 + pressure * cadenceGain,
-      velocityScale: 1 + pressure * 0.24,
-      speed:
-        [58, 64, 72, 80, 87, 96][stage] *
-        (1 + pressure * 0.24) *
-        (0.97 + energy * 0.06),
-      density: stage + 1 + extra,
-      warning: [1.3, 1.24, 1.18, 1.12, 1.06, 1][stage] / (1 + pressure * 0.15),
+      densityTier: Math.floor(rank / 4),
+      density: Math.min(4, Math.floor((rank + 3) / 6)) + (s.enemySpell.nonspell ? 1 : 0),
+      cadence: 1 + (0.28 * rank) / 24,
+      // Song and card determine speed. Rank adds grains and staggered rows.
+      speed: [64, 67, 70, 72, 74, 76][stage],
+      warning: 1.15,
+      velocityScale: 1,
     };
   }
-  function interludeEmitters(s) {
-    var boss = s.boss,
-      list = [],
-      id = s.enemySpell.id,
-      t = s.rhythm.trackTime;
-    if (s.enemyId === "alice") {
-      var count =
-        id === "france" || id === "shanghai" || id === "tibet"
-          ? 4
-          : id === "holland"
-            ? 5
-            : 6;
-      for (var i = 0; i < count; i++) {
-        var side = i % 2 ? 1 : -1,
-          row = Math.floor(i / 2);
-        var x = 120 + side * (42 + row * 26),
-          y = 44 + row * 23 + Math.sin(t * 0.8 + i) * 5;
-        if (id === "holland") {
-          x = 32 + i * 44;
-          y = 48 + (i % 2) * 17;
-        }
-        if (id === "russia" || id === "tibet") {
-          var angle = (i * TAU) / count + t * (id === "tibet" ? 0.7 : 0.3);
-          x = boss.x + Math.cos(angle) * 64;
-          y = 70 + Math.sin(angle) * 35;
-        }
-        list.push({
-          x: x,
-          y: y,
-          color: i % 2 ? "#eea2be" : "#96dff3",
-          kind: "doll",
-        });
-      }
-    } else if (id === "philosopher") {
-      for (var e = 0; e < 5; e++) {
-        var a = (e * TAU) / 5 + t * 0.24;
-        list.push({
-          x: boss.x + Math.cos(a) * 42,
-          y: boss.y + Math.sin(a) * 27,
-          color: elements[e],
-          kind: "element",
-          glyph: ["火", "水", "木", "金", "土"][e],
-        });
-      }
-    } else if (id === "undine") {
-      list = [
-        { x: 48, y: 65, color: "#8cdcf6", kind: "water" },
-        { x: 192, y: 65, color: "#b4b3f0", kind: "water" },
-      ];
-    } else if (
-      ["asteroid", "milky", "nondirectional", "master", "finalspark"].indexOf(
-        id
-      ) >= 0
-    ) {
-      list = [
-        {
-          x: boss.x,
-          y: boss.y + 10,
-          color:
-            id === "milky"
-              ? "#ee8eae"
-              : id === "asteroid"
-                ? "#c39ce8"
-                : "#a0ebc5",
-          kind: "familiar",
-        },
-      ];
-    } else if (id === "agni" || id === "trilithon") {
-      for (var column = 0; column < 3; column++)
-        list.push({
-          x: 34 + column * 86,
-          y: 48 + (column % 2) * 12,
-          color: id === "agni" ? "#f3a282" : "#dbbf87",
-          kind: "element",
-          glyph: id === "agni" ? "火" : "土",
-        });
-    } else if (id === "sylphy") {
-      list = [
-        { x: 18, y: 65, color: "#a6dfaf", kind: "element", glyph: "木" },
-        { x: 222, y: 85, color: "#9acecb", kind: "element", glyph: "木" },
-      ];
-    }
-    return list;
+
+  // Each row spends eight beats of authored fire over eight recorded beats.
+  // Zero leaves the previous wave travelling while the next caster takes over.
+  var phrasing = {
+    alice: [
+      [1.4, 1.2, 0.8, 0.6, 1.4, 1.2, 1.4, 0],
+      [1.5, 0.5, 1.5, 0.5, 1.4, 1.4, 1.2, 0],
+      [0.4, 1.4, 1.3, 0.9, 0, 1.4, 1.4, 1.2],
+    ],
+    marisa: [
+      [0.6, 1.6, 0.8, 0.6, 1.6, 0.8, 1.6, 0.4],
+      [0, 1.7, 1.3, 1, 0.4, 1.6, 1.6, 0.4],
+      [1.8, 0.4, 1.6, 0.2, 1.5, 0.5, 0.4, 1.6],
+    ],
+    patchouli: [
+      [1, 1, 1, 0.5, 0, 1.5, 1.5, 1.5],
+      [1.4, 0.6, 1.4, 0.6, 0.2, 1.6, 1.6, 0.6],
+      [0, 0.6, 1.4, 1.3, 1.3, 1.3, 0.6, 1.5],
+    ],
+  };
+  function phraseRate(s, level) {
+    if (s.enemySpell.nonspell) return 1;
+    var beat = (s.rhythm.beat + 2 * (level.stage % 4)) % 8;
+    return phrasing[s.enemyId][level.part][beat];
   }
-  // Each card owns its formation; firing coordinates and visible familiars share
-  // this function so a volley always begins at the sprite that produced it.
+
+  function strokeStyle(style, i, n) {
+    return typeof style === "function" ? style(i, n) : style;
+  }
+  function fan(
+    api,
+    source,
+    angle,
+    count,
+    arc,
+    speed,
+    color,
+    shape,
+    motion,
+    gap,
+    visualStyle
+  ) {
+    for (var i = 0; i < count; i++) {
+      var heading = angle + (count === 1 ? 0 : (i / (count - 1) - 0.5) * arc);
+      if (gap && Math.abs(heading - gap.angle) < gap.halfWidth) continue;
+      api.bullet(source.x, source.y, heading, speed, color, shape, motion, strokeStyle(visualStyle, i, count));
+    }
+  }
+  function ring(
+    api,
+    source,
+    count,
+    phase,
+    speed,
+    color,
+    shape,
+    gap,
+    halfWidth,
+    motion,
+    visualStyle
+  ) {
+    for (var i = 0; i < count; i++) {
+      var a = phase + (TAU * i) / count;
+      var delta = a - gap;
+      if (Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) < halfWidth)
+        continue;
+      api.bullet(source.x, source.y, a, speed, color, shape, motion, strokeStyle(visualStyle, i, count));
+    }
+  }
+  function bearing(from, to) {
+    return Math.atan2(to.y - from.y, to.x - from.x);
+  }
+  // A stitched knot, double exposure or erasure needs time to be drawn.
+  // The remaining cards keep their direct attacks and different timing.
+  var inscriptions = {
+    buttonhole: "sweep", basting: "paired",
+    spectrograph: "paired", shutter: "reverse",
+    erratum: "reverse", palimpsest: "paired",
+  };
+  function recordedAccent(s, level) {
+    var track = scoreMap.getTrack(s.enemyId);
+    var earliest = s.time + 0.90 + ((level.stage + level.part) % 3) * 0.07;
+    var mark = scoreMap.at(s.enemyId, earliest);
+    var n = mark.beat, loop = mark.cycle, accent, echo;
+    var preferred = (level.stage + level.part + (s.enemyId === "marisa" ? 1 : 0)) % 2 * 2;
+    // Prefer the downbeat or the third beat, while bounding the warning time.
+    for (var i = 0; i < 12; i++, n++) {
+      if (n >= track.beats.length) { n = 0; loop++; }
+      var beat = loop * track.duration + track.beats[n];
+      if (beat < earliest || n % 2) continue;
+      var next = n + 1 < track.beats.length ? loop * track.duration + track.beats[n + 1] :
+        (loop + 1) * track.duration + track.beats[0];
+      if (accent === undefined || (n % 4 === preferred && beat - s.time <= 1.95)) {
+        accent = beat - s.time;
+        echo = next - s.time;
+      }
+      if (n % 4 === preferred || beat - s.time >= 1.95) break;
+    }
+    return { created:s.time, launch:accent, echo:echo, style:inscriptions[s.enemySpell.id], part:level.part };
+  }
+  // Each velocity samples one point of the figure. After t seconds the grains
+  // describe the same curve at scale spread*t around a descending centre.
+  function figure(api, source, cfg, cue) {
+    var lobes = cfg.lobes, count = cfg.count, phase = cfg.phase || 0;
+    var depth = cfg.depth === undefined ? 0.65 : cfg.depth;
+    var angle = cfg.angle || 0, ca = Math.cos(angle), sa = Math.sin(angle);
+    var open = cfg.curve === "cycloid", turns = Math.max(1, lobes - 2);
+    for (var i = 0; i < count; i++) {
+      var u = i / (open ? count - 1 : count);
+      if (cfg.gapWidth && Math.abs(u - cfg.gap - Math.round(u - cfg.gap)) < cfg.gapWidth / 2) continue;
+      var t = TAU * u, x, y;
+      if (cfg.curve === "cycloid") {
+        // A point on a translating wheel, flattened to fit a horizontal band.
+        var wheel = t * turns + phase;
+        x = 2 * ((t * turns - depth * (Math.sin(wheel) - Math.sin(phase))) / (TAU * turns)) - 1;
+        y = -0.7 * Math.cos(wheel);
+      } else if (cfg.curve === "rose") {
+        if (lobes % 2) t *= 0.5;
+        var radial = Math.cos(lobes * t + phase);
+        x = radial * Math.cos(t); y = radial * Math.sin(t);
+      } else if (cfg.curve === "lissajous") {
+        var harmonic = lobes % 2 ? lobes : lobes - 1;
+        x = Math.sin(2 * t + phase + Math.PI / 4); y = Math.sin(harmonic * t);
+      } else {
+        // A tracing point on an internal or external rolling circle.
+        var inner = cfg.curve === "hypo", gear = inner ? lobes - 1 : lobes + 1;
+        x = (Math.cos(t) + (inner ? 1 : -1) * depth * Math.cos(gear * t + phase)) / (1 + depth);
+        y = (Math.sin(t) - depth * Math.sin(gear * t + phase)) / (1 + depth);
+      }
+      var axisX = x * ca - y * sa, axisY = x * sa + y * ca;
+      var vx = cfg.spread * axisX, vy = cfg.fall + cfg.spread * axisY;
+      var speed = Math.hypot(vx, vy), heading = Math.atan2(vy, vx);
+      var lockX = source.x, lockY = source.y, motion;
+      if (cue) {
+        var radius = Math.min(34, Math.max(23, cfg.spread));
+        var cx = Math.max(radius + 4, Math.min(236 - radius, source.x));
+        var cy = Math.max(radius + 5, source.y + 5);
+        // The writing order follows the curve. Paired casts write from both edges.
+        var order = cue.style === "reverse" ? 1 - u : cue.style === "paired" ? Math.abs(1 - 2 * u) : u;
+        var second = cue.style === "paired" && cue.part > 0 && u >= .5;
+        var launch = second ? cue.echo : cue.launch;
+        lockX = cx + axisX * radius; lockY = cy + axisY * radius;
+        motion = { inscription: { created:cue.created, originX:source.x, originY:source.y,
+          lockX:lockX, lockY:lockY, vx:vx, vy:vy, angle:heading, speed:speed,
+          delay:order * cue.launch * .33, windup:(.43 + order * .33) * cue.launch,
+          launch:launch } };
+      }
+      if (cfg.lane && vy > 0) {
+        var crossing = lockX + vx * (cfg.lane.y - lockY) / vy;
+        if (Math.abs(crossing - cfg.lane.x) < cfg.lane.halfWidth) continue;
+      }
+      api.bullet(source.x, source.y, heading, speed, cfg.color, cfg.shape, motion, strokeStyle(cfg.visualStyle, i, count));
+    }
+  }
+  // The mark belongs to the current card. The attack samples a point once,
+  // so leaving the mark after the tell is a real defensive choice.
+  function lockAim(s, color, seconds) {
+    var sight = { x: s.player.x, y: s.player.y, color: color, at: s.time,
+      ready: s.time + (seconds === undefined ? 0.48 : seconds) };
+    s.enemySpell.sight = sight;
+    return sight;
+  }
+  function aimBearing(s, source) {
+    var sight = s.enemySpell.sight;
+    if (!sight || s.time < sight.ready || s.time > sight.ready + 3 ||
+        Math.hypot(source.x - s.player.x, source.y - s.player.y) < 34 ||
+        Math.hypot(source.x - sight.x, source.y - sight.y) < 1) return null;
+    return bearing(source, sight);
+  }
+  // Address each tail grain directly. Collecting loot or drawing another frame
+  // must not move the scatter sequence forward.
+  function scatter(s, tick, index) {
+    var key = (s.patternSeed ^ Math.imul((s.rhythm.sectionKey || 0) + 1, 0x9e3779b1) ^
+      Math.imul(tick + 1, 0x21f0aaad) ^ Math.imul(index + 1, 0x735a2d97) ^
+      s.enemyId.charCodeAt(0)) >>> 0;
+    key = Math.imul(key ^ (key >>> 16), 0x7feb352d);
+    key = Math.imul(key ^ (key >>> 15), 0x846ca68b);
+    return ((key ^ (key >>> 16)) >>> 0) / 4294967296;
+  }
+  function spoke(api, source, angle, cfg) {
+    for (var i = 0; i < cfg.count; i++) {
+      if (i >= cfg.cut && i < cfg.cut + cfg.skip) continue;
+      api.bullet(source.x, source.y, angle, cfg.speed + i * cfg.step,
+        cfg.color, cfg.shape, undefined, strokeStyle(cfg.visualStyle, i, cfg.count));
+    }
+  }
+  var brush = { fan: fan, ring: ring, bearing: bearing, figure: figure,
+    lockAim: lockAim, aimBearing: aimBearing, scatter: scatter, spoke: spoke };
+  function update(s, dt, api) {
+    var score = spellPatterns[s.enemyId];
+    if (!s.enemySpell.nonspell && score.update)
+      score.update(s, dt, api, difficulty(s));
+  }
+  // The principals retain their authored stations. New partners take positions
+  // on a separate upstage rail; an answer belongs to one desk, never all at once.
+  function ensemble(s, principals, stage) {
+    var id = s.enemyId, target = (id === "marisa" ? 2 : 3) + stage;
+    var extra = target - principals.length;
+    var colors = id === "alice" ? ["#ef9eb0", "#94d7f2"] :
+      id === "marisa" ? ["#ffe3a0", "#b7a9ef"] : ["#ecc2d5", "#a2e0d4"];
+    for (var i = 0; i < extra; i++) {
+      var u = (i + 0.5) / extra, age = s.enemySpell.age, x, y;
+      if (id === "alice") {
+        x = 18 + 204 * u; y = 25 + 7 * Math.cos(age * .75 + i);
+      } else if (id === "marisa") {
+        x = 22 + 196 * u + 9 * Math.sin(age * .85 + i);
+        y = 22 + 7 * Math.sin(age * .65 + u * Math.PI * 2);
+      } else {
+        x = 18 + u * 204; y = 21 + 10 * Math.abs(2 * u - 1) + 2 * Math.sin(age + i);
+      }
+      principals.push({ id: "relay-" + i, kind: principals[0].kind,
+        x: x, y: y, color: colors[i % 2], relay: true });
+    }
+    return principals;
+  }
   function emitters(s) {
-    if (s.enemySpell.nonspell) return interludeEmitters(s);
-    return spellPatterns[s.enemyId].emitters(s);
+    var sources = spellPatterns[s.enemyId].emitters(s);
+    return s.enemySpell.nonspell ? sources : ensemble(s, sources, difficulty(s).stage);
+  }
+  function relay(s, tick, api, d) {
+    // One short answer per measure from successive recruits. Their oblique
+    // shots reach the wings, leaving the principal's lower-field passage intact.
+    var id = s.enemyId, interval = id === "alice" ? 8 : id === "marisa" ? 10 : 12;
+    if (tick < interval || tick % interval !== (id === "patchouli" ? 5 : 1)) return;
+    var sources = emitters(s).filter(function (e) { return e.relay; });
+    if (!sources.length) return;
+    var turn = Math.floor(tick / interval) - 1, from = sources[turn % sources.length];
+    var side = from.x < 120 || (from.x === 120 && turn % 2) ? -1 : 1;
+    var speed = d.speed * .89, edge = side < 0 ? 9 : 231;
+    var theta = bearing(from, {x:edge, y:179});
+    if (id === "alice") {
+      // Basting only carries the hem: the wings stop adding thread at the selvage.
+      fan(api, from, theta, 3 + Number(d.density > 1), .12, speed, from.color, "rice", null, null, function(i) { return i === 1 ? "needle" : "smallorb"; });
+    } else if (id === "marisa") {
+      api.bullet(from.x, from.y, theta, speed, from.color, "bigstar",
+        { split:{ at:.9, count:2, spread:.24, speed:speed, shape:"smallstar", visualStyle:"stardust" } }, "comet");
+    } else {
+      fan(api, from, theta, 3, .19, speed * .85, from.color, "amulet", null, null, function(i) { return i === 1 ? "seal" : "quill"; });
+    }
   }
   function bossPosition(s) {
-    var pattern = spellPatterns[s.enemyId];
-    return !s.enemySpell.nonspell && pattern.bossPosition
-      ? pattern.bossPosition(s)
-      : null;
+    return s.enemySpell.nonspell
+      ? null
+      : spellPatterns[s.enemyId].bossPosition(s);
   }
+
   // Motion changes are one-shot, deterministic and independent of frame rate.
   // A cleared parent can never produce invisible delayed children afterwards.
-  function advanceBullet(b, dt, spawn, target) {
+  function advanceBullet(b, dt, spawn, target, now) {
+    var script = b.motion && b.motion.inscription;
+    if (script) {
+      b.age = Number.isFinite(now) ? Math.max(0, now - script.created) : (b.age || 0) + dt;
+      b.inscribing = b.age < script.launch;
+      b.heading = script.angle;
+      if (b.inscribing) {
+        var t = Math.max(0, Math.min(1, (b.age - script.delay) / (script.windup - script.delay)));
+        var ease = t * t * (3 - 2 * t), curl = Math.sin(t * Math.PI) * 0.13;
+        var dx = script.lockX - script.originX, dy = script.lockY - script.originY;
+        b.x = script.originX + dx * ease - dy * curl;
+        b.y = script.originY + dy * ease + dx * curl;
+        b.vx = b.vy = 0;
+      } else {
+        b.released = true;
+        var flight = b.age - script.launch;
+        b.vx = script.vx; b.vy = script.vy;
+        b.x = script.lockX + flight * b.vx;
+        b.y = script.lockY + flight * b.vy;
+      }
+      return true;
+    }
     b.age = (b.age || 0) + dt;
+    if (b.motion && b.motion.hem) {
+      spellPatterns.alice.advanceHem(b, b.motion.hem, dt);
+      return true;
+    }
     if (Math.hypot(b.vx, b.vy) > 0.001) b.heading = Math.atan2(b.vy, b.vx);
     var m = b.motion || {},
       change = m.redirect,
@@ -291,6 +402,16 @@
     if (Math.hypot(b.vx, b.vy) > 0.001) b.heading = Math.atan2(b.vy, b.vx);
     b.x += b.vx * dt;
     b.y += b.vy * dt;
+    if (
+      m.banks &&
+      (b.banks || 0) < m.banks &&
+      ((b.x < 5 && b.vx < 0) || (b.x > 235 && b.vx > 0))
+    ) {
+      b.x = b.x < 5 ? 10 - b.x : 470 - b.x;
+      b.vx *= -1;
+      b.banks = (b.banks || 0) + 1;
+      b.heading = Math.atan2(b.vy, b.vx);
+    }
     if (m.split && b.age >= m.split.at) {
       var split = m.split,
         base = Math.atan2(b.vy, b.vx) + (split.angleOffset || 0);
@@ -302,382 +423,38 @@
           split.speed,
           split.color || b.color,
           split.shape || b.shape,
-          split.motion
+          split.motion,
+          Array.isArray(split.visualStyle) ? split.visualStyle[i % split.visualStyle.length] : split.visualStyle
         );
       return false;
     }
     return true;
   }
-  function update(s, dt, api) {
-    var pattern = spellPatterns[s.enemyId];
-    if (!s.enemySpell.nonspell && pattern.update)
-      pattern.update(s, dt, api, difficulty(s));
-  }
   function emit(s, tick, api) {
-    var b = s.boss,
-      p = s.player,
-      id = s.enemySpell.id;
-    var local = tick % 128,
-      beat = Math.floor(local / 2),
-      whole = local % 2 === 0;
-    var level = difficulty(s),
-      speed = level.speed,
-      density = level.density;
-    var aim = Math.atan2(p.y - b.y, p.x - b.x),
-      sources = emitters(s);
-    var quarter = s.rhythm.beatDuration;
-    function beam(
-      x,
-      y,
-      angle,
-      width,
-      warning,
-      duration,
-      color,
-      sweep,
-      anchor,
-      spread
-    ) {
-      api.laser(
-        x,
-        y,
-        angle,
-        width,
-        warning * level.warning,
-        duration,
-        color,
-        sweep,
-        anchor,
-        spread
-      );
-    }
-    function fan(x, y, a, n, spread, v, color, shape, curve) {
-      var original = n;
-      n = Math.max(3, Math.round(n * (1 + level.densityTier * 0.04)));
-      spread *= (original - 1) / (n - 1);
-      for (var j = 0; j < n; j++)
-        api.bullet(
-          x,
-          y,
-          a + (j - (n - 1) / 2) * spread,
-          v,
-          color,
-          shape,
-          curve
-        );
-    }
-    function ring(x, y, n, a, v, color, shape, curve, gap) {
-      n = Math.max(6, Math.round(n * (1 + level.densityTier * 0.04)));
-      for (var j = 0; j < n; j++) {
-        var angle = a + (j * TAU) / n;
-        if (
-          gap !== undefined &&
-          Math.abs(Math.atan2(Math.sin(angle - gap), Math.cos(angle - gap))) <
-            0.15
-        )
-          continue;
-        api.bullet(x, y, angle, v, color, shape, curve);
-      }
-    }
-    if (s.enemySpell.nonspell) {
-      speed *= 0.84;
-      var n = 4 + Math.floor(density / 3),
-        d,
-        side;
-      if (id === "france" && (local % 4 === 0 || local % 16 === 6)) {
-        sources
-          .filter(function (_, i) {
-            return (
-              i % 2 === (Math.floor(beat / 2) + (local % 16 === 6 ? 1 : 0)) % 2
-            );
-          })
-          .forEach(function (d) {
-            var echo = local % 16 === 6;
-            fan(
-              d.x,
-              d.y,
-              Math.atan2(p.y - d.y, p.x - d.x) +
-                (echo ? (d.x < b.x ? -0.18 : 0.18) : 0),
-              n + (echo ? 1 : 0),
-              0.22,
-              speed,
-              d.color,
-              "kunai"
-            );
-          });
-      } else if (id === "london" && local % 4 === 0) {
-        d = sources[(beat / 2) % sources.length];
-        ring(
-          d.x,
-          d.y,
-          15 + Math.floor(density / 2),
-          beat * 0.2,
-          speed * 0.8,
-          d.color,
-          "butterfly",
-          { turn: 0.3, decay: 1 }
-        );
-      } else if (id === "holland" && whole) {
-        d = sources[beat % 5];
-        for (var petal = 0; petal < 3; petal++)
-          fan(
-            d.x,
-            d.y,
-            (petal * TAU) / 3 + beat * 0.25,
-            4,
-            0.1,
-            speed,
-            d.color,
-            "scale"
-          );
-      } else if (id === "russia" && (local % 4 === 0 || local % 16 === 10)) {
-        for (var column = 0; column < 6; column++)
-          if (column !== Math.floor(beat / 2) % 6)
-            fan(
-              24 + column * 38,
-              58,
-              Math.PI / 2 + (column % 2 ? 0.1 : -0.1),
-              3,
-              0.055,
-              speed,
-              "#dceaf6",
-              "rice"
-            );
-      } else if (id === "shanghai") {
-        d = sources[Math.floor(beat / 4) % sources.length];
-        if (local % 8 === 0)
-          beam(
-            d.x,
-            d.y,
-            Math.atan2(p.y - d.y, p.x - d.x),
-            3,
-            quarter * 4,
-            quarter * 2,
-            d.color,
-            0
-          );
-        if (local % 4 === 2 || local % 16 === 7)
-          fan(b.x, b.y, aim, n + 1, 0.22, speed, "#e6b1d7", "amulet");
-      } else if (id === "tibet" && whole) {
-        d = sources[beat % sources.length];
-        fan(
-          d.x,
-          d.y,
-          Math.PI / 2 + Math.sin(beat * 0.3) * 0.5,
-          n + 4,
-          0.135,
-          speed,
-          d.color,
-          "butterfly",
-          { turn: beat % 2 ? 0.4 : -0.4, decay: 1.2 }
-        );
-      } else if (id === "stardust" && local % 4 === 0) {
-        for (side = -1; side <= 1; side++)
-          fan(
-            b.x,
-            b.y,
-            Math.PI / 2 + side * 0.7 + Math.sin(beat * 0.2) * 0.2,
-            4,
-            0.13,
-            speed,
-            side ? "#e7bbf0" : "#f8d892",
-            "smallstar"
-          );
-      } else if (id === "asteroid" && (local % 4 === 0 || local % 16 === 10)) {
-        ring(
-          b.x + (beat % 4 ? -22 : 22),
-          b.y,
-          (local % 4 === 0 ? 12 : 9) + Math.floor(density / 2),
-          beat * 0.17,
-          speed * (beat % 4 ? 0.78 : 1),
-          "#c7b5ed",
-          beat % 4 ? "bigstar" : "smallstar"
-        );
-      } else if (id === "milky") {
-        if (local % 4 === 0)
-          for (side = -1; side <= 1; side += 2)
-            fan(
-              b.x + side * 42,
-              b.y,
-              Math.PI / 2 - side * 0.5,
-              n + 1,
-              0.13,
-              speed,
-              side < 0 ? "#ecb2d4" : "#addbf3",
-              "smallstar"
-            );
-        if (local % 8 === 3)
-          fan(b.x, b.y, aim, 4, 0.3, speed * 1.18, "#f5d48c", "star");
-      } else if (id === "nondirectional") {
-        if (local % 16 === 0)
-          for (side = -1; side <= 1; side += 2)
-            beam(
-              b.x,
-              b.y,
-              aim + side * 0.34,
-              3,
-              quarter * 4,
-              quarter * 2,
-              "#b9e6e7",
-              0,
-              "boss"
-            );
-        if (local % 8 === 4)
-          ring(
-            b.x,
-            b.y,
-            22 + Math.floor(density / 2),
-            beat * 0.2,
-            speed,
-            "#e9b9df",
-            "smallstar"
-          );
-      } else if (id === "master") {
-        if (local % 4 === 0)
-          fan(b.x, b.y, aim, n + 2, 0.18, speed * 1.15, "#f1d195", "bigstar");
-        if (local % 4 === 2)
-          for (side = -1; side <= 1; side += 2)
-            fan(
-              b.x + side * 28,
-              b.y,
-              Math.PI / 2 + side * 0.4,
-              4,
-              0.16,
-              speed,
-              "#b9d7f6",
-              "smallstar"
-            );
-      } else if (id === "finalspark" && whole) {
-        speed *= 1.06;
-        for (side = -1; side <= 1; side += 2)
-          fan(
-            b.x + side * 24,
-            b.y,
-            Math.PI / 2 + side * 0.6,
-            n + 2,
-            0.1,
-            speed,
-            side < 0 ? "#f0afc0" : "#b2c5f4",
-            "star",
-            { turn: -side * 0.5, decay: 1.4 }
-          );
-        if (beat % 4 === 2)
-          fan(
-            b.x,
-            b.y,
-            Math.PI / 2,
-            3,
-            0.2,
-            speed * 1.08,
-            "#f7e4ac",
-            "smallstar"
-          );
-      } else if (id === "agni" && (local % 4 === 0 || local % 16 === 6)) {
-        d = sources[Math.floor(beat / 2) % 3];
-        fan(
-          d.x,
-          d.y,
-          Math.atan2(p.y - d.y, p.x - d.x) +
-            (local % 16 === 6 ? (d.x < b.x ? 0.14 : -0.14) : 0),
-          n + (local % 16 === 6 || beat % 4 === 0 ? 3 : 2),
-          0.18,
-          speed,
-          "#efa18a",
-          "flame"
-        );
-      } else if (id === "undine") {
-        if (local % 4 === 0) {
-          d = sources[(beat / 2) % 2];
-          ring(
-            d.x,
-            d.y,
-            15 + Math.floor(density / 2),
-            beat * 0.17,
-            speed * 0.82,
-            d.color,
-            "bubble"
-          );
-        }
-        if (local % 8 === 2)
-          fan(b.x, b.y, aim, 4, 0.25, speed, "#c6eafa", "rice");
-      } else if (id === "sylphy" && whole) {
-        side = beat % 2;
-        d = sources[side];
-        fan(
-          d.x,
-          d.y,
-          Math.PI / 2 + (side ? 0.65 : -0.65),
-          n + 2,
-          0.16,
-          speed,
-          d.color,
-          "scale",
-          { turn: side ? -0.28 : 0.28, decay: 0.8 }
-        );
-      } else if (id === "trilithon" && local % 4 === 0) {
-        for (var column = 0; column < 5; column++)
-          if (column !== (beat / 2) % 5)
-            for (var row = 0; row < (beat % 4 === 0 ? 2 : 3); row++)
-              api.bullet(
-                24 + column * 48,
-                48 - row * 22,
-                Math.PI / 2,
-                speed * (column % 2 ? 0.8 : 1),
-                "#d9c595",
-                "amulet"
-              );
-      } else if (id === "flare" && local % 4 === 0) {
-        ring(
-          b.x,
-          b.y,
-          26 + Math.floor(density / 2),
-          beat * 0.12,
-          speed,
-          "#f1b794",
-          "flame",
-          0,
-          Math.PI / 2 + Math.sin(beat * 0.2) * 0.7
-        );
-      } else if (
-        id === "philosopher" &&
-        (local % 4 === 0 || local % 16 === 10)
-      ) {
-        var element = (Math.floor(beat / 2) + (local % 16 === 10 ? 2 : 0)) % 5;
-        d = sources[element];
-        fan(
-          d.x,
-          d.y,
-          Math.atan2(p.y - d.y, p.x - d.x) +
-            (element - 2) * 0.1 +
-            (local % 16 === 10 ? (element % 2 ? 0.17 : -0.17) : 0),
-          n + (local % 16 === 10 ? 2 : 1),
-          0.19,
-          speed * (0.8 + element * 0.06),
-          d.color,
-          ["flame", "bubble", "scale", "amulet", "rice"][element]
-        );
-      }
-      return;
-    }
-    // Start each declaration at the beginning of its own choreography, even
-    // when a musical phrase begins between beats in the source recording.
     if (s.enemySpell.firstPatternTick === undefined)
       s.enemySpell.firstPatternTick = tick;
-    spellPatterns[s.enemyId].emit(
-      s,
-      tick - s.enemySpell.firstPatternTick,
-      api,
-      level
-    );
+    var localTick = tick - s.enemySpell.firstPatternTick;
+    var score = spellPatterns[s.enemyId],
+      level = difficulty(s);
+    if (s.enemySpell.nonspell) score.interlude(s, localTick, api, level, brush);
+    else if (inscriptions[s.enemySpell.id]) {
+      score.emit(s, localTick, api, level, Object.assign({}, brush, {
+        figure:function (out, source, cfg) { figure(out, source, cfg, recordedAccent(s, level)); },
+      }));
+    } else score.emit(s, localTick, api, level, brush);
+    if (!s.enemySpell.nonspell) relay(s, localTick, api, level);
   }
   var api = {
     cards: cards,
+    spoke: spoke,
+    scatter: scatter,
     nonspells: nonspells,
     emitters: emitters,
     bossPosition: bossPosition,
     emit: emit,
     update: update,
     difficulty: difficulty,
+    phraseRate: phraseRate,
     advanceBullet: advanceBullet,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

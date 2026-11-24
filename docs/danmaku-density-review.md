@@ -1,5 +1,7 @@
 # Canonical spell density review
 
+> Historical design notes for the retired reconstruction. The [current spell catalogue](danmaku-spells.md) describes the playable cards.
+
 Measured all 18 cards over their complete music tracks at cycles 0, 1, 3 and 6
 (rounds 1, 2, 4 and 7), using three fixed aiming positions. Damage clears were
 disabled. Every card has 267–471 lower-field samples per round.

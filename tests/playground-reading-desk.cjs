@@ -9,14 +9,6 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
     await page.addInitScript(() => {
       localStorage.setItem("site-companion-v1", JSON.stringify({ speed: 65 }));
-      window.deskEffects = [];
-      const animate = Element.prototype.animate;
-      Element.prototype.animate = function (frames, options) {
-        const result = animate.call(this, frames, options);
-        if (result.id === "playground-dialogue")
-          window.deskEffects.push({ element: this, delay: options.delay });
-        return result;
-      };
     });
     let releaseModel;
     const loading = new Promise((resolve) => { releaseModel = resolve; });
@@ -35,12 +27,19 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       return w.dataset.live2dCharacter === "alice" && !w.classList.contains("is-loading");
     });
     assert(await menu.isVisible(), "A model becoming ready preserves an open dialogue menu");
-    await page.locator('[data-vn-topic-start="branch:daily"]').click();
+    await page.locator('[data-vn-topic-start="craft"]').click();
     const centered = await page.locator("[data-vn-reading]").evaluate((e) => {
       const body = e.getBoundingClientRect(), text = e.querySelector("p").getBoundingClientRect();
       return Math.abs(text.y + text.height / 2 - body.y - body.height / 2) < 6;
     });
     assert(centered, "The desktop opening line is vertically centered in the reading area");
+    await page.locator("[data-vn-reading]").click();
+    const nextCue = await page.locator(".vn-next-mark").evaluate((e) => {
+      const style = getComputedStyle(e);
+      return { name: style.animationName, iterations: style.animationIterationCount };
+    });
+    assert(nextCue.name !== "none" && nextCue.iterations === "1",
+      "The next-line mark gives one finite cue");
     await page.evaluate(() => {
       // Long authored text must remain reachable in the same reading viewport.
       const node = CompanionBranches.alice.nodes.daily;
@@ -48,32 +47,70 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       node.choices[2].label += "　その話、初めて聞いたからもう少し詳しく聞かせてくれる？";
     });
     const reading = page.locator("[data-vn-reading]");
+    const text = reading.locator("[data-live2d-dialogue-text]");
     const options = page.locator("[data-vn-choices] button");
     async function openBranch() {
       await topics.click();
       await page.locator('[data-vn-topic-start="branch:daily"]').click();
     }
+    async function firstGlyph() {
+      return text.evaluate((p) => {
+        const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+        let first;
+        do { first = walker.nextNode(); } while (first && !first.length);
+        const glyph = document.createRange();
+        glyph.setStart(first, 0);
+        glyph.setEnd(first, 1);
+        const { x, y } = glyph.getBoundingClientRect();
+        return { x, y };
+      });
+    }
+    async function assertComplete() {
+      const sample = await text.evaluate((p) => ({
+        line: p.textContent, unread: p.dataset.unread || "",
+        plain: p.childNodes.length === 1 && p.firstChild.nodeType === Node.TEXT_NODE,
+      }));
+      assert.equal(sample.line, await page.evaluate(() => {
+        const id = document.querySelector("#live2d-widget").dataset.vnCharacter;
+        return CompanionBranches[id].nodes.daily.lines[0].text;
+      }));
+      assert(sample.plain && !sample.unread, "A completed line is ordinary selectable text");
+    }
     for (const [width, height] of [[1366, 768], [320, 740], [844, 390]]) {
       await page.setViewportSize({ width, height });
-      await page.evaluate(() => { window.deskEffects = []; });
       await openBranch();
-      await page.waitForFunction(() => document.querySelector("[data-live2d-dialogue-text]").textContent.length >= 4);
-      assert.equal(await page.evaluate(() => deskEffects.filter((e) => e.element.matches(".vn-dialogue-ornament")).length), 1,
-        "Rendering multiple glyphs or replaying identical dialogue triggers one frame pulse per line");
+      await page.waitForFunction(() => {
+        const p = document.querySelector("[data-live2d-dialogue-text]");
+        return p.textContent.length >= 4 && p.dataset.unread &&
+          p.getAnimations({ subtree: true }).some((a) =>
+            a.effect.target.matches(".vn-ink") && a.effect.getKeyframes().some((f) => Number(f.opacity) < 1)
+          );
+      });
+      assert(await text.evaluate((p) =>
+        p.textContent + p.dataset.unread === CompanionBranches.alice.nodes.daily.lines[0].text
+      ), "The unrevealed suffix reserves the authored Japanese line breaks");
       const bounds = await page.locator(".companion-conversation").boundingBox();
-      const baseline = await reading.locator("p").boundingBox();
+      const baseline = await firstGlyph();
       await page.waitForFunction(() => document.querySelector("[data-live2d-dialogue-text]").textContent.length >= 28);
-      assert.equal((await reading.locator("p").boundingBox()).y, baseline.y,
-        "Typing across a new line preserves the first line's position");
-      await reading.click();
+      assert.deepEqual(await firstGlyph(), baseline, "Wrapping during typing keeps the first glyph in place");
+      if (width === 320) await reading.click({ position: { x: 10, y: 10 } });
+      else await page.keyboard.press("Enter");
       await options.first().waitFor();
+      await assertComplete();
+      assert.deepEqual(await firstGlyph(), baseline, "Showing all reply buttons keeps the first glyph in place");
       assert.equal(await reading.getAttribute("aria-disabled"), "true");
       assert.equal(await reading.getAttribute("tabindex"), "-1");
       const after = await page.locator(".companion-conversation").boundingBox();
       assert.equal(after.height, bounds.height, "Options keep the reading desk height stable");
-      assert.deepEqual(await page.evaluate(() =>
-        deskEffects.filter((e) => e.element.closest(".vn-choices")).map((e) => e.delay)
-      ), [0, 32, 64]);
+      const replies = await options.evaluateAll((buttons) => buttons.map((b) => {
+        const style = getComputedStyle(b);
+        return { active: !b.disabled && style.pointerEvents !== "none" && style.transform === "none",
+          delay: parseFloat(style.animationDelay), duration: parseFloat(style.animationDuration) };
+      }));
+      assert.equal(replies.length, 3);
+      assert(replies.every((reply) => reply.active), "All reply hit areas are available together and stay still");
+      assert(replies[0].delay < replies[1].delay && replies[1].delay < replies[2].delay &&
+        replies[2].delay < replies[0].duration, "The reply fades overlap in reading order");
       await options.first().focus();
       await page.keyboard.press("ArrowRight");
       assert(await options.nth(1).evaluate((e) => e === document.activeElement),
@@ -89,18 +126,23 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       await page.keyboard.press("Enter");
       await page.waitForFunction(() => document.querySelector("#live2d-widget").dataset.vnBranchNode !== "daily");
     }
-    await page.evaluate(() => { window.deskEffects = []; });
+    await openBranch();
+    await text.locator(".vn-ink").first().waitFor();
+    const oldInk = await text.locator(".vn-ink").first().elementHandle();
     await page.locator('[data-vn-character="marisa"]').click();
-    assert.equal(await page.evaluate(() => deskEffects.filter((e) => e.element.matches("[data-live2d-dialogue-name]")).length), 1);
+    assert.equal(await oldInk.evaluate((ink) => ink.isConnected), false);
+    assert.equal(await page.locator("[data-live2d-dialogue-name]").textContent(), "魔理沙");
     await page.locator('[data-vn-character="alice"]').click();
     await openBranch();
     await page.emulateMedia({ reducedMotion: "reduce" });
     await options.first().waitFor();
-    assert(await page.evaluate(() => !document.getAnimations().some((a) => a.id === "playground-dialogue")));
-    await page.evaluate(() => { window.deskEffects = []; });
+    await assertComplete();
+    assert.equal(await page.locator(".companion-conversation").evaluate((e) =>
+      e.getAnimations({ subtree: true }).length
+    ), 0, "Changing reduced motion during typing clears active dialogue cues");
     await openBranch();
     assert.equal(await options.count(), 3);
-    assert.equal(await page.evaluate(() => deskEffects.length), 0, "Reduced motion shows the complete line and choices immediately");
+    await assertComplete();
     const reply = (await options.first().textContent()).replace(/^▸ /, "");
     await options.first().click();
     await page.locator('[data-vn-open="history"]').click();
@@ -111,7 +153,28 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     assert.equal(await history.locator("li").last().locator("strong").textContent(), "アリス");
     assert(await history.evaluate(e => e.scrollTop + e.clientHeight >= e.scrollHeight - 1),
       "History opens at the latest exchange");
-    console.log("PASS: model readiness preserves menus, long Japanese text and choices remain accessible, stable desk geometry, single line and character cues, staggered replies, instant reduced motion");
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto(base);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await openBranch();
+    await text.locator(".vn-ink").first().waitFor();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await options.first().waitFor();
+    await assertComplete();
+    await openBranch();
+    assert.equal(await options.count(), 3);
+    await assertComplete();
+    assert.equal(await page.locator(".companion-conversation").evaluate((e) =>
+      e.getAnimations({ subtree: true }).length
+    ), 0, "Reduced motion also keeps the embedded conversation still");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.locator('[data-vn-open="settings"]').click();
+    await page.locator("[data-vn-speed]").selectOption("0");
+    await page.keyboard.press("Escape");
+    await openBranch();
+    assert.equal(await options.count(), 3);
+    await assertComplete();
+    console.log("PASS: stable Japanese ink reveal and choice geometry, keyboard replies, character switch, instant reduced motion in both dialogue views and accessible history");
   } finally {
     await browser.close();
   }
