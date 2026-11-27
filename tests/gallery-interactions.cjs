@@ -194,6 +194,10 @@ async function checkEncodedFilenames(browser) {
     const scroll = await page.evaluate(() => scrollY);
     await cards.first().locator("figcaption").tap();
     const stage = page.locator(".gallery-modal__image-stage");
+    assert(await page.locator("#gallery-modal").evaluate(el => el.matches(":modal")));
+    await page.locator(".classic-navigation a").first().evaluate(link => link.focus());
+    assert(await page.evaluate(() => !!document.activeElement.closest("#gallery-modal")),
+      "the open viewer keeps the background out of the keyboard focus order");
     assert.equal(await page.locator("[data-gallery-collection-title]").textContent(),
       await cards.first().evaluate(a => a.closest("[data-gallery-collection]").dataset.galleryCollection));
     assert.equal(await page.locator("[data-gallery-original]").getAttribute("href"),

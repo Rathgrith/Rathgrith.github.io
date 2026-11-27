@@ -315,7 +315,8 @@
       document.body.appendChild(refs.root);
     }
     refs.root.hidden = false;
-    refs.root.setAttribute("aria-hidden", "false");
+    if (refs.root.showModal) refs.root.showModal();
+    else refs.root.setAttribute("aria-hidden", "false");
     document.body.classList.add("gallery-modal-open");
     syncViewportZoom();
     updateModalContent();
@@ -330,8 +331,9 @@
     if (!refs || !state.isOpen) return;
 
     state.isOpen = false;
+    if (refs.root.open) refs.root.close();
+    else refs.root.setAttribute("aria-hidden", "true");
     refs.root.hidden = true;
-    refs.root.setAttribute("aria-hidden", "true");
     document.body.classList.remove("gallery-modal-open");
     restoreModalMount();
 
@@ -364,6 +366,10 @@
     if (!refs || refs.root.getAttribute("data-gallery-modal-bound") === "true")
       return;
     refs.root.setAttribute("data-gallery-modal-bound", "true");
+    refs.root.addEventListener("cancel", function (event) {
+      event.preventDefault();
+      closeModal();
+    });
 
     refs.root.addEventListener("click", function (event) {
       var closeTarget = event.target.closest("[data-gallery-close]");

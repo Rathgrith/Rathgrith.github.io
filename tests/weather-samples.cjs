@@ -139,7 +139,11 @@ async function verify(browser) {
   const diamondTitle = await diamond.locator("title").textContent();
   assert.match(diamondTitle, /ダイヤモンドダスト 12°C/);
   assert.equal(await diamond.getAttribute("aria-label"), diamondTitle);
-  await diamond.locator(".weather-map__sample-badge").click();
+  await diamond.focus();
+  assert.equal(await diamond.getAttribute("role"), "button");
+  assert.equal(await diamond.getAttribute("tabindex"), "0");
+  assert(await diamond.evaluate(el => el === document.activeElement));
+  await page.keyboard.press("Enter");
   await page.waitForFunction(() =>
     document.querySelector("[data-atlas-weather] [data-weather-name]").textContent === "ダイヤモンドダスト");
   assert(await labelsFit(atlas.locator(".weather-map")) >= 5);
@@ -154,7 +158,8 @@ async function verify(browser) {
     return document.elementFromPoint(r.left+r.width/2, r.top+r.height/2)?.closest("[data-weather-sample]") === el.closest("[data-weather-sample]");
   }), true, "station badges remain clickable inside the reticle overlay");
   assert.equal(await first.locator("use").evaluate(el => getComputedStyle(el).animationName), "none");
-  await sigil.click();
+  await first.focus();
+  await page.keyboard.press("Space");
   await page.waitForFunction((label) => document.querySelector("[data-atlas-weather] [data-weather-location]").textContent === label,
     await first.getAttribute("data-label"));
   assert.deepEqual(singleRequests.at(-1), firstStation, "sample selection requests that station's full forecast");
@@ -207,9 +212,21 @@ async function verify(browser) {
   await phone.locator('[data-vn-open="weather"]').click();
   const compact = phone.locator("[data-weather-widget] .weather-map");
   await compact.locator('[data-weather-sample][visibility="visible"]').first().waitFor();
-  assert(await labelsFit(compact) < 6, "the compact map shows only complete, separated titles");
+  assert.equal(await labelsFit(compact), 6, "the full-width phone map fits the six fixture conditions");
+  assert(await compact.evaluate(el => {
+    const reading = el.closest(".weather-terminal__overview").querySelector(".weather-terminal__reading");
+    return el.getBoundingClientRect().top >= reading.getBoundingClientRect().bottom;
+  }), "a narrow terminal places its map beneath the reading");
   await compact.locator("[data-atlas-zoom-in]").click();
   await labelsFit(compact);
+  await phone.setViewportSize({ width: 320, height: 600 });
+  offline = true;
+  await phone.evaluate(() => sessionStorage.removeItem("site-weather-map-samples-v1"));
+  await phone.reload();
+  await phone.locator('[data-vn-open="weather"]').click();
+  const notice = compact.locator('[data-weather-sample-status]');
+  await notice.filter({ hasText: "取得できません" }).waitFor();
+  assert(await notice.isVisible(), "a missing sample map is explained even in the narrowest terminal");
   assert.deepEqual(errors, []);
   await phone.close();
 }

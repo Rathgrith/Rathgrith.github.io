@@ -159,6 +159,8 @@
     var nextMain = nextDoc.getElementById("main");
     if (!currentMain || !nextMain) return null;
 
+    // DOMParser parses noscript children as real nodes; importing them can fetch fallback images.
+    nextMain.querySelectorAll("noscript").forEach(function (fallback) { fallback.remove(); });
     var imported = document.importNode
       ? document.importNode(nextMain, true)
       : nextMain.cloneNode(true);

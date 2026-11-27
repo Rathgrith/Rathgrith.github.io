@@ -102,7 +102,7 @@
     var shortName = weather.name === "ダイヤモンドダスト" ? "細氷" : weather.name;
     var fullLabel = station[0] + " · " + weather.name + " " + reading.temperature + "°C";
     var group = svg("g", { "data-weather-sample": "", "data-label": station[0],
-      role: "img", lang: "ja", "aria-label": fullLabel,
+      role: "button", tabindex: "-1", lang: "ja", "aria-label": fullLabel,
       "data-latitude": station[1], "data-longitude": station[2], "data-phase": weather.phase,
       transform: "translate(" + (180 + station[2]).toFixed(2) + " " + (90 - station[1]).toFixed(2) + ")" });
     group.setAttribute("data-sample-name", weather.name);
@@ -177,6 +177,7 @@
         }
       }
       group.setAttribute("visibility", box ? "visible" : "hidden");
+      group.setAttribute("tabindex", box ? "0" : "-1");
       if (!box) return;
       blocked.push(box, pin);
       var dx = box.x - x, dy = box.y - y;
@@ -198,6 +199,7 @@
       var status = map.querySelector("[data-weather-sample-status]");
       if (status) {
         status.textContent = message || data.length + "地点を観測 · " + selected.length + "種の天候";
+        status.toggleAttribute("data-sample-notice", !!message);
         status.hidden = false;
       }
       arrange(map);

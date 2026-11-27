@@ -102,18 +102,8 @@
         (effectsError ? "再試行" : loading ? "…" : effectsOn ? "入" : "切");
       musicButton.setAttribute("aria-pressed", String(musicOn));
       effectsButton.setAttribute("aria-pressed", String(effectsOn));
-      musicButton.setAttribute(
-        "aria-label",
-        musicError ? "BGM を再試行" : musicOn ? "BGM を切る" : "BGM を入れる"
-      );
-      effectsButton.setAttribute(
-        "aria-label",
-        effectsError
-          ? "効果音を再試行"
-          : effectsOn
-            ? "効果音を切る"
-            : "効果音を入れる"
-      );
+      musicButton.title = musicError ? "BGM を再試行" : musicOn ? "BGM を切る" : "BGM を入れる";
+      effectsButton.title = effectsError ? "効果音を再試行" : effectsOn ? "効果音を切る" : "効果音を入れる";
       effectsButton.setAttribute("aria-busy", String(loading));
       bar.dataset.music = musicOn ? "on" : "off";
       bar.dataset.sfx = effectsOn ? "on" : "off";

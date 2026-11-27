@@ -223,6 +223,16 @@
   cursor: pointer;
   color: var(--classic-accent);
 }
+@media (pointer: coarse) {
+  #live2d-widget .danmaku-help summary {
+    min-height: 34px;
+    padding-block: 6px;
+  }
+  #live2d-widget .danmaku-audio a {
+    min-width: 24px;
+    justify-self: center;
+  }
+}
 #live2d-widget .danmaku-help p {
   margin: 8px 0;
   font: 12px/1.8 var(--vn-font);

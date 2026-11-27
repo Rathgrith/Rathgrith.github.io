@@ -16,7 +16,7 @@
 
   function mount(root, hooks) {
     var enabled = false, visible = true, game = false, volume = .55;
-    var audio, manifest, pending, epoch = 0, timer = 0;
+    var audio, manifest, pending, epoch = 0, timer = 0, previewing = false;
     var lastTime = {}, lastClip = {};
     var toggle = document.createElement("button");
     toggle.type = "button";
@@ -33,10 +33,11 @@
     function update(state) {
       toggle.textContent = "声：" + (enabled ? "入" : "切");
       toggle.setAttribute("aria-pressed", String(enabled));
-      toggle.setAttribute("aria-label", enabled ? "相槌の声を切る" : "相槌の声を入れる");
+      toggle.title = enabled ? "相槌の声を切る" : "相槌の声を入れる";
       root.dataset.reactionVoiceState = state || (enabled ? "ready" : "off");
     }
     function stop() {
+      previewing = false;
       epoch++; clearTimeout(timer);
       if (audio) { audio.pause(); audio.muted = true; }
       update();
@@ -59,12 +60,16 @@
       audio.addEventListener("error", function () { stop(); update("error"); });
     }
     function play(character, line, preview) {
+      // A new line can arrive while the visitor’s manual preview is buffering.
+      if (!preview && previewing) return;
       stop();
-      if (!allowed() || !line) return;
-      var mood = moodFor(line), now = performance.now();
+      if (!allowed() || (!line && !preview)) return;
+      // The voice switch is available while the first dialogue line is loading.
+      var mood = line ? moodFor(line) : "ack", now = performance.now();
       // Neutral lines mostly stay silent. Switching characters has its own budget.
       if (!preview && (now - (lastTime[character] || -Infinity) < 5000 || (mood === "ack" && Math.random() > .35))) return;
       var token = epoch;
+      previewing = Boolean(preview);
       ensureAudio(); update("loading");
       timer = setTimeout(function () { if (token === epoch) { stop(); update("error"); } }, 8000);
       load().then(function (data) {

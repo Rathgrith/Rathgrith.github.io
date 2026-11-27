@@ -48,19 +48,14 @@ classic_unframed: true
   </aside>
 </div>
 
-<div class="gallery-modal" id="gallery-modal" aria-hidden="true" hidden>
+<dialog class="gallery-modal" id="gallery-modal" aria-label="Image preview" hidden>
   <div class="gallery-modal__backdrop" data-gallery-close></div>
-  <div
-    class="gallery-modal__dialog"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Image preview"
-  >
+  <div class="gallery-modal__dialog">
     <header class="gallery-modal__toolbar">
       <span class="gallery-modal__title" data-gallery-collection-title>Image viewer</span>
       <button type="button" class="gallery-modal__nav gallery-modal__nav--prev" data-gallery-prev aria-label="Previous image"><i aria-hidden="true"></i></button>
       <button type="button" class="gallery-modal__nav gallery-modal__nav--next" data-gallery-next aria-label="Next image"><i aria-hidden="true"></i></button>
-      <button type="button" class="gallery-modal__close" data-gallery-close aria-label="Close preview"><svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><use href="#classic-icon-window-close"></use></svg></button>
+      <button type="button" class="gallery-modal__close" data-gallery-close autofocus aria-label="Close preview"><svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><use href="#classic-icon-window-close"></use></svg></button>
     </header>
     <figure class="gallery-modal__figure">
       <div class="gallery-modal__image-stage">
@@ -99,7 +94,7 @@ classic_unframed: true
     </figure>
 
   </div>
-</div>
+</dialog>
 
 <script id="gallery-captions-data" type="application/json">
   {{ site.data.gallery_captions | jsonify }}

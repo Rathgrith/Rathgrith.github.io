@@ -19,6 +19,7 @@ const url = route => new URL(route, base).href;
     assert.equal(await rows.count(), 3);
     await page.getByRole("button", { name: "All listed" }).click();
     assert.equal(await rows.count(), 5);
+    await rows.locator("img").evaluateAll(images => Promise.all(images.map(image => image.decode())));
     assert.equal(await page.locator(".publication-filter__scholar").getAttribute("target"), "_blank");
     const preview = page.locator(".publication-item img").first();
     await preview.scrollIntoViewIfNeeded();
@@ -87,9 +88,27 @@ const url = route => new URL(route, base).href;
         assert((await touch.locator("#notes-projects-heading").boundingBox()).y >= box.y + box.height);
       }
     }
+    await touch.goto(url("thoughts/"));
+    const archiveOrder = await touch.evaluate(() => {
+      const article = document.querySelector("main > article"), profile = document.querySelector(".sidebar");
+      return Boolean(article.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+        article.getBoundingClientRect().bottom <= profile.getBoundingClientRect().top + 1;
+    });
+    assert(archiveOrder, "readers reach the Thoughts archive before the mobile author profile");
     await touch.close();
     const plain = await browser.newPage({ viewport: { width: 320, height: 700 }, javaScriptEnabled: false });
     await plain.goto(base);
+    assert.equal(await plain.locator(".classic-theme-button:visible").count(), 0,
+      "without the theme controller the masthead has no inert buttons");
+    const siteFooter = plain.getByRole("contentinfo");
+    assert.equal(await siteFooter.count(), 1);
+    assert(await siteFooter.locator(".classic-credits").isVisible());
+    await plain.locator(".classic-skip-link").focus();
+    await plain.keyboard.press("Enter");
+    assert(await plain.locator("main > article").evaluate(e => e === document.activeElement),
+      "skipping the masthead also skips the profile and section navigation");
+    assert(await plain.locator(".hover-photo--gallery img").getAttribute("src"),
+      "the gallery preview has a real thumbnail in the initial markup");
     assert.equal(await plain.locator(".publication-item:visible").count(), 5);
     assert.equal(await plain.locator(".publication-filter button:visible").count(), 0);
     assert(await plain.locator(".publication-filter__scholar").isVisible());
@@ -109,6 +128,11 @@ const url = route => new URL(route, base).href;
     assert(await table.evaluate(el => el === document.activeElement && el.scrollLeft > 0));
     assert(await table.evaluate(el => el.scrollWidth > el.clientWidth && el.querySelector("tr").cells.length > 1));
     assert(await plain.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await plain.goto(url("assets/music/danmaku/"));
+    const samples = plain.locator(".language-plaintext pre");
+    assert((await samples.count()) > 0);
+    assert(await samples.evaluateAll(nodes => nodes.every(node => node.scrollWidth <= node.clientWidth + 1)),
+      "long checksums and shell commands stay readable at 320px");
     assert.deepEqual(errors, []);
     console.log("PASS: publication filter, static/animated art, secondary navigation, Notes dock and anchors, credits disclosure, narrow tables, script-free reading.");
   } finally {

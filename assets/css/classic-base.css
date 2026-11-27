@@ -108,6 +108,20 @@ table {
   scrollbar-width: thin;
 }
 .document-table table { margin-block: 0; }
+.reference-page .page__content > :is(p, ul, ol, blockquote) { max-width: 72ch; }
+.reference-page .language-plaintext pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.reference-page .document-table {
+  margin-block: 1rem 1.5rem;
+  border: 1px solid var(--classic-rule);
+  scrollbar-color: var(--classic-edge-light) var(--classic-document);
+}
+.reference-page .document-table table { width: 100%; }
+.reference-page .document-table :is(th, td) { vertical-align: top; }
+.reference-page .document-table thead {
+  color: var(--classic-accent);
+  background: var(--classic-panel);
+}
+.reference-page .document-table tr:nth-child(even) td { background: var(--classic-accent-wash); }
 @media (max-width: 599px) {
   .document-table :is(th, td) { min-width: 7.5rem; }
 }

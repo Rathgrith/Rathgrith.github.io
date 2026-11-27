@@ -147,6 +147,13 @@ defaults:
     values:
       layout: default
       author_profile: true
+  # Reference pages generated from the artwork and music credits.
+  - scope:
+      path: "assets/**/*.md"
+      type: pages
+    values:
+      content_first: true
+      body_class: reference-page
   # _thoughts
   - scope:
       path: ""

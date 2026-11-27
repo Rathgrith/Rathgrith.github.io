@@ -58,7 +58,7 @@ For a 30-day view, open the provider’s statistics report and select **Last 30 
 
 Header items accept `title`, `url`, optional `icon` (a filename in `assets/images/classic/icons/16/`), optional `page` for current-page highlighting, and `full_navigation: true` when crossing into another page shell. Keep Playground's full-navigation flag. The section index uses the `main` entries with `/#section-id` URLs; those IDs must exist in the homepage content.
 
-The three character IDs are also used by palettes, conversations, save data, scene art and games. Replacing an existing portrait or model URL is configurable; adding a fourth character requires those corresponding modules and art. Models need the existing Cubism expression/pose conventions. The header, theme menu and conversation cast share each character’s configured icon. The bundled 32px pixel portraits also appear in the arcade opponent picker. In-game sprites and the large profile illustrations use their own assets.
+The three character IDs are also used by palettes, conversations, save data, scene art and games. Replacing an existing portrait or model URL is configurable; adding a fourth character requires those corresponding modules and art. Models need the existing Cubism expression/pose conventions. The header, theme menu and conversation cast share each character’s configured icon. The bundled 32px pixel portraits also appear in the arcade opponent picker. In-game sprites and the large profile illustrations use their own assets. The full-size profile link uses `portrait`. The optional `portrait_preview` prefix points to WebP copies at `-160.webp`, `-320.webp`, `-640.webp` and `-960.webp`. Remove that setting to display the configured original directly.
 
 ## Gallery storage
 

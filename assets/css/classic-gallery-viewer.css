@@ -8,7 +8,17 @@
   z-index: var(--layer-modal);
   display: grid;
   place-items: center;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
 }
+.gallery-modal::backdrop { background: transparent; }
 .gallery-modal__backdrop {
   position: absolute;
   inset: 0;

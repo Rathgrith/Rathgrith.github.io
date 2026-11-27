@@ -23,6 +23,10 @@ const nativeMap = `
   map.style.backgroundSize = "100% 100%";
   const point = map.querySelector("i");
   point.style.cssText = "position:absolute;left:61%;top:48%;width:5px;height:5px;transform:translate(-50%,-50%);background:#e97f48;border-radius:50%";
+  window.nativeMapGestures = [];
+  for (const event of ["touchstart", "touchmove"]) {
+    map.addEventListener(event, () => window.nativeMapGestures.push(event));
+  }
   script.after(link);
 `;
 
@@ -255,6 +259,8 @@ async function checkViewport(browser, touch) {
     await visitors.locator("[data-native-point]").waitFor();
     await page.waitForFunction(() => document.querySelector("[data-weather-widget]")?.getAttribute("aria-busy") === "false");
     await exerciseMap(page, visitors, true, touch, forecasts);
+    assert.deepEqual(await page.evaluate(() => window.nativeMapGestures), [],
+      "the provider never applies a second camera transform inside the atlas");
     await dialog.locator("#atlas-weather-tab").click();
     await exerciseMap(page, dialog.locator("#atlas-weather-panel [data-atlas-zoom]"), false, touch, forecasts);
     await dialog.locator(".visitor-map__close").click();

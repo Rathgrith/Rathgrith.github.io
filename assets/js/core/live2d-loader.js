@@ -324,6 +324,19 @@
     }
   }
 
+  function syncProfilePortrait(characterId) {
+    document.querySelectorAll(".author__avatar-link").forEach(function (link) {
+      var template = link.querySelector("template");
+      if (!template) return;
+      var image = link.querySelector(":scope > img");
+      if (link.dataset.avatarCharacter === characterId) {
+        if (!image) link.appendChild(template.content.cloneNode(true));
+      } else if (image) {
+        image.remove();
+      }
+    });
+  }
+
   function syncCharacterTheme(characterId) {
     var character =
       getCharacter(characterId) || getCharacter(getDefaultCharacterId());
@@ -332,6 +345,7 @@
       "data-live2d-character",
       character.id
     );
+    syncProfilePortrait(character.id);
     Array.prototype.forEach.call(
       document.querySelectorAll("[data-classic-character]"),
       function (button) {
@@ -2015,7 +2029,7 @@
       getCharacter(getDefaultCharacterId());
     var name = window.CompanionStories.characters[selected.id].name;
     var label = "テーマ：" + name;
-    var accessibleLabel = "テーマを切り替える：" + name;
+    var accessibleLabel = label + "。テーマを切り替える";
 
     button.hidden = isPageDisabled();
     button.setAttribute("aria-label", accessibleLabel);
@@ -2153,6 +2167,8 @@
     }
   });
 
+  // Start decoding the chosen portrait before the home entrance checks readiness.
+  syncProfilePortrait(document.documentElement.dataset.live2dCharacter);
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initLive2D);
   } else {

@@ -14,6 +14,7 @@ fs.mkdirSync(out, { recursive: true });
       [768, 1000, true],
       [375, 812, true],
       [320, 740, true],
+      [320, 668, true],
       [844, 390, true],
     ]) {
       const context = await browser.newContext({
@@ -83,7 +84,26 @@ fs.mkdirSync(out, { recursive: true });
       const layout = await w.getAttribute("data-playground-layout");
       const radio = w.locator(".pg-radio");
       assert.equal(await radio.evaluate(element => element.open), layout === "wide");
+      if (width === 320 && height === 668) {
+        const fit = await w.evaluate(widget => {
+          const label = widget.querySelector(".pg-app-detail");
+          return { commands: widget.querySelector(".companion-footer").getBoundingClientRect().bottom,
+            labelFits: label.scrollWidth <= label.clientWidth + 1 };
+        });
+        assert(fit.commands <= height && fit.labelFits, "the commands and full launcher subtitle fit a small phone");
+      }
       if (layout !== "wide") await radio.locator("summary").click();
+      if (width === 320 && height === 668) {
+        const trigger = w.locator("[data-radio-open]");
+        await trigger.click();
+        assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+        const bounds = await p.locator(".vn-radio-receiver").boundingBox();
+        assert(Math.abs(bounds.y + bounds.height / 2 - height / 2) <= 1,
+          "the receiver is centered when the phone has no space beside the window");
+        await p.keyboard.press("Escape");
+        assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+        assert(await trigger.evaluate(button => document.activeElement === button));
+      }
       await w.locator(".vn-main-view").evaluate(element => element.scrollTop = 0);
       // Opening the receiver can resize the stage. Sample its real backing
       // store after the renderer has processed the resize observer.

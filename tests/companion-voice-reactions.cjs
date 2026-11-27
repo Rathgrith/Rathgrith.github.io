@@ -74,7 +74,7 @@ for (const clips of Object.values(manifest)) for (const names of Object.values(c
   assert.deepEqual(errors,[]);
 
   const mobile=await browser.newPage({viewport:{width:320,height:800},isMobile:true,hasTouch:true});
-  let release;const gate=new Promise(r=>release=r);
+  let release, gate=new Promise(r=>release=r);
   await mobile.route('**/audio/reactions/manifest.json*',async route=>{await gate;await route.continue()});
   await mobile.goto(base);
   await mobile.waitForFunction(()=>document.querySelector('#live2d-widget')?.dataset.live2dCharacter==='alice');
@@ -85,8 +85,16 @@ for (const clips of Object.values(manifest)) for (const names of Object.values(c
   assert(await mobile.locator('.vn-nameplate').evaluate(el=>el.scrollWidth<=el.clientWidth+1),'compact nameplate fits');
   await mobile.locator('[data-voice-reactions]').click();
   await mobile.waitForFunction(()=>document.querySelector('#live2d-widget').dataset.reactionVoiceState==='playing');
+  gate=new Promise(r=>release=r);
   await mobile.reload();
   assert.equal(await mobile.locator('[data-voice-reactions]').getAttribute('aria-pressed'),'false');
+  // Exercise a manual preview that crosses the transition from loading to the first line.
+  await mobile.waitForFunction(()=>document.querySelector('#live2d-widget')?.dataset.live2dCharacter==='alice');
+  await mobile.evaluate(()=>SiteCompanion.cancel());
+  await mobile.locator('[data-voice-reactions]').click();
+  await mobile.evaluate(()=>SiteCompanion.start('craft'));
+  release();
+  await mobile.waitForFunction(()=>document.querySelector('#live2d-widget').dataset.reactionVoiceMood==='ack');
   console.log('PASS: 18 short recordings; three real voices; default silence; cooldown; text mouth animation; volume/credits; minimize/game/navigation stop; retry; delayed opt-out; compact layout.');
  } finally {await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});

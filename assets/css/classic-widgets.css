@@ -144,6 +144,7 @@
   opacity: 1;
   visibility: visible;
 }
+.no-js .hover-photo .hover-photo__card,
 .hover-photo[data-preview-dismissed] .hover-photo__card {
   opacity: 0;
   visibility: hidden;

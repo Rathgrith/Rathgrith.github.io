@@ -36,6 +36,7 @@ const types = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".jpg": "image/jpeg",
+  ".webp": "image/webp",
   ".woff2": "font/woff2",
   ".json": "application/json",
   ".webmanifest": "application/manifest+json",
@@ -93,6 +94,30 @@ let browser, server;
   const page = await browser.newPage({
     viewport: { width: 1280, height: 900 },
   });
+  const plain = await browser.newPage({
+    javaScriptEnabled: false,
+    deviceScaleFactor: 2,
+    viewport: { width: 320, height: 844 },
+  });
+  const plainPortraits = [];
+  plain.on("request", (request) => {
+    if (request.url().includes("/images/avatars/")) plainPortraits.push(request.url());
+  });
+  await plain.goto(base);
+  const preview = plain.locator(".author__avatar-link:visible img");
+  const prefix = base + "images/avatars/patchouli-portrait";
+  await preview.evaluate((image) => image.decode());
+  assert.deepEqual(plainPortraits, [prefix + "-160.webp"]);
+  assert.equal(await preview.evaluate((image) => image.closest("a").href), prefix + ".png");
+  const [landscapePreview] = await Promise.all([
+    plain.waitForResponse(prefix + "-320.webp"),
+    plain.setViewportSize({ width: 844, height: 320 }),
+  ]);
+  assert.equal(landscapePreview.status(), 200);
+  await preview.evaluate((image) => image.decode());
+  assert.deepEqual(plainPortraits, [prefix + "-160.webp", prefix + "-320.webp"]);
+  await plain.close();
+
   const bad = [],
     errors = [],
     localRequests = [];

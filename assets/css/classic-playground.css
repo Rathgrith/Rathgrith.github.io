@@ -528,6 +528,21 @@ body.playground-page {
   .playground-page #live2d-widget .vn-main-view { --pg-gap: 7px; }
 }
 
+@media (max-width: 540px) and (max-height: 740px) {
+  /* Keep the first row of dialogue commands in view without shrinking the reply area. */
+  .playground-page #live2d-widget .vn-main-view {
+    grid-template-rows: auto minmax(clamp(222px, 34cqh, 252px), 1fr) auto auto;
+  }
+}
+@media (max-width: 360px) {
+  .playground-page #live2d-widget .companion-title { gap: 6px; }
+  .playground-page #live2d-widget .companion-title::after { content: none; }
+  .playground-page #live2d-widget .pg-launchers .pg-app-detail {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Dedicated arcade layout: the playfield and its instrument rail share a frame. */
 .playground-page #live2d-widget .vn-danmaku-view {
   background:

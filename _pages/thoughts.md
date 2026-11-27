@@ -3,6 +3,7 @@ permalink: /thoughts/
 title: "Thoughts"
 excerpt: "Short notes by Dongheng Lin."
 author_profile: true
+content_first: true
 body_class: thoughts-page
 ---
 
@@ -38,7 +39,7 @@ body_class: thoughts-page
       {% if thought.tags and thought.tags.size > 0 %}
         <span class="thought-card__tags">
           {% for tag in thought.tags limit: 4 %}
-            <span>{{ tag }}</span>
+            <span>{{ tag | escape }}</span>
           {% endfor %}
         </span>
       {% endif %}

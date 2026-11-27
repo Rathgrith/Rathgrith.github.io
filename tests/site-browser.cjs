@@ -11,12 +11,16 @@ async function checkPortrait(page, id) {
   assert.equal(await portrait.count(), 1);
   const expected = new URL("images/avatars/" + id + "-portrait.png", base).href;
   await portrait.scrollIntoViewIfNeeded();
-  const hit = await portrait.evaluate((link) => {
+  const hit = await portrait.evaluate(async (link) => {
+    await link.querySelector("img").decode();
     const rect = link.getBoundingClientRect();
     const image = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
     return { href: image.closest("a")?.href, image: image.currentSrc };
   });
-  assert.deepEqual(hit, { href: expected, image: expected }, id + " portrait hit target");
+  assert.equal(hit.href, expected, id + " portrait hit target");
+  assert([160, 320, 640, 960].some((width) =>
+    hit.image === expected.replace(".png", "-" + width + ".webp")
+  ), id + " portrait displays its responsive preview");
 }
 async function galleryOrder(page, scripted = true) {
   if (scripted)
@@ -42,9 +46,11 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     });
     const errors = [],
       bad = [],
-      radioRequests = [];
+      radioRequests = [],
+      portraits = [];
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("request", (r) => {
+      if (r.url().includes("/images/avatars/")) portraits.push(r.url());
       if (/(^|\.)(youtube\.com|youtube-nocookie\.com|youtu\.be|googlevideo\.com|ytimg\.com)$/.test(new URL(r.url()).hostname))
         radioRequests.push(r.url());
     });
@@ -58,6 +64,8 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     assert.equal(await page.locator("[data-music-player]").count(), 0);
     assert.equal(await page.locator("[data-bgm-mute]").getAttribute("aria-pressed"), "true");
     assert.deepEqual(radioRequests, [], "Default radio must not contact YouTube before opt-in");
+    assert.equal(portraits.length, 1, "only the active portrait should be requested");
+    assert(portraits[0].includes("/alice-portrait-") && portraits[0].endsWith(".webp"));
     let checks = 0;
     for (const id of ["alice", "marisa", "patchouli"]) {
       await page.locator(`[data-classic-character="${id}"]`).click();
@@ -248,6 +256,8 @@ const galleryMembership = (groups) => groups.map((items) => [...items].sort());
     await page.locator('[data-classic-page="home"]').click();
     await page.waitForURL(base);
     await checkPortrait(page, "patchouli");
+    assert.equal(await page.locator(".author__avatar-link img").count(), 1,
+      "soft navigation must not mount the no-script default alongside the saved theme");
     await page.goBack();
     await page.waitForURL("**/gallery/");
     await page.waitForSelector(".classic-photo");

@@ -679,6 +679,9 @@
         await loadWeather({ station: station, pickedView: pickedView });
         if (target === pending) clearCursor();
       }
+      function observeSample(sample) {
+        observe(180 + Number(sample.dataset.longitude), 90 - Number(sample.dataset.latitude), sample.dataset.label, view);
+      }
       viewport.addEventListener("pointerup", function (event) {
         // A browser can move its synthesized click onto a nearby station badge.
         // Keep the finger's actual release position for the accepted tap.
@@ -686,14 +689,19 @@
           ? { clientX: event.clientX, clientY: event.clientY } : null;
       });
       viewport.addEventListener("click", function (event) {
-        if (event.defaultPrevented || !event.detail) return;
+        if (event.defaultPrevented) return;
+        if (!event.detail) {
+          var activated = event.target.closest('[data-weather-sample][visibility="visible"]');
+          if (activated) observeSample(activated);
+          return;
+        }
         var pointer = touchRelease || event;
         var hit = touchRelease ? document.elementFromPoint(pointer.clientX, pointer.clientY) : event.target;
         touchRelease = null;
         if (!hit || !viewport.contains(hit)) return;
         var sample = hit.closest("[data-weather-sample]");
         if (sample) {
-          observe(180 + Number(sample.dataset.longitude), 90 - Number(sample.dataset.latitude), sample.dataset.label, view);
+          observeSample(sample);
           return;
         }
         var matrix = svg.getScreenCTM();
@@ -702,6 +710,12 @@
         observe(point.x, point.y, null, view);
       });
       viewport.addEventListener("keydown", function (event) {
+        var sample = event.target.closest('[data-weather-sample][visibility="visible"]');
+        if (sample && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          if (!event.repeat) observeSample(sample);
+          return;
+        }
         if (event.target !== viewport) return;
         var dx = { ArrowLeft: -1, ArrowRight: 1 }[event.key] || 0;
         var dy = { ArrowUp: -1, ArrowDown: 1 }[event.key] || 0;

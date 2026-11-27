@@ -18,15 +18,16 @@
         {% include prayer-loader.html place="home" %}
       </div>
     {% endif %}
-    <a class="classic-skip-link" href="#main">Skip to content</a>
+    <a class="classic-skip-link" href="#page-content">Skip to content</a>
     <div class="classic-frame">
     {% include masthead.html %}
 
-    <main id="main" class="classic-main{% if page.author_profile %} classic-home-grid{% elsif page.section_index %} classic-indexed-grid{% endif %}" tabindex="-1">
-      {% include sidebar.html %}
+    {% assign content_first = page.content_first | default: layout.content_first %}
+    <main id="main" class="classic-main{% if content_first %} classic-main--content-first{% endif %}{% if page.author_profile %} classic-home-grid{% elsif page.section_index %} classic-indexed-grid{% endif %}" tabindex="-1">
+      {% unless content_first %}{% include sidebar.html %}{% endunless %}
       <div class="classic-mobile-page-index" data-mobile-page-index></div>
 
-      <article class="page{% if page.classic_unframed or layout.classic_unframed %} classic-page-unframed{% else %} classic-document{% endif %}" itemscope itemtype="http://schema.org/CreativeWork">
+      <article id="page-content" tabindex="-1" class="page{% if page.classic_unframed or layout.classic_unframed %} classic-page-unframed{% else %} classic-document{% endif %}" itemscope itemtype="http://schema.org/CreativeWork">
         {% if page.title %}<meta itemprop="headline" content="{{ page.title | markdownify | strip_html | strip_newlines | escape_once }}">{% endif %}
         <div class="page__inner-wrap">
           <section class="page__content" itemprop="text">
@@ -39,6 +40,7 @@
           </section>
         </div>
       </article>
+      {% if content_first %}{% include sidebar.html %}{% endif %}
       {% if page.section_index %}
       <aside class="classic-index-rail classic-pinned-rail">
         <nav class="classic-year-navigation" aria-label="On this page">
@@ -54,8 +56,10 @@
       </div>
     </main>
 
-    {% unless site.classic.runtime == false %}{% include site-runtime-footer.html %}{% endunless %}
-    {% include classic-credits.html %}
+    <footer>
+      {% unless site.classic.runtime == false %}{% include site-runtime-footer.html %}{% endunless %}
+      {% include classic-credits.html %}
+    </footer>
     </div>
     <button class="classic-reading-playground" data-reading-playground type="button" aria-expanded="false" aria-controls="live2d-widget" hidden>
       <img src="{{ '/assets/images/classic/icons/16/playground.svg' | relative_url }}" alt="" width="16" height="16">Playground

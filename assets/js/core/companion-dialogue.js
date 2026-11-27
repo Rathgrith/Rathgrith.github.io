@@ -66,7 +66,6 @@
     clearTimeout(timer);
     clearTimeout(autoTimer);
     timer = autoTimer = 0;
-    if (voiceReactions) voiceReactions.stop();
     if (hooks) hooks.stopSpeaking();
   }
   function setState(value) {
@@ -74,6 +73,7 @@
     root.dataset.dialogueState = value;
     var reading = q("[data-vn-reading]");
     reading.setAttribute("aria-disabled", String(value === "choice"));
+    reading.setAttribute("aria-description", value === "choice" ? "下の返事から選んでください" : "会話を進める");
     reading.tabIndex = value === "choice" ? -1 : 0;
   }
   function updateAffinity() {
@@ -384,6 +384,8 @@
     // Start a reply-bearing line at its final reading position. Revealing the
     // buttons then leaves the sentence exactly where the reader's eye was.
     var reading = q("[data-vn-reading]");
+    // Keep the full sentence available throughout the visual ink reveal.
+    reading.setAttribute("aria-label", line.text);
     reading.toggleAttribute("data-expects-replies", index === story.lines.length - 1 &&
       Boolean((story.choices && story.choices.length) || branchTopic ||
         lastTopic.startsWith("friend:") || suggestedTopics().length));
@@ -508,6 +510,7 @@
   function cancel() {
     if (!root) return;
     clearTimers();
+    if (voiceReactions) voiceReactions.stop();
     story = null;
     branchTopic = null;
     delete root.dataset.vnBranchNode;
@@ -518,6 +521,7 @@
     var text = q("[data-live2d-dialogue-text]");
     text.removeAttribute("data-unread");
     text.textContent = "……";
+    q("[data-vn-reading]").setAttribute("aria-label", "……");
     q("[data-vn-reading]").removeAttribute("data-expects-replies");
     q("[data-vn-announcement]").textContent = "";
     q("#live2d-interact").textContent = "話題 ▸";
@@ -679,14 +683,12 @@
     );
     q("[data-companion-content]").insertAdjacentHTML(
       "afterbegin",
-      '<div class="vn-cast" aria-label="話し相手">' +
+      '<div class="vn-cast" role="group" aria-label="話し相手">' +
         Object.keys(data.characters)
           .map(function (id) {
             return (
               '<button type="button" data-vn-character="' +
               id +
-              '" aria-label="話し相手：' +
-              data.characters[id].name +
               '"><img width="24" height="24" alt="">' +
               data.characters[id].name +
               "</button>"
@@ -703,7 +705,7 @@
         );
       });
     q("[data-companion-conversation]").innerHTML =
-      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" data-vn-dialogue-body><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-label="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div></div><span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
+      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" data-vn-dialogue-body><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-description="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div></div><span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
     q("[data-companion-footer]").innerHTML =
       '<button type="button" data-vn-open="topics" aria-expanded="false">話題</button><button type="button" data-vn-auto aria-pressed="false">自動</button><button type="button" data-vn-open="history" aria-expanded="false">履歴</button><button type="button" data-vn-open="settings" aria-expanded="false">設定</button><button type="button" id="live2d-interact" class="live2d-interact">次へ ▸</button>';
     q("[data-companion-content]").insertAdjacentHTML(

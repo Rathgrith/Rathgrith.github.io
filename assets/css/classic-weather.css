@@ -238,8 +238,8 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0 6px;
-  font-size: 9px;
-  opacity: 0.75;
+  color: var(--weather-print);
+  font-size: 10px;
 }
 .weather-dial__description {
   margin: 0;
@@ -281,7 +281,7 @@
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
-.weather-terminal__metrics span {
+.weather-terminal__metrics small {
   display: block;
   font-size: 9px;
   line-height: 1.5;
@@ -420,7 +420,11 @@
   padding-left: 0;
   border: 0;
 }
-.weather-calendar dt,
+.weather-calendar dt {
+  margin: 0 0 2px;
+  color: var(--vn-muted);
+  font-size: 11px;
+}
 .weather-calendar__gensokyo small {
   position: absolute;
   width: 1px;
@@ -498,31 +502,41 @@
   margin-top: 10px;
   padding: 6px;
 }
+/* Give named stations the full width when a two-column display makes the
+   projection too narrow to operate. Group the current reading above it. */
+@container vn-menu (max-width: 360px) {
+  .weather-terminal__overview { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .weather-terminal__reading {
+    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-areas: "temperature condition" "range observed";
+    align-items: center;
+    gap: 0 12px;
+    border: 0;
+    padding: 0;
+  }
+  .weather-dial__temperature { grid-area: temperature; }
+  .weather-terminal__condition { grid-area: condition; }
+  .weather-terminal__range { grid-area: range; }
+  .weather-terminal__observed { grid-area: observed; justify-content: start; }
+}
 @container vn-menu (max-width: 280px) {
   .weather-terminal__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px 12px;
   }
   .weather-terminal__metrics > div {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: baseline;
-    gap: 0 3px;
     padding: 0;
     border: 0;
-    text-align: left;
   }
-  .weather-terminal__metrics dd { justify-self: end; }
-  .weather-terminal__metrics :is(meter, span) {
-    grid-column: 1 / -1;
-    text-align: right;
-  }
+  .weather-terminal__metrics dt { float: left; }
+  .weather-terminal__metrics dd { margin: 0; text-align: right; }
+  .weather-terminal__metrics :is(meter, small) { clear: both; }
   .weather-terminal__metrics dt,
   .weather-terminal__metrics dd { white-space: nowrap; }
 }
 @container vn-menu (min-width: 390px) {
   .weather-terminal__overview {
-    grid-template-columns: minmax(130px, .85fr) minmax(0, 1fr);
+    grid-template-columns: minmax(104px, .58fr) minmax(0, 1fr);
     gap: 16px;
   }
   .weather-terminal__reading {
@@ -634,7 +648,7 @@
   cursor: default;
 }
 .atlas-zoom__controls output,
-#live2d-widget .atlas-zoom__controls output {
+#live2d-widget .weather-map .atlas-zoom__controls output {
   display: grid;
   flex: 0 0 auto;
   white-space: nowrap;
@@ -649,7 +663,7 @@
 }
 @media (pointer: coarse) {
   .atlas-zoom__controls button,
-  #live2d-widget .atlas-zoom__controls button { min-height: 32px; }
+  #live2d-widget .atlas-zoom__controls button { min-width: 36px; min-height: 36px; }
   .visitor-map .atlas-zoom__controls button { min-width: 44px; min-height: 44px; }
 }
 
@@ -685,13 +699,24 @@
 .weather-map__samples use,
 .weather-map__samples .weather-map__sample-flourish { pointer-events: none; }
 .weather-map__sample-flourish { opacity: 0; }
-.weather-map__samples [data-weather-sample]:hover .weather-map__sample-badge {
+.weather-map__samples [data-weather-sample]:is(:hover, :focus-visible) .weather-map__sample-badge {
   fill: #fff1d8;
   stroke: var(--sample-ink);
 }
-.weather-sample-status { font-variant-numeric: tabular-nums; }
+.weather-map__samples [data-weather-sample]:focus-visible { outline: none; }
+.weather-map__samples [data-weather-sample]:focus-visible .weather-map__sample-badge {
+  stroke: var(--classic-desktop);
+  stroke-width: 2px;
+  filter: drop-shadow(0 0 1px #fff);
+}
+.weather-sample-status {
+  display: block;
+  margin-top: 3px;
+  font: 12px/1.4 "Fusion Pixel", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
 @container weather-map (max-width: 229px) {
-  .weather-sample-status { display: none; }
+  .weather-sample-status:not([data-sample-notice]) { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .weather-map__sample-flourish {

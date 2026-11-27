@@ -92,10 +92,10 @@
       <div class="weather-dial__description" data-weather-description>空模様を観測しています</div>
     </div>
     <dl class="weather-terminal__metrics">
-      <div><dt>湿度</dt><dd data-weather-humidity>--%</dd><meter data-weather-humidity-meter min="0" max="100" value="0" aria-label="湿度" hidden></meter></div>
-      <div><dt>雲量</dt><dd data-weather-cloud>--%</dd><meter data-weather-cloud-meter min="0" max="100" value="0" aria-label="雲量" hidden></meter></div>
-      <div><dt>風速</dt><dd data-weather-wind>--</dd><span data-weather-direction>--</span></div>
-      <div><dt>気圧</dt><dd data-weather-pressure>--</dd><span>hPa</span></div>
+      <div><dt>湿度</dt><dd><span data-weather-humidity>--%</span><meter data-weather-humidity-meter min="0" max="100" value="0" aria-label="湿度" hidden></meter></dd></div>
+      <div><dt>雲量</dt><dd><span data-weather-cloud>--%</span><meter data-weather-cloud-meter min="0" max="100" value="0" aria-label="雲量" hidden></meter></dd></div>
+      <div><dt>風速</dt><dd><span data-weather-wind>--</span><small data-weather-direction>--</small></dd></div>
+      <div><dt>気圧</dt><dd><span data-weather-pressure>--</span><small>hPa</small></dd></div>
     </dl>
     <figure class="weather-trend">
       <figcaption><span>24時間予報</span><span class="weather-trend__key"><i class="weather-trend__line-key" aria-hidden="true"></i>気温 <i class="weather-trend__bar-key" aria-hidden="true"></i>降水確率</span></figcaption>
@@ -111,7 +111,7 @@
     </figure>
   </div>
   <section class="weather-calendar" aria-label="暦の詳細">
-    <header><span>暦</span><time data-weather-calendar-time aria-label="現地時刻">--:--</time></header>
+    <header><span>暦</span><time data-weather-calendar-time aria-label="端末時刻" title="端末時刻">--:--</time></header>
     <dl>
       <div><dt>新暦</dt><dd data-weather-calendar-gregorian>--</dd></div>
       <div><dt>旧暦</dt><dd data-weather-calendar-kyureki>--</dd></div>
@@ -119,7 +119,7 @@
     </dl>
   </section>
   <div class="weather-dial__actions" role="group" aria-label="天気の操作">
-    <button class="weather-dial__button" type="button" data-weather-action="refresh" aria-label="天気を更新"><span aria-hidden="true">↻</span> 再観測</button>
+    <button class="weather-dial__button" type="button" data-weather-action="refresh"><span aria-hidden="true">↻</span> 再観測</button>
     <button class="weather-dial__button" type="button" data-weather-action="locate" aria-label="現在地を使う"><span aria-hidden="true">⌖</span> 現在地</button>
   </div>
   <p class="weather-dial__status" data-weather-status aria-live="polite" hidden></p>

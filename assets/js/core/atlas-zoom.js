@@ -24,6 +24,10 @@
     if (!view || !layer || !controls) return;
     mounted.add(root);
 
+    // MapMyVisitors zooms its SVG on touch, but its raster stays fixed. The
+    // surrounding viewport must handle the gesture for both layers together.
+    var wrapsProvider = !!layer.querySelector("[data-visitor-map-mount]");
+
     var zoomIn = controls.querySelector("[data-atlas-zoom-in]");
     var zoomOut = controls.querySelector("[data-atlas-zoom-out]");
     var reset = controls.querySelector("[data-atlas-reset]");
@@ -181,6 +185,7 @@
       return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     }
     function updateTouches(event) {
+      if (wrapsProvider && layer.contains(event.target)) event.stopPropagation();
       var current = fingers(event);
       if (event.type === "touchstart" && !touches.length) {
         suppressClickUntil = 0;
@@ -213,7 +218,7 @@
       touches = current;
     }
     ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function (type) {
-      view.addEventListener(type, updateTouches, { passive: false });
+      view.addEventListener(type, updateTouches, { capture: wrapsProvider, passive: false });
     });
 
     function preventGestureClick(event) {

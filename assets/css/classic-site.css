@@ -149,6 +149,7 @@ code {
   background: rgba(0, 0, 0, 0.12);
   box-shadow: 0 1px rgba(255, 255, 255, 0.07);
 }
+.no-js .classic-themes { display: none; }
 .classic-theme-button {
   position: relative;
   display: grid;
@@ -375,6 +376,7 @@ body.gallery-page.classic-site .page__content h1::before {
 .page__content :is(h1, h2, h3, .anchor) {
   scroll-margin-top: 20px;
 }
+.classic-main #page-content { scroll-margin-block-start: var(--classic-index-clearance, 16px); }
 .page__content .anchor {
   display: block;
   height: 0;
@@ -1050,10 +1052,11 @@ html[data-live2d-character="patchouli"]
   display: none;
 }
 .publication-filter__button.is-active {
+  color: var(--classic-accent);
   border-color: var(--classic-edge-dark) var(--classic-edge-light)
     var(--classic-edge-light) var(--classic-edge-dark);
   background: var(--classic-soft);
-  box-shadow: inset 1px 1px var(--classic-edge-dark);
+  box-shadow: inset 1px 1px var(--classic-edge-dark), inset 0 -2px var(--classic-accent);
 }
 .publication-filter__count {
   margin-left: auto;
@@ -1063,24 +1066,28 @@ html[data-live2d-character="patchouli"]
 }
 @container (max-width: 499px) {
   .publication-item-inner {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: minmax(0, 1fr) clamp(86px, 30cqi, 130px);
+    grid-template-areas: "venue venue" "title title" "authors preview";
+    gap: 8px 12px;
+    align-items: start;
   }
-  .publication-line {
-    grid-column: 1;
-  }
+  .publication-line { display: contents; }
+  .publication-tag { grid-area: venue; margin: 0; }
   .publication-line > a {
+    grid-area: title;
     font-size: 18px;
+    line-height: 1.4;
   }
   .publication-authors {
-    margin-top: 7px;
+    grid-area: authors;
+    margin: 0;
     font-size: 14px;
-    line-height: 1.55;
+    line-height: 1.5;
   }
   .publication-thumb-wrap {
-    grid-row: 2;
-    width: min(176px, 100%);
-    height: 92px;
+    grid-area: preview;
+    align-self: start;
+    aspect-ratio: 16 / 9;
   }
 }
 .hover-photo__card {
@@ -1122,6 +1129,11 @@ html[data-live2d-character="patchouli"]
     var(--classic-edge-dark) var(--classic-edge-light);
   background: var(--classic-panel);
   box-shadow: var(--classic-bevel-raised), 4px 4px 0 #0005;
+}
+.visitor-map[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .atlas-tabs {
   display: flex;
@@ -1172,6 +1184,7 @@ html[data-live2d-character="patchouli"]
 .atlas-observation [data-weather-signal] { color: var(--text-muted); }
 .visitor-map::backdrop { background: rgb(10 15 24 / 55%); }
 .visitor-map__titlebar {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1197,7 +1210,12 @@ html[data-live2d-character="patchouli"]
   fill: currentColor;
   cursor: pointer;
 }
-.visitor-map__body { padding: 10px; }
+.visitor-map__body {
+  min-height: 0;
+  padding: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 .visitor-map__titlebar .visitor-map__close:hover {
   color: var(--classic-accent);
   background: var(--classic-soft);
@@ -1228,8 +1246,25 @@ html[data-live2d-character="patchouli"]
   background-color: var(--map-sea) !important;
 }
 .visitor-map .mapmyvisitors-map {
+  position: relative;
   background-color: var(--map-land);
   background-blend-mode: luminosity;
+}
+/* The configured 400px raster has a picture of +/- painted over open sea.
+   Sample the adjacent ocean below the live SVG and its geographic markers. */
+.visitor-map .mapmyvisitors-map[style*="bg-w_400-co_17212d-cl_7f9db3.png"]::before {
+  content: "";
+  position: absolute;
+  inset: auto auto 0 0;
+  width: 24px;
+  height: 40px;
+  background-color: inherit;
+  background-image: inherit;
+  background-blend-mode: inherit;
+  background-size: 400px 196px;
+  background-position: -25px bottom;
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
 .visitor-map .mapmyvisitors-visitors,
 .visitor-map .mapmyvisitors-date {

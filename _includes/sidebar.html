@@ -16,7 +16,7 @@
   <div class="classic-profile-tools classic-pinned-rail">
     {% if page.url == "/" %}
     <nav class="classic-page-index" aria-label="On this page">
-      <h4 class="classic-rail-heading">On this page</h4>
+      <h3 class="classic-rail-heading">On this page</h3>
       {% for link in site.data.navigation.main %}{% if link.url contains "/#" %}<a href="{{ link.url | relative_url }}">{{ link.title }}</a>{% endif %}{% endfor %}
     </nav>
     {% endif %}

@@ -4,7 +4,7 @@
 <div class="classic-photo gallery-item">
   <a href="{{ site.gallery.originals_url | default: '/images/gallery/originals/' | relative_url }}{{ photo_filename }}" data-gallery-filename="{{ include.filename | escape }}" aria-label="Open {{ caption | escape }}">
     <figure>
-      <span class="classic-photo-frame"><img src="{{ '/images/gallery/thumbnails/' | relative_url }}{{ photo_filename }}" alt="{{ caption | escape }}" loading="lazy" decoding="async"></span>
+      <span class="classic-photo-frame"><img src="{{ '/images/gallery/thumbnails/' | relative_url }}{{ photo_filename }}" alt="" loading="lazy" decoding="async"></span>
       <figcaption>{{ caption | escape }}</figcaption>
     </figure>
   </a>

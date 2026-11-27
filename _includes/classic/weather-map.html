@@ -1,5 +1,5 @@
-<figure class="weather-map" data-atlas-zoom aria-label="観測地点の世界地図">
-  <div class="atlas-zoom__viewport" data-atlas-viewport tabindex="0" role="group" aria-label="Weather station map. Click to observe here, or move the cursor with Shift and arrow keys and press Enter.">
+<figure lang="ja" class="weather-map" data-atlas-zoom aria-label="観測地点の世界地図">
+  <div class="atlas-zoom__viewport" data-atlas-viewport tabindex="0" role="group" aria-label="観測地点の地図。地点をクリックするか、Shift と矢印キーで移動し、Enter で観測。">
     <div class="classic-map-surface atlas-zoom__layer" data-atlas-layer>
       <svg class="weather-map__overlay" viewBox="0 0 360 180" focusable="false">
         <g class="weather-map__samples" data-weather-samples></g>
@@ -28,5 +28,5 @@
     {% endif %}
     <span data-weather-daylight>--</span>
   </figcaption>
-  <small class="weather-sample-status" data-weather-sample-status hidden></small>
+  <small class="weather-sample-status" data-weather-sample-status role="status" hidden></small>
 </figure>

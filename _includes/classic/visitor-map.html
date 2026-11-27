@@ -9,7 +9,7 @@
       <button type="button" role="tab" id="atlas-visitors-tab" aria-selected="true" aria-controls="atlas-visitors-panel">Visitors</button>
       <button type="button" role="tab" id="atlas-weather-tab" aria-selected="false" aria-controls="atlas-weather-panel" tabindex="-1">Weather</button>
     </div>
-    <section id="atlas-visitors-panel" role="tabpanel" tabindex="0" aria-labelledby="atlas-visitors-tab" data-atlas-zoom>
+    <section id="atlas-visitors-panel" role="tabpanel" tabindex="-1" aria-labelledby="atlas-visitors-tab" data-atlas-zoom>
       <div class="atlas-zoom__viewport" data-atlas-viewport tabindex="0" role="group" aria-label="Visitor locations map">
         <div class="classic-map-surface visitor-map__display atlas-zoom__layer" data-atlas-layer>
           <div class="visitor-map__mount" data-visitor-map-mount
@@ -26,7 +26,7 @@
         {% else %}<span class="visitor-map__source">MapMyVisitors</span>{% endif %}
       </footer>
     </section>
-    <section id="atlas-weather-panel" role="tabpanel" aria-labelledby="atlas-weather-tab" tabindex="0" data-atlas-weather hidden>
+    <section id="atlas-weather-panel" role="tabpanel" tabindex="-1" aria-labelledby="atlas-weather-tab" data-atlas-weather hidden>
       {% include classic/weather-map.html %}
       <div class="atlas-station" lang="ja">
         <span data-weather-location>ウェスト・ミッドランズ</span>

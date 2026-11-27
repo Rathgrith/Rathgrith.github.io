@@ -416,6 +416,9 @@ body:not(.playground-page) #live2d-widget [data-radio-spectrum] {
   display: none;
 }
 .vn-radio-receiver .vn-radio-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -660,6 +663,16 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
 
 /* Larger physical targets still fit the smallest dock, without hiding VOL or lyrics. */
 @media (pointer: coarse) {
+  .vn-radio-receiver .vn-radio-header button {
+    width: 38px;
+    height: 36px;
+  }
+  .vn-radio-receiver .vn-radio-footer a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+  }
+  .vn-radio-receiver .vn-radio-footer a[hidden] { display: none; }
   #live2d-widget .vn-bgm .vn-bgm-main {
     grid-template-columns: repeat(4, 36px) minmax(44px, 1fr);
   }

@@ -54,7 +54,7 @@
     strip.setAttribute("aria-label", "幻想郷ラジオ");
     strip.innerHTML =
       '<div class="vn-bgm-deck">' +
-      '<button type="button" class="vn-bgm-track" data-radio-open aria-label="ラジオの選局窓を開く"><span class="vn-bgm-label">BGM：</span><span data-bgm-title></span><span class="vn-bgm-type" aria-hidden="true">FM</span></button>' +
+      '<button type="button" class="vn-bgm-track" data-radio-open title="ラジオの選局窓を開く"><span class="vn-bgm-label">BGM：</span><span data-bgm-title></span><span class="vn-bgm-type" aria-hidden="true">FM</span></button>' +
       '<button type="button" class="vn-bgm-lyrics" data-radio-lyrics-open title="歌詞の表示・補正"><span class="vn-bgm-lyrics-label">歌詞</span><span data-bgm-lyric>歌詞は未登録</span></button>' +
       '<div class="vn-radio-spectrum"><span aria-hidden="true">SIGNAL</span><canvas data-radio-spectrum width="288" height="12" role="img" aria-label="受信音声の周波数スペクトラム"></canvas><span data-radio-band aria-hidden="true">FM</span></div>' +
       "</div>" +
@@ -81,14 +81,21 @@
     // without adding a second scrollbar to the narrow Playground window.
     var receiver = document.createElement("aside");
     receiver.className = "vn-radio-receiver";
+    receiver.id = "vn-radio-receiver";
+    var receiverButtons = strip.querySelectorAll("[data-radio-open], [data-radio-lyrics-open], [data-radio-pv]");
+    receiverButtons.forEach(function (button) {
+      button.setAttribute("aria-haspopup", "dialog");
+      button.setAttribute("aria-controls", receiver.id);
+      button.setAttribute("aria-expanded", "false");
+    });
     receiver.setAttribute("popover", "manual");
     receiver.setAttribute("role", "dialog");
     receiver.setAttribute("aria-label", "幻想郷ラジオ・選局窓");
     receiver.setAttribute("tabindex", "-1");
     receiver.hidden = true;
     receiver.innerHTML =
-      '<header class="vn-radio-header"><span>幻想郷ラジオ <small>FM 98.0</small></span><button type="button" data-radio-close aria-label="ラジオの窓を閉じて停止">×</button></header>' +
-      '<div class="vn-radio-body"><div class="vn-radio-modes" role="group" aria-label="再生モード"><button type="button" data-radio-mode="audio" aria-pressed="true">RADIO</button><button type="button" data-radio-mode="pv" aria-pressed="false">PV</button><button type="button" data-radio-start>再生 ▷</button></div><label class="vn-radio-station">選局<select data-radio-station aria-label="放送する曲"></select></label>' +
+      '<header class="vn-radio-header"><span>幻想郷ラジオ <small>FM 98.0</small></span><button type="button" data-radio-close aria-label="選局窓を閉じる">×</button></header>' +
+      '<div class="vn-radio-body"><div class="vn-radio-modes" role="group" aria-label="再生モード"><button type="button" data-radio-mode="audio" aria-pressed="true">RADIO</button><button type="button" data-radio-mode="pv" aria-pressed="false">PV</button><button type="button" data-radio-start>再生 ▷</button></div><label class="vn-radio-station">選局<select data-radio-station></select></label>' +
       '<div class="vn-radio-screen"><div data-radio-player></div></div>' +
       '<p class="vn-radio-host" role="status" aria-live="polite"><span>STUDIO</span><span data-radio-intro>幻想郷ラジオへようこそ。今夜も、お気に入りの一曲を。</span></p>' +
       '<div class="vn-radio-footer"><span data-radio-credit></span><a data-radio-listen target="_blank" rel="noopener noreferrer" hidden></a><a data-radio-source target="_blank" rel="noopener noreferrer">YouTube ↗</a></div></div>';
@@ -420,23 +427,26 @@
     }
     function position() {
       if (receiver.hidden) return;
-      var r = root.getBoundingClientRect(),
-        width = Math.min(430, innerWidth - 20);
-      var x = r.right + 12;
+      var anchor = document.body.dataset.playgroundStandalone === "true" ? strip : root;
+      var r = anchor.getBoundingClientRect();
+      var width = receiver.offsetWidth, height = receiver.offsetHeight;
+      var x = r.right + 12, y = r.top;
       if (x + width > innerWidth - 10) x = r.left - width - 12;
-      if (x < 10) x = Math.max(10, (innerWidth - width) / 2);
-      receiver.style.left = x + "px";
-      receiver.style.top =
-        Math.max(
-          10,
-          Math.min(r.top, innerHeight - receiver.offsetHeight - 10)
-        ) + "px";
+      if (x < 10) {
+        x = (innerWidth - width) / 2;
+        y = (innerHeight - height) / 2;
+      }
+      receiver.style.left = Math.round(Math.max(10, x)) + "px";
+      receiver.style.top = Math.round(Math.max(10, Math.min(y, innerHeight - height - 10))) + "px";
     }
     function showReceiver(show) {
       if (show === !receiver.hidden) {
         if (show) position();
         return;
       }
+      receiverButtons.forEach(function (button) {
+        button.setAttribute("aria-expanded", String(show));
+      });
       if (show) {
         receiver.hidden = false;
         if (receiver.showPopover) receiver.showPopover();
@@ -943,7 +953,9 @@
       requestAnimationFrame(position);
     });
     window.addEventListener("resize", position);
-    window.addEventListener("scroll", position, { passive: true });
+    window.addEventListener("scroll", function (event) {
+      if (!receiver.hidden && (event.target === window || !receiver.contains(event.target))) position();
+    }, { passive: true, capture: true });
     new ResizeObserver(position).observe(receiver);
     setInterval(function () {
       if (ready && !document.hidden) update();

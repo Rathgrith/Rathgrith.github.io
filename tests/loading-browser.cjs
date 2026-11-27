@@ -119,7 +119,7 @@ async function checkFastModel(page) {
       await pauseClock(page);
       // Delay the local portrait indefinitely and hold the remote model loader.
       // The homepage must still dismiss independently by its bounded deadline.
-      await page.route("**/images/avatars/alice-portrait.png", () => {});
+      await page.route("**/images/avatars/alice-portrait-*.webp", () => {});
       let failModel;
       const heldModel = new Promise(resolve => { failModel = resolve; });
       await page.route("**/live2dcubismcore.min.js", async route => {
@@ -217,7 +217,7 @@ async function checkFastModel(page) {
       await cached.close();
     }
     const input = await browser.newPage();
-    await input.route("**/images/avatars/alice-portrait.png", () => {});
+    await input.route("**/images/avatars/alice-portrait-*.webp", () => {});
     await input.goto(base, { waitUntil: "domcontentloaded" });
     await input.keyboard.press("Tab");
     await input
