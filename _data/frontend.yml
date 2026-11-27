@@ -9,6 +9,7 @@ site_styles:
   - classic-gallery-viewer.css
   - classic-weather.css
   - classic-companion.css
+  - companion-atmosphere.css
   - classic-bgm.css
   - classic-danmaku.css
   - classic-loading.css
@@ -19,6 +20,7 @@ playground_styles:
   - classic-base.css
   - classic-weather.css
   - classic-companion.css
+  - companion-atmosphere.css
   - classic-bgm.css
   - classic-danmaku.css
   - classic-loading.css
@@ -64,7 +66,9 @@ companion_scripts:
   - path: "/assets/js/core/companion-voice-reactions.js"
     attribute: "data-audio-base"
     base: "/assets/audio/reactions/"
+  - path: "/assets/js/core/companion-atmosphere.js"
   - path: "/assets/js/core/companion-dialogue.js"
+  - path: "/assets/js/core/companion-camera.js"
   - path: "/assets/js/core/companion-lighting.js"
   - path: "/assets/js/core/companion-reactions.js"
   - path: "/assets/js/core/companion-performance.js"

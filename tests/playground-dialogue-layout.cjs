@@ -2,6 +2,7 @@
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const checkSceneChoices = require("./helpers/scene-choices.cjs");
 const out =
   process.env.QA_OUTPUT ||
   require("node:os").tmpdir() + "/playground-dialogue-layout";
@@ -45,26 +46,20 @@ fs.mkdirSync(out, { recursive: true });
     const trees = await page.evaluate(() => CompanionBranches);
     let checks = 0,
       wrappedChecks = 0,
-      cameraBaseline = null,
+      frameBaseline = null,
       heightBaseline = null;
     async function rememberGeometry() {
       const baseline = await widget.evaluate((w) => {
-        const stage = w.querySelector(".companion-stage"),
-          canvas = w.querySelector("#live2dcanvas");
+        const frame = w.querySelector(".vn-scene-frame");
+        const extension = (parseFloat(w.style.getPropertyValue("--vn-reading-extension")) || 0) *
+          (Number(w.dataset.playgroundScale) || 1);
         return {
-          camera: [
-            stage.clientWidth,
-            stage.clientHeight,
-            canvas.width,
-            canvas.height,
-          ],
-          heights: [".companion-conversation", ".vn-bgm"].map(
-            (selector) =>
-              w.querySelector(selector).getBoundingClientRect().height
-          ),
+          frame: [frame.clientWidth, frame.clientHeight],
+          heights: [w.querySelector(".companion-conversation").getBoundingClientRect().height - extension,
+            w.querySelector(".vn-bgm").getBoundingClientRect().height],
         };
       });
-      cameraBaseline = baseline.camera;
+      frameBaseline = baseline.frame;
       heightBaseline = baseline.heights;
     }
 
@@ -112,6 +107,7 @@ fs.mkdirSync(out, { recursive: true });
     async function geometry(label, count, fitWindow) {
       await settle();
       assert.equal(await options.locator("button").count(), count, label);
+      await checkSceneChoices(widget);
       const result = await widget.evaluate((w) => {
         const rect = (element) => {
           const r = element.getBoundingClientRect();
@@ -126,8 +122,7 @@ fs.mkdirSync(out, { recursive: true });
         const main = w.querySelector(".vn-main-view");
         const conversation = w.querySelector(".companion-conversation");
         const body = w.querySelector(".vn-dialogue-body");
-        const stage = w.querySelector(".companion-stage");
-        const canvas = w.querySelector("#live2dcanvas");
+        const frame = w.querySelector(".vn-scene-frame");
         const scrollsVertically = (element) =>
           /^(auto|scroll|overlay)$/.test(getComputedStyle(element).overflowY) &&
           element.scrollHeight > element.clientHeight + 1;
@@ -139,19 +134,22 @@ fs.mkdirSync(out, { recursive: true });
           t = rect(text),
           o = rect(choices);
         const scale = Number(w.dataset.playgroundScale) || 1;
+        const extension = (parseFloat(w.style.getPropertyValue("--vn-reading-extension")) || 0) * scale;
+        const textInsets = [reading, body].reduce((sum, el) => {
+          const style = getComputedStyle(el);
+          return sum + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+        }, 0);
+        const lineHeight = t.height + textInsets * scale;
         const innerBottom =
           c.bottom -
           parseFloat(getComputedStyle(conversation).borderBottomWidth) * scale;
         return {
           layout: w.dataset.playgroundLayout,
           body: rect(body),
-          camera: [
-            stage.clientWidth,
-            stage.clientHeight,
-            canvas.width,
-            canvas.height,
-          ],
-          heights: [c.height, rect(w.querySelector(".vn-bgm")).height],
+          frame: [frame.clientWidth, frame.clientHeight],
+          heights: [c.height - extension, rect(w.querySelector(".vn-bgm")).height],
+          extensionJustified: !extension || scrollsVertically(main) && !scrollsVertically(body) &&
+            lineHeight > rect(body).height - extension - 3,
           spectrumVisible:
             w.querySelector(".vn-radio-spectrum").getBoundingClientRect()
               .height > 0,
@@ -159,13 +157,19 @@ fs.mkdirSync(out, { recursive: true });
             (selector) => {
               const label = w.querySelector(selector);
               const range = document.createRange();
-              range.selectNodeContents(label);
-              // An inline speaker span and its text may produce coincident
-              // client rects on the same line.
-              const fragments = Array.from(range.getClientRects());
+              // Measure the printed glyphs. The speaker's styled inline
+              // wrapper can have different ink and border-box bounds.
+              const printed = label.querySelector(".vn-speaker-name") || label;
+              const text = document.createTreeWalker(printed, NodeFilter.SHOW_TEXT);
+              const fragments = [];
+              for (let node; (node = text.nextNode());) {
+                if (!node.textContent.trim()) continue;
+                range.selectNodeContents(node);
+                fragments.push(...range.getClientRects());
+              }
               return (
                 fragments.length > 0 && fragments.every(rect => Math.abs(rect.top - fragments[0].top) < 1) &&
-                label.scrollWidth <= label.clientWidth + 1
+                printed.scrollWidth <= printed.clientWidth + 1 && label.scrollWidth <= label.clientWidth + 1
               );
             }
           ),
@@ -209,25 +213,23 @@ fs.mkdirSync(out, { recursive: true });
       try {
         assert(!result.horizontalOverflow, details);
         assert(!result.nestedScroll, "The dialogue and its window both scroll: " + details);
-        assert(
-          result.textFits && result.reading.bottom <= result.choices.top + 1,
-          details
-        );
+        assert(result.textFits, details);
+        assert(result.extensionJustified, "Only text that exceeds the base reading area may extend a scrolling workspace: " + details);
         assert(
           !result.choicesScroll && result.body.bottom <= result.innerBottom + 1,
           details
         );
         assert(result.body.top >= result.conversation.top, details);
         assert.deepEqual(
-          result.camera,
-          cameraBaseline,
-          "Choices/lines must not resize the scene or its renderer: " + details
+          result.frame,
+          frameBaseline,
+          "Choices and lines keep the outside scene frame stable: " + details
         );
         assert(
           result.heights.every(
             (height, i) => Math.abs(height - heightBaseline[i]) < 1
           ),
-          "Dialogue and player heights must stay fixed across all content states: " +
+          "The base dialogue and player heights stay fixed across all content states; baseline " + JSON.stringify(heightBaseline) + ": " +
             details
         );
         assert(
@@ -239,19 +241,9 @@ fs.mkdirSync(out, { recursive: true });
           "Speaker and affinity stay on one line: " + details
         );
         assert(result.conversation.bottom <= result.footer.top + 1, details);
-        assert(
-          result.buttons.every(
-            (b) =>
-              b.readable &&
-              b.top >= result.choices.top - 1 &&
-              b.left >= result.conversation.left &&
-              b.right <= result.conversation.right + 1
-          ),
-          details
-        );
+        assert(result.buttons.every(button => button.readable), details);
         if (fitWindow) assert(!result.mainOverflow, details);
-        // Trial clicks reach every choice through the dialogue scrollbar;
-        // longer labels must not change the camera or cover the footer.
+        // Every scene reply must remain a usable pointer target.
         for (const button of await options.locator("button").all())
           await button.click({ trial: true });
       } catch (error) {
@@ -380,7 +372,7 @@ fs.mkdirSync(out, { recursive: true });
       await settle();
       assert.equal(await widget.getAttribute("data-playground-layout"), "wide");
       // Tiny windows may scroll the control composition, but choices always
-      // remain confined to the dialogue viewport and the camera stays fixed.
+      // remain inside the scene and clear of the character.
       await exercise(`max-${width}x${height}`, height * 0.75 >= 600);
       console.log(`PASS layouts: maximized ${width}x${height}`);
     }
@@ -397,6 +389,7 @@ fs.mkdirSync(out, { recursive: true });
     await page.mouse.up();
     const grip = page.locator("[data-companion-resize]");
     for (const [width, height] of [
+      [420, 540],
       [619, 700],
       [620, 700],
       [620, 540],
@@ -440,7 +433,7 @@ fs.mkdirSync(out, { recursive: true });
       );
     assert.deepEqual(errors, []);
     console.log(
-      `PASS: ${checks} dialogue layouts (${process.env.LAYOUT_CASE || "three desktop maxima and 619/620px resize boundaries"}); all nine topics, 3→2→2 choices, ready-state suggestions, ${wrappedChecks} wrapped-label cases, stable camera/renderer through every choice, contained dialogue scrolling, no footer overlap, every option reachable.`
+      `PASS: ${checks} dialogue layouts (${process.env.LAYOUT_CASE || "three desktop maxima, a small float and 619/620px resize boundaries"}); all nine topics, 3→2→2 choices, ready-state suggestions, ${wrappedChecks} wrapped-label cases, stable scene and original dialogue geometry, contained dialogue scrolling, no footer overlap, every option reachable.`
     );
   } finally {
     await browser.close();

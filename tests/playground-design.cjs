@@ -2,6 +2,7 @@
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const checkSceneChoices = require("./helpers/scene-choices.cjs");
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 const out = "/private/tmp/playground-design";
 fs.mkdirSync(out, { recursive: true });
@@ -70,14 +71,10 @@ fs.mkdirSync(out, { recursive: true });
             };
           };
           return {
-            scene: rect(".companion-stage"),
+            scene: rect(".vn-scene-frame"),
             dialogue: rect(".companion-conversation"),
             radio: rect(".vn-bgm"),
             main: rect(".vn-main-view"),
-            camera: [
-              w.querySelector("canvas").width,
-              w.querySelector("canvas").height,
-            ],
             overflow: document.documentElement.scrollWidth > innerWidth,
           };
         });
@@ -178,6 +175,7 @@ fs.mkdirSync(out, { recursive: true });
           "choice"
       );
       await settle();
+      await checkSceneChoices(w);
       const choices = await geometry();
       assert.equal(
         choices.dialogue.h,
@@ -189,8 +187,13 @@ fs.mkdirSync(out, { recursive: true });
         before.radio.h,
         "options never shrink the player"
       );
-      assert.equal(choices.scene.h, before.scene.h);
-      assert.deepEqual(choices.camera, before.camera);
+      const relativeBounds = (rect, main) => [rect.x - main.x, rect.y - main.y, rect.w, rect.h];
+      for (const region of ["scene", "dialogue"]) {
+        const beforeBounds = relativeBounds(before[region], before.main);
+        const afterBounds = relativeBounds(choices[region], choices.main);
+        assert(afterBounds.every((value, i) => Math.abs(value - beforeBounds[i]) <= 1),
+          "The scene frame and dialogue remain in place when choices appear: " + JSON.stringify({ region, before, choices }));
+      }
       for (const option of await p.locator(".vn-choices button").all())
         await option.click({ trial: true });
       const choiceButtons = p.locator(".vn-choices button");
@@ -228,7 +231,7 @@ fs.mkdirSync(out, { recursive: true });
           !(await p
             .locator(".companion-conversation")
             .evaluate((e) => e.classList.contains("has-more-dialogue"))),
-          "hint clears at the last choice"
+          "hint clears at the end of the dialogue"
         );
       }
       await p.locator('[data-vn-open="settings"]').click();

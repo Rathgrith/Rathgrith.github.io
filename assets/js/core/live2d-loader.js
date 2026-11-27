@@ -191,6 +191,8 @@
   var lastPointerPosition = null;
   var application = null;
   var syncModelLighting = null;
+  var sceneCamera = null;
+  var pendingDirection = null;
   var currentModel = null;
   var currentCharacterId = "";
   var currentPoseId = "1";
@@ -799,6 +801,11 @@
     return window.SiteCompanion.mount(widget, {
       originals: CHARACTER_INTERACTIONS,
       perform: animateInteraction,
+      restScene: function () {
+        stopLipSync();
+        animateInteraction({ expressionMotionId: "01", poseId: "1", effect: "none" });
+        focusModelAtRest(false);
+      },
       stopSpeaking: stopLipSync,
       speak: function (glyph, interval, phones) {
         if (
@@ -862,22 +869,41 @@
   function fitCurrentModel() {
     if (!application || !currentModel) return;
     var display = application.renderer.screen;
-    var frame = companionWidget.querySelector(".vn-scene-light");
-    if (!frame.offsetHeight) return;
-    currentModel.scale.set(1);
-    var modelHeight = Math.max(currentModel.height || 1, 1);
-    // Frame the upper half of the original model canvas; preserve its own motion rig.
+    var stage = companionWidget.querySelector("[data-companion-stage]");
+    var light = stage.querySelector(".vn-scene-light");
+    var guide = companionWidget.querySelector(".vn-actor-area");
+    if (!guide || !guide.clientWidth || !guide.clientHeight || !light.offsetHeight) return;
+    // The menu moves the composition guide, never the canvas or its render target.
+    var safeWidth = Math.min(guide.clientWidth, display.width);
+    var safeHeight = Math.min(guide.clientHeight, display.height);
+    var panX = (safeWidth - display.width) / 2;
+    var panY = (safeHeight - display.height) / 2;
+    stage.style.setProperty("--vn-look-x", panX * .35 + "px");
+    stage.style.setProperty("--vn-look-y", panY * .22 + "px");
+    var roomHeight = light.offsetHeight;
+    var shotHeight = roomHeight;
+    var hatRoom = currentCharacterId === "marisa" && panY < 0
+      ? Math.max(0, Math.min(1, (240 - safeHeight) / 80)) : 0;
+    if (panY < -1) {
+      // Ease back on phones so the hat and eyes stay above the command strip.
+      shotHeight = Math.max(roomHeight * (.76 - .06 * hatRoom), safeHeight + 6);
+    } else if (panX < -1) {
+      shotHeight = Math.min(roomHeight, Math.max(roomHeight * .78, safeWidth * 1.45));
+    }
     var cameras = {
       alice: { crop: 0.46, top: 0.13 },
       marisa: { crop: 0.48, top: 0.1 },
       patchouli: { crop: 0.46, top: 0.13 },
     };
     var camera = cameras[currentCharacterId] || cameras.alice;
-    var scale = frame.offsetHeight / (modelHeight * camera.crop);
+    var modelHeight = Math.max(1, currentModel.height / currentModel.scale.y);
+    var scale = shotHeight / (modelHeight * camera.crop);
     currentModel.anchor.set(0.5, 0);
-    currentModel.scale.set(scale);
-    currentModel.x = display.width * 0.5;
-    currentModel.y = frame.offsetTop - modelHeight * scale * camera.top;
+    var top = light.offsetTop - modelHeight * scale * camera.top
+      + Math.min(0, safeHeight - display.height * shotHeight / roomHeight) * .10 + 9 * hatRoom;
+    sceneCamera.frame(currentModel, currentCharacterId, display.width / 2 + panX, top,
+      scale, safeWidth, safeHeight);
+    if (syncModelLighting) syncModelLighting.updateView();
     if (performanceController) performanceController.refreshReaction();
   }
 
@@ -933,6 +959,16 @@
     if (performanceController && performanceController.interruptIdle) performanceController.interruptIdle();
   }
 
+  function syncCameraActivity() {
+    if (!sceneCamera || !companionWidget) return;
+    var amount = Number(companionWidget.dataset.sceneLightStrength || 75) / 100;
+    var active = Boolean(currentModel && currentModel.visible && stageInView &&
+      !document.hidden && !companionGameActive && !companionMinimized && !prefersReducedMotion() &&
+      !shouldDisableLive2D() && companionWidget.dataset.sceneLighting !== "false" && amount > 0 &&
+      !companionWidget.matches(".is-loading, .has-live2d-error, .has-vn-panel"));
+    sceneCamera.setActive(active, amount);
+  }
+
   function canIdle() {
     return stageInView && !document.hidden && !companionMinimized && !companionGameActive &&
       currentModel.visible && companionWidget.dataset.dialogueState !== "typing" &&
@@ -982,39 +1018,32 @@
     )
       return;
     var main = companionWidget.querySelector(".vn-main-view");
-    var stage = companionWidget.querySelector("[data-companion-stage]");
+    var frame = companionWidget.querySelector(".vn-scene-frame");
     var last = main && main.lastElementChild;
-    if (!last || !main.clientHeight) return;
-    // Budget from controls and the fixed dialogue viewport. Choices and text
-    // scroll within that viewport, so neither can change the camera dimensions.
+    if (!frame || !last || !main.clientHeight) return;
+    // A longer caption may extend down the workspace. Keep it out of the camera budget.
     var scale = Number(companionWidget.dataset.playgroundScale) || 1;
+    var extension = parseFloat(companionWidget.style.getPropertyValue("--vn-reading-extension")) || 0;
     var occupied =
       (last.getBoundingClientRect().bottom - main.getBoundingClientRect().top) /
         scale +
       main.scrollTop -
-      stage.offsetHeight;
+      extension -
+      frame.offsetHeight;
     // Let the controls scroll before the scene becomes a shallow strip.
     var height = Math.max(
       110,
-      Math.ceil(stage.clientWidth / 2.25),
+      Math.ceil(frame.clientWidth / 2.25),
       Math.floor(main.clientHeight - occupied)
     );
-    if (Math.abs(stage.offsetHeight - height) > 1)
-      stage.style.height = height + "px";
+    if (Math.abs(frame.offsetHeight - height) > 1)
+      frame.style.height = height + "px";
   }
 
   function syncStageRenderer() {
     stageFrame = 0;
     if (!companionWidget) return;
     fitCompactStage();
-    // A bounded rail, detached window or standalone desk can own scrolling.
-    // Measure the workspace even when the model is still loading or disabled.
-    var main = companionWidget.querySelector(".vn-main-view");
-    if (main && !main.inert && main.clientHeight) {
-      var scrollable = main.scrollHeight > main.clientHeight + 1 &&
-        /^(auto|scroll)$/.test(getComputedStyle(main).overflowY);
-      companionWidget.toggleAttribute("data-scrollable-workspace", scrollable);
-    }
     if (!application) return;
     var stage = companionWidget.querySelector("[data-companion-stage]");
     var width = stage.clientWidth,
@@ -1032,7 +1061,6 @@
     ) {
       application.renderer.resolution = resolution;
       application.renderer.resize(width, height);
-      if (syncModelLighting) syncModelLighting();
       fitCurrentModel();
       schedulePointerFocus();
     }
@@ -1083,9 +1111,7 @@
     }
     widget.dataset.playgroundLayout = layout;
     var wide = widget.dataset.playgroundLayout === "wide";
-    // Leave room for the radio, a full reading and three choices before
-    // enlarging the shared surface. CSS handles longer content by scrolling
-    // the main view; individual choices and dialogue are never clipped.
+    // Scale the whole floating workspace together, including the camera and controls.
     var scale = sized
       ? Math.max(
           1,
@@ -1100,14 +1126,11 @@
     if (standalone) scale = pageScale;
     widget.dataset.playgroundScale = String(scale);
     widget.style.setProperty("--playground-scale", scale);
-    // Compact reading space responds only to the window, never to its contents.
-    var dialogueHeight = standalone
-      ? wide
-        ? 204
-        : 208
-      : sized
-        ? Math.max(136, Math.min(208, companionSize.height / scale - 547))
-        : 208;
+    // Reserve normal wrapped lines; branch commands have their own scene area.
+    var controlsHeight = companionMaximized ? 547 : 508;
+    var dialogueHeight = sized
+      ? Math.max(companionMaximized ? 116 : 132, Math.min(158, companionSize.height / scale - controlsHeight))
+      : 154;
     widget.style.setProperty("--vn-dialogue-height", dialogueHeight + "px");
     widget.style.setProperty(
       "--vn-width",
@@ -1117,7 +1140,9 @@
     var stage = widget.querySelector("[data-companion-stage]");
     // The standalone workspace allocates the camera in its responsive grid.
     var embeddedHeight = sized ? 110 : display.height + 2;
-    stage.style.height = !standalone && !wide ? embeddedHeight + "px" : "";
+    var sceneFrame = widget.querySelector(".vn-scene-frame");
+    if (sceneFrame)
+      sceneFrame.style.height = !standalone && !wide ? embeddedHeight + "px" : "";
     var maximize = widget.querySelector("[data-companion-maximize]");
     var expanded = standalone
       ? Boolean(document.fullscreenElement)
@@ -1153,10 +1178,13 @@
         if (!stageFrame) stageFrame = requestAnimationFrame(syncStageRenderer);
       });
       stageObserver.observe(stage);
+      // Menu changes update the shot without restarting the PIXI render loop.
+      new ResizeObserver(fitCurrentModel).observe(widget.querySelector(".vn-actor-area"));
       if ("IntersectionObserver" in window) {
         new IntersectionObserver(function (entries) {
           stageInView = entries[entries.length - 1].isIntersecting;
           if (!stageInView) interruptIdle();
+          syncCameraActivity();
         }).observe(stage);
       }
       var main = widget.querySelector(".vn-main-view");
@@ -1180,6 +1208,7 @@
         application.stop();
       } else application.start();
     }
+    syncCameraActivity();
     // Clamp after the stage has its new height, including after a rotation.
     constrainCompanionPosition(elements.widget);
     syncStageRenderer();
@@ -1350,11 +1379,20 @@
       resolution: Math.min(window.devicePixelRatio || 1, 2),
     });
 
+    new MutationObserver(syncCameraActivity).observe(elements.widget, {
+      attributes: true,
+      attributeFilter: ["class", "data-scene-lighting", "data-scene-light-strength"]
+    });
+    window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", syncCameraActivity);
     syncModelLighting = window.CompanionLighting.create(
       application,
       elements.widget
     );
     syncModelLighting();
+    sceneCamera = window.CompanionCamera.create(application, elements.widget.querySelector("[data-companion-stage]"), syncModelLighting);
+    // A visitor can open a branch before PIXI is ready. Its first camera
+    // must use the current actor pane even if no further resize occurs.
+    syncStageRenderer();
 
     return application;
   }
@@ -1842,12 +1880,15 @@
   }
 
   function animateInteraction(interaction) {
-    if (
-      !currentModel ||
-      currentCharacterId !== getSelectedCharacterId() ||
-      !shouldRenderLive2D()
-    )
+    var selected = getSelectedCharacterId();
+    if (!currentModel || currentCharacterId !== selected || !shouldRenderLive2D()) {
+      // A branch may open before the first rig is ready. Keep only the newest
+      // line for that actor, without replaying text, audio or a previous reply.
+      pendingDirection = { character: selected, line: interaction };
       return;
+    }
+    pendingDirection = performanceController ? null : { character: selected, line: interaction };
+    if (sceneCamera) sceneCamera.line(interaction);
     if (performanceController) performanceController.perform(interaction);
     requestedPoseId = /^[1-5]$/.test(interaction.poseId)
       ? interaction.poseId
@@ -1906,6 +1947,7 @@
 
   function destroyCurrentModel() {
     if (!currentModel) return;
+    sceneCamera.release();
     clearInteractionMotion();
     stopLipSync();
     stopPerformance();
@@ -1977,6 +2019,10 @@
         return Promise.all([restPoseReady, expressionReady]).then(function () {
           if (model !== currentModel || generation !== modelLoadGeneration)
             return null;
+          if (pendingDirection && pendingDirection.character === character.id) {
+            animateInteraction(pendingDirection.line);
+            pendingDirection = null;
+          }
           window.SiteCompanion.setReady("ready");
           return model;
         });

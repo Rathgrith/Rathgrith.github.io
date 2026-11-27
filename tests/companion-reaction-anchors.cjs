@@ -53,6 +53,7 @@ const meshes = {
         const app = testApp, model = app.stage.children[0], fx = document.querySelector(".vn-reaction");
         const [face, cheek, mouth, leftEye, rightEye] = ids.map(i => model.internalModel.getDrawableBounds(i));
         const rect = fx.getBoundingClientRect(), view = app.view.getBoundingClientRect();
+        const safe = document.querySelector(".vn-actor-area").getBoundingClientRect();
         // Invert the rendered position through PIXI and Cubism. Compare it to
         // the cheek or mouth mesh, independent of the effect's placement code.
         const point = model.toModelPosition(new PIXI.Point(
@@ -68,10 +69,12 @@ const meshes = {
           fromMouthY: (point.y - mouth.y - mouth.height / 2) / face.width,
           fromEyesX: side * (point.x - eyeX) / face.width, fromEyesY: (point.y - eyeY) / face.width,
           inset: Math.min(rect.left - view.left, rect.top - view.top, view.right - rect.right, view.bottom - rect.bottom),
+          safeInset: Math.min(rect.left - safe.left, rect.top - safe.top, safe.right - rect.right, safe.bottom - rect.bottom),
         };
       }, {ids: meshes[id], id});
       const info = [id, kind, label, JSON.stringify(p)].join(" ");
       assert(p.inset >= -1, info);
+      assert(p.safeInset >= -1, info);
       if (kind === "blush") assert(p.cheekDistance < 0.16, info);
       if (kind === "sigh") assert(p.fromMouthX > 0.18 && p.fromMouthX < 0.64 && Math.abs(p.fromMouthY) < 0.22, info);
       if (kind === "anger") assert(p.fromEyesX > 0.22 && p.fromEyesX < 0.60 && p.fromEyesY < -0.08 && p.fromEyesY > -0.48, info);
@@ -96,6 +99,17 @@ const meshes = {
             await check(id, kind, "during pose and gaze movement");
           }
         }
+      }
+      // The canvas also extends behind the commands. Facial accents must stay
+      // on the moving model, entirely inside the unobscured composition area.
+      await page.locator('[data-vn-open="topics"]').click();
+      await page.locator('[data-vn-topic-start^="branch:"]').first().click();
+      await page.locator(".vn-scene-choices button").first().waitFor();
+      for (const [width, height] of [[1440, 900], [390, 844]]) {
+        await page.setViewportSize({ width, height });
+        await page.locator(".vn-actor-area").scrollIntoViewIfNeeded();
+        await perform("blush", "2");
+        await check(id, "blush", "reply menu " + width + "x" + height);
       }
     }
     await page.setViewportSize({width:1440, height:900});

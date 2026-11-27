@@ -17,9 +17,13 @@
     autoTimer = 0,
     generation = 0,
     logged = false,
+    visitedReplies = false,
     panel = "",
     visible = true,
     gameActive = false;
+  var replyIdleMs = 30000, replyRemaining = replyIdleMs, replyDeadline = 0, replyTimer = 0;
+  var foldedReplies = null, previousCommand = "", repliesInView = false;
+  var pressedPointer = null, pageBlurred = false;
   var minimumLoadingMs = 0,
     loadingUntil = 0,
     readyTimer = 0;
@@ -42,7 +46,8 @@
     affinity[id] = number(saved.affinity && saved.affinity[id], 35, 0, 100);
   });
   var speed = [0, 18, 38, 65].indexOf(saved.speed) >= 0 ? saved.speed : 38;
-  var lighting = saved.lighting !== false,
+  var foldIdleReplies = saved.foldIdleReplies !== false,
+    lighting = saved.lighting !== false,
     lightStrength = number(saved.lightStrength, 75, 0, 100),
     auto = false;
   function persist() {
@@ -52,6 +57,7 @@
         JSON.stringify({
           affinity: affinity,
           speed: speed,
+          foldIdleReplies: foldIdleReplies,
           lighting: lighting,
           lightStrength: lightStrength,
         })
@@ -72,9 +78,73 @@
     state = value;
     root.dataset.dialogueState = value;
     var reading = q("[data-vn-reading]");
-    reading.setAttribute("aria-disabled", String(value === "choice"));
-    reading.setAttribute("aria-description", value === "choice" ? "下の返事から選んでください" : "会話を進める");
-    reading.tabIndex = value === "choice" ? -1 : 0;
+    var awaitingChoice = value === "choice" && !foldedReplies;
+    reading.setAttribute("aria-disabled", String(awaitingChoice));
+    reading.setAttribute("aria-description", foldedReplies ? "返事をもう一度表示する" :
+      awaitingChoice ? "場面に表示された返事を選んでください" : "会話を進める");
+    reading.tabIndex = awaitingChoice ? -1 : 0;
+  }
+  function resetReplies() {
+    clearTimeout(replyTimer);
+    replyTimer = 0;
+    replyRemaining = replyIdleMs;
+    foldedReplies = null;
+    pressedPointer = null;
+    root.removeAttribute("data-replies-folded");
+  }
+  function syncReplyIdle(activity) {
+    var now = performance.now();
+    if (replyTimer) {
+      clearTimeout(replyTimer);
+      replyTimer = 0;
+      replyRemaining = Math.max(0, replyDeadline - now);
+    }
+    if (activity) replyRemaining = replyIdleMs;
+    if (!root || !foldIdleReplies || foldedReplies || !repliesInView || !visible ||
+        gameActive || panel || document.hidden || pageBlurred ||
+        pressedPointer !== null || !q("[data-vn-choices] button") || q('[data-radio-open][aria-expanded="true"]')) return;
+    replyDeadline = now + replyRemaining;
+    replyTimer = setTimeout(checkReplyIdle, replyRemaining);
+  }
+  function noteReplyActivity() {
+    // Pointer movement can be frequent. Update the deadline without creating
+    // another timer for every movement; the outstanding callback checks it.
+    if (replyTimer) replyDeadline = performance.now() + replyIdleMs;
+    else syncReplyIdle(true);
+  }
+  function checkReplyIdle() {
+    var wait = replyDeadline - performance.now();
+    if (wait > 0) {
+      replyTimer = setTimeout(checkReplyIdle, wait);
+      return;
+    }
+    replyTimer = 0;
+    var menu = q("[data-vn-choices]"), command = q("#live2d-interact");
+    if (!menu.firstElementChild || !visible || gameActive || panel || document.hidden) return;
+    var focusWasInMenu = menu.contains(document.activeElement);
+    // Retain the actual commands and their original story/affinity callbacks.
+    foldedReplies = document.createDocumentFragment();
+    while (menu.firstChild) foldedReplies.appendChild(menu.firstChild);
+    previousCommand = command.textContent;
+    command.textContent = "選択 ▸";
+    root.setAttribute("data-replies-folded", "");
+    q(".vn-scene-frame").removeAttribute("data-replies-pending");
+    setState(state);
+    if (focusWasInMenu) command.focus({ preventScroll: true });
+    if (hooks.restScene) hooks.restScene();
+  }
+  function restoreReplies(focus) {
+    if (!foldedReplies) return false;
+    var menu = q("[data-vn-choices]");
+    q(".vn-scene-frame").setAttribute("data-replies-pending", "");
+    menu.appendChild(foldedReplies);
+    foldedReplies = null;
+    root.removeAttribute("data-replies-folded");
+    q("#live2d-interact").textContent = previousCommand;
+    setState(state);
+    if (focus !== false) menu.querySelector("button").focus({ preventScroll: true });
+    syncReplyIdle(true);
+    return true;
   }
   function updateAffinity() {
     var value = affinity[currentId],
@@ -87,6 +157,7 @@
   }
   function renderSettings() {
     q("[data-vn-speed]").value = speed;
+    q("[data-vn-fold-replies]").checked = foldIdleReplies;
     q("[data-vn-lighting]").checked = lighting;
     q("[data-vn-light-strength]").value = lightStrength;
     syncLighting();
@@ -126,6 +197,7 @@
           inline: "nearest",
         });
     } else scheduleAuto();
+    syncReplyIdle(true);
   }
   function closePanel() {
     if (panel) panelOpen(panel);
@@ -235,27 +307,36 @@
     var target = q("[data-vn-choices]");
     target.replaceChildren();
     if (!story || index < story.lines.length - 1 || state === "typing") return;
-    if (!story.choices || !story.choices.length) {
-      renderFollowups(target);
-      return;
-    }
     var offeredStory = story;
-    setState("choice");
-    story.choices.forEach(function (choice, choiceIndex) {
+    function addReply(label, attribute, onChoose, value) {
+      if (!target.firstElementChild) {
+        var heading = document.createElement("span");
+        heading.className = "vn-choice-heading";
+        heading.setAttribute("aria-hidden", "true");
+        heading.textContent = target.getAttribute("aria-label");
+        target.appendChild(heading);
+      }
+      var offeredState = state;
       var button = document.createElement("button");
       button.type = "button";
-      button.textContent = "▸ " + choice.label;
-      if (choice.next) button.setAttribute("data-vn-choice-next", choice.next);
+      button.textContent = label;
+      if (attribute) button.setAttribute(attribute, value || "");
       button.addEventListener("click", function () {
-        if (
-          state !== "choice" ||
-          story !== offeredStory ||
-          !button.isConnected ||
-          panel ||
-          !visible ||
-          gameActive
-        )
-          return;
+        if (story !== offeredStory || state !== offeredState || !button.isConnected ||
+            panel || !visible || gameActive) return;
+        onChoose();
+        // Some browsers do not focus buttons tapped with a pointer.
+        if (!panel && story !== offeredStory) q("[data-vn-reading]").focus({ preventScroll: true });
+      });
+      target.appendChild(button);
+    }
+    if (!story.choices || !story.choices.length) {
+      renderFollowups(addReply);
+      return;
+    }
+    setState("choice");
+    story.choices.forEach(function (choice, choiceIndex) {
+      addReply(choice.label, choice.next && "data-vn-choice-next", function () {
         var level = data.tier(affinity[currentId]);
         affinity[currentId] = Math.min(
           100,
@@ -281,32 +362,11 @@
         story = { lines: [response], label: "返事" };
         index = 0;
         renderLine();
-      });
-      target.appendChild(button);
+      }, choice.next);
     });
-    q("#live2d-interact").textContent = "選択";
-    q("#live2d-interact").disabled = true;
+    q("#live2d-interact").textContent = "選択 ▸";
   }
-  function renderFollowups(target) {
-    var offeredStory = story;
-    function action(label, attribute, callback) {
-      var button = document.createElement("button");
-      button.type = "button";
-      button.textContent = label;
-      button.setAttribute(attribute, "");
-      button.addEventListener("click", function () {
-        if (
-          story === offeredStory &&
-          state === "ready" &&
-          button.isConnected &&
-          !panel &&
-          visible &&
-          !gameActive
-        )
-          callback();
-      });
-      target.appendChild(button);
-    }
+  function renderFollowups(action) {
     if (branchTopic) {
       var topicId = branchTopic.id;
       action("別のことも聞く", "data-vn-return-topic", function () {
@@ -326,7 +386,7 @@
     } else {
       suggestedTopics().forEach(function (topic) {
         // Suggestions continue a finished line; auto mode never activates one.
-        action(topic.label + " ▸", "data-vn-suggest-topic", function () {
+        action(topic.label, "data-vn-suggest-topic", function () {
           start("branch:" + topic.id);
         });
       });
@@ -374,11 +434,14 @@
         data.characters[currentId].name + "：" + line.text;
     }
     renderChoices();
+    syncReplyIdle(true);
     scheduleAuto();
   }
   function renderLine() {
     clearTimers();
+    resetReplies();
     logged = false;
+    visitedReplies = false;
     line = story.lines[index];
     if (!line) return;
     // Start a reply-bearing line at its final reading position. Revealing the
@@ -386,14 +449,23 @@
     var reading = q("[data-vn-reading]");
     // Keep the full sentence available throughout the visual ink reveal.
     reading.setAttribute("aria-label", line.text);
-    reading.toggleAttribute("data-expects-replies", index === story.lines.length - 1 &&
+    var expectsReplies = index === story.lines.length - 1 &&
       Boolean((story.choices && story.choices.length) || branchTopic ||
-        lastTopic.startsWith("friend:") || suggestedTopics().length));
+        lastTopic.startsWith("friend:") || suggestedTopics().length);
+    reading.toggleAttribute("data-expects-replies", expectsReplies);
+    q(".vn-scene-frame").toggleAttribute("data-replies-pending", expectsReplies);
     var choices = q("[data-vn-choices]");
     if (choices.contains(document.activeElement))
       q("[data-vn-reading]").focus({ preventScroll: true });
     choices.replaceChildren();
-    q("[data-vn-dialogue-body]").scrollTop = 0;
+    var body = q("[data-vn-dialogue-body]");
+    body.scrollTop = 0;
+    if (root.style.getPropertyValue("--vn-reading-extension")) {
+      var main = q(".vn-main-view");
+      var bounds = main.getBoundingClientRect();
+      var offset = q(".companion-conversation").getBoundingClientRect().top - bounds.top;
+      if (offset < 0 && bounds.height) main.scrollTop += offset * main.offsetHeight / bounds.height;
+    }
     var text = q("[data-live2d-dialogue-text]");
     text.replaceChildren();
     text.dataset.unread = line.text;
@@ -497,7 +569,7 @@
     renderLine();
   }
   function advance() {
-    if (!visible || gameActive || panel || state === "choice") return;
+    if (!visible || gameActive || panel || restoreReplies() || state === "choice") return;
     if (state === "typing") {
       complete();
       return;
@@ -510,6 +582,7 @@
   function cancel() {
     if (!root) return;
     clearTimers();
+    resetReplies();
     if (voiceReactions) voiceReactions.stop();
     story = null;
     branchTopic = null;
@@ -523,6 +596,7 @@
     text.textContent = "……";
     q("[data-vn-reading]").setAttribute("aria-label", "……");
     q("[data-vn-reading]").removeAttribute("data-expects-replies");
+    q(".vn-scene-frame").removeAttribute("data-replies-pending");
     q("[data-vn-announcement]").textContent = "";
     q("#live2d-interact").textContent = "話題 ▸";
     q("#live2d-interact").disabled = false;
@@ -542,13 +616,11 @@
     var name = document.createElement("span");
     name.className = "vn-speaker-name";
     name.textContent = character.name;
-    nameplate.replaceChildren(name);
-    if (standalone) {
-      var portrait = document.createElement("img");
-      portrait.alt = "";
-      portrait.src = window.SiteAssets.characterIcon(id);
-      nameplate.prepend(portrait);
-    }
+    var portrait = document.createElement("img");
+    portrait.alt = "";
+    portrait.src = window.SiteAssets.characterIcon(id);
+    portrait.width = portrait.height = 24;
+    nameplate.replaceChildren(portrait, name);
     q("[data-vn-location]").textContent = character.location;
     root.querySelectorAll("[data-vn-character]").forEach(function (button) {
       button.setAttribute(
@@ -609,6 +681,7 @@
     closePanel();
     q(".vn-main-view").hidden = value;
     q(".vn-main-view").inert = value;
+    syncReplyIdle();
     if (value) {
       clearTimeout(autoTimer);
       hooks.stopSpeaking();
@@ -646,73 +719,115 @@
     forecast.insertAdjacentHTML("afterbegin", '<svg class="pg-app-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#weather-icon-observe"></use></svg>');
     workspace.querySelector(".pg-launchers").append(arcade, forecast);
     mainView.append(workspace);
-    roster.after(q("[data-companion-stage]"));
+    roster.after(q(".vn-scene-frame"));
   }
 
-  function mountDialoguePaging() {
-    var frame = q(".companion-conversation"), body = q("[data-vn-dialogue-body]");
-    var pager = q("[data-vn-pager]"), previous = q("[data-vn-page-prev]");
-    var next = q("[data-vn-page-next]"), counter = q("[data-vn-page-count]");
-    var step = 1, pending = 0;
+  function mountDialogueReading(main) {
+    var frame = q(".companion-conversation");
+    var body = q("[data-vn-dialogue-body]");
+    var scene = q(".vn-scene-frame"), choices = q("[data-vn-choices]");
+    var stage = q("[data-companion-stage]");
+    var extension = 0, extendedReplies = false, pending = 0;
 
-    function update() {
+    function updateCue() {
+      var overflow = body.scrollHeight - body.clientHeight;
+      frame.classList.toggle("has-more-dialogue", overflow - body.scrollTop > 2);
+      // A keyboard reader can enter a long passage before tabbing to its replies.
+      body.tabIndex = overflow > 1 || extension ? 0 : -1;
+    }
+    function fit() {
       pending = 0;
-      if (!body.clientHeight) return;
-      // Adding the pager uses part of the fixed reading area. Decide whether it
-      // is needed against the full space, including that row when already open.
-      var needsPages = root.hasAttribute("data-scrollable-workspace") &&
-        body.scrollHeight > body.clientHeight + pager.offsetHeight + 1;
-      if (!needsPages && pager.contains(document.activeElement)) {
-        (q(".vn-choices button") || q("[data-vn-reading]")).focus({ preventScroll: true });
+      if (main.inert || !main.clientHeight || !body.clientHeight) return;
+      // Measure the reserved subtitle band, even when the previous line was
+      // long. Apply the new height before paint and keep the reader's position.
+      // The narrow layout opens a row below the actor. Use the actual wrapped
+      // menu height, including when text zoom makes a reply occupy more lines.
+      var sceneStyle = getComputedStyle(scene);
+      if (choices.childElementCount && sceneStyle.getPropertyValue("--vn-command-min")) {
+        var menuHeight = (choices.scrollHeight + choices.offsetHeight - choices.clientHeight) + "px";
+        if (scene.style.getPropertyValue("--vn-menu-height") !== menuHeight)
+          scene.style.setProperty("--vn-menu-height", menuHeight);
+      } else if (!scene.hasAttribute("data-replies-pending")) {
+        scene.style.removeProperty("--vn-menu-height");
       }
-      pager.toggleAttribute("hidden", !needsPages);
-      var end = body.scrollHeight - body.clientHeight;
-      frame.classList.toggle("has-more-dialogue", !needsPages && end - body.scrollTop > 3);
-      if (!needsPages) return;
-      var lineHeight = parseFloat(getComputedStyle(q("[data-live2d-dialogue-text]")).lineHeight);
-      // Keep a full line from the previous page as a reading cue.
-      var wholeLines = Math.floor(body.clientHeight / lineHeight);
-      step = wholeLines >= 2 ? (wholeLines - 1) * lineHeight : Math.max(1, body.clientHeight * 2 / 3);
-      var pages = Math.ceil(end / step) + 1;
-      var atEnd = body.scrollTop >= end - 1;
-      var page = atEnd ? pages : 1 + Math.floor((body.scrollTop + 1) / step);
-      var label = page + " / " + pages;
-      if (counter.textContent !== label) counter.textContent = label;
-      previous.setAttribute("aria-disabled", String(body.scrollTop <= 1));
-      next.setAttribute("aria-disabled", String(atEnd));
+      var top = main.scrollTop;
+      if (extension) root.style.removeProperty("--vn-reading-extension");
+      if (extendedReplies) root.removeAttribute("data-extended-replies");
+      var scrolls = main.scrollHeight > main.clientHeight + 1 &&
+        /^(auto|scroll)$/.test(getComputedStyle(main).overflowY);
+      root.toggleAttribute("data-scrollable-workspace", scrolls);
+      // Keep a single scroll owner even if each reply wraps to several lines.
+      var replyOverflow = choices.scrollHeight - choices.clientHeight;
+      // The command row is intentionally clipped while the camera is panning.
+      // Only its fully-open size can establish whether this is a long reply.
+      var opening = parseFloat(sceneStyle.getPropertyValue("--vn-reply-reveal")) < 1;
+      extendedReplies = scrolls && !opening && choices.clientHeight > 0 && replyOverflow > 1;
+      if (extendedReplies) {
+        root.style.setProperty("--vn-reply-frame-height", (scene.offsetHeight + replyOverflow + 1) + "px");
+        root.style.setProperty("--vn-reply-camera-height", stage.offsetHeight + "px");
+        root.setAttribute("data-extended-replies", "");
+      }
+      var extra = body.scrollHeight - body.clientHeight;
+      extension = scrolls && extra > 1 ? extra + 1 : 0;
+      if (extension) root.style.setProperty("--vn-reading-extension", extension + "px");
+      if (main.scrollTop !== top) main.scrollTop = top;
+      updateCue();
     }
     function schedule() {
-      if (!pending) pending = requestAnimationFrame(update);
+      if (!pending) pending = requestAnimationFrame(fit);
     }
-    function turnPage(key) {
-      var end = body.scrollHeight - body.clientHeight;
-      var top = body.scrollTop;
-      if (key === "Home") top = 0;
-      if (key === "End") top = end;
-      if (key === "PageDown") top = (Math.floor((top + 1) / step) + 1) * step;
-      if (key === "PageUp") top = (Math.ceil((top - 1) / step) - 1) * step;
-      body.scrollTop = Math.max(0, Math.min(top, end));
-      update();
+    var observer = new ResizeObserver(schedule);
+    [main, body, q("#live2d-dialogue"), choices].concat(Array.from(main.children))
+      .forEach(function (element) { observer.observe(element); });
+    var changes = new MutationObserver(schedule);
+    changes.observe(choices, { childList: true });
+    changes.observe(main, { attributes: true, attributeFilter: ["inert"] });
+    function afterPan(event) {
+      if (event.target === scene && event.propertyName === "--vn-reply-reveal") schedule();
     }
-    previous.addEventListener("click", function () { turnPage("PageUp"); });
-    next.addEventListener("click", function () { turnPage("PageDown"); });
-    frame.addEventListener("keydown", function (event) {
-      if (pager.hidden || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-      if (!["PageUp", "PageDown", "Home", "End"].includes(event.key)) return;
-      // Home/End on a reply already select the first/last reply.
-      if ((event.key === "Home" || event.key === "End") && event.target.closest(".vn-choices")) return;
-      event.preventDefault();
-      turnPage(event.key);
-      if (event.target.closest(".vn-choices")) {
-        (event.key === "PageUp" ? previous : next).focus({ preventScroll: true });
+    scene.addEventListener("transitionend", afterPan);
+    scene.addEventListener("transitioncancel", afterPan);
+    body.addEventListener("scroll", updateCue, { passive: true });
+  }
+  function observeReplyActivity() {
+    var menu = q("[data-vn-choices]"), readingArea = "[data-vn-choices], [data-vn-dialogue-body]";
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        var entry = entries[entries.length - 1];
+        repliesInView = entry.isIntersecting && entry.intersectionRect.height > 0 && entry.intersectionRect.width > 0;
+        syncReplyIdle();
+      }).observe(menu);
+    } else repliesInView = true;
+    window.addEventListener("blur", function () {
+      pageBlurred = true;
+      pressedPointer = null;
+      syncReplyIdle();
+    });
+    window.addEventListener("focus", function () { pageBlurred = false; syncReplyIdle(); });
+    new MutationObserver(function () { syncReplyIdle(); }).observe(q("[data-radio-open]"), {
+      attributes: true, attributeFilter: ["aria-expanded"]
+    });
+    // A stationary pointer or keyboard focus is not ongoing activity.
+    root.addEventListener("pointermove", function (event) {
+      if (event.isTrusted && (event.movementX || event.movementY) && menu.childElementCount &&
+          event.target.closest(readingArea)) noteReplyActivity();
+    }, { passive: true });
+    root.addEventListener("pointerdown", function (event) {
+      if (menu.childElementCount && event.target.closest(readingArea)) pressedPointer = event.pointerId;
+      syncReplyIdle(true);
+    }, { passive: true });
+    function releasePointer(event) {
+      if (event.pointerId === pressedPointer) {
+        pressedPointer = null;
+        syncReplyIdle(true);
       }
-    });
-    body.addEventListener("scroll", schedule, { passive: true });
-    var size = new ResizeObserver(schedule);
-    [body, q("#live2d-dialogue"), q(".vn-choices")].forEach(function (element) {
-      size.observe(element);
-    });
-    new MutationObserver(schedule).observe(root, { attributes: true, attributeFilter: ["data-scrollable-workspace"] });
+    }
+    document.addEventListener("pointerup", releasePointer, true);
+    document.addEventListener("pointercancel", releasePointer, true);
+    root.addEventListener("wheel", noteReplyActivity, { passive: true });
+    root.addEventListener("keydown", function (event) {
+      if (event.isTrusted) noteReplyActivity();
+    }, true);
   }
   function mount(widget, callbacks) {
     if (root)
@@ -770,12 +885,8 @@
         );
       });
     q("[data-companion-conversation]").innerHTML =
-      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" id="vn-dialogue-pages" data-vn-dialogue-body role="region" aria-label="会話と選択肢"><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-description="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div></div>' +
-      '<div class="vn-dialogue-pager" data-vn-pager role="group" aria-label="会話のページ" hidden>' +
-        '<button type="button" data-vn-page-prev aria-controls="vn-dialogue-pages" aria-keyshortcuts="PageUp">◂ 前頁</button>' +
-        '<span data-vn-page-count aria-live="polite" aria-atomic="true"></span>' +
-        '<button type="button" data-vn-page-next aria-controls="vn-dialogue-pages" aria-keyshortcuts="PageDown">次頁 ▸</button>' +
-      '</div><span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
+      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" data-vn-dialogue-body role="region" aria-label="台詞"><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-description="会話を進める"><p class="live2d-dialogue__text" id="vn-spoken-line" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside></div>' +
+      '<span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
     q("[data-companion-footer]").innerHTML =
       '<button type="button" data-vn-open="topics" aria-expanded="false">話題</button><button type="button" data-vn-auto aria-pressed="false">自動</button><button type="button" data-vn-open="history" aria-expanded="false">履歴</button><button type="button" data-vn-open="settings" aria-expanded="false">設定</button><button type="button" id="live2d-interact" class="live2d-interact">次へ ▸</button>';
     q("[data-companion-content]").insertAdjacentHTML(
@@ -783,7 +894,7 @@
       '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span class="vn-weather-brand">非想天則</span><span data-vn-weather-summary>観測中…</span><span aria-hidden="true">▴</span></button>' +
         '<section class="vn-panel vn-dialog-panel" data-vn-panel="topics" hidden aria-label="話題"><header><h2>話題</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list" data-vn-topic-list></div></section>' +
         '<section class="vn-panel vn-dialog-panel" data-vn-panel="friends" hidden aria-label="友人のこと"><header><h2>友人のこと</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-friends-list" data-vn-friends-list></div></section>' +
-        '<section class="vn-panel vn-dialog-panel" data-vn-panel="settings" hidden aria-label="設定"><header><h2>設定</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><fieldset class="vn-setting-group"><legend>会話</legend><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select></fieldset><fieldset class="vn-setting-group"><legend>照明</legend><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光</label><label for="vn-light-strength">光の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"></fieldset><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
+        '<section class="vn-panel vn-dialog-panel" data-vn-panel="settings" hidden aria-label="設定"><header><h2>設定</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><fieldset class="vn-setting-group"><legend>会話</legend><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select><label class="vn-check"><input type="checkbox" data-vn-fold-replies> 30秒操作がないと返事をたたむ</label></fieldset><fieldset class="vn-setting-group"><legend>場面演出</legend><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光・撮影効果</label><label for="vn-light-strength">効果の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"></fieldset><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
         '<section class="vn-panel vn-dialog-panel" data-vn-panel="history" hidden aria-label="履歴"><header><h2>履歴</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><ol class="vn-history" data-vn-history-list aria-label="会話の記録" tabindex="0"></ol></section>' +
         '<section class="vn-panel" data-vn-panel="weather" hidden aria-labelledby="vn-weather-title"><header><h2 class="vn-weather-title" id="vn-weather-title">非想天則</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div data-vn-weather-mount></div><button class="vn-weather-talk" type="button" data-vn-topic-start="weather">空の話をする ▸</button></section>'
     );
@@ -798,7 +909,17 @@
         mainView.appendChild(child);
       });
     content.prepend(mainView);
+    var stage = q("[data-companion-stage]");
+    var scene = document.createElement("div");
+    scene.className = "vn-scene-frame";
+    stage.before(scene);
+    scene.appendChild(stage);
+    scene.insertAdjacentHTML("beforeend",
+      '<div class="vn-actor-area" aria-hidden="true" inert></div>' +
+      '<div class="vn-choices vn-scene-choices" data-vn-choices role="group" aria-label="返事" aria-describedby="vn-spoken-line"></div>');
+    if (window.CompanionAtmosphere) window.CompanionAtmosphere.mount(scene);
     bgm = window.CompanionBGM.mount(root);
+    observeReplyActivity();
     bgm.setVisible(visible);
     voiceReactions = window.CompanionVoiceReactions.mount(root, {
       current: function () {
@@ -826,7 +947,11 @@
       }
       if (target.hasAttribute("data-vn-character"))
         hooks.select(target.dataset.vnCharacter);
-      if (target.id === "live2d-interact") advance();
+      if (target.id === "live2d-interact") {
+        var firstReply = state === "choice" && q("[data-vn-choices] button");
+        if (firstReply) firstReply.focus();
+        else advance();
+      }
       if (target.hasAttribute("data-vn-auto")) {
         auto = !auto;
         target.setAttribute("aria-pressed", String(auto));
@@ -840,6 +965,9 @@
       }
     });
     q("[data-vn-reading]").addEventListener("click", advance);
+    q("[data-vn-choices]").addEventListener("focusin", function () {
+      visitedReplies = true;
+    });
     q("[data-vn-reading]").addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
@@ -849,7 +977,17 @@
     root.addEventListener("keydown", function (event) {
       var choice = event.target.closest(".vn-choices button");
       var direction = event.key;
-      if (choice && standalone) {
+      // The scene precedes the speaker in DOM order. A reader who finished a
+      // line by keyboard can still tab directly from that line to its replies.
+      if ((state === "choice" || !visitedReplies) && event.key === "Tab" && !event.shiftKey &&
+          event.target.matches("[data-vn-reading]")) {
+        var firstReply = q("[data-vn-choices] button");
+        if (firstReply) {
+          event.preventDefault();
+          firstReply.focus();
+        }
+      }
+      if (choice) {
         if (direction === "ArrowRight") direction = "ArrowDown";
         if (direction === "ArrowLeft") direction = "ArrowUp";
       }
@@ -903,7 +1041,6 @@
         panelOpener(previous).focus();
       }
     });
-    mountDialoguePaging();
     q("[data-vn-affinity-input]").addEventListener("input", function (event) {
       affinity[currentId] = number(event.target.value, 35, 0, 100);
       updateAffinity();
@@ -913,6 +1050,12 @@
       speed = Number(event.target.value);
       persist();
       if (state === "typing") complete();
+    });
+    q("[data-vn-fold-replies]").addEventListener("change", function (event) {
+      foldIdleReplies = event.target.checked;
+      persist();
+      if (!foldIdleReplies) restoreReplies(false);
+      syncReplyIdle(true);
     });
     q("[data-vn-lighting]").addEventListener("change", function (event) {
       lighting = event.target.checked;
@@ -931,6 +1074,7 @@
         : "天気を取得できません";
     });
     document.addEventListener("visibilitychange", function () {
+      syncReplyIdle();
       if (document.hidden) {
         clearTimeout(autoTimer);
         hooks.stopSpeaking();
@@ -945,6 +1089,7 @@
     });
     var workspace = document.getElementById("playground-workspace");
     if (workspace) arrangePlayground(mainView, workspace);
+    mountDialogueReading(mainView);
     return { trigger: q("#live2d-interact"), dialogue: q("#live2d-dialogue") };
   }
   window.SiteCompanion = {
@@ -955,6 +1100,7 @@
     next: advance,
     setVisible: function (value) {
       visible = value;
+      syncReplyIdle();
       if (voiceReactions) voiceReactions.setVisible(value);
       if (bgm) bgm.setVisible(value);
       if (window.CompanionDanmaku) window.CompanionDanmaku.setVisible(value);

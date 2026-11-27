@@ -28,6 +28,7 @@ body.playground-page {
   height: 100%;
 }
 .playground-page #live2d-widget.classic-companion {
+  --pg-script-font: "Hiragino Sans", "Yu Gothic UI", Meiryo, system-ui, sans-serif;
   max-width: none;
   border: 0;
   outline: 0;
@@ -189,9 +190,10 @@ body.playground-page {
 }
 .playground-page #live2d-widget .vn-main-view {
   --pg-gap: clamp(8px, 1.1cqw, 16px);
+  --pg-scene-min: clamp(222px, min(88cqw, 52cqh), 520px);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(clamp(222px, min(88cqw, 52cqh), 520px), 1fr) auto auto;
+  grid-template-rows: auto minmax(var(--pg-scene-min), 1fr) auto auto;
   grid-template-areas: "roster" "scene" "desk" "tools";
   gap: var(--pg-gap);
   align-content: stretch;
@@ -256,10 +258,11 @@ body.playground-page {
 }
 .playground-page #live2d-widget .pg-roster strong { display: block; font-weight: 400; }
 .playground-page #live2d-widget .pg-roster small { display: none; }
-.playground-page #live2d-widget .vn-main-view > .companion-stage {
+.playground-page #live2d-widget .vn-main-view > .vn-scene-frame {
   grid-area: scene;
   position: relative;
   inset: auto;
+  contain: size;
   width: 100%;
   height: 100%;
   max-height: none;
@@ -267,6 +270,9 @@ body.playground-page {
   margin: 0;
   border: 1px solid var(--vn-rule);
   outline: 1px solid var(--classic-edge-dark);
+}
+.playground-page #live2d-widget .vn-scene-frame > .companion-stage {
+  border: 0;
 }
 .playground-page #live2d-widget .vn-scene-caption {
   inset: auto auto 9px 9px;
@@ -280,20 +286,18 @@ body.playground-page {
   min-width: 0; min-height: 0;
   display: grid;
   grid-template: minmax(0, 1fr) auto / minmax(0, 1fr);
-  height: 228px;
+  height: calc(var(--pg-desk-height, 156px) + var(--vn-reading-extension, 0px));
   gap: 3px;
 }
 @media (max-width: 540px) {
-  /* Two lines of Japanese and three stacked replies fit together on a phone. */
-  .playground-page #live2d-widget .pg-dialogue-desk { height: 252px; }
+  /* Four lines and the command row fit without taking space from the actor. */
+  .playground-page #live2d-widget .pg-dialogue-desk { --pg-desk-height: 154px; }
 }
 @media (max-width: 540px) and (pointer: coarse) {
-  /* The three replies and footer each gain 6–8px for touch. */
-  .playground-page #live2d-widget .pg-dialogue-desk { height: 278px; }
+  .playground-page #live2d-widget .pg-dialogue-desk { --pg-desk-height: 164px; }
 }
 @media (max-width: 384px) and (pointer: coarse) {
-  /* A third line of dialogue wraps above the same three replies. */
-  .playground-page #live2d-widget .pg-dialogue-desk { height: 305px; }
+  .playground-page #live2d-widget .pg-dialogue-desk { --pg-desk-height: 174px; }
 }
 .playground-page #live2d-widget .pg-dialogue-desk > :is(.companion-conversation, .companion-footer) {
   grid-area: auto;
@@ -363,8 +367,9 @@ body.playground-page {
 }
 
 .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view {
+  --pg-desktop-desk: 148px;
   grid-template-columns: minmax(0, 1fr) clamp(258px, 24cqw, 360px);
-  grid-template-rows: auto minmax(0, 1fr) clamp(195px, 24cqh, 216px);
+  grid-template-rows: auto minmax(0, 1fr) var(--pg-desktop-desk);
   grid-template-areas: "scene roster" "scene tools" "desk tools";
   align-content: stretch;
   padding-inline: 4px;
@@ -387,6 +392,10 @@ body.playground-page {
 .playground-page #live2d-widget[data-playground-layout="wide"] .pg-tools {
   min-height: 0;
   overflow: auto;
+}
+/* The launcher shortcuts meet the command band even on a taller side rail. */
+.playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio[open] + .pg-launchers {
+  margin-block-start: auto;
 }
 /* Stack full-width app buttons in a side rail. In the toolbar or shorter
    rails, the same buttons use their default two-column arrangement. */
@@ -411,7 +420,7 @@ body.playground-page {
 @container (min-height: 710px) {
   .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view {
     grid-template-areas: "scene roster" "scene tools" "desk desk";
-    grid-template-rows: auto minmax(min-content, 1fr) minmax(164px, clamp(195px, 24cqh, 216px));
+    grid-template-rows: auto minmax(min-content, 1fr) var(--pg-desktop-desk);
   }
   .playground-page #live2d-widget[data-playground-layout="wide"] .pg-tools {
     gap: 8px;
@@ -463,18 +472,42 @@ body.playground-page {
    A full-width stage instead sits between a cast/app bar and two real panels. */
 @container (min-height: 945px) {
   .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio[open]) {
-    grid-template-rows: auto minmax(0, 1fr) minmax(216px, auto);
+    grid-template-columns: minmax(0, 1fr) minmax(466px, 39%);
+    grid-template-rows: auto minmax(0, 1fr) minmax(var(--pg-desktop-desk), auto);
     grid-template-areas: "roster apps" "scene scene" "desk receiver";
   }
-  /* The receiver sets the shared row height. A longer line or reply must
-     scroll inside the desk without pushing the camera or its caption up. */
+  /* The station may show an on-air announcement. Its height must not
+     resize the adjacent reading band or move the command row. */
   .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio[open]) .pg-dialogue-desk {
     contain: size;
+    height: var(--pg-desktop-desk);
+    align-self: end;
   }
   .playground-page #live2d-widget[data-playground-layout="wide"] .pg-tools:has(.pg-radio[open]) {
     display: contents;
   }
   .playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio[open] { grid-area: receiver; }
+  /* Put the receiver's display beside its keys so the desk can share a short row. */
+  .playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio[open] .vn-bgm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(192px, .85fr);
+    align-items: center;
+    gap: 2px 9px;
+    padding: 5px 7px;
+  }
+  .playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio .vn-bgm-deck {
+    grid-row: 1 / span 3;
+  }
+  .playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio .vn-bgm-lyrics {
+    height: 36px;
+  }
+  .playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio .vn-bgm-onair {
+    grid-column: 1 / -1;
+  }
+  .playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio [data-bgm-lyric] {
+    -webkit-line-clamp: 2;
+  }
+
   .playground-page #live2d-widget[data-playground-layout="wide"] .pg-radio[open] + .pg-launchers {
     grid-area: apps; align-self: end;
   }
@@ -486,7 +519,7 @@ body.playground-page {
    beside the cast and give the vacated column back to the stage. */
 .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio:not([open])) {
   grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) clamp(195px, 24cqh, 216px);
+  grid-template-rows: auto minmax(0, 1fr) var(--pg-desktop-desk);
   grid-template-areas: "roster tools" "scene scene" "desk desk";
 }
 .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio:not([open])) .vn-cast {
@@ -511,13 +544,13 @@ body.playground-page {
   grid-template-areas: "scene roster" "scene desk" "scene tools";
   align-content: start;
 }
-.playground-page #live2d-widget[data-playground-layout="landscape"] .vn-main-view > .companion-stage {
+.playground-page #live2d-widget[data-playground-layout="landscape"] .vn-main-view > .vn-scene-frame {
   position: sticky; top: 0;
   height: calc(100cqh - 8px);
 }
-.playground-page #live2d-widget[data-playground-layout="landscape"] .pg-dialogue-desk { height: 232px; }
+.playground-page #live2d-widget[data-playground-layout="landscape"] .pg-dialogue-desk { --pg-desk-height: 160px; }
 @media (pointer: coarse) {
-  .playground-page #live2d-widget[data-playground-layout="landscape"] .pg-dialogue-desk { height: 278px; }
+  .playground-page #live2d-widget[data-playground-layout="landscape"] .pg-dialogue-desk { --pg-desk-height: 170px; }
 }
 .playground-page #live2d-widget:not([data-playground-layout="wide"]) .pg-section-title {
   position: absolute;
@@ -539,7 +572,7 @@ body.playground-page {
 @media (max-width: 540px) and (max-height: 740px) {
   /* Keep the first row of dialogue commands in view without shrinking the reply area. */
   .playground-page #live2d-widget .vn-main-view {
-    grid-template-rows: auto minmax(clamp(222px, 34cqh, 252px), 1fr) auto auto;
+    --pg-scene-min: clamp(222px, 34cqh, 252px);
   }
 }
 @media (max-width: 360px) {
@@ -1083,127 +1116,172 @@ body.playground-page {
 
 /* The dialogue desk keeps the speaker, scrollable script and commands in view. */
 .playground-page #live2d-widget[data-playground-layout] .companion-conversation {
-  --pg-script-font: "Hiragino Sans", "Yu Gothic UI", Meiryo, system-ui, sans-serif;
   --pg-script-size: clamp(16px, 3.4cqi, 20px);
-  padding: 0;
+  padding: 6px 7px 4px;
   margin: 0;
-  border: 1px solid var(--vn-rule);
-  background: var(--vn-panel);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vn-ink) 8%, transparent);
 }
 .playground-page #live2d-widget .pg-dialogue-desk .companion-conversation {
   height: auto;
   min-height: 0;
 }
-.playground-page #live2d-widget .companion-conversation::before {
-  display: none;
-}
-.playground-page #live2d-widget[data-playground-layout] .companion-conversation .vn-dialogue-ornament {
-  display: none;
-}
-.playground-page #live2d-widget[data-playground-layout] .vn-nameplate {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
+.playground-page #live2d-widget .vn-nameplate {
   gap: 6px;
-  margin: 0;
-  padding: 2px 7px 2px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--vn-rule) 45%, transparent);
-  background: linear-gradient(90deg, var(--classic-title), var(--vn-panel) 70%);
+  margin: 0 2px 1px;
 }
-.playground-page #live2d-widget[data-playground-layout] .vn-nameplate strong {
-  display: inline-flex;
-  align-items: center;
-  justify-self: start;
-  gap: 7px;
-  padding: 0 10px;
-  border-left: 3px solid var(--classic-accent);
-  background: none;
-  color: var(--vn-ink);
+.playground-page #live2d-widget .vn-nameplate strong {
+  gap: 6px;
+  padding-inline: 6px 17px;
   font-size: 15px;
-  line-height: 1.5;
 }
 .playground-page #live2d-widget .vn-nameplate strong img {
-  width: 28px; height: 28px;
-  image-rendering: pixelated;
-}
-@container vn-dialogue (max-width: 540px) {
-  .playground-page #live2d-widget .vn-nameplate strong img { display: none; }
-}
-.playground-page #live2d-widget .vn-affinity {
-  background: none;
-  font-size: 11px;
+  width: 24px; height: 24px;
 }
 .playground-page #live2d-widget .vn-nameplate .vn-voice-toggle {
   min-height: 24px;
-  padding-inline: 7px;
+  padding-inline: 6px;
   font-size: 11px;
 }
 .playground-page #live2d-widget[data-playground-layout] .vn-dialogue-body {
   gap: 6px;
-  padding: 6px clamp(9px, 3cqi, 20px) 7px;
-  scroll-padding-block: 6px;
+  padding: 2px var(--vn-seal-space, clamp(5px, 2cqi, 18px)) 2px clamp(5px, 2cqi, 18px);
+  scroll-padding-block: 5px;
 }
-.playground-page #live2d-widget[data-playground-layout] #live2d-dialogue {
-  flex: 0 0 auto;
+.playground-page #live2d-widget .pg-dialogue-desk .vn-dialogue-body #live2d-dialogue {
   display: flex;
+  flex: 1 0 auto;
   min-height: 0;
 }
-.playground-page #live2d-widget #live2d-dialogue:has(+ .vn-choices:empty) {
-  flex-grow: 1;
-}
-.playground-page #live2d-widget[data-playground-layout] .vn-reading {
-  flex: 1;
-  min-height: 0;
-  padding: 0 0 12px;
-}
-.playground-page #live2d-widget .companion-conversation:has(.vn-choices > button) .vn-reading {
-  padding-bottom: 0;
-}
-.playground-page #live2d-widget #live2d-dialogue:has(+ .vn-choices:empty) .vn-reading:not([data-expects-replies]) {
+.playground-page #live2d-widget #live2d-dialogue .vn-reading {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: safe center;
   align-items: start;
-  padding: 4px 4px 10px;
+  flex: 1;
+  min-height: 0;
+  padding: 1px 4px 5px;
 }
 .playground-page #live2d-widget .live2d-dialogue__text {
   grid-area: 1 / 1;
   line-break: strict;
   overflow-wrap: anywhere;
   max-width: 48em;
-  font: 400 var(--pg-script-size) / 1.65 var(--pg-script-font);
+  font: 400 var(--pg-script-size) / 1.5 var(--pg-script-font);
   letter-spacing: .025em;
 }
 .playground-page #live2d-widget .vn-next-mark {
   inset: auto 2px 0 auto;
 }
+@container vn-dialogue (max-width: 420px) {
+  .playground-page #live2d-widget .vn-nameplate strong { min-height: 22px; font-size: 13px; }
+  .playground-page #live2d-widget .vn-nameplate strong img { width: 20px; height: 20px; }
+  .playground-page #live2d-widget .live2d-dialogue__text { font-size: 16px; line-height: 1.45; }
+}
+@container vn-dialogue (max-width: 335px) {
+  .playground-page #live2d-widget .live2d-dialogue__text { font-size: 15px; }
+}
+
 .playground-page #live2d-widget .companion-conversation.has-more-dialogue::after {
   right: 3px;
   bottom: 1px;
   font-size: 8px;
 }
-.playground-page #live2d-widget[data-playground-layout] .vn-choices {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
-  gap: 5px 8px;
-  margin: 0;
+.playground-page #live2d-widget .vn-scene-frame {
+  --vn-reply-side: clamp(176px, 30%, 320px);
 }
-.playground-page #live2d-widget[data-playground-layout] .vn-choices button {
-  min-width: 0;
-  min-height: 34px;
-  padding: 5px 10px;
-  border-color: color-mix(in srgb, var(--vn-rule) 55%, transparent);
-  background: color-mix(in srgb, var(--vn-rule) 10%, var(--vn-panel));
-  color: var(--vn-ink);
-  font: 400 clamp(14px, 2.8cqi, 16px) / 1.45 var(--pg-script-font);
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-break: strict;
+.playground-page #live2d-widget .vn-scene-frame > .vn-scene-choices {
+  --reply-width: clamp(176px, 30cqi, 320px);
 }
-.playground-page #live2d-widget[data-playground-layout] .vn-choices button:is(:hover, :focus-visible) {
-  border-color: var(--classic-accent);
-  background: color-mix(in srgb, var(--classic-accent) 14%, var(--vn-panel));
-  box-shadow: inset 2px 0 var(--classic-accent);
+.playground-page #live2d-widget .vn-scene-choices button {
+  min-height: 45px;
+  padding: 7px 10px 7px 30px;
+  font: 400 clamp(14px, 2cqi, 16px) / 1.5 var(--pg-script-font);
+}
+.playground-page #live2d-widget .vn-scene-choices button::before {
+  inset-inline-start: 5px;
+  width: 19px;
+}
+@media (max-width: 540px), (max-height: 589px) {
+  /* Reserve a safe region for the actor without resizing the painted scene.
+     A tall menu gets at most 42% of a normal stage and can scroll within it. */
+  .playground-page #live2d-widget:is([data-playground-layout="compact"], [data-playground-layout="landscape"]) .vn-scene-frame {
+    --vn-camera-min: 110px;
+    --vn-command-min: 58px;
+    --vn-command-wanted: max(var(--vn-command-min), var(--vn-menu-height, 0px));
+    --vn-command-space: min(var(--vn-command-wanted), max(var(--vn-command-min), 42%));
+    grid-template: "actor" minmax(var(--vn-camera-min), 1fr) "replies" calc(var(--vn-command-space) * var(--vn-reply-reveal)) / minmax(0, 1fr);
+  }
+  /* If the workspace already scrolls, only the menu extends below the scene. */
+  .playground-page #live2d-widget[data-extended-replies]:is([data-playground-layout="compact"], [data-playground-layout="landscape"]) .vn-scene-frame {
+    --vn-command-limit: max(var(--vn-command-min), calc(var(--vn-reply-camera-height) * .42));
+    grid-template-rows: max(var(--vn-camera-min), calc(var(--vn-reply-camera-height) - min(var(--vn-command-wanted), var(--vn-command-limit)))) minmax(0, 1fr);
+  }
+  .playground-page #live2d-widget:is([data-playground-layout="compact"], [data-playground-layout="landscape"]) .vn-scene-frame > .vn-scene-choices:not(:empty) {
+    display: grid;
+    border-width: 1px 0 0;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 4px;
+    margin: 0;
+    width: 100%;
+    height: max-content;
+    max-height: 100%;
+    align-self: start;
+    border: 1px solid var(--reply-edge);
+    align-items: stretch;
+  }
+  .playground-page #live2d-widget .vn-scene-choices .vn-choice-heading { display: none; }
+  .playground-page #live2d-widget .vn-scene-choices button {
+    min-height: 42px;
+    padding: 4px 5px 4px 21px;
+    text-wrap: pretty;
+  }
+  .playground-page #live2d-widget .vn-scene-choices button::before {
+    inset-inline-start: 3px;
+    width: 16px;
+  }
+  .playground-page #live2d-widget .vn-scene-choices button + button {
+    border-block-start-color: transparent;
+    border-inline-start-color: color-mix(in srgb, var(--reply-edge) 32%, transparent);
+  }
+}
+@media (max-width: 540px) and (orientation: portrait) {
+  /* Size the standby scene for three single-line touch targets. Showing the
+     commands then leaves the nameplate and the surrounding page in place. */
+  .playground-page #live2d-widget[data-playground-layout="compact"] .vn-main-view {
+    --pg-scene-min: max(302px, min(88cqw, 52cqh, 520px));
+  }
+  /* Japanese replies stay on a natural reading line beneath the camera. */
+  .playground-page #live2d-widget[data-playground-layout="compact"] .vn-scene-frame {
+    --vn-camera-min: 158px;
+    --vn-command-min: 140px;
+  }
+  .playground-page #live2d-widget[data-playground-layout="compact"] .vn-scene-frame > .vn-scene-choices:not(:empty) {
+    display: flex;
+    padding: 3px 7px;
+  }
+  .playground-page #live2d-widget[data-playground-layout="compact"] .vn-scene-choices button {
+    min-height: 44px;
+    padding: 5px 9px 5px 30px;
+  }
+  .playground-page #live2d-widget .vn-scene-choices button::before {
+    inset-inline-start: 5px;
+    width: 19px;
+  }
+  .playground-page #live2d-widget .vn-scene-choices button + button {
+    border-inline-start-color: transparent;
+    border-block-start-color: color-mix(in srgb, var(--reply-edge) 23%, transparent);
+  }
+}
+/* Exceptionally long replies extend the workspace's existing scroll area. */
+.playground-page #live2d-widget[data-extended-replies][data-playground-layout="compact"] .vn-main-view:has(.vn-scene-frame[data-replies-pending]) {
+  grid-template-rows: auto minmax(var(--vn-reply-frame-height), 1fr) auto auto;
+}
+.playground-page #live2d-widget[data-extended-replies][data-playground-layout="landscape"] .vn-main-view > .vn-scene-frame {
+  position: relative;
+  top: auto;
+  min-height: var(--vn-reply-frame-height);
 }
 .playground-page #live2d-widget[data-playground-layout] .companion-footer {
   align-items: center;
@@ -1217,8 +1295,8 @@ body.playground-page {
   min-width: 40px;
   min-height: 32px;
   padding: 3px clamp(5px, 1vw, 12px);
-  border-color: color-mix(in srgb, var(--vn-rule) 55%, transparent);
-  background: color-mix(in srgb, var(--vn-rule) 10%, var(--vn-panel));
+  border-color: color-mix(in srgb, var(--vn-rule) 49%, var(--vn-panel));
+  background: linear-gradient(color-mix(in srgb, var(--vn-rule) 15%, var(--vn-panel)), var(--vn-panel));
   font-size: 14px;
 }
 .playground-page #live2d-widget .companion-footer button[aria-pressed="true"] {
@@ -1238,7 +1316,7 @@ body.playground-page {
   color: var(--vn-muted);
 }
 @media (pointer: coarse) {
-  .playground-page #live2d-widget[data-playground-layout] :is(.vn-choices, .companion-footer) button {
+  .playground-page #live2d-widget[data-playground-layout] .companion-footer button {
     min-height: 40px;
   }
 }

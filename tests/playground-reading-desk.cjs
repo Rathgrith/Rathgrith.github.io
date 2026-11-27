@@ -1,5 +1,6 @@
 /* Exercise the standalone reading desk with real choices, typing and model readiness. */
 const assert = require("node:assert/strict");
+const checkSceneChoices = require("./helpers/scene-choices.cjs");
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 
@@ -19,6 +20,88 @@ async function checkScrollOwners(target) {
     return owners;
   });
   assert(scrollers.length <= 1, "Nested vertical scroll regions: " + scrollers.join(" inside "));
+}
+
+// Exercise real wheel/touch input over the first line. Keyboard focus must also
+// be able to bring the last reply into view, even with a screenful of text.
+async function readLongLine(page, touch = false) {
+  const line = page.locator("[data-live2d-dialogue-text]");
+  const replies = page.locator("[data-vn-choices] button");
+  await replies.first().waitFor();
+  await checkScrollOwners(line);
+  assert.equal(await page.locator("[data-vn-pager], [data-vn-page-next], [data-vn-page-prev]").count(), 0);
+  const owner = await line.evaluateHandle(element => {
+    for (let node = element; node; node = node.parentElement) {
+      if (/^(auto|scroll|overlay)$/.test(getComputedStyle(node).overflowY) &&
+          node.scrollHeight > node.clientHeight + 1) return node;
+    }
+    return document.scrollingElement;
+  });
+  assert(await line.evaluate((element, owner) => {
+    const end = document.createRange(), node = element.lastChild;
+    end.setStart(node, node.length - 1);
+    end.setEnd(node, node.length);
+    const glyph = end.getBoundingClientRect();
+    for (let ancestor = element; ancestor !== owner; ancestor = ancestor.parentElement) {
+      if (getComputedStyle(ancestor).overflowY === "visible") continue;
+      const r = ancestor.getBoundingClientRect();
+      if (glyph.bottom > r.bottom + 1 || glyph.top < r.top - 1) return false;
+    }
+    return true;
+  }, owner), "The last glyph is part of the same readable scroll surface as the first");
+  const start = await line.evaluate((element, owner) => {
+    const view = owner.getBoundingClientRect();
+    owner.scrollTop += element.getBoundingClientRect().top - Math.max(0, view.top) - 8;
+    const r = element.getBoundingClientRect();
+    const top = Math.max(0, r.top, view.top), bottom = Math.min(innerHeight, r.bottom, view.bottom);
+    const x = r.left + r.width / 2, y = top + (bottom - top) * .7;
+    return { x, y, hit: element.contains(document.elementFromPoint(x, y)), scroll: owner.scrollTop };
+  }, owner);
+  assert(start.hit, "The first part of the long line can receive reading gestures");
+  if (touch) {
+    const session = await page.context().newCDPSession(page);
+    const send = (type, y) => session.send("Input.dispatchTouchEvent", {
+      type, touchPoints: type === "touchEnd" ? [] : [{ x: start.x, y }],
+    });
+    await send("touchStart", start.y);
+    for (let distance = 8; distance <= 80; distance += 8) await send("touchMove", start.y - distance);
+    await send("touchEnd");
+    await session.detach();
+  } else {
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.wheel(0, 90);
+  }
+  await page.waitForFunction(({ owner, top }) => owner.scrollTop > top + 2, { owner, top: start.scroll });
+  await line.evaluate((element, owner) => {
+    const range = document.createRange(), node = element.lastChild;
+    range.setStart(node, node.length - 1);
+    range.setEnd(node, node.length);
+    const bottom = owner === document.scrollingElement ? innerHeight :
+      Math.min(innerHeight, owner.getBoundingClientRect().bottom);
+    owner.scrollTop += range.getBoundingClientRect().bottom - bottom + 8;
+  }, owner);
+  await page.waitForFunction(({ line, owner }) => {
+    const range = document.createRange(), node = line.lastChild;
+    range.setStart(node, node.length - 1);
+    range.setEnd(node, node.length);
+    const r = range.getBoundingClientRect(), view = owner.getBoundingClientRect();
+    return r.top >= Math.max(0, view.top) - 1 && r.bottom <= Math.min(innerHeight, view.bottom) + 1 &&
+      line.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+  }, { line: await line.elementHandle(), owner });
+  await page.locator("#live2d-interact").press("Enter");
+  assert(await replies.first().evaluate(button => document.activeElement === button),
+    "The dialogue command moves focus into the scene and leaves the choice to the reader");
+  await page.keyboard.press("End");
+  const last = replies.last();
+  assert(await last.evaluate(button => {
+    const rect = button.getBoundingClientRect();
+    return document.activeElement === button &&
+      button.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+  }), "Keyboard navigation returns to the final scene reply after reading to the end");
+  if (touch) await last.tap();
+  else await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#live2d-widget").dataset.vnBranchNode !== "daily");
+  await owner.dispose();
 }
 
 (async () => {
@@ -79,7 +162,8 @@ async function checkScrollOwners(target) {
         glyph.setStart(first, 0);
         glyph.setEnd(first, 1);
         const { x, y } = glyph.getBoundingClientRect();
-        return { x, y };
+        const frame = p.closest(".companion-conversation").getBoundingClientRect();
+        return { x: x - frame.left, y: y - frame.top };
       });
     }
     async function assertComplete() {
@@ -93,7 +177,7 @@ async function checkScrollOwners(target) {
       }));
       assert(sample.plain && !sample.unread, "A completed line is ordinary selectable text");
     }
-    const deskRows = () => page.locator(".companion-stage, .companion-conversation").evaluateAll(
+    const deskRows = () => page.locator(".vn-scene-frame, .companion-conversation").evaluateAll(
       rows => rows.map(row => {
         const { top, bottom } = row.getBoundingClientRect();
         return [top, bottom];
@@ -128,22 +212,32 @@ async function checkScrollOwners(target) {
       else await page.keyboard.press("Enter");
       await options.first().waitFor();
       await assertComplete();
+      await checkScrollOwners(text);
       await checkScrollOwners(options.last());
       if (width === 1600) {
         assert(await page.locator(".pg-radio").evaluate(radio => radio.open), "The tall desk includes its open radio");
-        assert.deepEqual(await deskRows(), before, "A long line and replies preserve the wide desk and camera bounds");
+        assert.deepEqual(await deskRows(), before, "A long line and replies preserve the wide desk and scene frame");
       }
-      assert.deepEqual(await firstGlyph(), baseline, "Showing all reply buttons keeps the first glyph in place");
+      assert.deepEqual(await firstGlyph(), baseline, width + "px: showing replies keeps the first glyph anchored to its caption");
       assert.equal(await reading.getAttribute("aria-disabled"), "true");
       assert.equal(await reading.getAttribute("tabindex"), "-1");
       const after = await page.locator(".companion-conversation").boundingBox();
-      assert.equal(after.height, bounds.height, "Options keep the reading desk height stable");
+      if (after.height !== bounds.height) {
+        assert(await page.locator(".vn-main-view").evaluate(main => main.scrollHeight > main.clientHeight + 1 &&
+          main.querySelector("[data-vn-dialogue-body]").scrollHeight <= main.querySelector("[data-vn-dialogue-body]").clientHeight + 1),
+          "An unusually long line can extend the caption only when its workspace owns scrolling");
+      }
       const replies = await options.evaluateAll((buttons) => buttons.map((b) => {
         const style = getComputedStyle(b);
         return { active: !b.disabled && style.pointerEvents !== "none" && style.transform === "none",
           delay: parseFloat(style.animationDelay), duration: parseFloat(style.animationDuration) };
       }));
       assert.equal(replies.length, 3);
+      const labels = await page.evaluate(() => CompanionBranches.alice.nodes.daily.choices.map(choice => choice.label));
+      for (const label of labels) {
+        assert.equal(await page.locator(".vn-scene-choices").getByRole("button", { name: label, exact: true }).count(), 1,
+          "Each reply keeps its authored accessible name alongside the decorative cursor");
+      }
       assert(replies.every((reply) => reply.active), "All reply hit areas are available together and stay still");
       assert(replies[0].delay < replies[1].delay && replies[1].delay < replies[2].delay &&
         replies[2].delay < replies[0].duration, "The reply fades overlap in reading order");
@@ -151,11 +245,14 @@ async function checkScrollOwners(target) {
       await page.keyboard.press("ArrowRight");
       assert(await options.nth(1).evaluate((e) => e === document.activeElement),
         "Horizontal arrows follow the desktop reply row");
+      const cursors = await options.evaluateAll(buttons => buttons.map(button =>
+        Number(getComputedStyle(button, "::before").opacity) > 0));
+      assert.deepEqual(cursors, [false, true, false], "The menu cursor follows keyboard focus to exactly one reply");
       await page.keyboard.press("ArrowLeft");
       await page.keyboard.press("ArrowUp");
       assert(await options.last().evaluate((e) => {
-        const body = e.closest(".vn-dialogue-body");
-        const b = body.getBoundingClientRect(), r = e.getBoundingClientRect();
+        const stage = e.closest(".vn-scene-frame");
+        const b = stage.getBoundingClientRect(), r = e.getBoundingClientRect();
         return document.activeElement === e && e.scrollWidth <= e.clientWidth + 1 &&
           r.top >= b.top - 1 && r.bottom <= b.bottom + 1;
       }), "Keyboard navigation reveals a wrapped final option completely");
@@ -179,7 +276,7 @@ async function checkScrollOwners(target) {
     await openBranch();
     assert.equal(await options.count(), 3);
     await assertComplete();
-    const reply = (await options.first().textContent()).replace(/^▸ /, "");
+    const reply = await page.evaluate(() => CompanionBranches.alice.nodes.daily.choices[0].label);
     await options.first().click();
     await page.locator('[data-vn-open="history"]').click();
     const history = page.locator("[data-vn-history-list]");
@@ -212,53 +309,18 @@ async function checkScrollOwners(target) {
     await openBranch();
     assert.equal(await options.count(), 3);
     await assertComplete();
-    // The Gallery rail has less height than the homepage dock. Compare the
-    // frame through both a normal and a long reply-bearing line there.
+    // Exercise continuous reading in the shorter Gallery rail.
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(base + "gallery/");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await openBranch();
-    const frame = page.locator(".companion-conversation");
-    const ordinaryHeight = (await frame.boundingBox()).height;
     await page.evaluate(() => {
       const line = CompanionBranches.alice.nodes.daily.lines[0];
-      line.text = line.text.repeat(6);
+      line.text = line.text.repeat(10);
     });
     await openBranch();
     await assertComplete();
-    assert.equal((await frame.boundingBox()).height, ordinaryHeight, "Long lines keep the docked frame stable");
-    await checkScrollOwners(options.last());
-
-    const body = page.locator("[data-vn-dialogue-body]");
-    const previousPage = page.locator("[data-vn-page-prev]");
-    const nextPage = page.locator("[data-vn-page-next]");
-    await nextPage.waitFor();
-    assert(await previousPage.isDisabled());
-    await body.hover();
-    const workspace = page.locator(".vn-main-view");
-    const beforeWheel = await workspace.evaluate(e => e.scrollTop);
-    const delta = await workspace.evaluate(e => e.scrollTop < (e.scrollHeight - e.clientHeight) / 2 ? 80 : -80);
-    await page.mouse.wheel(0, delta);
-    await page.waitForFunction(top => document.querySelector(".vn-main-view").scrollTop !== top, beforeWheel);
-    assert.equal(await body.evaluate(e => e.scrollTop), 0, "Wheeling over a paged line scrolls only the workspace");
-    await nextPage.click();
-    await page.waitForFunction(() => document.querySelector("[data-vn-dialogue-body]").scrollTop > 0);
-    await previousPage.click();
-    await page.waitForFunction(() => document.querySelector("[data-vn-dialogue-body]").scrollTop < 1);
-    // Turning pages must expose the whole line and the final reply. Bound the
-    // loop so a pager that keeps returning the same page fails promptly.
-    for (let turns = 0; await nextPage.isEnabled(); turns++) {
-      assert(turns < 12, "The final dialogue page is reachable");
-      await nextPage.click();
-    }
-    assert(await body.evaluate(e => e.scrollTop + e.clientHeight >= e.scrollHeight - 2));
-    assert(await options.last().evaluate(button => {
-      const r = button.getBoundingClientRect();
-      const b = button.closest("[data-vn-dialogue-body]").getBoundingClientRect();
-      return r.top >= b.top - 1 && r.bottom <= b.bottom + 1;
-    }), "The final reply is visible on the last page");
-    await options.last().click();
-    await page.waitForFunction(() => document.querySelector("[data-vn-dialogue-body]").scrollTop < 1);
+    await readLongLine(page);
     await page.locator('[data-vn-open="history"]').click();
     await checkScrollOwners(history);
     await history.locator("li").last().scrollIntoViewIfNeeded();
@@ -278,8 +340,9 @@ async function checkScrollOwners(target) {
       const phoneReplies = phone.locator("[data-vn-choices] button");
       await phoneReplies.first().waitFor();
       await phone.evaluate(() => document.fonts.ready);
+      await checkSceneChoices(phone.locator("#live2d-widget"));
       const touchLayout = await phoneReplies.evaluateAll((buttons) => {
-        const body = buttons[0].closest(".vn-dialogue-body");
+        const body = buttons[0].closest(".vn-scene-frame");
         const top = body.getBoundingClientRect().top + body.clientTop;
         return { top, bottom: top + body.clientHeight, scroll: body.scrollTop,
           targets: buttons.map((button) => {
@@ -292,7 +355,7 @@ async function checkScrollOwners(target) {
       for (const button of touchLayout.targets) {
         assert(button.height >= 40 && button.width >= 40, "Replies retain their touch target");
         assert(button.top >= touchLayout.top - 1 && button.bottom <= touchLayout.bottom + 1,
-          `All three ordinary replies must fit without scrolling at ${width}px: ${JSON.stringify(touchLayout)}`);
+          `All three ordinary replies must fit inside the scene at ${width}px: ${JSON.stringify(touchLayout)}`);
       }
       await phoneReplies.last().tap();
       await phone.waitForFunction(() => document.querySelector("#live2d-widget").dataset.vnBranchNode !== "daily");
@@ -304,17 +367,12 @@ async function checkScrollOwners(target) {
     await popup.locator('[data-vn-open="topics"]').tap();
     await phone.evaluate(() => {
       const line = CompanionBranches.alice.nodes.daily.lines[0];
-      line.text = line.text.repeat(6);
+      line.text = line.text.repeat(30);
     });
     await popup.locator('[data-vn-topic-start="branch:daily"]').tap();
-    const lastReply = popup.locator("[data-vn-choices] button").last();
-    await lastReply.waitFor();
-    await checkScrollOwners(lastReply);
-    await popup.locator("[data-vn-page-next]").tap();
-    assert(await popup.locator("[data-vn-dialogue-body]").evaluate(e => e.scrollTop > 0),
-      "The mobile reading shortcut can turn a long dialogue page by touch");
+    await readLongLine(phone, true);
     await phone.close();
-    console.log("PASS: stable camera and dialogue frames, Japanese ink reveal, keyboard replies, single scroll regions, wheel and touch paging, reduced motion and accessible history");
+    console.log("PASS: stable camera and dialogue frames, Japanese ink reveal, keyboard replies, single scroll regions, continuous wheel and touch reading, reduced motion and accessible history");
   } finally {
     await browser.close();
   }

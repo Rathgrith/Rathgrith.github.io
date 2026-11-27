@@ -270,6 +270,24 @@ const hands = {
       });
       await settle("5", "07");
       assert((await page.evaluate(() => performanceFrame.mouth)) > 0.9);
+      if (id === "alice") {
+        const stage = page.locator("[data-companion-stage]");
+        await stage.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => document.querySelector("[data-companion-stage]").hasAttribute("data-camera-active"));
+        const rig = await page.evaluateHandle(() => performanceTestApp.stage.children[0]);
+        const samples = {};
+        for (const [shot, expression, effect] of [["closer", "02", "blush"], ["wider", "06", "surprise"], ["aside", "04", "question"], ["neutral", "01", ""]]) {
+          await page.evaluate(({ expression, effect }) => performanceTestHooks.perform({ poseId: "1", expressionMotionId: expression, effect }), { expression, effect });
+          assert.equal(await stage.getAttribute("data-camera-shot"), shot);
+          await settle("1", expression);
+          samples[shot] = await rig.evaluate(model => ({ sameRig: model === performanceTestApp.stage.children[0], x: model.x, scale: model.scale.x }));
+        }
+        assert(Object.values(samples).every(s => s.sameRig), "Changing shots preserves the animated model");
+        assert(samples.closer.scale > samples.neutral.scale && samples.wider.scale < samples.neutral.scale,
+          "The rendered model approaches and recedes between the close and wide shots");
+        assert(Math.abs(samples.aside.x - samples.neutral.x) > 1, "The aside shot changes the horizontal composition");
+        await rig.dispose();
+      }
       // Minimized/hidden renderers must not settle a half-played animation on
       // a wall-clock timeout. Resume the same motion before accepting rest.
       await page.evaluate(() => performanceTestHooks.perform({ poseId: "4", expressionMotionId: "01" }));

@@ -291,6 +291,177 @@
     height: 16px;
   }
 }
+/* Animate the reveal alone. A window resize must always update the camera
+   immediately, even halfway through a conversation. */
+@property --vn-reply-reveal {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+#live2d-widget .vn-scene-frame {
+  --vn-reply-reveal: 0;
+  --vn-reply-side: clamp(120px, 49%, 230px);
+  container: vn-scene / inline-size;
+  display: grid;
+  grid-template: "actor replies" minmax(0, 1fr) / minmax(0, 1fr) calc(var(--vn-reply-side) * var(--vn-reply-reveal));
+  position: relative;
+  overflow: clip;
+  min-width: 0;
+  min-height: 0;
+  background: var(--vn-panel);
+}
+#live2d-widget .vn-scene-frame[data-replies-pending] { --vn-reply-reveal: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  #live2d-widget .vn-scene-frame {
+    transition: --vn-reply-reveal 250ms cubic-bezier(.32, 0, .2, 1);
+  }
+  #live2d-widget .vn-scene-choices:not(:empty) { animation: vn-command-open 180ms ease-out; }
+  #live2d-widget .vn-scene-caption { transition: opacity 160ms ease-out; }
+}
+@keyframes vn-command-open {
+  from { opacity: .25; }
+  to { opacity: 1; }
+}
+/* Only this invisible composition guide changes with the commands. The
+   room, renderer and input coordinates keep a single full-size viewport. */
+#live2d-widget .vn-actor-area {
+  grid-area: actor;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
+}
+#live2d-widget .vn-scene-frame > .companion-stage {
+  grid-area: auto;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+/* The command window is sized by its replies. The painted margin around it
+   belongs to the scene and never intercepts clicks on the actor. */
+#live2d-widget .vn-scene-frame::before {
+  content: "";
+  grid-area: replies;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--vn-panel) 48%, transparent));
+}
+#live2d-widget .vn-scene-frame > .vn-scene-choices {
+  --reply-edge: color-mix(in srgb, var(--vn-light) 63%, #baa685);
+  --reply-wash: color-mix(in srgb, var(--vn-light) 18%, var(--vn-panel));
+  --reply-dark: color-mix(in srgb, var(--vn-panel) 70%, #090a16);
+  --reply-foil: color-mix(in srgb, #e6c590 65%, var(--vn-light));
+  --reply-pin: linear-gradient(var(--reply-foil), var(--reply-foil));
+  --reply-highlight: linear-gradient(90deg, color-mix(in srgb, var(--vn-light) 27%, var(--vn-panel)), color-mix(in srgb, var(--vn-light) 11%, var(--vn-panel)));
+  z-index: 2;
+  --reply-gutter: clamp(2px, 1.45cqi, 17px);
+  --reply-width: clamp(120px, 49cqi, 230px);
+  grid-area: replies;
+  position: relative;
+  align-self: center;
+  justify-self: start;
+  width: calc(var(--reply-width) - 2 * var(--reply-gutter));
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0 var(--reply-gutter);
+}
+#live2d-widget .vn-scene-frame > .vn-scene-choices:not(:empty) {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px;
+  border: 1px solid var(--reply-edge);
+  background:
+    var(--reply-pin) left 2px top 2px / 3px 2px no-repeat,
+    var(--reply-pin) right 2px top 2px / 3px 2px no-repeat,
+    var(--reply-pin) left 2px bottom 2px / 3px 2px no-repeat,
+    var(--reply-pin) right 2px bottom 2px / 3px 2px no-repeat,
+    linear-gradient(125deg, color-mix(in srgb, var(--vn-light) 8%, transparent), transparent 62%),
+    linear-gradient(var(--reply-wash), var(--reply-dark) 84%);
+  box-shadow: inset 0 0 0 2px var(--reply-dark), inset 0 0 0 3px color-mix(in srgb, var(--reply-edge) 36%, transparent),
+    0 2px 0 #090b12, 0 4px 9px #080b124f;
+}
+#live2d-widget .vn-choice-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  gap: 8px;
+  padding: 5px 4px 4px;
+  color: var(--reply-foil);
+  font: 12px / 1.3 var(--vn-font);
+  letter-spacing: .075em;
+}
+#live2d-widget .vn-choice-heading::before,
+#live2d-widget .vn-choice-heading::after {
+  content: "";
+  width: min(24%, 46px);
+  height: 3px;
+  background: linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat,
+    linear-gradient(currentColor, currentColor) right center / 3px 3px no-repeat;
+  opacity: .65;
+}
+#live2d-widget .vn-choice-heading::after { transform: scaleX(-1); }
+#live2d-widget .vn-scene-choices > button {
+  position: relative;
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 31px;
+  margin: 0;
+  padding: 3px 5px 3px 18px;
+  border: 1px solid transparent;
+  color: var(--vn-ink);
+  background: transparent;
+  box-shadow: none;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-break: strict;
+  text-wrap: pretty;
+  font-size: var(--vn-dialogue-size, 12px);
+  line-height: 1.55;
+}
+#live2d-widget .vn-scene-choices > button + button {
+  border-block-start-color: color-mix(in srgb, var(--reply-edge) 23%, transparent);
+}
+#live2d-widget .vn-scene-choices > button::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 1px;
+  top: 50%;
+  width: 16px;
+  height: 13px;
+  transform: translateY(-50%);
+  background: url("../images/classic/ornaments/reply-cursor.svg") center / contain no-repeat;
+  image-rendering: pixelated;
+  opacity: 0;
+  pointer-events: none;
+}
+#live2d-widget .vn-scene-choices > button:focus-visible {
+  background: var(--reply-highlight);
+  color: #fff8e9;
+  outline: 1px solid var(--reply-edge);
+  outline-offset: -2px;
+  box-shadow: inset 3px 0 var(--reply-foil);
+}
+#live2d-widget .vn-scene-choices > button:focus-visible::before,
+#live2d-widget .vn-scene-choices > button:active::before { opacity: 1; }
+@media (hover: hover) {
+  #live2d-widget .vn-scene-choices:not(:has(:focus-visible)) > button:hover {
+    background: var(--reply-highlight);
+    box-shadow: inset 2px 0 var(--reply-edge);
+  }
+  #live2d-widget .vn-scene-choices:not(:has(:focus-visible)) > button:hover::before { opacity: 1; }
+}
+@container vn-scene (max-width: 440px) {
+  #live2d-widget .vn-scene-frame .vn-choice-heading { display: none; }
+  #live2d-widget .vn-scene-frame[data-replies-pending] .vn-scene-caption { opacity: 0; }
+}
 #live2d-widget .companion-stage {
   position: relative;
   width: 100%;
@@ -301,36 +472,87 @@
   border: 1px solid var(--vn-rule);
   isolation: isolate;
 }
-/* The original art, character and lights share a 16:9 composition. Cover
-   the actual stage with that plane, allowing three pixels for the defocus.
-   Each character keeps their own headroom when a wide stage crops vertically. */
+/* A pair of fixed-focus prints of the same room. Cross-fading their opacity
+   changes the apparent aperture without re-blurring the actor or interface. */
+#live2d-widget .companion-stage {
+  --lens-sharp: .85px;
+  --lens-soft: 3.8px;
+  --lens-period: 8.8s;
+  --hand-period: 12.8s;
+  --hand-x: 1.05px;
+  --hand-y: .72px;
+  --room-glow: radial-gradient(ellipse at 15% 25%, #c7daff33, transparent 50%);
+}
+#live2d-widget[data-vn-character="marisa"] .companion-stage {
+  --lens-sharp: .75px;
+  --lens-soft: 3.5px;
+  --lens-period: 7.2s;
+  --hand-period: 10.4s;
+  --hand-x: 1.35px;
+  --hand-y: .88px;
+  --room-glow: radial-gradient(ellipse at 12% 62%, #ffd8a452, transparent 46%);
+}
+#live2d-widget[data-vn-character="patchouli"] .companion-stage {
+  --lens-sharp: 1px;
+  --lens-soft: 4.2px;
+  --lens-period: 11.6s;
+  --hand-period: 16.6s;
+  --hand-x: .7px;
+  --hand-y: .5px;
+  --room-glow: radial-gradient(ellipse at 80% 21%, #cdb9ff38, transparent 53%);
+}
 #live2d-widget .companion-stage::before,
 #live2d-widget .companion-stage::after,
+#live2d-widget .vn-motes-far,
 #live2d-widget .vn-scene-light {
   position: absolute;
-  --vn-camera-height: max(calc(100cqh + 6px), calc((100cqw + 6px) * 9 / 16));
+  --vn-bleed: 10px;
+  --vn-camera-height: max(calc(100cqh + 2 * var(--vn-bleed)), calc((100cqw + 2 * var(--vn-bleed)) * 9 / 16));
   height: var(--vn-camera-height);
   aspect-ratio: 16 / 9;
-  left: calc((100cqw - var(--vn-camera-height) * 16 / 9) / 2);
-  top: calc(-3px + (100cqh + 6px - var(--vn-camera-height)) * var(--vn-camera-focus));
+  --vn-room-width: calc(var(--vn-camera-height) * 16 / 9);
+  left: clamp(calc(100cqw - var(--vn-room-width) + var(--vn-bleed)),
+    calc((100cqw - var(--vn-room-width)) / 2 + var(--vn-look-x, 0px)), calc(-1 * var(--vn-bleed)));
+  top: clamp(calc(100cqh - var(--vn-camera-height) + var(--vn-bleed)),
+    calc((100cqh + 2 * var(--vn-bleed) - var(--vn-camera-height)) * var(--vn-camera-focus) - var(--vn-bleed) + var(--vn-look-y, 0px)), calc(-1 * var(--vn-bleed)));
   pointer-events: none;
 }
 #live2d-widget .companion-stage::before,
 #live2d-widget .companion-stage::after {
   content: "";
-  z-index: 0;
-}
-#live2d-widget .companion-stage::before {
+  z-index: -1;
   background: var(--vn-scene) center 45% / cover no-repeat;
-  filter: blur(1.25px);
 }
+#live2d-widget .companion-stage::before { filter: blur(var(--lens-sharp)); }
 #live2d-widget .companion-stage::after {
-  background:
-    radial-gradient(circle at 12% 28%, var(--vn-light) 0 5px, transparent 15px),
-    radial-gradient(circle at 84% 20%, #ffe3a5 0 4px, transparent 13px),
-    radial-gradient(circle at 90% 75%, var(--vn-light) 0 7px, transparent 19px);
-  opacity: 0.3;
-  filter: blur(3px);
+  display: none;
+  filter: blur(var(--lens-soft));
+  scale: 1.008;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #live2d-widget .companion-stage[data-camera-active]::before,
+  #live2d-widget .companion-stage[data-camera-active]::after {
+    transition: scale .9s ease;
+    animation: vn-handheld var(--hand-period) ease-in-out infinite;
+  }
+  #live2d-widget .companion-stage[data-camera-active]::after {
+    display: block;
+    animation: vn-handheld var(--hand-period) ease-in-out infinite,
+      vn-aperture var(--lens-period) ease-in-out infinite;
+  }
+  #live2d-widget .companion-stage[data-camera-active][data-camera-shot="closer"]::before { scale: 1.018; }
+  #live2d-widget .companion-stage[data-camera-active][data-camera-shot="closer"]::after { scale: 1.026; }
+}
+@keyframes vn-aperture {
+  0%, 100% { opacity: calc(.22 * var(--vn-light-strength, .75)); }
+  46% { opacity: calc(.89 * var(--vn-light-strength, .75)); }
+  73% { opacity: calc(.49 * var(--vn-light-strength, .75)); }
+}
+@keyframes vn-handheld {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  26% { transform: translate3d(var(--hand-x), calc(-.6 * var(--hand-y)), 0); }
+  55% { transform: translate3d(calc(-.72 * var(--hand-x)), var(--hand-y), 0); }
+  79% { transform: translate3d(calc(-.3 * var(--hand-x)), calc(-.75 * var(--hand-y)), 0); }
 }
 #live2d-widget #live2dcanvas {
   position: absolute;
@@ -363,7 +585,7 @@
 }
 #live2d-widget .vn-scene-light {
   z-index: 2;
-  background: linear-gradient(115deg, var(--vn-light), transparent 65%);
+  background: var(--room-glow), linear-gradient(115deg, var(--vn-light), transparent 65%);
   mix-blend-mode: soft-light;
   opacity: calc(var(--vn-light-strength, 0.75) * 0.2);
 }
@@ -428,15 +650,19 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  height: var(--vn-dialogue-height, 208px);
+  height: calc(var(--vn-dialogue-height, 154px) + var(--vn-reading-extension, 0px));
   min-height: 0;
   margin-top: 8px;
-  padding: 11px 10px 6px;
-  border: 3px double var(--vn-rule);
+  --vn-brass: color-mix(in srgb, #e6c590 74%, var(--vn-light));
+  --vn-fillet: color-mix(in srgb, var(--vn-brass) 39%, var(--vn-panel));
+  --vn-stud: conic-gradient(from 45deg, var(--vn-fillet) 50%, var(--vn-brass) 50%);
+  --vn-cap: linear-gradient(90deg, var(--vn-brass) 9px, transparent 9px calc(100% - 9px), var(--vn-brass) calc(100% - 9px));
+  padding: 7px 9px 6px;
+  border: 1px solid var(--vn-fillet);
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--vn-light) 4%, transparent), transparent 55%),
-    var(--vn-panel);
-  box-shadow: inset 0 0 0 2px var(--vn-panel), inset 0 0 0 3px #ffffff04;
+    radial-gradient(ellipse at top left, color-mix(in srgb, var(--vn-light) 10%, transparent), transparent 68%),
+    linear-gradient(110deg, var(--vn-panel) 30%, color-mix(in srgb, var(--vn-panel) 85%, #060910));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--vn-panel) 87%, black);
 }
 /* Keep docked text compact, but make detached conversations comfortable to read.
    The fixed dialogue viewport, rather than its content, determines the layout. */
@@ -445,64 +671,48 @@
   --vn-dialogue-leading: 1.85;
 }
 #live2d-widget.is-docked .companion-conversation {
-  /* Three wrapped lines and three ordinary replies share this same frame. */
-  height: 232px;
+  /* Keep the reading area stable when a branch opens in the scene. */
+  height: calc(161px + var(--vn-reading-extension, 0px));
   --vn-dialogue-leading: 1.8;
 }
 @media (pointer: coarse) {
-  #live2d-widget.is-docked .companion-conversation { height: 248px; }
+  #live2d-widget.is-docked .companion-conversation { height: calc(171px + var(--vn-reading-extension, 0px)); }
 }
+/* The inset fillet and square studs stay outside the script and its scrollport. */
 #live2d-widget .companion-conversation::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: 3px;
   pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--vn-fillet) 62%, transparent);
   background:
-    linear-gradient(var(--classic-accent), var(--classic-accent)) left bottom /
-      12px 1px no-repeat,
-    linear-gradient(var(--classic-accent), var(--classic-accent)) left bottom /
-      1px 12px no-repeat,
-    linear-gradient(var(--classic-accent), var(--classic-accent)) right top /
-      12px 1px no-repeat,
-    linear-gradient(var(--classic-accent), var(--classic-accent)) right top /
-      1px 12px no-repeat;
-  /* Fine paired registration marks keep the ornament on the frame, clear of text. */
-  border-image: linear-gradient(
-      90deg,
-      transparent 20px,
-      var(--vn-rule) 20px 42px,
-      transparent 42px calc(100% - 42px),
-      var(--vn-rule) calc(100% - 42px) calc(100% - 20px),
-      transparent calc(100% - 20px)
-    )
-    1;
-  border-block: 1px solid transparent;
-}
-#live2d-widget .vn-dialogue-body {
-  min-width: 0;
-  min-height: 0;
+    var(--vn-stud) left top / 4px 4px no-repeat,
+    var(--vn-stud) right top / 4px 4px no-repeat,
+    var(--vn-stud) left bottom / 4px 4px no-repeat,
+    var(--vn-stud) right bottom / 4px 4px no-repeat,
+    var(--vn-cap) center top / calc(100% - 12px) 1px no-repeat,
+    var(--vn-cap) center bottom / calc(100% - 12px) 1px no-repeat;
 }
 #live2d-widget .vn-dialogue-ornament {
+  display: none;
   position: absolute;
-  right: 18px;
-  bottom: 14px;
-  width: 48px;
-  height: 48px;
-  background: var(--classic-accent);
-  mask: var(--vn-ornament) center / contain no-repeat;
-  opacity: 0.24;
   pointer-events: none;
 }
-#live2d-widget
-  .companion-conversation:has(.vn-choices > button)
-  .vn-dialogue-ornament,
-#live2d-widget .companion-conversation.has-more-dialogue .vn-dialogue-ornament {
-  display: none;
-}
-/* Text and choices share a fixed viewport in both docked and floating windows.
-   Only resizing the window may change the available dialogue height. */
-#live2d-widget .vn-nameplate {
-  flex-shrink: 0;
+@container vn-dialogue (min-width: 500px) {
+  #live2d-widget .vn-dialogue-ornament {
+    display: block;
+    right: clamp(12px, 2cqi, 28px);
+    bottom: 12px;
+    width: clamp(50px, 7cqi, 86px);
+    aspect-ratio: 1;
+    max-height: calc(100% - 47px);
+    background: var(--vn-brass);
+    mask: var(--vn-ornament) center / contain no-repeat;
+    opacity: .37;
+  }
+  #live2d-widget .vn-dialogue-body {
+    --vn-seal-space: clamp(68px, 10cqi, 122px);
+  }
 }
 #live2d-widget .vn-dialogue-body {
   display: flex;
@@ -513,7 +723,9 @@
   scrollbar-width: thin;
   scrollbar-color: var(--vn-rule) transparent;
   scrollbar-gutter: stable;
-  padding: 2px;
+  min-width: 0;
+  min-height: 0;
+  padding: 3px var(--vn-seal-space, 4px) 3px 4px;
 }
 #live2d-widget .vn-dialogue-body::-webkit-scrollbar {
   width: 5px;
@@ -525,37 +737,21 @@
 #live2d-widget .vn-dialogue-body::-webkit-scrollbar-track {
   background: #0002;
 }
-/* A short workspace owns wheel and touch scrolling. Longer conversations can
-   still be paged or reached by tabbing through their replies. */
-#live2d-widget[data-scrollable-workspace] .vn-dialogue-body {
-  overflow: hidden;
-  overscroll-behavior: auto;
+/* A long label can wrap to any number of lines. On a constrained workspace
+   the reply column grows downward while the actor keeps its original framing. */
+#live2d-widget .vn-scene-frame > .vn-scene-choices {
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
-#live2d-widget .vn-dialogue-pager:not([hidden]) {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  padding: 2px 4px;
-  border-top: 1px solid var(--vn-rule);
-  color: var(--vn-muted);
-  font: 12px/1.4 var(--vn-font);
-  font-variant-numeric: tabular-nums;
+#live2d-widget[data-extended-replies] .vn-scene-frame {
+  min-height: var(--vn-reply-frame-height);
 }
-#live2d-widget .vn-dialogue-pager button {
-  min-height: 24px;
-  padding: 2px 7px;
-  font: inherit;
+#live2d-widget[data-extended-replies] .vn-scene-frame > [data-companion-stage] {
+  max-height: var(--vn-reply-camera-height);
+  align-self: start;
 }
-#live2d-widget .vn-dialogue-pager button[aria-disabled="true"] {
-  color: var(--vn-muted);
-  background: var(--vn-panel);
-  cursor: default;
-}
-@media (pointer: coarse) {
-  #live2d-widget .vn-dialogue-pager button { min-height: 32px; }
-}
+/* Long captions extend into the workspace only when it already scrolls. */
+#live2d-widget[data-scrollable-workspace] .vn-dialogue-body { overscroll-behavior: auto; }
 #live2d-widget .companion-conversation.has-more-dialogue::after {
   content: "▼";
   position: absolute;
@@ -573,26 +769,58 @@
 }
 #live2d-widget .vn-nameplate {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  margin: -20px 0 8px;
-}
-#live2d-widget .vn-nameplate strong {
-  padding: 0 6px;
-  background: var(--vn-panel);
-  color: var(--classic-accent);
-  font: var(--vn-dialogue-size, 12px) / 1.5 var(--vn-font);
-  white-space: nowrap;
-}
-#live2d-widget .vn-affinity {
-  display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 5px;
-  padding: 0 4px;
+  margin: 0 0 4px;
+}
+/* A short tail and a hairline connect the name ribbon to the quieter controls. */
+#live2d-widget .vn-nameplate::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--vn-fillet), transparent);
+}
+#live2d-widget .vn-nameplate strong {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 23px;
+  padding: 1px 14px 1px 6px;
+  background: var(--vn-brass);
+  color: var(--vn-ink);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 50%, 100% 100%, 0 100%);
+  font: 400 12px / 1.4 var(--vn-font);
+  white-space: nowrap;
+}
+#live2d-widget .vn-nameplate strong::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 1px 2px 1px 3px;
+  clip-path: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--vn-light) 23%, var(--vn-panel)), var(--vn-panel));
+}
+#live2d-widget .vn-nameplate strong img {
+  width: 20px; height: 20px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+#live2d-widget .vn-speaker-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#live2d-widget .vn-affinity {
+  order: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--vn-muted);
-  background: var(--vn-panel);
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
 }
 #live2d-widget meter {
@@ -601,6 +829,10 @@
   appearance: none;
   border: 0;
   background: var(--classic-edge-mid);
+}
+#live2d-widget .vn-affinity meter {
+  /* The five divisions remain legible at the size of the name ribbon. */
+  mask: repeating-linear-gradient(90deg, #000 0 calc(20% - 1px), transparent calc(20% - 1px) 20%);
 }
 #live2d-widget meter::-webkit-meter-bar {
   border: 0;
@@ -618,7 +850,8 @@
   position: static;
   inset: auto;
   z-index: auto;
-  display: block;
+  display: flex;
+  flex: 1 0 auto;
   opacity: 1;
   width: 100%;
   max-width: none;
@@ -636,7 +869,10 @@
 }
 #live2d-widget .vn-reading {
   position: relative;
-  min-height: 112px;
+  display: grid;
+  align-content: safe center;
+  flex: 1;
+  min-height: 0;
   padding: 2px 0 14px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -667,12 +903,15 @@
   min-height: 23px;
   font-size: 10px;
   line-height: 1.7;
+  order: 3;
+  border: 1px solid var(--vn-fillet);
   background: var(--vn-panel);
 }
 /* The right column of a resized window can be as narrow as the sidebar dock. */
 @container vn-dialogue (max-width: 240px) {
+  #live2d-widget .vn-nameplate strong img { display: none; }
   #live2d-widget .vn-nameplate strong {
-    padding-inline: 4px;
+    padding-inline: 5px 10px;
     font-size: 10px;
   }
   #live2d-widget .vn-affinity {
@@ -704,42 +943,17 @@
 #live2d-widget[data-dialogue-state="typing"] .vn-next-mark {
   visibility: hidden;
 }
-#live2d-widget .vn-choices {
-  display: grid;
-  gap: 5px;
-  margin-top: 7px;
-}
-#live2d-widget .vn-choices:empty {
-  display: none;
-}
-#live2d-widget .vn-choices button {
-  text-align: left;
-  min-height: 31px;
-  font-size: var(--vn-dialogue-size, 12px);
-  line-height: 1.7;
-  border-color: color-mix(in srgb, var(--vn-rule) 60%, transparent);
-}
-#live2d-widget .vn-choices button:is(:hover, :focus-visible) {
-  border-color: var(--classic-accent);
-  box-shadow: inset 2px 0 var(--classic-accent);
-}
-/* Reclaim the reading placeholder when options arrive; the outer viewport and
-   model camera stay fixed, and long text still scrolls with its choices. */
+#live2d-widget .vn-choices:empty { display: none; }
+/* Leave room for the advance marker only while the line can advance. */
 #live2d-widget .vn-reading[data-expects-replies],
-#live2d-widget .companion-conversation:has(.vn-choices > button) .vn-reading {
+#live2d-widget .vn-main-view:has(.vn-choices > button) .vn-reading {
   min-height: 0;
   padding-bottom: 6px;
-}
-#live2d-widget
-  .companion-conversation:has(.vn-choices > button)
-  #live2d-dialogue {
-  min-height: 0;
-  flex: 0 0 auto;
 }
 #live2d-widget[data-dialogue-state="choice"] .vn-next-mark {
   visibility: hidden;
 }
-#live2d-widget .companion-conversation:has(.vn-choices > button) .vn-next-mark {
+#live2d-widget .vn-main-view:has(.vn-choices > button) .vn-next-mark {
   visibility: hidden;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -752,8 +966,8 @@
   #live2d-widget .vn-choices button {
     animation: vn-reply-in 175ms ease-out backwards;
   }
-  #live2d-widget .vn-choices button:nth-child(2) { animation-delay: 28ms; }
-  #live2d-widget .vn-choices button:nth-child(n+3) { animation-delay: 56ms; }
+  #live2d-widget .vn-choices button:nth-of-type(2) { animation-delay: 28ms; }
+  #live2d-widget .vn-choices button:nth-of-type(n+3) { animation-delay: 56ms; }
   #live2d-widget[data-dialogue-state="ready"] .vn-next-mark {
     animation: vn-next-arrive 300ms ease-out;
   }
@@ -838,6 +1052,16 @@
 }
 #live2d-widget .companion-footer button:not(#live2d-interact):hover {
   border-color: color-mix(in srgb, var(--vn-rule) 65%, transparent);
+}
+#live2d-widget .companion-footer button:focus-visible,
+#live2d-widget .vn-nameplate .vn-voice-toggle:focus-visible {
+  outline: 1px solid var(--vn-light);
+  outline-offset: -3px;
+}
+#live2d-widget .companion-footer [aria-pressed="true"],
+#live2d-widget .vn-nameplate .vn-voice-toggle[aria-pressed="true"] {
+  border-color: var(--vn-light);
+  box-shadow: inset 0 -2px var(--vn-light);
 }
 #live2d-widget .companion-footer #live2d-interact {
   order: 2;
@@ -1194,7 +1418,7 @@ html body.live2d-is-hidden #live2d-widget {
 /* The menu owns wheel and touch scrolling while the scene behind it is inert.
    Keeping the underlying scroll containers preserves their reading positions. */
 #live2d-widget.has-vn-panel .vn-main-view[inert],
-#live2d-widget.has-vn-panel .vn-main-view[inert] :is(.vn-dialogue-body, .pg-tools) {
+#live2d-widget.has-vn-panel .vn-main-view[inert] :is(.vn-dialogue-body, .vn-scene-choices, .pg-tools) {
   overflow: hidden;
 }
 #live2d-widget.is-docked .vn-main-view {
@@ -1310,6 +1534,10 @@ html body.live2d-is-hidden #live2d-widget {
     grid-row: 3 / span 2;
   }
 }
+/* Wrapped dialogue needs four lines beside a narrow floating camera. */
+@container playground (max-width: 690px) {
+  #live2d-widget[data-playground-layout="wide"] .vn-main-view { --vn-wide-reading-min: 172px; }
+}
 /* Reserve the rest of a very wide floating window for the reading desk. */
 .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="wide"] [data-companion-content] {
   container-type: size;
@@ -1325,8 +1553,8 @@ html body.live2d-is-hidden #live2d-widget {
   /* Only the window and controls determine the scene height. Dialogue scrolls
      inside its own cell and cannot enlarge this track through min-content. */
   grid-template-rows:
-    48px minmax(136px, 1fr)
-    max-content max-content max-content max-content;
+    48px calc(var(--vn-wide-reading-min, 136px) + var(--vn-reading-extension, 0px))
+    max-content minmax(max-content, 1fr) max-content max-content;
   grid-template-areas: "cast cast" "scene dialogue" "scene controls" "scene music" "scene arcade" "scene weather";
   gap: 6px 10px;
   overflow: auto;
@@ -1343,7 +1571,7 @@ html body.live2d-is-hidden #live2d-widget {
   width: 28px;
   height: 28px;
 }
-#live2d-widget[data-playground-layout="wide"] .companion-stage {
+#live2d-widget[data-playground-layout="wide"] .vn-scene-frame {
   /* Anchor the camera to the viewport, independent of the right-hand tracks. */
   position: absolute;
   inset: 54px calc(var(--vn-controls-width) + 10px) 0 0;
@@ -1386,7 +1614,7 @@ html body.live2d-is-hidden #live2d-widget {
 #live2d-widget[data-playground-layout="wide"] .vn-reading {
   flex: 1;
   min-height: 0;
-  padding: 4px 8px 14px;
+  padding: 3px 8px 5px;
 }
 #live2d-widget[data-playground-layout="wide"] .vn-nameplate {
   flex-shrink: 0;

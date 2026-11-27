@@ -1,6 +1,7 @@
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const checkSceneChoices = require('./helpers/scene-choices.cjs');
 const out = process.env.QA_OUTPUT || require('node:os').tmpdir() + '/companion-branches-qa';
 fs.mkdirSync(out, { recursive: true });
 
@@ -11,7 +12,7 @@ fs.mkdirSync(out, { recursive: true });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(() => {
-      localStorage.setItem('site-companion-v1', JSON.stringify({ speed: 0, affinity: { alice: 35, marisa: 35, patchouli: 35 } }));
+      if (!localStorage.getItem('site-companion-v1')) localStorage.setItem('site-companion-v1', JSON.stringify({ speed: 0, affinity: { alice: 35, marisa: 35, patchouli: 35 } }));
     });
     await page.goto(process.env.PREVIEW_URL || 'http://127.0.0.1:4100/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.CompanionBranches && document.querySelector('#live2d-widget')?.dataset.dialogueState === 'ready', null, { timeout: 45000 });
@@ -134,7 +135,7 @@ fs.mkdirSync(out, { recursive: true });
         const suggested = options.locator('[data-vn-suggest-topic]');
         assert(await suggested.count(), `${id}/${ordinaryTopic}: ordinary conversation offers an actionable follow-up`);
         assert.equal(await widget.getAttribute('data-dialogue-state'), 'ready', 'Suggested topics are navigation, not forced response choices');
-        assert.equal(await suggested.first().textContent(), tree.topics[0].label + ' ▸');
+        assert.equal(await suggested.first().textContent(), tree.topics[0].label);
         await suggested.first().click();
         await node(tree.topics[0].entry, 3);
       }
@@ -187,6 +188,7 @@ fs.mkdirSync(out, { recursive: true });
           await openTopic('branch:' + topic.id);
           await node(topic.entry, 3);
           await widget.scrollIntoViewIfNeeded();
+          await checkSceneChoices(widget);
           const geometry = await options.evaluate(container => {
             const bounds = document.querySelector('#live2d-widget').getBoundingClientRect();
             const reading = document.querySelector('[data-live2d-dialogue-text]');
@@ -208,6 +210,65 @@ fs.mkdirSync(out, { recursive: true });
         await widget.screenshot({ path: `${out}/${id}-${width}-branch.png` });
       }
     }
+    // Reload under the controllable clock so existing real-time timers cannot affect the inactivity deadline.
+    await page.clock.install();
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await widget.locator('[data-vn-open="topics"]').waitFor();
+    await character('alice');
+    for (const topicId of ['branch:daily', 'rest']) {
+      await openTopic(topicId);
+      await finishLines();
+      const labels = await options.locator('button').allTextContents();
+      const state = await widget.getAttribute('data-dialogue-state');
+      const priorNode = await widget.getAttribute('data-vn-branch-node');
+      const priorAffinity = await affinity();
+      await widget.locator('[data-vn-open="history"]').click();
+      const log = widget.locator('[data-vn-history-list] li');
+      const history = await log.allTextContents();
+      await page.keyboard.press('Escape');
+      const firstReply = options.locator('button').first();
+      await firstReply.hover();
+      await firstReply.focus();
+      await page.clock.runFor(100);
+      await page.clock.fastForward(19000);
+      await page.keyboard.press('ArrowDown');
+      await page.clock.fastForward(20000);
+      assert.deepEqual(await options.locator('button').allTextContents(), labels, 'Real navigation refreshes the inactivity deadline');
+      await page.evaluate(() => SiteCompanion.setVisible(false));
+      await page.clock.fastForward(40000);
+      await page.evaluate(() => SiteCompanion.setVisible(true));
+      await page.clock.fastForward(8000);
+      assert.deepEqual(await options.locator('button').allTextContents(), labels, 'Hidden time does not consume the decision deadline');
+      await page.clock.fastForward(3000);
+      assert(await widget.evaluate(w => w.hasAttribute('data-replies-folded') && !w.querySelector('.vn-scene-frame').hasAttribute('data-replies-pending')));
+      assert.equal(await options.locator('button').count(), 0, 'A stationary hover or focused reply cannot indefinitely postpone folding');
+      assert(await widget.locator('#live2d-interact').evaluate(el => el === document.activeElement), 'Focus returns to the reopen command');
+      assert.equal(await widget.locator('[data-companion-stage]').getAttribute('data-camera-shot'), 'neutral', 'Folding returns the shot to rest');
+      assert.equal(await widget.getAttribute('data-dialogue-state'), state);
+      assert.equal(await widget.getAttribute('data-vn-branch-node'), priorNode);
+      assert.equal(await affinity(), priorAffinity);
+      await widget.locator('#live2d-interact').press('Enter');
+      assert.deepEqual(await options.locator('button').allTextContents(), labels);
+      assert(await options.locator('button').first().evaluate(button => button === document.activeElement));
+      await widget.locator('[data-vn-open="history"]').click();
+      assert.deepEqual(await log.allTextContents(), history, 'Folding and restoring a decision does not create dialogue history');
+      await page.keyboard.press('Escape');
+    }
+    await widget.locator('[data-vn-open="settings"]').click();
+    const folding = widget.locator('[data-vn-fold-replies]');
+    assert(await folding.isChecked(), 'Idle folding starts enabled');
+    await page.clock.fastForward(35000);
+    await page.keyboard.press('Escape');
+    assert(await options.locator('button').count() > 0, 'An open settings panel suspends the fold timer');
+    await widget.locator('[data-vn-open="settings"]').click();
+    await folding.uncheck();
+    await page.keyboard.press('Escape');
+    await page.clock.fastForward(35000);
+    assert(await options.locator('button').count() > 0);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.locator('[data-vn-open="settings"]').click();
+    assert(!(await folding.isChecked()), 'The idle-fold preference persists');
     assert.equal(paths, 54);
     assert.deepEqual(errors, []);
     console.log('PASS: all 54 two-stage paths, four affection tiers per character, return controls, friend follow-ups, suggested topics, interrupted-menu recovery, stale-choice guard, keyboard/auto choice safety, and 320/768/1440 layouts');

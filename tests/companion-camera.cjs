@@ -1,5 +1,7 @@
 // Check the painted room and the actual WebGL rig in the same coordinates.
 const assert = require("node:assert/strict");
+const captureRenderer = require("./helpers/companion-renderer.cjs");
+const checkSceneChoices = require("./helpers/scene-choices.cjs");
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 
@@ -13,20 +15,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
         deviceScaleFactor: dpr,
         reducedMotion: "reduce",
       });
-      await page.route("**/companion-lighting.js*", async (route) => {
-        const response = await route.fetch();
-        await route.fulfill({
-          response,
-          body:
-            (await response.text()) +
-            `
-            const createLighting = CompanionLighting.create;
-            CompanionLighting.create = (app, widget) => {
-              window.cameraTestApp = app;
-              return createLighting(app, widget);
-            };`,
-        });
-      });
+      await captureRenderer(page);
 
       async function check(character, view) {
         await page.waitForFunction(
@@ -56,6 +45,9 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           const app = cameraTestApp;
           const model = app.stage.children[0];
           const stage = document.querySelector(".companion-stage");
+          const frame = stage.closest(".vn-scene-frame");
+          const choosing = Boolean(frame.querySelector(".vn-scene-choices button"));
+          const actor = frame.querySelector(".vn-actor-area").getBoundingClientRect();
           const room = getComputedStyle(stage, "::before");
           const image = new Image();
           image.src = room.backgroundImage.match(/url\("(.+)"\)/)[1];
@@ -74,6 +66,9 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           const modelCenterInRoom = (model.x - roomLeft) / width;
           return {
             roomFile: new URL(image.src).pathname,
+            choosing,
+            faceFits: !choosing || window.cameraTestFace().every(f =>
+              f.left >= actor.left - 2 && f.right <= actor.right + 2 && f.top >= actor.top - 2 && f.bottom <= actor.bottom + 2),
             overscan: [
               -roomLeft,
               -frameTop,
@@ -99,10 +94,8 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           view + " painted scenery covers all four edges: " + JSON.stringify(result)
         );
         assert(result.stageAspect < 2.32, view + " preserves the half-body framing");
-        assert(
-          Math.abs(result.center - 0.5) < 0.004,
-          view + " centered rig and room"
-        );
+        if (result.choosing) assert(result.faceFits, character + " keeps both eyes and mouth inside the reply-safe area at " + view);
+        else assert(Math.abs(result.center - 0.5) < 0.004, view + " centered rig and room");
         assert(
           Math.abs(
             result.bufferWidth - result.screenWidth * result.resolution
@@ -114,6 +107,8 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           ) <= 1
         );
         if (result.lighting) assert.equal(result.lightResolution, result.resolution);
+        // Idle framing stays registered to the painted room. Replies deliberately reframe the actor.
+        if (result.choosing) return;
         const previous = reference.get(character) || result;
         for (const key of ["height", "top"]) {
           assert(
@@ -130,7 +125,31 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
         reference.set(character, previous);
       }
 
-      await page.goto(new URL("playground/", base).href);
+      async function openBranch() {
+        await page.locator('[data-vn-open="topics"]').click();
+        await page.locator('[data-vn-topic-start^="branch:"]').first().click();
+        await page.locator(".vn-scene-choices button").first().waitFor();
+      }
+
+      let releasePixi;
+      const gate = new Promise(resolve => { releasePixi = resolve; });
+      await page.route("**/pixi.min.js*", async route => {
+        await gate;
+        await route.continue();
+      }, { times: 1 });
+      await Promise.all([
+        page.waitForRequest("**/pixi.min.js*"),
+        page.goto(new URL("playground/", base).href, { waitUntil: "domcontentloaded" }),
+      ]);
+      await page.locator('button[data-vn-character="marisa"]').click();
+      await openBranch();
+      // Let the scene settle while there is still no renderer to resize.
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      assert(await page.evaluate(() => !window.PIXI), "The branch was selected before the rendering library loaded");
+      releasePixi();
+      await check("marisa", "cold start with scene replies");
+      await checkSceneChoices(page.locator("#live2d-widget"));
+
       for (const id of ["alice", "marisa", "patchouli"]) {
         await page.locator('button[data-vn-character="' + id + '"]').click();
         for (const [width, height] of [
@@ -152,6 +171,14 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
             );
           }, width);
           await check(id, width + "x" + height);
+        }
+        await openBranch();
+        for (const [width, height] of [[1440, 900], [320, 740]]) {
+          await page.setViewportSize({ width, height });
+          await page.waitForFunction(width => parseFloat(document.querySelector("#live2d-widget").style
+            .getPropertyValue("--vn-width")) === width, width);
+          await check(id, width + "x" + height + " with replies");
+          await checkSceneChoices(page.locator("#live2d-widget"));
         }
       }
       await page.setViewportSize({ width: 1440, height: 900 });
@@ -180,7 +207,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       await page.goto(new URL("gallery/", base).href);
       await check("alice", "gallery dock");
       console.log(
-        "PASS: three full-bleed room/rig registrations, seven viewport shapes, phone/tablet/desktop docks, floating and disabled lighting at DPR " +
+        "PASS: cold start with a selected reply branch, three full-bleed room/rig registrations, seven viewport shapes, phone/tablet/desktop docks, floating and disabled lighting at DPR " +
           dpr
       );
       await page.close();

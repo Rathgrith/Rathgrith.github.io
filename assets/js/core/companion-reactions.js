@@ -204,10 +204,10 @@
   }
   // Eye-white meshes, ordered from the viewer's left to right. Patchouli's
   // source rig exports its original PSD layer numbers instead of descriptive IDs.
-  var eyes = {
-    alice: ["EyeWhiteR", "EyeWhiteL"],
-    marisa: ["EyeWhite", "EyeWhite2"],
-    patchouli: ["D_PSD1_74", "D_PSD1_83"],
+  var faceMeshes = {
+    alice: ["EyeWhiteR", "EyeWhiteL", "MouthOral"],
+    marisa: ["EyeWhite", "EyeWhite2", "MouthOral"],
+    patchouli: ["D_PSD1_74", "D_PSD1_83", "D_PSD1_58"],
   };
 
   // Offsets and size are measured in eye separations along the moving head.
@@ -221,8 +221,9 @@
 
   function create(stage, character, model, renderer) {
     var internal = model && model.internalModel;
-    var landmarks = eyes[character];
+    var landmarks = faceMeshes[character];
     if (!internal || !landmarks) return null;
+    var actorArea = stage.parentElement.querySelector(".vn-actor-area");
     var leftEye = internal.getDrawableIndex(landmarks[0]);
     var rightEye = internal.getDrawableIndex(landmarks[1]);
     if (leftEye < 0 || rightEye < 0) return null;
@@ -262,26 +263,38 @@
       // sit on the cheek/temple; breath exits beside the mouth. Floating
       // symbols clear the eyes without climbing above a witch's hat.
       var anchor = attachments[kind] || floating;
-      var size = Math.min(stage.clientWidth, stage.clientHeight,
+      var rect = stage.getBoundingClientRect();
+      var scaleX = rect.width / stage.offsetWidth || 1, scaleY = rect.height / stage.offsetHeight || 1;
+      var originX = rect.left + stage.clientLeft * scaleX, originY = rect.top + stage.clientTop * scaleY;
+      var xMin = 0, yMin = 0, xMax = stage.clientWidth, yMax = stage.clientHeight;
+      // The canvas stays full size behind the commands. Project the unobscured
+      // actor area into its local CSS coordinates before placing the effect.
+      if (actorArea && actorArea.offsetWidth && actorArea.offsetHeight) {
+        var safe = actorArea.getBoundingClientRect();
+        xMin = Math.max(0, (safe.left - originX) / scaleX);
+        yMin = Math.max(0, (safe.top - originY) / scaleY);
+        xMax = Math.min(xMax, (safe.right - originX) / scaleX);
+        yMax = Math.min(yMax, (safe.bottom - originY) / scaleY);
+      }
+      var size = Math.min(xMax - xMin - 4, yMax - yMin - 4,
         Math.max(kind === "blush" ? 18 : 28, Math.min(144, Math.round(gap * anchor.size))));
+      if (size <= 0) return;
       var midX = (left.x + right.x) / 2 - dy * anchor.vertical;
       var midY = (left.y + right.y) / 2 + dx * anchor.vertical;
       var half = size / 2, margin = half + 2;
       var x = midX + side * dx * anchor.lateral;
       // On the narrowest crop use the other side if it has more room.
-      if ((x < margin || x > stage.clientWidth - margin) &&
-          (stage.clientWidth / 2 - midX) * side < 0) side = -side;
-      x = Math.max(margin, Math.min(stage.clientWidth - margin, midX + side * dx * anchor.lateral));
-      var y = Math.max(margin, Math.min(stage.clientHeight - margin, midY + side * dy * anchor.lateral));
-      var rect = stage.getBoundingClientRect();
-      var scale = (rect.width / stage.offsetWidth || 1);
+      if ((x < xMin + margin || x > xMax - margin) &&
+          ((xMin + xMax) / 2 - midX) * side < 0) side = -side;
+      x = Math.max(xMin + margin, Math.min(xMax - margin, midX + side * dx * anchor.lateral));
+      var y = Math.max(yMin + margin, Math.min(yMax - margin, midY + side * dy * anchor.lateral));
       var dpr = stage.ownerDocument.defaultView.devicePixelRatio || 1;
-      function snap(value, origin) {
+      function snap(value, origin, scale) {
         return (Math.round((origin + value * scale) * dpr) / dpr - origin) / scale;
       }
       canvas.style.width = canvas.style.height = size + "px";
-      canvas.style.left = snap(x - half, rect.left + stage.clientLeft * scale) + "px";
-      canvas.style.top = snap(y - half, rect.top + stage.clientTop * scale) + "px";
+      canvas.style.left = snap(x - half, originX, scaleX) + "px";
+      canvas.style.top = snap(y - half, originY, scaleY) + "px";
     }
 
     // The acting hook updates parameters immediately before Cubism deforms
@@ -294,6 +307,7 @@
     }
     var observer = new ResizeObserver(schedulePosition);
     observer.observe(stage);
+    if (actorArea) observer.observe(actorArea);
     return {
       reposition: schedulePosition,
       draw: function (nextKind, age, disabled) {
@@ -315,7 +329,7 @@
       },
     };
   }
-  var api = {create:create, draw:draw, duration:DURATION, types:TYPES};
+  var api = {create:create, draw:draw, duration:DURATION, types:TYPES, faceMeshes:faceMeshes};
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.CompanionReactions = api;
 })(typeof window === "undefined" ? globalThis : window);

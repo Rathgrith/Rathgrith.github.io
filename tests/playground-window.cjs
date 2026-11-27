@@ -128,7 +128,7 @@ fs.mkdirSync(out, { recursive: true });
           text = w
             .querySelector(".live2d-dialogue__text")
             .getBoundingClientRect(),
-          choices = w.querySelector(".vn-choices").getBoundingClientRect(),
+          choices = w.querySelector(".vn-choices"),
           body = w.querySelector(".vn-dialogue-body"),
           viewport = body.getBoundingClientRect(),
           conversation = w
@@ -137,17 +137,17 @@ fs.mkdirSync(out, { recursive: true });
         return (
           text.top >= reading.top - 1 &&
           text.bottom <= reading.bottom + 1 &&
-          reading.bottom <= choices.top + 1 &&
+          w.querySelector(".vn-scene-frame").contains(choices) &&
           viewport.top >= conversation.top - 1 &&
           viewport.bottom <= conversation.bottom + 1 &&
-          getComputedStyle(body).overflowY === "auto"
+          (getComputedStyle(body).overflowY === "auto" || body.scrollHeight <= body.clientHeight + 1)
         );
       }),
-      "branch choices follow the text inside the fixed dialogue scroll viewport"
+      "replies appear in the scene while the dialogue stays in its own reading area"
     );
     const fixedRegions = () =>
       widget.evaluate((w) =>
-        [".companion-stage", ".companion-conversation", ".vn-bgm"].map(
+        [".vn-scene-frame", ".companion-conversation", ".vn-bgm"].map(
           (selector) =>
             w.querySelector(selector).getBoundingClientRect().toJSON()
         )
@@ -161,7 +161,7 @@ fs.mkdirSync(out, { recursive: true });
       assert(
         await option.evaluate((el) => {
           const r = el.getBoundingClientRect(),
-            body = el.closest(".vn-dialogue-body").getBoundingClientRect();
+            body = el.closest(".vn-scene-frame").getBoundingClientRect();
           return r.top >= body.top - 1 && r.bottom <= body.bottom + 1;
         }),
         "each branch option can be brought fully into its viewport"
@@ -296,23 +296,18 @@ fs.mkdirSync(out, { recursive: true });
           await page.waitForTimeout(100);
           assert(
             await widget.evaluate((w) => {
-              const reading = w
-                  .querySelector("#live2d-dialogue")
-                  .getBoundingClientRect(),
-                choices = w
-                  .querySelector(".vn-choices")
-                  .getBoundingClientRect(),
+              const choices = w.querySelector(".vn-choices"),
                 body = w.querySelector(".vn-dialogue-body");
               return (
-                reading.bottom <= choices.top + 1 &&
+                w.querySelector(".vn-scene-frame").contains(choices) &&
                 body.getBoundingClientRect().bottom <=
                   w
                     .querySelector(".companion-conversation")
                     .getBoundingClientRect().bottom &&
-                getComputedStyle(body).overflowY === "auto"
+                (getComputedStyle(body).overflowY === "auto" || body.scrollHeight <= body.clientHeight + 1)
               );
             }),
-            `${character} options must stay within the dialogue scroll viewport at ${width}x${height}`
+            `${character} options stay on the scene and the dialogue remains readable at ${width}x${height}`
           );
           assert(
             Math.abs(
