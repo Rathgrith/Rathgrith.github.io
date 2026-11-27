@@ -19,6 +19,12 @@
   --vn-camera-focus: 0.22;
   --vn-light: #99bfff;
   --vn-ornament: url("../images/classic/ornaments/alice.svg");
+  /* The warm linework repeats the trim on the three room paintings. */
+  --vn-foil: color-mix(in srgb, #e9c48f 72%, var(--vn-light));
+  --vn-binding: color-mix(in srgb, var(--vn-foil) 38%, var(--vn-panel));
+  --vn-lining: color-mix(in srgb, var(--vn-light) 11%, var(--vn-panel));
+  --vn-paper: color-mix(in srgb, #f4e1bb 77%, var(--vn-light));
+  --vn-letter: color-mix(in srgb, var(--vn-panel) 78%, #080a0e);
   position: fixed;
   z-index: var(--layer-companion);
   box-sizing: border-box;
@@ -338,6 +344,23 @@
   height: 100%;
   z-index: 0;
 }
+/* Fine corner mounts stay at the edge of the painting as the actor moves. */
+#live2d-widget .vn-scene-frame::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
+  inset: 2px;
+  --mount: var(--vn-foil) 0 1px, transparent 1px 3px, var(--vn-foil) 3px 4px, transparent 4px;
+  background:
+    linear-gradient(135deg, var(--mount)) top left,
+    linear-gradient(225deg, var(--mount)) top right,
+    linear-gradient(45deg, var(--mount)) bottom left,
+    linear-gradient(315deg, var(--mount)) bottom right;
+  background-repeat: no-repeat;
+  background-size: 11px 11px;
+  opacity: .82;
+}
 /* The command window is sized by its replies. The painted margin around it
    belongs to the scene and never intercepts clicks on the actor. */
 #live2d-widget .vn-scene-frame::before {
@@ -350,10 +373,10 @@
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--vn-panel) 48%, transparent));
 }
 #live2d-widget .vn-scene-frame > .vn-scene-choices {
-  --reply-edge: color-mix(in srgb, var(--vn-light) 63%, #baa685);
-  --reply-wash: color-mix(in srgb, var(--vn-light) 18%, var(--vn-panel));
-  --reply-dark: color-mix(in srgb, var(--vn-panel) 70%, #090a16);
-  --reply-foil: color-mix(in srgb, #e6c590 65%, var(--vn-light));
+  --reply-edge: color-mix(in srgb, var(--vn-foil) 61%, var(--vn-rule));
+  --reply-wash: color-mix(in srgb, var(--vn-light) 17%, var(--vn-panel));
+  --reply-dark: var(--vn-letter);
+  --reply-foil: var(--vn-foil);
   --reply-pin: linear-gradient(var(--reply-foil), var(--reply-foil));
   --reply-highlight: linear-gradient(90deg, color-mix(in srgb, var(--vn-light) 27%, var(--vn-panel)), color-mix(in srgb, var(--vn-light) 11%, var(--vn-panel)));
   z-index: 2;
@@ -380,8 +403,8 @@
     var(--reply-pin) right 2px top 2px / 3px 2px no-repeat,
     var(--reply-pin) left 2px bottom 2px / 3px 2px no-repeat,
     var(--reply-pin) right 2px bottom 2px / 3px 2px no-repeat,
-    linear-gradient(125deg, color-mix(in srgb, var(--vn-light) 8%, transparent), transparent 62%),
-    linear-gradient(var(--reply-wash), var(--reply-dark) 84%);
+    linear-gradient(90deg, color-mix(in srgb, var(--reply-edge) 22%, transparent), transparent 24px) 4px 0 / 26px 100% no-repeat,
+    linear-gradient(147deg, var(--reply-wash), var(--reply-dark) 80%);
   box-shadow: inset 0 0 0 2px var(--reply-dark), inset 0 0 0 3px color-mix(in srgb, var(--reply-edge) 36%, transparent),
     0 2px 0 #090b12, 0 4px 9px #080b124f;
 }
@@ -401,9 +424,9 @@
   content: "";
   width: min(24%, 46px);
   height: 3px;
-  background: linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat,
-    linear-gradient(currentColor, currentColor) right center / 3px 3px no-repeat;
-  opacity: .65;
+  background: linear-gradient(90deg, transparent, currentColor) center / 100% 1px no-repeat,
+    linear-gradient(45deg, transparent 25%, currentColor 25% 75%, transparent 75%) right center / 3px 3px no-repeat;
+  opacity: .85;
 }
 #live2d-widget .vn-choice-heading::after { transform: scaleX(-1); }
 #live2d-widget .vn-scene-choices > button {
@@ -441,6 +464,25 @@
   image-rendering: pixelated;
   opacity: 0;
   pointer-events: none;
+}
+/* An open diamond marks each command. The selected row trades it for the
+   pixel hand, leaving the highlighted line legible on all three palettes. */
+#live2d-widget .vn-scene-choices > button::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset-inline-start: 7px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border: 1px solid var(--reply-edge);
+  opacity: .75;
+  transform: translateY(-50%) rotate(45deg);
+}
+.playground-page #live2d-widget .vn-scene-choices > button::after { inset-inline-start: 12px; }
+#live2d-widget .vn-scene-choices > button:is(:focus-visible, :active)::after { opacity: 0; }
+@media (hover: hover) {
+  #live2d-widget .vn-scene-choices:not(:has(:focus-visible)) > button:hover::after { opacity: 0; }
 }
 #live2d-widget .vn-scene-choices > button:focus-visible {
   background: var(--reply-highlight);
@@ -611,11 +653,15 @@
   top: 8px;
   max-width: calc(100% - 16px);
   padding: 3px 7px;
-  background: #0c101bc9;
-  color: #e4dfd9;
-  border-left: 2px solid var(--classic-accent);
+  background: linear-gradient(95deg, var(--vn-letter), color-mix(in srgb, var(--vn-panel) 90%, transparent));
+  color: var(--vn-ink);
+  border-left: 2px solid var(--vn-foil);
   font: 12px/1.5 var(--vn-font);
   pointer-events: none;
+}
+#live2d-widget .vn-scene-frame .vn-scene-caption {
+  border-inline-start-color: var(--vn-foil);
+  box-shadow: inset 0 -1px color-mix(in srgb, var(--vn-foil) 48%, transparent), 0 1px 3px #06080d55;
 }
 /* The scene label carries each character's line-art seal, outside the rig. */
 #live2d-widget .vn-scene-caption::before {
@@ -623,9 +669,8 @@
   flex: 0 0 24px;
   width: 24px;
   height: 24px;
-  background: var(--classic-accent);
+  background: var(--vn-foil);
   mask: var(--vn-ornament) center / contain no-repeat;
-  opacity: 0.85;
 }
 #live2d-widget .companion-load-status {
   display: none;
@@ -653,15 +698,16 @@
   height: calc(var(--vn-dialogue-height, 154px) + var(--vn-reading-extension, 0px));
   min-height: 0;
   margin-top: 8px;
-  --vn-brass: color-mix(in srgb, #e6c590 74%, var(--vn-light));
-  --vn-fillet: color-mix(in srgb, var(--vn-brass) 39%, var(--vn-panel));
+  --vn-brass: var(--vn-foil);
+  --vn-fillet: var(--vn-binding);
   --vn-stud: conic-gradient(from 45deg, var(--vn-fillet) 50%, var(--vn-brass) 50%);
   --vn-cap: linear-gradient(90deg, var(--vn-brass) 9px, transparent 9px calc(100% - 9px), var(--vn-brass) calc(100% - 9px));
   padding: 7px 9px 6px;
   border: 1px solid var(--vn-fillet);
   background:
-    radial-gradient(ellipse at top left, color-mix(in srgb, var(--vn-light) 10%, transparent), transparent 68%),
-    linear-gradient(110deg, var(--vn-panel) 30%, color-mix(in srgb, var(--vn-panel) 85%, #060910));
+    linear-gradient(90deg, var(--vn-binding) 0 2px, transparent 2px) 3px center / 3px calc(100% - 15px) no-repeat,
+    radial-gradient(ellipse at 3% 0%, color-mix(in srgb, var(--vn-light) 13%, transparent), transparent 66%),
+    linear-gradient(115deg, var(--vn-panel), var(--vn-letter) 82%);
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--vn-panel) 87%, black);
 }
 /* Keep docked text compact, but make detached conversations comfortable to read.
@@ -792,7 +838,7 @@
   min-height: 23px;
   padding: 1px 14px 1px 6px;
   background: var(--vn-brass);
-  color: var(--vn-ink);
+  color: var(--vn-letter);
   clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 50%, 100% 100%, 0 100%);
   font: 400 12px / 1.4 var(--vn-font);
   white-space: nowrap;
@@ -803,7 +849,8 @@
   z-index: -1;
   inset: 1px 2px 1px 3px;
   clip-path: inherit;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--vn-light) 23%, var(--vn-panel)), var(--vn-panel));
+  background: linear-gradient(95deg, var(--vn-paper), color-mix(in srgb, var(--vn-paper) 81%, var(--vn-rule)));
+  box-shadow: inset 0 1px #fff5, inset 0 -1px var(--vn-binding);
 }
 #live2d-widget .vn-nameplate strong img {
   width: 20px; height: 20px;
@@ -905,7 +952,11 @@
   line-height: 1.7;
   order: 3;
   border: 1px solid var(--vn-fillet);
-  background: var(--vn-panel);
+  background: linear-gradient(var(--vn-lining), var(--vn-panel));
+  color: var(--vn-muted);
+}
+#live2d-widget .vn-nameplate .vn-voice-toggle[aria-pressed="true"] {
+  color: var(--vn-paper);
 }
 /* The right column of a resized window can be as narrow as the sidebar dock. */
 @container vn-dialogue (max-width: 240px) {
@@ -993,6 +1044,9 @@
     animation: vn-sheet-reveal var(--motion-ui, 180ms)
       steps(4, end) both;
   }
+  #live2d-widget[data-replies-folded] .companion-footer #live2d-interact {
+    animation: vn-restore-command 700ms ease-out;
+  }
   #live2d-widget .vn-main-view {
     transition: filter var(--motion-ui, 180ms) var(--motion-ease, ease-out);
   }
@@ -1007,6 +1061,9 @@
   from { opacity: .25; transform: translateY(-3px); }
   65% { opacity: 1; transform: translateY(1px); }
   to { transform: translateY(0); }
+}
+@keyframes vn-restore-command {
+  25% { box-shadow: inset 0 0 0 1px var(--vn-letter), 0 0 7px var(--vn-binding); }
 }
 @keyframes vn-sheet-reveal {
   from {
@@ -1028,6 +1085,7 @@
   background: color-mix(in srgb, var(--classic-accent) 5%, transparent);
 }
 #live2d-widget .companion-footer {
+  container: vn-commands / inline-size;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1039,9 +1097,8 @@
   order: 1;
   height: 3px;
   margin-inline: 3px;
-  background: linear-gradient(var(--vn-rule), var(--vn-rule)) center / 100% 1px
-    no-repeat;
-  opacity: 0.35;
+  background: linear-gradient(90deg, var(--vn-binding), transparent 36%, transparent 65%, var(--vn-binding)) center / 100% 1px no-repeat;
+  opacity: .83;
 }
 #live2d-widget .companion-footer button {
   min-height: 29px;
@@ -1049,6 +1106,36 @@
   border-color: transparent;
   font-size: 12px;
   white-space: nowrap;
+}
+/* Pair each utility with a small manuscript mark when the command rail has
+   room. All text labels and their hit areas remain available in a narrow dock. */
+@container vn-commands (min-width: 325px) {
+  #live2d-widget .companion-footer button:not(#live2d-interact) {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 5px;
+  }
+  #live2d-widget .companion-footer button:not(#live2d-interact)::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    flex: none;
+    background: var(--vn-foil);
+    mask: var(--command-mark) center / contain no-repeat;
+  }
+}
+#live2d-widget .companion-footer [data-vn-open="topics"] {
+  --command-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.3' stroke-linejoin='round'%3E%3Cpath d='M2 2.5h12v8H8l-4 3v-3H2zM5 5.5h6M5 7.5h3.5'/%3E%3C/svg%3E");
+}
+#live2d-widget .companion-footer [data-vn-auto] {
+  --command-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 7a5.6 5.6 0 0 1 9.7-3l.9 1.2M13.5 3v2.6h-2.6M13.5 9a5.6 5.6 0 0 1-9.7 3l-.9-1.2M2.5 13v-2.6h2.6'/%3E%3Cpath d='M6.4 5.5v5l4-2.5z' fill='black' stroke='none'/%3E%3C/svg%3E");
+}
+#live2d-widget .companion-footer [data-vn-open="history"] {
+  --command-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.3' stroke-linejoin='round'%3E%3Cpath d='M1.5 3.5Q5 2.5 8 5q3-2.5 6.5-1.5v9Q11 11.5 8 14q-3-2.5-6.5-1.5zM8 5v9M3.7 6q1.4 0 2.4.8m3.8 0q1-.8 2.4-.8'/%3E%3C/svg%3E");
+}
+#live2d-widget .companion-footer [data-vn-open="settings"] {
+  --command-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4'%3E%3Cpath d='M1.5 4.5H5m4 0h5.5M1.5 11.5H9m4 0h1.5'/%3E%3Cpath d='M5 2.5h3v4H5zm4 7h3v4H9z'/%3E%3C/svg%3E");
 }
 #live2d-widget .companion-footer button:not(#live2d-interact):hover {
   border-color: color-mix(in srgb, var(--vn-rule) 65%, transparent);
@@ -1074,6 +1161,17 @@
   border-color: var(--vn-rule);
   background: var(--classic-soft);
   font-size: 12px;
+}
+#live2d-widget .companion-footer button#live2d-interact:enabled {
+  background: linear-gradient(105deg, var(--vn-paper), var(--vn-foil));
+  border-color: var(--vn-foil);
+  color: var(--vn-letter);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vn-panel) 34%, transparent);
+}
+#live2d-widget .companion-footer button#live2d-interact:enabled:is(:hover, :focus-visible) {
+  background: var(--vn-paper);
+  outline: 1px solid var(--vn-letter);
+  outline-offset: -3px;
 }
 #live2d-widget .vn-weather-strip {
   display: flex;
@@ -1113,7 +1211,8 @@
   padding: 14px;
   border: 1px solid var(--vn-rule);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--vn-light) 5%, transparent), transparent 100px),
+    linear-gradient(90deg, var(--vn-binding), transparent 1px) 5px center / 2px calc(100% - 12px) no-repeat,
+    radial-gradient(ellipse at 0 0, var(--vn-lining), transparent 64%),
     var(--vn-panel);
   box-shadow:
     inset 0 0 0 3px var(--vn-panel),
@@ -1132,6 +1231,25 @@
   letter-spacing: 0.5px;
 }
 #live2d-widget .vn-dialog-panel > header h2 { margin: 0; color: inherit; font: inherit; }
+#live2d-widget .vn-panel.vn-dialog-panel[data-vn-panel] > header {
+  background: linear-gradient(105deg, color-mix(in srgb, var(--vn-light) 24%, var(--vn-panel)), var(--vn-lining) 52%, var(--vn-letter));
+  border-block-end-color: var(--vn-binding);
+}
+#live2d-widget .vn-dialog-panel > header h2 {
+  color: var(--vn-paper);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", serif;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+#live2d-widget .vn-dialog-panel > header button[data-vn-close] {
+  border-color: var(--vn-binding);
+  background: var(--vn-panel);
+  color: var(--vn-paper);
+}
+#live2d-widget .vn-dialog-panel > header button[data-vn-close]:is(:hover, :focus-visible) {
+  border-color: var(--vn-foil);
+  background: var(--vn-lining);
+}
 #live2d-widget .vn-panel > header::after {
   content: "";
   position: absolute;
@@ -1145,6 +1263,16 @@
     var(--vn-panel) 6px 9px
   );
   pointer-events: none;
+}
+#live2d-widget .vn-dialog-panel > header::after {
+  /* The owner's seal is printed into the heading, clear of the close control. */
+  inset: 50% 53px auto auto;
+  width: 36px;
+  height: 36px;
+  transform: translateY(-50%);
+  background: var(--vn-foil);
+  mask: var(--vn-ornament) center / contain no-repeat;
+  opacity: .52;
 }
 #live2d-widget .vn-panel > header button {
   flex: 0 0 28px;
@@ -1195,8 +1323,8 @@
   border: 1px solid var(--vn-rule);
   border-radius: 0;
   background:
-    linear-gradient(90deg, #ffffff20 0 2px, transparent 2px),
-    var(--classic-soft);
+    linear-gradient(90deg, transparent 42%, var(--vn-binding) 42% 56%, transparent 56%) center / 100% 6px no-repeat,
+    linear-gradient(var(--vn-paper), var(--vn-foil));
   box-shadow: 1px 1px 0 #0008;
 }
 #live2d-widget .vn-panel input[type="range"]::-moz-range-track {
@@ -1210,7 +1338,7 @@
   height: 18px;
   border: 1px solid var(--vn-rule);
   border-radius: 0;
-  background: var(--classic-soft);
+  background: linear-gradient(var(--vn-paper), var(--vn-foil));
   box-shadow:
     inset 2px 0 #ffffff20,
     1px 1px 0 #0008;
@@ -1251,7 +1379,8 @@
 }
 #live2d-widget .vn-topic-list h3:not(:first-child) { margin-top: 7px; }
 #live2d-widget .vn-topic-list h3::after {
-  content: ""; flex: 1; border-bottom: 1px dotted var(--vn-rule);
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--vn-binding), transparent);
 }
 #live2d-widget .vn-topic-list button,
 #live2d-widget .vn-friends-list button {
@@ -1262,9 +1391,21 @@
   background: color-mix(in srgb, var(--vn-panel) 90%, var(--vn-rule));
   border-color: color-mix(in srgb, var(--vn-rule) 65%, transparent);
 }
-#live2d-widget
-  :is(.vn-topic-list, .vn-friends-list)
-  button:is(:hover, :focus-visible) {
+#live2d-widget .vn-dialog-panel :is(.vn-topic-list, .vn-friends-list) button[data-vn-topic-start] {
+  background-image: linear-gradient(110deg, color-mix(in srgb, var(--vn-light) 6%, transparent), transparent);
+  font-family: var(--pg-script-font, var(--vn-font));
+}
+#live2d-widget .vn-dialog-panel .vn-topic-list button[data-vn-topic-start^="branch:"] {
+  color: var(--vn-paper);
+  border-color: var(--vn-binding);
+  box-shadow: inset 2px 0 var(--vn-foil);
+}
+#live2d-widget .vn-dialog-panel .vn-topic-list button[data-vn-topic-start]:not([data-vn-topic-start^="branch:"]),
+#live2d-widget .vn-dialog-panel .vn-friends-list button {
+  border-color: transparent transparent color-mix(in srgb, var(--vn-rule) 40%, transparent);
+  background-color: color-mix(in srgb, var(--vn-light) 4%, var(--vn-panel));
+}
+#live2d-widget .vn-dialog-panel :is(.vn-topic-list, .vn-friends-list) button[data-vn-topic-start]:is(:hover, :focus-visible) {
   color: var(--classic-accent);
   border-color: var(--classic-accent);
   background: var(--classic-soft);
@@ -1329,11 +1470,19 @@
 #live2d-widget .vn-setting-group {
   min-width: 0;
   margin: 0 0 12px;
-  border: 1px solid color-mix(in srgb, var(--vn-rule) 55%, transparent);
+  border: 0;
+  border-block-start: 1px solid var(--vn-binding);
   padding: 2px 10px 9px;
+  box-shadow: inset 2px 0 color-mix(in srgb, var(--vn-binding) 65%, transparent);
 }
 #live2d-widget .vn-setting-group:last-child { margin-bottom: 0; }
-#live2d-widget .vn-setting-group legend { padding: 0 5px; }
+#live2d-widget .vn-setting-group legend {
+  padding: 0 6px;
+  color: var(--vn-paper);
+}
+#live2d-widget .vn-setting-group output {
+  font-variant-numeric: tabular-nums;
+}
 #live2d-widget .vn-setting-group label { margin-top: 4px; }
 #live2d-widget .vn-panel .vn-voice-credits {
   margin-top: 14px;
@@ -1386,6 +1535,11 @@ html body.live2d-is-hidden #live2d-widget {
   color: var(--classic-accent);
   cursor: pointer;
 }
+#live2d-widget .vn-panel input[type="checkbox"]:checked {
+  background: var(--vn-foil);
+  border-color: var(--vn-foil);
+  color: var(--vn-letter);
+}
 #live2d-widget .vn-panel input[type="checkbox"]:checked::before {
   content: "";
   width: 10px;
@@ -1401,6 +1555,17 @@ html body.live2d-is-hidden #live2d-widget {
     40% 100%,
     0 60%
   );
+}
+
+@media (forced-colors: active) {
+  #live2d-widget .vn-panel input[type="checkbox"] { appearance: auto; }
+  #live2d-widget .vn-panel input[type="checkbox"]:checked::before { content: none; }
+  #live2d-widget .companion-footer button#live2d-interact:focus-visible,
+  #live2d-widget .vn-scene-choices > button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: -3px;
+  }
+  #live2d-widget button[aria-pressed="true"] { border-color: Highlight; }
 }
 
 /* Floating windows stay within the viewport; docked windows grow with their content. */

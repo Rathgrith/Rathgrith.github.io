@@ -78,6 +78,12 @@ fs.mkdirSync(out, { recursive: true });
             overflow: document.documentElement.scrollWidth > innerWidth,
           };
         });
+      const pageTitle = w.getByRole("heading", { level: 1, name: "Playground", exact: true });
+      const titleFits = await pageTitle.evaluate(heading => {
+        const label = heading.querySelector("[data-companion-name]").getBoundingClientRect();
+        return label.right <= heading.getBoundingClientRect().right + 1;
+      });
+      assert(titleFits, "the full page title fits alongside Home and Fullscreen");
       const layout = await w.getAttribute("data-playground-layout");
       const radio = w.locator(".pg-radio");
       assert.equal(await radio.evaluate(element => element.open), layout === "wide");

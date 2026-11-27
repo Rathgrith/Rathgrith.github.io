@@ -14,14 +14,14 @@
   position: absolute;
   z-index: 0;
   /* Alice's left window and the little lamp beside the doll shelves. */
-  --window-x: 17%;
-  --window-y: 34%;
-  --window-color: #badbff;
-  --lamp-x: 91%;
-  --lamp-y: 32%;
-  --lamp-color: #ffd69b;
-  --glint-x: 25%;
-  --glint-y: 29%;
+  --window-x: 13%;
+  --window-y: 24%;
+  --window-color: #a0caff;
+  --lamp-x: 92.5%;
+  --lamp-y: 45%;
+  --lamp-color: #ffcd87;
+  --glint-x: 18%;
+  --glint-y: 32%;
 }
 /* Only the lower corners of the actor's composition receive foreground light. */
 #live2d-widget .vn-motes-near {
@@ -63,24 +63,53 @@
   --mote-ink: #bd9cff;
   --mote-core: #e9daff;
 }
-/* The brightest part of a distant light is a small centre inside a wider
-   translucent circle. Its edge dissolves into the painted room. */
+/* Out-of-focus point lights read as rounded discs with a luminous rim.
+   Keep the satellites on the same optical plane and composite them below
+   the actor. The room remains visible through each reflection. */
 #live2d-widget .vn-mote-bokeh {
-  --peak: .7;
-  width: clamp(15px, 2.4cqi, 29px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle,
-    color-mix(in srgb, currentColor 77%, white) 0 3%,
-    color-mix(in srgb, currentColor 77%, transparent) 11%,
-    color-mix(in srgb, currentColor 49%, transparent) 26%,
-    color-mix(in srgb, currentColor 34%, transparent) 43%,
-    color-mix(in srgb, currentColor 18%, transparent) 54%, transparent 72%);
 }
-#live2d-widget .vn-motes-near .vn-mote-bokeh {
-  --peak: .25;
-  width: clamp(9px, 1.5cqi, 15px);
-  background: radial-gradient(circle, currentColor, transparent 66%);
+#live2d-widget .vn-motes-far [data-light-source] {
+  --disc: radial-gradient(closest-side,
+    color-mix(in srgb, currentColor 73%, transparent) 0%,
+    color-mix(in srgb, currentColor 61%, transparent) 25%,
+    color-mix(in srgb, currentColor 49%, transparent) 54%,
+    color-mix(in srgb, currentColor 50%, transparent) 68%,
+    color-mix(in srgb, currentColor 41%, transparent) 76%,
+    color-mix(in srgb, currentColor 15%, transparent) 88%, transparent 100%);
+  --echo-x: 86%;
+  --echo-y: -20%;
+  --fleck-x: 56%;
+  --fleck-y: 106%;
+  /* In portrait the light source itself can fall outside the frame. Let
+     its reflections reach in from the edge nearest that source. */
+  --crop: max(0px, calc((100% - 100cqw) / 2));
+  --reflection-inset: 2cqw;
+  left: clamp(calc(var(--crop) + var(--reflection-inset)), var(--source-x), calc(100% - var(--crop) - var(--reflection-inset)));
+  width: clamp(34px, 6.5cqi, 80px);
+  background: var(--disc);
+  mix-blend-mode: screen;
+}
+#live2d-widget .vn-motes-far :is([data-light-source="window"], [data-light-source="lamp"])::before,
+#live2d-widget .vn-motes-far :is([data-light-source="window"], [data-light-source="lamp"])::after {
+  content: "";
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--disc);
+}
+#live2d-widget .vn-motes-far [data-light-source]::before {
+  left: var(--echo-x);
+  top: var(--echo-y);
+  width: 52%;
+  opacity: .8;
+}
+#live2d-widget .vn-motes-far [data-light-source]::after {
+  left: var(--fleck-x);
+  top: var(--fleck-y);
+  width: 24%;
+  opacity: .91;
 }
 #live2d-widget .vn-motes-far [data-light-source="window"] {
   --source-x: var(--window-x);
@@ -89,21 +118,24 @@
 }
 #live2d-widget .vn-motes-far [data-light-source="lamp"] {
   --source-x: var(--lamp-x);
+  --echo-x: -23%;
+  --echo-y: 79%;
+  --fleck-x: 73%;
+  --fleck-y: -28%;
   top: var(--lamp-y);
   color: var(--lamp-color);
-  width: clamp(18px, 3.2cqi, 39px);
+  width: clamp(29px, 5.2cqi, 64px);
 }
 #live2d-widget .vn-motes-far [data-light-source="glint"] {
   --source-x: var(--glint-x);
   top: var(--glint-y);
   color: var(--window-color);
-  width: clamp(7px, 1.1cqi, 13px);
+  width: clamp(10px, 1.7cqi, 23px);
 }
-#live2d-widget .vn-motes-far [data-light-source] {
-  /* When portrait framing crops a lamp out of shot, its reflected glow
-     can still touch the inside edge of the visible wall. */
-  --crop: max(0px, calc((100% - 100cqw) / 2));
-  left: clamp(calc(var(--crop) + 10cqw), var(--source-x), calc(100% - var(--crop) - 10cqw));
+#live2d-widget .vn-motes-near .vn-mote-bokeh {
+  --peak: .25;
+  width: clamp(9px, 1.5cqi, 15px);
+  background: radial-gradient(circle, currentColor, transparent 66%);
 }
 #live2d-widget[data-vn-character="marisa"] .vn-motes {
   --mote-ink: #ffb047;
@@ -117,15 +149,27 @@
   --mote-ink: #ff8c43;
 }
 #live2d-widget[data-vn-character="marisa"] .vn-motes-far {
-  /* Warm shelf reflections extend inward from the lamp on the left. */
-  --window-x: 17%;
-  --window-y: 25%;
-  --window-color: #efb85f;
-  --lamp-x: 14%;
-  --lamp-y: 46%;
-  --lamp-color: #ffd487;
-  --glint-x: 28%;
-  --glint-y: 45%;
+  /* Two fireflies in the forest window, and a brass lantern to the left. */
+  --window-x: 76%;
+  --window-y: 32%;
+  --window-color: #e3d18e;
+  --lamp-x: 5%;
+  --lamp-y: 48%;
+  --lamp-color: #ffc369;
+  --glint-x: 82%;
+  --glint-y: 34%;
+}
+#live2d-widget[data-vn-character="marisa"] [data-light-source="window"] {
+  --echo-x: 99%;
+  --echo-y: 53%;
+  --fleck-x: -33%;
+  --fleck-y: 18%;
+}
+#live2d-widget[data-vn-character="marisa"] [data-light-source="lamp"] {
+  --echo-x: 84%;
+  --echo-y: -17%;
+  --fleck-x: 96%;
+  --fleck-y: 83%;
 }
 #live2d-widget[data-vn-character="marisa"] .vn-mote-spark::before {
   inset: 0 24%;
@@ -141,14 +185,20 @@
 }
 #live2d-widget[data-vn-character="patchouli"] .vn-motes-far {
   /* High moonlit glass, with a warmer candle by the right-hand bookshelf. */
-  --window-x: 55%;
+  --window-x: 49%;
   --window-y: 12%;
-  --window-color: #c2c0ff;
-  --lamp-x: 87%;
-  --lamp-y: 27%;
-  --lamp-color: #edbc86;
-  --glint-x: 57%;
-  --glint-y: 22%;
+  --window-color: #b8baff;
+  --lamp-x: 79%;
+  --lamp-y: 13%;
+  --lamp-color: #ffd098;
+  --glint-x: 53%;
+  --glint-y: 18%;
+}
+#live2d-widget[data-vn-character="patchouli"] [data-light-source="window"] {
+  --echo-x: -41%;
+  --echo-y: 51%;
+  --fleck-x: 112%;
+  --fleck-y: 64%;
 }
 #live2d-widget[data-vn-character="patchouli"] .vn-mote-spark::before {
   inset: 17% 23%;
@@ -166,9 +216,9 @@
   animation-duration: calc(var(--mote-life) * 1.7);
 }
 @keyframes vn-room-glow {
-  0%, 100% { opacity: .48; transform: translate(-50%, -50%) scale(.92); }
-  48% { opacity: .78; transform: translate(calc(-50% + 1.5px), calc(-50% - 1px)) scale(1.06); }
-  77% { opacity: .59; transform: translate(calc(-50% - 1px), calc(-50% + 1px)) scale(1); }
+  0%, 100% { opacity: .68; transform: translate(-50%, -50%) scale(.9); }
+  48% { opacity: .91; transform: translate(calc(-50% + 1.7px), calc(-50% - 1.1px)) scale(1.09); }
+  77% { opacity: .78; transform: translate(calc(-50% - 1px), calc(-50% + 1.2px)) scale(.99); }
 }
 /* Alice's sparks drift sideways and catch a second flash. The hearth sheds
    hotter, faster sparks whose cores flare and contract as they rise. */
@@ -204,6 +254,7 @@
   }
 }
 @container vn-scene (max-width: 480px) {
+  #live2d-widget .vn-motes-far [data-light-source] { --reflection-inset: 8cqw; }
   #live2d-widget .vn-motes-far .vn-mote:nth-child(n + 6),
   #live2d-widget .vn-motes-near .vn-mote:nth-child(n + 3) { display: none; }
 }

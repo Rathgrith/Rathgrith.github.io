@@ -771,8 +771,8 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
 
 /* The standalone receiver shares its instrument bay with the other desk tools. */
 .playground-page :is(.vn-bgm, .vn-radio-receiver) {
-  --deck-glass: #c3d1ba;
-  --deck-print: #213231;
+  --deck-glass: color-mix(in srgb, var(--classic-accent) 34%, #d8c9a3);
+  --deck-print: #2b2924;
 }
 .playground-page #live2d-widget .vn-bgm {
   --deck-metal: color-mix(in srgb, var(--vn-panel) 75%, #626964);
@@ -789,8 +789,9 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   padding: 9px;
   border: 1px solid color-mix(in srgb, var(--vn-rule) 68%, var(--vn-panel));
   border-radius: 2px;
-  background: var(--deck-metal);
-  box-shadow: inset 0 1px #ffffff15, inset 0 -1px #0005;
+  background: linear-gradient(120deg, #ffffff06, transparent 45%, #0003),
+    repeating-linear-gradient(0deg, transparent 0 2px, #ffffff03 2px 3px), var(--deck-metal);
+  box-shadow: inset 0 1px #ffffff20, inset 0 -2px #0005;
 }
 .playground-page #live2d-widget .vn-bgm > * {
   grid-column: 1 / -1;
@@ -798,8 +799,8 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
 }
 .playground-page #live2d-widget .vn-bgm-deck {
   padding: 3px;
-  border-radius: 1px;
-  background: #172021;
+  border-radius: 2px;
+  background: #161919;
   box-shadow: inset 0 1px 2px #0008, 0 1px #ffffff26;
 }
 .playground-page #live2d-widget .vn-bgm-deck::before,
@@ -812,7 +813,7 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   padding-inline: 8px;
   border: 0;
   border-radius: 0;
-  background: var(--deck-glass);
+  background: linear-gradient(110deg, #ffffff28, transparent 45%, #29241d12), var(--deck-glass);
   color: var(--deck-print);
   box-shadow: none;
   cursor: pointer;
@@ -855,8 +856,8 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   line-height: 15px;
 }
 .playground-page #live2d-widget .vn-bgm :is(.vn-bgm-track, .vn-bgm-lyrics):is(:hover, :focus-visible) {
-  background: #d5dfcb;
-  color: #18291e;
+  background: color-mix(in srgb, var(--deck-glass) 76%, white);
+  color: #20231f;
 }
 .playground-page #live2d-widget .vn-bgm :is(.vn-bgm-track, .vn-bgm-lyrics):focus-visible {
   outline: 2px solid #31483b;
@@ -899,13 +900,13 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   border-radius: 1px;
 }
 .playground-page #live2d-widget .vn-bgm [data-bgm-play] {
-  background: #c3c7ba;
-  color: #243033;
+  background: linear-gradient(var(--deck-glass), color-mix(in srgb, var(--deck-glass) 82%, #5e655d));
+  color: var(--deck-print);
   box-shadow: inset 1px 1px #edf0e1, inset -1px -2px #727c76;
 }
 .playground-page #live2d-widget .vn-bgm [data-bgm-play]:hover:not(:disabled) {
-  background: #d6dacc;
-  color: #172024;
+  background: color-mix(in srgb, var(--deck-glass) 78%, white);
+  color: var(--deck-print);
 }
 .playground-page #live2d-widget .vn-bgm[data-bgm-state="playing"] [data-bgm-play],
 .playground-page #live2d-widget .vn-bgm [data-bgm-play]:active:not(:disabled) {

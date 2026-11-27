@@ -653,12 +653,13 @@
     widget.classList.add("classic-companion");
     widget.setAttribute("role", "region");
     widget.setAttribute("aria-labelledby", "companion-title");
+    var titleTag = standalone ? "h1" : "span";
     widget.innerHTML = [
       '<div class="playground-surface">',
       '<div class="companion-titlebar" data-companion-titlebar tabindex="0" lang="' +
         (standalone ? "ja" : "en") +
         '" title="Drag or use the arrow keys to move. Double-click or press Home to dock.">',
-      '<span id="companion-title" class="companion-title"><span data-companion-name>Playground</span></span>',
+      '<' + titleTag + ' id="companion-title" class="companion-title"><span data-companion-name lang="en">Playground</span></' + titleTag + '>',
       '<div class="companion-controls" role="group" aria-label="' +
         (standalone ? "ウィンドウ操作" : "Window controls") +
         '">',

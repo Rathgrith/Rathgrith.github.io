@@ -21,7 +21,7 @@
     panel = "",
     visible = true,
     gameActive = false;
-  var replyIdleMs = 30000, replyRemaining = replyIdleMs, replyDeadline = 0, replyTimer = 0;
+  var replyIdleMs = 12000, replyRemaining = replyIdleMs, replyDeadline = 0, replyTimer = 0;
   var foldedReplies = null, previousCommand = "", repliesInView = false;
   var pressedPointer = null, pageBlurred = false;
   var minimumLoadingMs = 0,
@@ -713,7 +713,9 @@
     arcade.innerHTML = '<img class="pg-app-icon" alt=""><span class="pg-app-title">弾幕遊戯</span><span class="pg-app-detail">スコアアタック・対戦</span>';
     arcade.querySelector("img").src = window.SiteAssets.url("/assets/images/classic/icons/16/playground.svg");
     var forecast = q(".vn-weather-strip");
-    forecast.querySelector(".vn-weather-brand").classList.add("pg-app-title");
+    var weatherTitle = forecast.querySelector(".vn-weather-brand");
+    weatherTitle.classList.add("pg-app-title");
+    weatherTitle.textContent = "天気観測";
     forecast.querySelector("[data-vn-weather-summary]").classList.add("pg-app-detail");
     forecast.lastElementChild.remove();
     forecast.insertAdjacentHTML("afterbegin", '<svg class="pg-app-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><use href="#weather-icon-observe"></use></svg>');
@@ -894,7 +896,7 @@
       '<button class="vn-weather-strip" type="button" data-vn-open="weather" aria-expanded="false"><span class="vn-weather-brand">非想天則</span><span data-vn-weather-summary>観測中…</span><span aria-hidden="true">▴</span></button>' +
         '<section class="vn-panel vn-dialog-panel" data-vn-panel="topics" hidden aria-label="話題"><header><h2>話題</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-topic-list" data-vn-topic-list></div></section>' +
         '<section class="vn-panel vn-dialog-panel" data-vn-panel="friends" hidden aria-label="友人のこと"><header><h2>友人のこと</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div class="vn-friends-list" data-vn-friends-list></div></section>' +
-        '<section class="vn-panel vn-dialog-panel" data-vn-panel="settings" hidden aria-label="設定"><header><h2>設定</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><fieldset class="vn-setting-group"><legend>会話</legend><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select><label class="vn-check"><input type="checkbox" data-vn-fold-replies> 30秒操作がないと返事をたたむ</label></fieldset><fieldset class="vn-setting-group"><legend>場面演出</legend><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光・撮影効果</label><label for="vn-light-strength">効果の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"></fieldset><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
+        '<section class="vn-panel vn-dialog-panel" data-vn-panel="settings" hidden aria-label="設定"><header><h2>設定</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><fieldset class="vn-setting-group"><legend>会話</legend><label for="vn-affinity">親密度 <output id="vn-affinity-output" data-vn-affinity-output></output></label><input id="vn-affinity" data-vn-affinity-input type="range" min="0" max="100" step="1"><label for="vn-speed">文字速度</label><select id="vn-speed" data-vn-speed><option value="65">ゆっくり</option><option value="38">ふつう</option><option value="18">はやい</option><option value="0">一括表示</option></select><label class="vn-check"><input type="checkbox" data-vn-fold-replies> ' + (replyIdleMs / 1000) + '秒操作がないと返事をたたむ</label></fieldset><fieldset class="vn-setting-group"><legend>場面演出</legend><label class="vn-check"><input type="checkbox" data-vn-lighting> 環境光・撮影効果</label><label for="vn-light-strength">効果の強さ <output data-vn-light-output></output></label><input id="vn-light-strength" data-vn-light-strength type="range" min="0" max="100" step="1"></fieldset><button type="button" data-vn-reset-position>元の位置へ</button></section>' +
         '<section class="vn-panel vn-dialog-panel" data-vn-panel="history" hidden aria-label="履歴"><header><h2>履歴</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><ol class="vn-history" data-vn-history-list aria-label="会話の記録" tabindex="0"></ol></section>' +
         '<section class="vn-panel" data-vn-panel="weather" hidden aria-labelledby="vn-weather-title"><header><h2 class="vn-weather-title" id="vn-weather-title">非想天則</h2><button type="button" data-vn-close aria-label="閉じる">×</button></header><div data-vn-weather-mount></div><button class="vn-weather-talk" type="button" data-vn-topic-start="weather">空の話をする ▸</button></section>'
     );
