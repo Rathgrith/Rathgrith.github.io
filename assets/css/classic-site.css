@@ -1520,9 +1520,7 @@ body.live2d-is-hidden .classic-companion-mobile-dock {
     border: 1px solid var(--classic-rule);
     background: var(--classic-panel);
     color: var(--text);
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    overflow: clip;
   }
   .classic-mobile-page-index:not(:empty) {
     display: block;

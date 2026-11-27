@@ -189,6 +189,26 @@
   min-width: 0;
   padding: 0 10px;
 }
+/* Both bounded docks keep their title and resize grip outside the scrolling view. */
+@media screen {
+  .classic-pinned-rail > :where(.classic-companion-dock:not(:empty)),
+  .classic-companion-mobile-dock:popover-open {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  :is(.classic-pinned-rail, .classic-companion-mobile-dock:popover-open) #live2d-widget.is-docked {
+    &, & .playground-surface {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    & .companion-titlebar { flex: none; }
+    & [data-companion-content] { min-height: 0; }
+    & .vn-main-view:not([inert]) { overflow-y: auto; scrollbar-width: thin; }
+    & .vn-danmaku-view { max-height: 100%; }
+  }
+}
 @media screen and (min-width: 1000px) {
   .classic-pinned-rail {
     position: sticky;
@@ -209,28 +229,6 @@
   .classic-pinned-rail > .classic-companion-dock {
     min-height: 0;
     margin: 0;
-  }
-  /* Fit the live reading surface beneath the index. Its title and resize
-     handle remain available while the conversation or battle scrolls inside. */
-  .classic-pinned-rail > :where(.classic-companion-dock:not(:empty)),
-  .classic-pinned-rail #live2d-widget.is-docked,
-  .classic-pinned-rail #live2d-widget.is-docked .playground-surface {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-  .classic-pinned-rail #live2d-widget.is-docked .companion-titlebar {
-    flex: none;
-  }
-  .classic-pinned-rail #live2d-widget.is-docked [data-companion-content] {
-    min-height: 0;
-  }
-  .classic-pinned-rail #live2d-widget.is-docked .vn-main-view {
-    overflow-y: auto;
-    scrollbar-width: thin;
-  }
-  .classic-pinned-rail #live2d-widget.is-docked .vn-danmaku-view {
-    max-height: 100%;
   }
   .classic-gallery-rail .classic-year-navigation {
     gap: 3px;
@@ -257,6 +255,18 @@
   .classic-pinned-rail #live2d-widget.is-docked .danmaku-arena {
     order: -2;
     flex: 1 0 clamp(150px, 28dvh, 236px);
+  }
+  /* A paused game or upgrade menu can be taller than the docked playfield.
+     Grow that row so the battle rail remains the only scrolling surface. */
+  .classic-pinned-rail #live2d-widget.is-docked .danmaku-arena:has(> :is(.danmaku-overlay, .danmaku-draft):not([hidden])) {
+    display: grid;
+    flex: 0 0 auto;
+    min-height: clamp(150px, 28dvh, 236px);
+  }
+  .classic-pinned-rail #live2d-widget.is-docked .danmaku-arena > :is(.danmaku-overlay, .danmaku-draft):not([hidden]) {
+    position: relative;
+    grid-area: 1 / 1;
+    overflow: visible;
   }
   .classic-pinned-rail #live2d-widget.is-docked .danmaku-controls {
     order: -1;

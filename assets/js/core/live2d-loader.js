@@ -1007,6 +1007,14 @@
     stageFrame = 0;
     if (!companionWidget) return;
     fitCompactStage();
+    // A bounded rail, detached window or standalone desk can own scrolling.
+    // Measure the workspace even when the model is still loading or disabled.
+    var main = companionWidget.querySelector(".vn-main-view");
+    if (main && !main.inert && main.clientHeight) {
+      var scrollable = main.scrollHeight > main.clientHeight + 1 &&
+        /^(auto|scroll)$/.test(getComputedStyle(main).overflowY);
+      companionWidget.toggleAttribute("data-scrollable-workspace", scrollable);
+    }
     if (!application) return;
     var stage = companionWidget.querySelector("[data-companion-stage]");
     var width = stage.clientWidth,

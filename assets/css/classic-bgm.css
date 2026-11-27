@@ -402,6 +402,7 @@ body:not(.playground-page) #live2d-widget [data-radio-spectrum] {
   width: min(430px, calc(100vw - 20px));
   max-height: calc(100dvh - 20px);
   overflow: auto;
+  overscroll-behavior: contain;
   color: var(--vn-ink);
   background: var(--vn-panel);
   border: 2px solid var(--vn-rule);
@@ -601,6 +602,33 @@ body:not(.playground-page) #live2d-widget [data-radio-spectrum] {
 
 .vn-radio-receiver [hidden] {
   display: none !important;
+}
+
+/* In landscape, give the lyric sheet its own column beside the tuning desk. */
+@media (min-width: 600px) and (max-height: 500px) {
+  .vn-radio-receiver { width: min(700px, calc(100vw - 20px)); }
+  .vn-radio-receiver .vn-radio-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas: "modes lyrics" "station lyrics" "screen lyrics" "intro lyrics" "credits lyrics";
+    column-gap: 14px;
+  }
+  .vn-radio-receiver[data-radio-mode="pv"][data-source-available="true"] .vn-radio-body {
+    grid-template-areas: "screen modes" "screen station" "screen lyrics" "intro lyrics" "credits lyrics";
+  }
+  .vn-radio-receiver .vn-radio-modes { grid-area: modes; }
+  .vn-radio-receiver .vn-radio-station { grid-area: station; }
+  .vn-radio-receiver .vn-radio-screen { grid-area: screen; height: 202px; }
+  .vn-radio-receiver .vn-radio-host { grid-area: intro; }
+  .vn-radio-receiver .vn-radio-footer { grid-area: credits; }
+  .vn-radio-receiver .vn-radio-lyrics {
+    grid-area: lyrics;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 0 12px;
+    border-top: 0;
+    border-left: 1px solid var(--vn-rule);
+  }
 }
 
 #live2d-widget [data-radio-pv] {

@@ -128,6 +128,9 @@ fs.mkdirSync(out, { recursive: true });
         const body = w.querySelector(".vn-dialogue-body");
         const stage = w.querySelector(".companion-stage");
         const canvas = w.querySelector("#live2dcanvas");
+        const scrollsVertically = (element) =>
+          /^(auto|scroll|overlay)$/.test(getComputedStyle(element).overflowY) &&
+          element.scrollHeight > element.clientHeight + 1;
         const reading = w.querySelector(".vn-reading");
         const text = w.querySelector("[data-live2d-dialogue-text]");
         const choices = w.querySelector(".vn-choices");
@@ -157,8 +160,11 @@ fs.mkdirSync(out, { recursive: true });
               const label = w.querySelector(selector);
               const range = document.createRange();
               range.selectNodeContents(label);
+              // An inline speaker span and its text may produce coincident
+              // client rects on the same line.
+              const fragments = Array.from(range.getClientRects());
               return (
-                range.getClientRects().length === 1 &&
+                fragments.length > 0 && fragments.every(rect => Math.abs(rect.top - fragments[0].top) < 1) &&
                 label.scrollWidth <= label.clientWidth + 1
               );
             }
@@ -173,6 +179,7 @@ fs.mkdirSync(out, { recursive: true });
           mainHeight: main.clientHeight,
           mainScrollHeight: main.scrollHeight,
           mainOverflow: main.scrollHeight > main.clientHeight + 2,
+          nestedScroll: scrollsVertically(main) && scrollsVertically(body),
           horizontalOverflow:
             main.scrollWidth > main.clientWidth + 1 ||
             document.documentElement.scrollWidth > innerWidth,
@@ -201,6 +208,7 @@ fs.mkdirSync(out, { recursive: true });
       const details = `${label}: ${JSON.stringify(result)}`;
       try {
         assert(!result.horizontalOverflow, details);
+        assert(!result.nestedScroll, "The dialogue and its window both scroll: " + details);
         assert(
           result.textFits && result.reading.bottom <= result.choices.top + 1,
           details

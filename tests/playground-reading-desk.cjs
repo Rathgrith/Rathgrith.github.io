@@ -3,6 +3,24 @@ const assert = require("node:assert/strict");
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 
+// The document may scroll past a docked widget. Within the widget, one wheel
+// gesture over the text or a reply should encounter at most one scroll region.
+async function checkScrollOwners(target) {
+  const scrollers = await target.evaluate(element => {
+    const widget = element.closest("#live2d-widget");
+    const panel = widget.closest(":popover-open") || widget;
+    const owners = [];
+    for (let node = element; panel.contains(node); node = node.parentElement) {
+      if (/^(auto|scroll|overlay)$/.test(getComputedStyle(node).overflowY) &&
+          node.scrollHeight > node.clientHeight + 1) {
+        owners.push(node.className || node.id);
+      }
+    }
+    return owners;
+  });
+  assert(scrollers.length <= 1, "Nested vertical scroll regions: " + scrollers.join(" inside "));
+}
+
 (async () => {
   const browser = await chromium.launch({ channel: "chrome" });
   try {
@@ -40,11 +58,10 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     });
     assert(nextCue.name !== "none" && nextCue.iterations === "1",
       "The next-line mark gives one finite cue");
-    await page.evaluate(() => {
-      // Long authored text must remain reachable in the same reading viewport.
+    const dailyLine = await page.evaluate(() => {
       const node = CompanionBranches.alice.nodes.daily;
-      node.lines[0].text = node.lines[0].text.repeat(3);
       node.choices[2].label += "　その話、初めて聞いたからもう少し詳しく聞かせてくれる？";
+      return node.lines[0].text;
     });
     const reading = page.locator("[data-vn-reading]");
     const text = reading.locator("[data-live2d-dialogue-text]");
@@ -76,8 +93,22 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       }));
       assert(sample.plain && !sample.unread, "A completed line is ordinary selectable text");
     }
-    for (const [width, height] of [[1366, 768], [320, 740], [844, 390]]) {
+    const deskRows = () => page.locator(".companion-stage, .companion-conversation").evaluateAll(
+      rows => rows.map(row => {
+        const { top, bottom } = row.getBoundingClientRect();
+        return [top, bottom];
+      })
+    );
+    for (const [width, height] of [[1600, 1040], [1366, 768], [320, 668], [844, 390]]) {
       await page.setViewportSize({ width, height });
+      await page.waitForFunction(height =>
+        parseFloat(document.querySelector("#live2d-widget").style.getPropertyValue("--vn-available-height")) === height,
+        height);
+      // The wide desk fits more characters per line; make sure its sample
+      // also exceeds the available height.
+      await page.evaluate(line => { CompanionBranches.alice.nodes.daily.lines[0].text = line; },
+        dailyLine.repeat(width === 1600 ? 6 : 3));
+      const before = await deskRows();
       await openBranch();
       await page.waitForFunction(() => {
         const p = document.querySelector("[data-live2d-dialogue-text]");
@@ -97,6 +128,11 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       else await page.keyboard.press("Enter");
       await options.first().waitFor();
       await assertComplete();
+      await checkScrollOwners(options.last());
+      if (width === 1600) {
+        assert(await page.locator(".pg-radio").evaluate(radio => radio.open), "The tall desk includes its open radio");
+        assert.deepEqual(await deskRows(), before, "A long line and replies preserve the wide desk and camera bounds");
+      }
       assert.deepEqual(await firstGlyph(), baseline, "Showing all reply buttons keeps the first glyph in place");
       assert.equal(await reading.getAttribute("aria-disabled"), "true");
       assert.equal(await reading.getAttribute("tabindex"), "-1");
@@ -147,6 +183,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     await options.first().click();
     await page.locator('[data-vn-open="history"]').click();
     const history = page.locator("[data-vn-history-list]");
+    await checkScrollOwners(history);
     const recordedReply = history.locator(".vn-history-reply").last();
     assert.equal(await recordedReply.locator("strong").textContent(), "あなた");
     assert.equal(await recordedReply.locator("p").textContent(), reply);
@@ -161,6 +198,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     await page.emulateMedia({ reducedMotion: "reduce" });
     await options.first().waitFor();
     await assertComplete();
+    await checkScrollOwners(reading);
     await openBranch();
     assert.equal(await options.count(), 3);
     await assertComplete();
@@ -174,6 +212,59 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     await openBranch();
     assert.equal(await options.count(), 3);
     await assertComplete();
+    // The Gallery rail has less height than the homepage dock. Compare the
+    // frame through both a normal and a long reply-bearing line there.
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(base + "gallery/");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openBranch();
+    const frame = page.locator(".companion-conversation");
+    const ordinaryHeight = (await frame.boundingBox()).height;
+    await page.evaluate(() => {
+      const line = CompanionBranches.alice.nodes.daily.lines[0];
+      line.text = line.text.repeat(6);
+    });
+    await openBranch();
+    await assertComplete();
+    assert.equal((await frame.boundingBox()).height, ordinaryHeight, "Long lines keep the docked frame stable");
+    await checkScrollOwners(options.last());
+
+    const body = page.locator("[data-vn-dialogue-body]");
+    const previousPage = page.locator("[data-vn-page-prev]");
+    const nextPage = page.locator("[data-vn-page-next]");
+    await nextPage.waitFor();
+    assert(await previousPage.isDisabled());
+    await body.hover();
+    const workspace = page.locator(".vn-main-view");
+    const beforeWheel = await workspace.evaluate(e => e.scrollTop);
+    const delta = await workspace.evaluate(e => e.scrollTop < (e.scrollHeight - e.clientHeight) / 2 ? 80 : -80);
+    await page.mouse.wheel(0, delta);
+    await page.waitForFunction(top => document.querySelector(".vn-main-view").scrollTop !== top, beforeWheel);
+    assert.equal(await body.evaluate(e => e.scrollTop), 0, "Wheeling over a paged line scrolls only the workspace");
+    await nextPage.click();
+    await page.waitForFunction(() => document.querySelector("[data-vn-dialogue-body]").scrollTop > 0);
+    await previousPage.click();
+    await page.waitForFunction(() => document.querySelector("[data-vn-dialogue-body]").scrollTop < 1);
+    // Turning pages must expose the whole line and the final reply. Bound the
+    // loop so a pager that keeps returning the same page fails promptly.
+    for (let turns = 0; await nextPage.isEnabled(); turns++) {
+      assert(turns < 12, "The final dialogue page is reachable");
+      await nextPage.click();
+    }
+    assert(await body.evaluate(e => e.scrollTop + e.clientHeight >= e.scrollHeight - 2));
+    assert(await options.last().evaluate(button => {
+      const r = button.getBoundingClientRect();
+      const b = button.closest("[data-vn-dialogue-body]").getBoundingClientRect();
+      return r.top >= b.top - 1 && r.bottom <= b.bottom + 1;
+    }), "The final reply is visible on the last page");
+    await options.last().click();
+    await page.waitForFunction(() => document.querySelector("[data-vn-dialogue-body]").scrollTop < 1);
+    await page.locator('[data-vn-open="history"]').click();
+    await checkScrollOwners(history);
+    await history.locator("li").last().scrollIntoViewIfNeeded();
+    await page.locator('[data-vn-panel="history"] [data-vn-close]').click();
+    assert(await options.first().isVisible(), "History returns to the active docked conversation");
+
     const phone = await browser.newPage({
       isMobile: true, hasTouch: true, deviceScaleFactor: 3,
     });
@@ -206,8 +297,24 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       await phoneReplies.last().tap();
       await phone.waitForFunction(() => document.querySelector("#live2d-widget").dataset.vnBranchNode !== "daily");
     }
+    await phone.goto(base + "gallery/");
+    await phone.evaluate(() => window.scrollTo(0, 1050));
+    await phone.locator("[data-reading-playground]").tap();
+    const popup = phone.locator("[data-companion-mobile-dock]:popover-open");
+    await popup.locator('[data-vn-open="topics"]').tap();
+    await phone.evaluate(() => {
+      const line = CompanionBranches.alice.nodes.daily.lines[0];
+      line.text = line.text.repeat(6);
+    });
+    await popup.locator('[data-vn-topic-start="branch:daily"]').tap();
+    const lastReply = popup.locator("[data-vn-choices] button").last();
+    await lastReply.waitFor();
+    await checkScrollOwners(lastReply);
+    await popup.locator("[data-vn-page-next]").tap();
+    assert(await popup.locator("[data-vn-dialogue-body]").evaluate(e => e.scrollTop > 0),
+      "The mobile reading shortcut can turn a long dialogue page by touch");
     await phone.close();
-    console.log("PASS: stable Japanese ink reveal and choice geometry, keyboard replies, character switch, instant reduced motion in both dialogue views and accessible history");
+    console.log("PASS: stable camera and dialogue frames, Japanese ink reveal, keyboard replies, single scroll regions, wheel and touch paging, reduced motion and accessible history");
   } finally {
     await browser.close();
   }

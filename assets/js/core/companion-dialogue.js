@@ -649,6 +649,71 @@
     roster.after(q("[data-companion-stage]"));
   }
 
+  function mountDialoguePaging() {
+    var frame = q(".companion-conversation"), body = q("[data-vn-dialogue-body]");
+    var pager = q("[data-vn-pager]"), previous = q("[data-vn-page-prev]");
+    var next = q("[data-vn-page-next]"), counter = q("[data-vn-page-count]");
+    var step = 1, pending = 0;
+
+    function update() {
+      pending = 0;
+      if (!body.clientHeight) return;
+      // Adding the pager uses part of the fixed reading area. Decide whether it
+      // is needed against the full space, including that row when already open.
+      var needsPages = root.hasAttribute("data-scrollable-workspace") &&
+        body.scrollHeight > body.clientHeight + pager.offsetHeight + 1;
+      if (!needsPages && pager.contains(document.activeElement)) {
+        (q(".vn-choices button") || q("[data-vn-reading]")).focus({ preventScroll: true });
+      }
+      pager.toggleAttribute("hidden", !needsPages);
+      var end = body.scrollHeight - body.clientHeight;
+      frame.classList.toggle("has-more-dialogue", !needsPages && end - body.scrollTop > 3);
+      if (!needsPages) return;
+      var lineHeight = parseFloat(getComputedStyle(q("[data-live2d-dialogue-text]")).lineHeight);
+      // Keep a full line from the previous page as a reading cue.
+      var wholeLines = Math.floor(body.clientHeight / lineHeight);
+      step = wholeLines >= 2 ? (wholeLines - 1) * lineHeight : Math.max(1, body.clientHeight * 2 / 3);
+      var pages = Math.ceil(end / step) + 1;
+      var atEnd = body.scrollTop >= end - 1;
+      var page = atEnd ? pages : 1 + Math.floor((body.scrollTop + 1) / step);
+      var label = page + " / " + pages;
+      if (counter.textContent !== label) counter.textContent = label;
+      previous.setAttribute("aria-disabled", String(body.scrollTop <= 1));
+      next.setAttribute("aria-disabled", String(atEnd));
+    }
+    function schedule() {
+      if (!pending) pending = requestAnimationFrame(update);
+    }
+    function turnPage(key) {
+      var end = body.scrollHeight - body.clientHeight;
+      var top = body.scrollTop;
+      if (key === "Home") top = 0;
+      if (key === "End") top = end;
+      if (key === "PageDown") top = (Math.floor((top + 1) / step) + 1) * step;
+      if (key === "PageUp") top = (Math.ceil((top - 1) / step) - 1) * step;
+      body.scrollTop = Math.max(0, Math.min(top, end));
+      update();
+    }
+    previous.addEventListener("click", function () { turnPage("PageUp"); });
+    next.addEventListener("click", function () { turnPage("PageDown"); });
+    frame.addEventListener("keydown", function (event) {
+      if (pager.hidden || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (!["PageUp", "PageDown", "Home", "End"].includes(event.key)) return;
+      // Home/End on a reply already select the first/last reply.
+      if ((event.key === "Home" || event.key === "End") && event.target.closest(".vn-choices")) return;
+      event.preventDefault();
+      turnPage(event.key);
+      if (event.target.closest(".vn-choices")) {
+        (event.key === "PageUp" ? previous : next).focus({ preventScroll: true });
+      }
+    });
+    body.addEventListener("scroll", schedule, { passive: true });
+    var size = new ResizeObserver(schedule);
+    [body, q("#live2d-dialogue"), q(".vn-choices")].forEach(function (element) {
+      size.observe(element);
+    });
+    new MutationObserver(schedule).observe(root, { attributes: true, attributeFilter: ["data-scrollable-workspace"] });
+  }
   function mount(widget, callbacks) {
     if (root)
       return {
@@ -705,7 +770,12 @@
         );
       });
     q("[data-companion-conversation]").innerHTML =
-      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" data-vn-dialogue-body><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-description="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div></div><span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
+      '<div class="vn-nameplate"><strong data-live2d-dialogue-name></strong><span class="vn-affinity"><meter data-vn-affinity-meter min="0" max="100" aria-label="親密度"></meter><span data-vn-affinity></span></span></div><div class="vn-dialogue-body" id="vn-dialogue-pages" data-vn-dialogue-body role="region" aria-label="会話と選択肢"><aside id="live2d-dialogue" class="live2d-dialogue is-visible" aria-hidden="false"><div class="vn-reading" data-vn-reading role="button" tabindex="0" aria-description="会話を進める"><p class="live2d-dialogue__text" data-live2d-dialogue-text></p><span class="vn-next-mark" aria-hidden="true">▾</span></div></aside><div class="vn-choices" data-vn-choices></div></div>' +
+      '<div class="vn-dialogue-pager" data-vn-pager role="group" aria-label="会話のページ" hidden>' +
+        '<button type="button" data-vn-page-prev aria-controls="vn-dialogue-pages" aria-keyshortcuts="PageUp">◂ 前頁</button>' +
+        '<span data-vn-page-count aria-live="polite" aria-atomic="true"></span>' +
+        '<button type="button" data-vn-page-next aria-controls="vn-dialogue-pages" aria-keyshortcuts="PageDown">次頁 ▸</button>' +
+      '</div><span class="vn-dialogue-ornament" aria-hidden="true"></span><span class="visually-hidden" data-vn-announcement aria-live="polite" aria-atomic="true"></span>';
     q("[data-companion-footer]").innerHTML =
       '<button type="button" data-vn-open="topics" aria-expanded="false">話題</button><button type="button" data-vn-auto aria-pressed="false">自動</button><button type="button" data-vn-open="history" aria-expanded="false">履歴</button><button type="button" data-vn-open="settings" aria-expanded="false">設定</button><button type="button" id="live2d-interact" class="live2d-interact">次へ ▸</button>';
     q("[data-companion-content]").insertAdjacentHTML(
@@ -833,20 +903,7 @@
         panelOpener(previous).focus();
       }
     });
-    // Keep long choices discoverable without changing the fixed dialogue size.
-    var body = q(".vn-dialogue-body");
-    body.setAttribute("aria-label", "会話と選択肢");
-    function syncDialogueScroll() {
-      q(".companion-conversation").classList.toggle(
-        "has-more-dialogue",
-        body.scrollHeight - body.scrollTop - body.clientHeight > 3
-      );
-    }
-    body.addEventListener("scroll", syncDialogueScroll, { passive: true });
-    var dialogueObserver = new ResizeObserver(syncDialogueScroll);
-    [body, q("#live2d-dialogue"), q(".vn-choices")].forEach(function (element) {
-      dialogueObserver.observe(element);
-    });
+    mountDialoguePaging();
     q("[data-vn-affinity-input]").addEventListener("input", function (event) {
       affinity[currentId] = number(event.target.value, 35, 0, 100);
       updateAffinity();

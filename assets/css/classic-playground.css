@@ -463,8 +463,13 @@ body.playground-page {
    A full-width stage instead sits between a cast/app bar and two real panels. */
 @container (min-height: 945px) {
   .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio[open]) {
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) minmax(216px, auto);
     grid-template-areas: "roster apps" "scene scene" "desk receiver";
+  }
+  /* The receiver sets the shared row height. A longer line or reply must
+     scroll inside the desk without pushing the camera or its caption up. */
+  .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio[open]) .pg-dialogue-desk {
+    contain: size;
   }
   .playground-page #live2d-widget[data-playground-layout="wide"] .pg-tools:has(.pg-radio[open]) {
     display: contents;
@@ -511,6 +516,9 @@ body.playground-page {
   height: calc(100cqh - 8px);
 }
 .playground-page #live2d-widget[data-playground-layout="landscape"] .pg-dialogue-desk { height: 232px; }
+@media (pointer: coarse) {
+  .playground-page #live2d-widget[data-playground-layout="landscape"] .pg-dialogue-desk { height: 278px; }
+}
 .playground-page #live2d-widget:not([data-playground-layout="wide"]) .pg-section-title {
   position: absolute;
   width: 1px; height: 1px; margin: 0;
