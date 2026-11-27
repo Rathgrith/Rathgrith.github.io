@@ -699,6 +699,45 @@
       new CustomEvent("site:companion-game", { detail: { active: value } })
     );
   }
+  function bindLensDial(input) {
+    var dial = input.closest(".pg-lens-dial"), drag = null, skipClick = false;
+    function turn(value) {
+      if (value === input.valueAsNumber) return;
+      input.valueAsNumber = value;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    dial.addEventListener("pointerdown", function (event) {
+      if (!event.isPrimary || event.button !== 0) return;
+      event.preventDefault();
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, stop: input.valueAsNumber };
+      skipClick = false;
+      dial.setPointerCapture(event.pointerId);
+    });
+    dial.addEventListener("pointermove", function (event) {
+      if (!drag || event.pointerId !== drag.id) return;
+      var dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+      if (!skipClick && Math.max(Math.abs(dx), Math.abs(dy)) < 7) return;
+      if (!skipClick && Math.abs(dy) > Math.abs(dx)) {
+        skipClick = true;
+        drag = null;
+        return;
+      }
+      skipClick = true;
+      var stop = drag.stop + Math.round(dx / 18);
+      turn(Math.max(0, Math.min(Number(input.max), stop)));
+    });
+    dial.addEventListener("pointercancel", function () { skipClick = true; });
+    dial.addEventListener("lostpointercapture", function () { drag = null; });
+    dial.addEventListener("click", function (event) {
+      // The label and the dial face are one target. Skip native label forwarding
+      // so a tap advances exactly once, even when it lands on the range itself.
+      event.preventDefault();
+      input.focus({ preventScroll: true });
+      if (!skipClick || event.detail === 0) turn((input.valueAsNumber + 1) % (Number(input.max) + 1));
+      skipClick = false;
+    });
+  }
+
   function mountViewfinder() {
     q(".companion-stage").insertAdjacentHTML("beforeend",
       '<div class="pg-scene-mount" aria-hidden="true" inert>' +
@@ -711,30 +750,58 @@
       '<span class="pg-lens-readout"><span class="pg-lens-mode"></span>' +
         '<span data-pg-focus-plane></span><span class="pg-lens-divider">·</span><span data-pg-aperture></span></span>');
 
-    q("[data-vn-reset-position]").insertAdjacentHTML("beforebegin",
-      '<fieldset class="vn-setting-group"><legend>撮影レンズ</legend><div class="pg-lens-controls">' +
-        '<label>ピント<select data-vn-focus-mode><option value="auto">自動（顔追従）</option><option value="manual">手動</option></select></label>' +
-        '<label>合焦位置<select data-vn-focus-plane></select></label>' +
-        '<label>絞り<select data-vn-f-number></select></label></div></fieldset>');
-    var mode = q("[data-vn-focus-mode]"), plane = q("[data-vn-focus-plane]"), aperture = q("[data-vn-f-number]");
-    Object.entries(focusPlanes).forEach(function (entry) { plane.add(new Option(entry[1], entry[0])); });
-    apertureStops.forEach(function (value) { aperture.add(new Option("f/" + value, value)); });
+    var deck = document.createElement("div");
+    deck.className = "pg-lens-deck";
+    deck.setAttribute("role", "group");
+    deck.setAttribute("aria-label", "撮影レンズ");
+    var focusStops = ["auto"].concat(Object.keys(focusPlanes));
+    function addDial(key, label, stops) {
+      deck.insertAdjacentHTML("beforeend",
+        '<label class="pg-lens-dial" data-lens-dial="' + key + '" title="クリックで一段、左右にドラッグして調整">' +
+          '<span class="pg-dial-face" aria-hidden="true"></span>' +
+          '<input type="range" class="pg-dial-input" data-vn-' + key + '-dial min="0" max="' + (stops.length - 1) +
+            '" step="1" aria-label="' + label + '" aria-description="左右の矢印キーで調整">' +
+          '<span class="pg-dial-copy" aria-hidden="true"><span class="pg-dial-label">' + label +
+            '</span><span class="pg-dial-value"></span></span></label>');
+      var input = deck.lastElementChild.querySelector("input");
+      bindLensDial(input);
+      return input;
+    }
+    var focus = addDial("focus", "ピント", focusStops), iris = addDial("aperture", "絞り", apertureStops);
+    var roster = q(".pg-roster");
+    if (roster) roster.append(deck);
+    else q(".vn-scene-frame").after(deck);
+
+    function showStop(input, index, text, spoken) {
+      var label = input.closest(".pg-lens-dial");
+      input.valueAsNumber = index;
+      input.setAttribute("aria-valuetext", spoken || text);
+      label.style.setProperty("--dial-angle", (-135 + 270 * index / Number(input.max)) + "deg");
+      label.querySelector(".pg-dial-value").textContent = text;
+    }
     function applyLens() {
-      mode.value = root.dataset.lensFocusMode = lensFocusMode;
+      var auto = lensFocusMode === "auto";
+      var planeName = focusPlanes[auto ? "subject" : lensFocusPlane];
+      var fStop = "f/" + lensFNumber;
+      showStop(focus, auto ? 0 : focusStops.indexOf(lensFocusPlane), auto ? "AF · 自動" : planeName,
+        auto ? "自動・顔追従" : "手動・" + planeName);
+      showStop(iris, apertureStops.indexOf(lensFNumber), fStop);
+      root.dataset.lensFocusMode = lensFocusMode;
       root.dataset.lensFocusPlane = lensFocusPlane;
       root.dataset.lensFNumber = lensFNumber;
-      plane.disabled = lensFocusMode === "auto";
-      plane.value = plane.disabled ? "subject" : lensFocusPlane;
-      aperture.value = lensFNumber;
-      q(".pg-lens-mode").textContent = plane.disabled ? "AF" : "MF";
-      q("[data-pg-focus-plane]").textContent = focusPlanes[plane.value];
-      q("[data-pg-aperture]").textContent = "f/" + lensFNumber;
+      q(".pg-lens-mode").textContent = auto ? "AF" : "MF";
+      q("[data-pg-focus-plane]").textContent = planeName;
+      q("[data-pg-aperture]").textContent = fStop;
       if (hooks.lighting) hooks.lighting();
     }
-    q(".pg-lens-controls").addEventListener("change", function (event) {
-      if (event.target === mode) lensFocusMode = mode.value;
-      if (event.target === plane && !plane.disabled) lensFocusPlane = plane.value;
-      if (event.target === aperture) lensFNumber = Number(aperture.value);
+    deck.addEventListener("input", function (event) {
+      if (event.target === focus) {
+        var stop = focusStops[focus.valueAsNumber];
+        lensFocusMode = stop === "auto" ? "auto" : "manual";
+        if (stop !== "auto") lensFocusPlane = stop;
+      } else if (event.target === iris) {
+        lensFNumber = apertureStops[iris.valueAsNumber];
+      }
       applyLens();
       persist();
     });

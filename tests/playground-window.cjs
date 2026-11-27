@@ -15,6 +15,12 @@ fs.mkdirSync(out, { recursive: true });
     const page = await browser.newPage({
       viewport: { width: 1440, height: 1000 },
     });
+    // Keep the reply list available while measuring each button across window sizes.
+    // The dialogue suite separately exercises the three-second idle timeout.
+    await page.addInitScript(() => {
+      if (!localStorage.getItem("site-companion-v1"))
+        localStorage.setItem("site-companion-v1", JSON.stringify({ foldIdleReplies: false }));
+    });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.route("**/companion-dialogue.js*", async (route) => {

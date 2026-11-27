@@ -231,6 +231,7 @@ body.playground-page {
   scrollbar-color: var(--vn-rule) var(--vn-panel);
 }
 .playground-page #live2d-widget .pg-roster { grid-area: roster; min-width: 0; }
+.playground-page #live2d-widget .pg-roster .pg-lens-deck { margin-top: 4px; }
 .playground-page #live2d-widget .pg-section-title,
 .playground-page #live2d-widget .pg-radio summary {
   margin: 0;
@@ -460,6 +461,24 @@ body.playground-page {
   align-content: stretch;
   padding-inline: 4px;
 }
+/* The camera and the reading desk keep their tracks when the receiver folds.
+   In a side rail the dials stand beside the cast; in a toolbar they sit in a row. */
+.playground-page #live2d-widget[data-playground-layout="wide"] .pg-roster {
+  display: grid;
+  grid-template: "title title" auto "cast dials" auto / minmax(0, 1fr) var(--pg-dial-width, clamp(100px, 36%, 136px));
+  align-content: start;
+  column-gap: 6px;
+}
+.playground-page #live2d-widget[data-playground-layout="wide"] .pg-roster .pg-section-title { grid-area: title; }
+.playground-page #live2d-widget[data-playground-layout="wide"] .pg-roster .pg-lens-deck {
+  grid-area: dials;
+  grid-template-columns: var(--pg-dial-columns, minmax(0, 1fr));
+  margin: 0;
+}
+.playground-page #live2d-widget[data-playground-layout="wide"] .pg-lens-dial + .pg-lens-dial {
+  border-inline-start-width: var(--pg-dial-side, 0);
+  border-block-start: var(--pg-dial-top, 1px) solid var(--vn-binding);
+}
 .playground-page #live2d-widget[data-playground-layout="wide"] .pg-dialogue-desk {
   height: 100%;
 }
@@ -583,6 +602,10 @@ body.playground-page {
     --pg-camera-span: calc((100cqh - 350px) * 2.24);
   }
   .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio[open]) {
+    --pg-dial-width: clamp(164px, 32%, 260px);
+    --pg-dial-columns: repeat(2, minmax(0, 1fr));
+    --pg-dial-side: 1px;
+    --pg-dial-top: 0;
     grid-template-columns: minmax(0, 1fr) minmax(466px, 39%);
     grid-template-rows: auto minmax(0, 1fr) minmax(var(--pg-desktop-desk), auto);
     grid-template-areas: "roster apps" "scene scene" "desk receiver";
@@ -629,6 +652,10 @@ body.playground-page {
 /* A closed receiver is a single command. Put it with the other commands
    beside the cast and give the vacated column back to the stage. */
 .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view:has(.pg-radio:not([open])) {
+  --pg-dial-width: clamp(164px, 32%, 260px);
+  --pg-dial-columns: repeat(2, minmax(0, 1fr));
+  --pg-dial-side: 1px;
+  --pg-dial-top: 0;
   grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr);
   grid-template-rows: auto minmax(0, 1fr) var(--pg-desktop-desk);
   grid-template-areas: "roster tools" "scene scene" "desk desk";
@@ -659,11 +686,15 @@ body.playground-page {
       width: 1px; height: 1px; margin: 0;
       overflow: hidden; clip-path: inset(50%);
     }
+    --pg-dial-width: clamp(151px, 39%, 186px);
     & .vn-cast button {
-      min-height: 46px; padding: 3px 5px; gap: 5px;
-      font-size: 14px;
+      flex-direction: column; justify-content: center;
+      min-height: 46px; padding: 2px 0; gap: 0; font-size: 12px;
     }
-    & .vn-cast img { width: 26px; height: 26px; }
+    & .vn-cast img { width: 22px; height: 22px; }
+    & .pg-lens-dial { gap: 2px; padding-inline: 1px; }
+    & .pg-dial-face { flex-basis: 22px; height: 22px; }
+    & .pg-dial-value { font-size: 12px; }
     & :is(.vn-cast small, .pg-app-detail) { display: none; }
     & .pg-radio summary { padding-inline: 5px; gap: 5px; font-size: 14px; }
     & .pg-launchers > button {

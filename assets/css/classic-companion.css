@@ -1654,35 +1654,96 @@
     inset: auto auto 8px 8px;
   }
 }
-#live2d-widget .pg-lens-controls {
+/* Each dial has a fixed knurled rim and a moving index. Its label remains
+   part of the touch target, including the current detent readout. */
+#live2d-widget .pg-lens-deck {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
-  gap: 5px 12px;
-}
-#live2d-widget .pg-lens-controls label {
-  display: grid;
-  justify-content: stretch;
-  align-content: end;
-  gap: 4px;
-  margin: 4px 0;
-}
-#live2d-widget .pg-lens-controls select {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-width: 0;
-  min-height: 38px;
-  color: var(--vn-ink);
-  font: 15px/1.3 var(--vn-font);
+  border: 1px solid var(--vn-binding);
+  color: var(--vn-paper);
+  background: linear-gradient(165deg, var(--vn-lining), var(--vn-panel) 72%);
+  box-shadow: inset 0 1px color-mix(in srgb, var(--vn-foil) 24%, transparent),
+    inset 0 -2px var(--vn-letter);
 }
-#live2d-widget .pg-lens-controls select:disabled {
-  color: var(--vn-muted);
-  border-style: dashed;
-  opacity: 1;
+#live2d-widget .pg-lens-dial {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 1.5cqi, 10px);
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  padding: 2px 4px;
+  box-sizing: border-box;
+  touch-action: pan-y;
+  cursor: ew-resize;
+  user-select: none;
+  -webkit-user-select: none;
 }
-#live2d-widget .pg-lens-controls select:focus-visible {
+#live2d-widget .pg-lens-dial + .pg-lens-dial {
+  border-inline-start: 1px solid var(--vn-binding);
+}
+#live2d-widget .pg-dial-face {
+  position: relative;
+  box-sizing: border-box;
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--vn-letter);
+  background: repeating-conic-gradient(var(--vn-binding) 0deg 7deg, var(--vn-panel) 7deg 15deg);
+  box-shadow: 0 1px 2px #000b, 0 0 0 1px var(--vn-binding);
+}
+#live2d-widget .pg-dial-face::before,
+#live2d-widget .pg-dial-face::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+}
+#live2d-widget .pg-dial-face::before {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--vn-rule) 84%, var(--vn-paper)), var(--vn-lining) 75%);
+  box-shadow: inset 0 1px 0 var(--vn-foil), inset 0 -1px 0 var(--vn-letter);
+}
+#live2d-widget .pg-dial-face::after {
+  inset: 5px;
+  background: linear-gradient(var(--vn-paper) 0 7px, transparent 7px) center top / 3px 100% no-repeat;
+  transform: rotate(var(--dial-angle));
+}
+#live2d-widget .pg-dial-copy {
+  display: grid;
+  min-width: 0;
+  text-align: start;
+  font: 12px/1.2 var(--vn-font);
+}
+#live2d-widget .pg-dial-label { color: var(--vn-muted); }
+#live2d-widget .pg-dial-value {
+  color: var(--vn-paper);
+  font-size: 14px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+#live2d-widget .pg-dial-input {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+#live2d-widget .pg-lens-dial:has(.pg-dial-input:focus-visible) {
   outline: 2px solid var(--vn-foil);
-  outline-offset: 2px;
+  outline-offset: -3px;
 }
-@media (pointer: coarse) {
-  #live2d-widget .pg-lens-controls select { min-height: 44px; }
+@media (hover: hover) {
+  #live2d-widget .pg-lens-dial:hover { background: var(--vn-lining); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #live2d-widget .pg-dial-face::after { transition: transform 110ms ease-out; }
 }
 @media (forced-colors: active) {
   #live2d-widget .pg-scene-mount { box-shadow: none; }
@@ -1691,6 +1752,14 @@
   #live2d-widget .pg-grid-ink { stroke: CanvasText; opacity: .8; }
   #live2d-widget .pg-lens-readout { color: CanvasText; background: Canvas; border-color: CanvasText; }
   #live2d-widget .pg-lens-mode { border: 1px solid CanvasText; }
+  #live2d-widget .pg-dial-face,
+  #live2d-widget .pg-dial-face::after { forced-color-adjust: none; }
+  #live2d-widget .pg-dial-face { background: ButtonFace; border-color: ButtonText; }
+  #live2d-widget .pg-dial-face::before { background: ButtonFace; box-shadow: none; }
+  #live2d-widget .pg-dial-face::after {
+    background: linear-gradient(ButtonText 0 7px, transparent 7px) center top / 3px 100% no-repeat;
+  }
+  #live2d-widget .pg-lens-dial:has(.pg-dial-input:focus-visible) { outline-color: Highlight; }
 }
 #live2d-widget .vn-panel .vn-voice-credits {
   margin-top: 14px;
@@ -1896,6 +1965,35 @@ html body.live2d-is-hidden #live2d-widget {
     padding-block: 3px;
   }
 }
+/* The smallest maximized window shares one top row between cast and optics.
+   The two-column launcher row and the full-width room keep their own tracks. */
+@container playground (max-width: 340px) {
+  .classic-site:not(.playground-page) #live2d-widget.is-maximized[data-playground-layout="compact"] .vn-main-view {
+    --compact-dials: 46%;
+    & .vn-cast {
+      grid-row: 1;
+      margin-inline-end: calc(var(--compact-dials) + 3px);
+      padding: 0;
+      gap: 2px;
+    }
+    & .vn-cast button {
+      min-height: 44px;
+      padding: 1px 0;
+      flex-direction: column;
+      gap: 0;
+      font-size: 10px;
+    }
+    & .vn-cast img { width: 18px; height: 18px; }
+    & .pg-lens-deck { grid-row: 1; justify-self: end; width: var(--compact-dials); }
+    & .pg-lens-dial { padding-inline: 1px; gap: 2px; }
+    & .pg-dial-face { flex-basis: 20px; height: 20px; }
+    & .pg-dial-face::before { inset: 2px; }
+    & .pg-dial-face::after { inset: 3px; background-size: 2px 100%; }
+    & .pg-dial-copy, & .pg-dial-value { font-size: 11px; }
+    & .companion-conversation { margin-top: 0; }
+    & .companion-footer { padding-block: 2px; }
+  }
+}
 /* A mid-width floating window fits the receiver beside the dialogue and
    controls, leaving enough height for the foreground and its room. */
 @container playground (min-width: 500px) {
@@ -1904,12 +2002,25 @@ html body.live2d-is-hidden #live2d-widget {
   }
   .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="compact"] .vn-main-view > .vn-bgm {
     grid-column: 2;
-    grid-row: 3 / span 2;
+    grid-row: 4 / span 2;
   }
 }
 /* Wrapped dialogue needs four lines beside a narrow floating camera. */
 @container playground (max-width: 690px) {
   #live2d-widget[data-playground-layout="wide"] .vn-main-view { --vn-wide-reading-min: 172px; }
+}
+/* Share the top rail in a wide floating window so the camera keeps its height. */
+.classic-site:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-main-view {
+  --vn-lens-width: min(36%, 260px);
+}
+.classic-site:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-cast {
+  margin-inline-end: calc(var(--vn-lens-width) + 10px);
+}
+.classic-site:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .pg-lens-deck {
+  grid-area: cast;
+  align-self: center;
+  justify-self: end;
+  width: var(--vn-lens-width);
 }
 /* Reserve the rest of a very wide floating window for the reading desk. */
 .classic-site:not(.playground-page) #live2d-widget.is-sized[data-playground-layout="wide"] [data-companion-content] {
