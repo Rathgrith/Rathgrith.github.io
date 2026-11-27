@@ -83,7 +83,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           }
           return {
             roomFile: new URL(image.src).pathname,
-            headroom, standalone, engraving,
+            headroom, engraving,
             decorative: mount && mount.inert && mount.getAttribute("aria-hidden") === "true" &&
               getComputedStyle(mount).pointerEvents === "none",
             choosing,
@@ -109,12 +109,8 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           };
         });
         assert(result.roomFile.includes(character), JSON.stringify(result));
-        if (result.standalone) {
-          assert(result.decorative && result.engraving?.includes("frame-" + character + ".svg"),
-            character + " has its own non-interactive foreground engraving at " + view);
-        } else {
-          assert.equal(result.engraving, null, "Embedded windows use their compact frame");
-        }
+        assert(result.decorative && result.engraving?.includes("frame-" + character + ".svg"),
+          character + " has its own non-interactive foreground frame at " + view);
         assert(
           result.overscan.every((edge) => edge >= 1),
           view + " painted scenery covers all four edges: " + JSON.stringify(result)

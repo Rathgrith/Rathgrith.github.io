@@ -968,8 +968,8 @@
       !shouldDisableLive2D() && companionWidget.dataset.sceneLighting !== "false" && amount > 0 &&
       !companionWidget.matches(".is-loading, .has-live2d-error, .has-vn-panel"));
     var active = optics && !prefersReducedMotion();
-    var fNumber = standalone ? Number(companionWidget.dataset.lensFNumber) || 4 : 4;
-    sceneCamera.setActive(active, amount, fNumber, standalone && optics);
+    var fNumber = Number(companionWidget.dataset.lensFNumber) || 4;
+    sceneCamera.setActive(active, amount, fNumber, optics);
   }
 
   function canIdle() {

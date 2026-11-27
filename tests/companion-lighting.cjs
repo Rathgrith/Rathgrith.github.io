@@ -9,8 +9,8 @@ const out =
   process.env.QA_OUTPUT || require("node:os").tmpdir() + "/lighting-qa";
 fs.mkdirSync(out, { recursive: true });
 
-async function expectMotion(page, expected) {
-  await page.waitForFunction(expected => {
+async function expectMotion(page, expected, optics = expected) {
+  await page.waitForFunction(({ expected, optics }) => {
     const stage = document.querySelector("[data-companion-stage]"), motes = document.querySelectorAll(".vn-mote");
     const moving = [...motes].some(el => el.getAnimations().some(a => a.playState === "running"));
     const room = stage.querySelector(":scope > .vn-room"), aperture = room?.querySelector(":scope > .vn-room-aperture");
@@ -19,8 +19,9 @@ async function expectMotion(page, expected) {
     const activePlates = plate.display !== "none" && open.animationName.includes("vn-aperture");
     return motes.length && stage.hasAttribute("data-camera-active") === expected && moving === expected &&
       activePlates === expected && base.animationName.includes("vn-handheld") === expected &&
-      (expected || plate.display === "none") && base.backgroundImage.includes(".png") && base.filter === "none";
-  }, expected);
+      stage.hasAttribute("data-lens-engaged") === optics && (plate.display !== "none") === optics &&
+      base.backgroundImage.includes(".png") && base.filter === "none";
+  }, { expected, optics });
 }
 
 async function checkRoomPlates(stage) {
@@ -87,7 +88,7 @@ async function checkRoomPlates(stage) {
   });
   const [source, mid, wide] = result.images;
   assert.equal(mid.path, source.path.replace(/\.png$/, "-f4.webp"));
-  assert.equal(wide.path, source.path.replace(/\.png$/, "-f2.webp"));
+  assert.equal(wide.path, source.path.replace(/\.png$/, "-f2.8.webp"));
   for (const plate of [mid, wide]) {
     assert.deepEqual([plate.width, plate.height], [source.width, source.height],
       "The photograph keeps the source painting's full resolution");
@@ -175,7 +176,7 @@ async function checkRoomEdges(stage, path) {
         });
         const widget = page.locator("#live2d-widget"), stage = widget.locator("[data-companion-stage]");
         await stage.scrollIntoViewIfNeeded();
-        await expectMotion(page, dpr === 1);
+        await expectMotion(page, dpr === 1, true);
         const theme = await widget.evaluate(w => {
           const far = w.querySelector(".vn-motes-far"), near = w.querySelector(".vn-motes-near");
           const layers = [far, near];
@@ -218,31 +219,27 @@ async function checkRoomEdges(stage, path) {
         }
         for (const [pose, active] of [[null, dpr === 1], ["3", true]]) {
           await page.emulateMedia({ reducedMotion: active ? "no-preference" : "reduce" });
-          await expectMotion(page, active);
-          await page.waitForFunction(motion => {
-            const radius = cameraTestApp.stage.filters[0].uniforms.uLensRadius;
-            return typeof radius === "number" && (motion ? radius > 0 : radius === 0);
-          }, active);
+          await expectMotion(page, active, true);
+          await page.waitForFunction(() => cameraTestApp.stage.filters[0].uniforms.uLensRadius > 0);
           if (pose) {
             await page.evaluate(poseId => lensTestHooks.perform({ poseId, expressionMotionId: "04", effect: "question" }), pose);
             await page.waitForFunction(poseId => document.querySelector("#live2d-widget").dataset.live2dPoseId === poseId, pose);
           }
           const lens = await page.evaluate(measureLens);
           const info = JSON.stringify({ id, dpr, pose, active, lens });
-          if (active) assert(lens.faceDistance <= 1.01, "Both eyes and the mouth lie inside the sharp focus ellipse: " + info);
+          assert(lens.faceDistance <= 1.01, "Both eyes and the mouth lie inside the sharp focus ellipse: " + info);
           assert(lens.largestFocusChange <= 1 && lens.largestAlphaChange === 0, "Focused detail and the silhouette stay intact: " + info);
           assert.deepEqual(lens.disabledSamples, [1, 1], "Disabled optics reads exactly one texel per pixel: " + info);
           assert.deepEqual(lens.lightingSamples, [1, 3], "Only lit contours need both coverage probes: " + info);
-          assert(lens.activeSamples[0] === 1 && (active ? lens.activeSamples[1] > 1 : lens.activeSamples[1] === 1),
+          assert(lens.activeSamples[0] === 1 && lens.activeSamples[1] > 1,
             "Extra samples belong to the active depth pass: " + info);
-          if (active) assert(lens.changedBody > 0 && lens.opaqueBody > lens.changedBody,
+          assert(lens.changedBody > 0 && lens.opaqueBody > lens.changedBody,
             "Out-of-focus body detail genuinely changes on the same rendered frame: " + info);
-          else assert.equal(lens.changedBody, 0, "Reduced motion keeps a clear model: " + info);
           console.log("Lens", info);
         }
         if (dpr === 2) {
           await page.emulateMedia({ reducedMotion: "reduce" });
-          await expectMotion(page, false);
+          await expectMotion(page, false, true);
         }
         const result = await page.evaluate(() => {
           const app = window.cameraTestApp;
@@ -406,7 +403,7 @@ async function checkRoomEdges(stage, path) {
         await widget.locator('[data-danmaku-exit]').click();
         await expectMotion(page, true);
         await page.emulateMedia({ reducedMotion: "reduce" });
-        await expectMotion(page, false);
+        await expectMotion(page, false, true);
         await page.emulateMedia({ reducedMotion: "no-preference" });
         await expectMotion(page, true);
         assert(await renderer.evaluate(r => r === cameraTestApp.renderer), "Suspending photography keeps the renderer");

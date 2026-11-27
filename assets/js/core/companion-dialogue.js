@@ -772,7 +772,6 @@
     workspace.querySelector(".pg-launchers").append(arcade, forecast);
     mainView.append(workspace);
     roster.after(q(".vn-scene-frame"));
-    mountViewfinder();
   }
 
   function mountDialogueReading(main) {
@@ -1166,6 +1165,7 @@
     });
     var workspace = document.getElementById("playground-workspace");
     if (workspace) arrangePlayground(mainView, workspace);
+    mountViewfinder();
     mountDialogueReading(mainView);
     return { trigger: q("#live2d-interact"), dialogue: q("#live2d-dialogue") };
   }

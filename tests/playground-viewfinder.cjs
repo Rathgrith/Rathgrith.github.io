@@ -8,7 +8,10 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 (async () => {
   const browser = await chromium.launch({ channel: "chrome" });
   try {
-    for (const [width, height] of [[1440, 900], [320, 740]]) {
+    for (const [path, width, height] of [
+      ["playground/", 1440, 900], ["playground/", 320, 740],
+      ["", 1440, 900], ["", 390, 844],
+    ]) {
       const page = await browser.newPage({ viewport: { width, height }, reducedMotion: "reduce" });
       await captureRenderer(page);
       await page.addInitScript(() => {
@@ -16,13 +19,16 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           localStorage.setItem("site-companion-v1", JSON.stringify({ speed: 0, foldIdleReplies: false }));
         }
       });
-      await page.goto(new URL("playground/", base).href, { waitUntil: "domcontentloaded" });
+      await page.goto(new URL(path, base).href, { waitUntil: "domcontentloaded" });
       const widget = page.locator("#live2d-widget");
       const settings = widget.locator('[data-vn-open="settings"]');
       const plane = widget.locator("[data-vn-focus-plane]");
       const mode = widget.locator("[data-vn-focus-mode]");
       const iris = widget.locator("[data-vn-f-number]");
-      const waitForLens = () => widget.locator("[data-lens-engaged]").waitFor();
+      const waitForLens = async () => {
+        await widget.locator(".companion-stage").scrollIntoViewIfNeeded();
+        await widget.locator("[data-lens-engaged]").waitFor();
+      };
       await widget.locator('button[data-vn-character="marisa"]').click();
       await waitForLens();
       const model = await page.evaluateHandle(() => cameraTestApp.stage.children[0]);
@@ -30,7 +36,9 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       const measure = () => widget.evaluate(w => {
         const room = w.querySelector(".vn-room"), rig = cameraTestApp.stage.children[0];
         const uniform = cameraTestApp.stage.filters[0].uniforms;
-        const bounds = r => [r.x, r.y, r.width, r.height];
+        // The homepage can scroll when a menu gets focus. Measure inside its stage.
+        const stage = w.querySelector(".companion-stage").getBoundingClientRect();
+        const bounds = r => [r.x - stage.x, r.y - stage.y, r.width, r.height];
         const plate = getComputedStyle(room.querySelector(".vn-room-aperture"));
         return {
           framing: [rig.scale.x, rig.scale.y, rig.x, rig.y,
@@ -88,7 +96,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       await page.keyboard.press("Escape");
       await waitForLens();
       assert.equal((await measure()).focus, 0, "Auto returns focus to the subject");
-      if (width === 1440) {
+      if (path && width === 1440) {
         let resolvedHand = false;
         for (const character of ["alice", "marisa", "patchouli"]) {
           await widget.locator('button[data-vn-character="' + character + '"]').click();
@@ -102,7 +110,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
         assert(resolvedHand, "At least one actual posed hand is visible and resolves at near focus");
       }
       await page.close();
-      console.log("PASS three focus planes, four stops, fixed framing, replies and saved settings at", width, height);
+      console.log("PASS three focus planes, four stops, fixed framing, replies and saved settings at", path || "home", width, height);
     }
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

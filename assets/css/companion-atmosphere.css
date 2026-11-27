@@ -80,13 +80,13 @@
   clip-path: polygon(50% 0, 85% 45%, 50% 100%, 15% 55%);
 }
 /* The lens softens just the moving sparks; the guide and HUD stay sharp. */
-.playground-page #live2d-widget .vn-motes-near { --mote-blur: .8px; }
-.playground-page #live2d-widget .vn-motes-far { --mote-blur: .5px; }
-.playground-page #live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="near"] .vn-motes-near,
-.playground-page #live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="far"] .vn-motes-far { --mote-blur: 0px; }
-.playground-page #live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="near"] .vn-motes-far,
-.playground-page #live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="far"] .vn-motes-near { --mote-blur: 1.6px; }
-.playground-page #live2d-widget .vn-mote-spark {
+#live2d-widget .vn-motes-near { --mote-blur: .8px; }
+#live2d-widget .vn-motes-far { --mote-blur: .5px; }
+#live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="near"] .vn-motes-near,
+#live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="far"] .vn-motes-far { --mote-blur: 0px; }
+#live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="near"] .vn-motes-far,
+#live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="far"] .vn-motes-near { --mote-blur: 1.6px; }
+#live2d-widget .vn-mote-spark {
   filter: blur(calc(var(--mote-blur) * var(--vn-iris-ratio) * var(--vn-light-strength, .75)));
 }
 /* Alice's sparks drift sideways and catch a second flash. The hearth sheds
