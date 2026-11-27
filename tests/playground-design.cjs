@@ -84,6 +84,14 @@ fs.mkdirSync(out, { recursive: true });
         return label.right <= heading.getBoundingClientRect().right + 1;
       });
       assert(titleFits, "the full page title fits alongside Home and Fullscreen");
+      const divergentFonts = await w.evaluate(widget => {
+        const siteFont = getComputedStyle(document.body).fontFamily;
+        return ["#companion-title", ".vn-cast strong", ".live2d-dialogue__text",
+          ".companion-footer button", ".pg-radio summary", ".vn-panel > header h2"]
+          .filter(selector => getComputedStyle(widget.querySelector(selector)).fontFamily !== siteFont);
+      });
+      assert.deepEqual(divergentFonts, [], "Playground text and controls use the site's font stack");
+
       const layout = await w.getAttribute("data-playground-layout");
       const radio = w.locator(".pg-radio");
       assert.equal(await radio.evaluate(element => element.open), layout === "wide");

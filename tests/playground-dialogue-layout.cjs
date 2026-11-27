@@ -25,6 +25,9 @@ fs.mkdirSync(out, { recursive: true });
         "site-companion-v1",
         JSON.stringify({
           speed: 0,
+          // Keep the same replies on screen throughout the layout and hit tests.
+          // companion-branches-browser exercises the actual inactivity deadline.
+          foldIdleReplies: false,
           affinity: { alice: 35, marisa: 35, patchouli: 35 },
         })
       );

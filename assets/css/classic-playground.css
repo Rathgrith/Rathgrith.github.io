@@ -1,9 +1,4 @@
 /* A dedicated galgame stage. Embedded Playground windows use classic-companion. */
-@font-face {
-  font-family: "Fontin";
-  src: url("../fonts/fontin/Fontin-Regular.otf") format("opentype");
-  font-display: swap;
-}
 html.playground-root {
   height: 100%;
   overflow: hidden;
@@ -33,7 +28,6 @@ body.playground-page {
   height: 100%;
 }
 .playground-page #live2d-widget.classic-companion {
-  --pg-script-font: "Hiragino Sans", "Yu Gothic UI", Meiryo, system-ui, sans-serif;
   max-width: none;
   border: 0;
   outline: 0;
@@ -51,7 +45,7 @@ body.playground-page {
   letter-spacing: 0.5px;
 }
 .playground-page #live2d-widget .companion-controls > :is(a, button) {
-  min-height: 28px;
+  min-height: 32px;
   font-family: var(--vn-font);
 }
 .playground-page #live2d-widget [data-vn-reset-position] {
@@ -188,9 +182,10 @@ body.playground-page {
 .playground-page #live2d-widget .companion-title {
   gap: 10px;
   margin: 0;
-  color: var(--vn-ink);
-  font: 400 29px/1.1 "Fontin", Georgia, serif;
-  letter-spacing: .025em;
+  color: #fff;
+  font: 400 28px/1.15 var(--vn-font);
+  letter-spacing: .015em;
+  text-shadow: 1px 1px 0 #0005;
 }
 .playground-page #live2d-widget .companion-title::before {
   flex-basis: 31px;
@@ -206,16 +201,20 @@ body.playground-page {
 }
 .playground-page #live2d-widget .companion-controls > :is(a, button) {
   padding-inline: 9px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--vn-muted);
-  font-size: 13px;
-  box-shadow: none;
+  border: 1px solid;
+  border-color: var(--classic-edge-light) var(--classic-edge-dark) var(--classic-edge-dark) var(--classic-edge-light);
+  color: var(--text);
+  background: var(--classic-chrome);
+  box-shadow: inset -1px -1px var(--classic-edge-mid);
+  font-size: 14px;
 }
 .playground-page #live2d-widget .companion-controls > :is(a, button):is(:hover, :focus-visible) {
-  color: var(--vn-ink);
-  background: var(--classic-chrome);
-  border-color: var(--pg-hairline);
+  color: var(--classic-accent);
+  background: var(--classic-soft);
+}
+.playground-page #live2d-widget .companion-controls > :is(a, button):active {
+  border-color: var(--classic-edge-dark) var(--classic-edge-light) var(--classic-edge-light) var(--classic-edge-dark);
+  box-shadow: inset 1px 1px var(--classic-edge-dark);
 }
 .playground-page #live2d-widget .vn-main-view {
   --pg-gap: clamp(8px, 1.1cqw, 16px);
@@ -321,7 +320,7 @@ body.playground-page {
   filter: drop-shadow(0 2px 1px #0009);
   image-rendering: pixelated;
 }
-.playground-page #live2d-widget .pg-roster strong { display: block; font-weight: 400; }
+.playground-page #live2d-widget .pg-roster strong { display: block; font-weight: 600; }
 .playground-page #live2d-widget .pg-roster small { display: none; }
 .playground-page #live2d-widget .vn-main-view > .vn-scene-frame {
   grid-area: scene;
@@ -443,14 +442,14 @@ body.playground-page {
   color: var(--tool-ink);
   image-rendering: pixelated;
 }
-.playground-page #live2d-widget .pg-launchers .pg-app-title { grid-area: 1 / 2; margin: 0; }
+.playground-page #live2d-widget .pg-launchers .pg-app-title { grid-area: 1 / 2; margin: 0; font-weight: 600; }
 .playground-page #live2d-widget .pg-launchers .pg-app-detail {
   grid-area: 2 / 2; width: auto; margin: 0; justify-self: start; text-align: start;
   overflow: hidden; text-overflow: ellipsis;
-  font: 11px/1.4 var(--vn-font); white-space: nowrap; color: var(--vn-muted);
+  font: 12px/1.4 var(--vn-font); white-space: nowrap; color: var(--vn-muted);
 }
 .playground-page #live2d-widget .pg-tools :focus-visible {
-  outline: 2px solid var(--vn-light); outline-offset: -3px;
+  outline: 2px dotted var(--classic-accent); outline-offset: -3px;
 }
 
 .playground-page #live2d-widget[data-playground-layout="wide"] .vn-main-view {
@@ -659,7 +658,7 @@ body.playground-page {
   .playground-page #live2d-widget .companion-titlebar { min-height: 38px; margin-bottom: 6px; }
   .playground-page #live2d-widget .companion-title { font-size: 23px; gap: 6px; }
   .playground-page #live2d-widget .companion-title::before { flex-basis: 24px; height: 24px; }
-  .playground-page #live2d-widget .pg-roster .vn-cast button { padding: 4px; gap: 4px; justify-content: center; min-height: 37px; font-size: 12px; }
+  .playground-page #live2d-widget .pg-roster .vn-cast button { padding: 4px; gap: 4px; justify-content: center; min-height: 40px; font-size: 13px; }
   .playground-page #live2d-widget .pg-roster img { width: 24px; height: 24px; }
   .playground-page #live2d-widget .vn-main-view { --pg-gap: 7px; }
 }
@@ -672,6 +671,8 @@ body.playground-page {
 }
 @media (max-width: 360px) {
   .playground-page #live2d-widget .companion-title { font-size: 20px; gap: 4px; }
+  .playground-page #live2d-widget .pg-roster .vn-cast button { gap: 2px; padding-inline: 2px; }
+  .playground-page #live2d-widget .pg-roster img { width: 20px; height: 20px; }
   .playground-page #live2d-widget .companion-title::before { flex-basis: 20px; height: 20px; }
   .playground-page #live2d-widget .companion-title::after { content: none; }
   .playground-page #live2d-widget .companion-controls > :is(a, button) { padding-inline: 5px; }
@@ -1215,7 +1216,7 @@ body.playground-page {
 
 /* The dialogue desk keeps the speaker, scrollable script and commands in view. */
 .playground-page #live2d-widget[data-playground-layout] .companion-conversation {
-  --pg-script-size: clamp(16px, 3.4cqi, 20px);
+  --pg-script-size: clamp(16px, 3.4cqi, 19px);
   padding: 6px 7px 4px;
   margin: 0;
 }
@@ -1231,6 +1232,7 @@ body.playground-page {
   gap: 6px;
   padding-inline: 6px 17px;
   font-size: 15px;
+  font-weight: 600;
 }
 .playground-page #live2d-widget .vn-nameplate strong img {
   width: 24px; height: 24px;
@@ -1238,7 +1240,7 @@ body.playground-page {
 .playground-page #live2d-widget .vn-nameplate .vn-voice-toggle {
   min-height: 24px;
   padding-inline: 6px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .playground-page #live2d-widget[data-playground-layout] .vn-dialogue-body {
   gap: 6px;
@@ -1264,8 +1266,8 @@ body.playground-page {
   line-break: strict;
   overflow-wrap: anywhere;
   max-width: 48em;
-  font: 400 var(--pg-script-size) / 1.5 var(--pg-script-font);
-  letter-spacing: .025em;
+  font: 400 var(--pg-script-size) / 1.58 var(--vn-font);
+  letter-spacing: .01em;
 }
 .playground-page #live2d-widget .vn-next-mark {
   inset: auto 2px 0 auto;
@@ -1293,7 +1295,7 @@ body.playground-page {
 .playground-page #live2d-widget .vn-scene-choices button {
   min-height: 45px;
   padding: 7px 10px 7px 30px;
-  font: 400 clamp(14px, 2cqi, 16px) / 1.5 var(--pg-script-font);
+  font: 400 clamp(14px, 2cqi, 16px) / 1.5 var(--vn-font);
 }
 .playground-page #live2d-widget .vn-scene-choices button::before {
   inset-inline-start: 5px;
@@ -1308,6 +1310,11 @@ body.playground-page {
     --vn-command-wanted: max(var(--vn-command-min), var(--vn-menu-height, 0px));
     --vn-command-space: min(var(--vn-command-wanted), max(var(--vn-command-min), 42%));
     grid-template: "actor" minmax(var(--vn-camera-min), 1fr) "replies" calc(var(--vn-command-space) * var(--vn-reply-reveal)) / minmax(0, 1fr);
+  }
+  /* While the command row is revealing, its temporarily clipped content
+     belongs to the scrolling workspace. The final row expands to fit it. */
+  .playground-page #live2d-widget[data-scrollable-workspace]:is([data-playground-layout="compact"], [data-playground-layout="landscape"]) .vn-scene-frame > .vn-scene-choices {
+    overflow: clip;
   }
   /* If the workspace already scrolls, only the menu extends below the scene. */
   .playground-page #live2d-widget[data-extended-replies]:is([data-playground-layout="compact"], [data-playground-layout="landscape"]) .vn-scene-frame {
@@ -1394,9 +1401,19 @@ body.playground-page {
   min-width: 40px;
   min-height: 32px;
   padding: 3px clamp(5px, 1vw, 12px);
-  border-color: color-mix(in srgb, var(--vn-rule) 49%, var(--vn-panel));
-  background: linear-gradient(color-mix(in srgb, var(--vn-rule) 15%, var(--vn-panel)), var(--vn-panel));
-  font-size: 14px;
+  border-color: var(--classic-edge-light) var(--classic-edge-dark) var(--classic-edge-dark) var(--classic-edge-light);
+  background: var(--classic-chrome);
+  color: var(--text);
+  box-shadow: inset -1px -1px var(--classic-edge-mid);
+  font: 15px/1.35 var(--vn-font);
+}
+.playground-page #live2d-widget .companion-footer button:not(#live2d-interact):is(:hover, :focus-visible) {
+  color: var(--classic-accent);
+  background: var(--classic-soft);
+}
+.playground-page #live2d-widget .companion-footer button:not(#live2d-interact):active {
+  border-color: var(--classic-edge-dark) var(--classic-edge-light) var(--classic-edge-light) var(--classic-edge-dark);
+  box-shadow: inset 1px 1px var(--classic-edge-dark);
 }
 .playground-page #live2d-widget .companion-footer button[aria-pressed="true"] {
   border-color: var(--classic-accent);
@@ -1410,9 +1427,10 @@ body.playground-page {
   background: var(--classic-title);
 }
 .playground-page #live2d-widget .companion-footer #live2d-interact:disabled {
-  border-color: var(--vn-rule);
+  border-color: var(--classic-edge-mid);
   background: var(--vn-panel);
   color: var(--vn-muted);
+  box-shadow: none;
 }
 @media (pointer: coarse) {
   .playground-page #live2d-widget[data-playground-layout] .companion-footer button {

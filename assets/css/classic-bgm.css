@@ -306,7 +306,7 @@ body:not(.playground-page) #live2d-widget [data-radio-spectrum] {
   cursor: default;
 }
 #live2d-widget .vn-bgm :focus-visible {
-  outline: 2px solid var(--vn-light);
+  outline: 2px dotted var(--vn-light);
   outline-offset: 2px;
 }
 #live2d-widget .vn-bgm-track:focus-visible {
@@ -535,7 +535,7 @@ body:not(.playground-page) #live2d-widget [data-radio-spectrum] {
   color: var(--vn-light);
 }
 .vn-radio-receiver :focus-visible {
-  outline: 2px solid var(--vn-light);
+  outline: 2px dotted var(--vn-light);
   outline-offset: 2px;
 }
 @media (max-width: 480px) {
@@ -751,6 +751,14 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   color: var(--vn-ink);
   font: inherit;
 }
+.vn-radio-receiver :is(.vn-radio-modes, .vn-radio-lyrics) button:enabled:is(:hover, :focus-visible) {
+  color: var(--vn-light);
+  background: var(--classic-soft);
+  border-color: var(--vn-light);
+}
+.vn-radio-receiver :is(.vn-radio-modes, .vn-radio-lyrics) button:enabled:active {
+  box-shadow: inset 1px 1px var(--classic-edge-dark);
+}
 .vn-radio-receiver .vn-radio-modes button[aria-pressed="true"] {
   color: var(--vn-light);
   background: #fff1;
@@ -838,7 +846,7 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   display: flex;
   align-items: center;
   gap: 5px;
-  font: 10px/1 var(--vn-font);
+  font: 11px/1 var(--vn-font);
 }
 .playground-page #live2d-widget .vn-bgm-type::after {
   content: "";
@@ -860,7 +868,7 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   color: #20231f;
 }
 .playground-page #live2d-widget .vn-bgm :is(.vn-bgm-track, .vn-bgm-lyrics):focus-visible {
-  outline: 2px solid #31483b;
+  outline: 2px dotted var(--deck-print);
   outline-offset: -3px;
 }
 .playground-page #live2d-widget .vn-radio-spectrum {
@@ -929,7 +937,11 @@ body:not(.playground-page) #live2d-widget[data-playground-layout="wide"] .vn-bgm
   color: var(--vn-ink);
   font-size: 12px;
 }
+.playground-page .vn-radio-receiver {
+  font-size: 14px;
+}
 .playground-page .vn-radio-receiver .vn-radio-header {
+  font-size: 16px;
   border-bottom: 1px solid var(--vn-rule);
   background: color-mix(in srgb, var(--vn-panel) 80%, var(--vn-rule));
 }

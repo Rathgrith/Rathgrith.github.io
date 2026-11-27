@@ -48,7 +48,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           const frame = stage.closest(".vn-scene-frame");
           const choosing = Boolean(frame.querySelector(".vn-scene-choices button"));
           const actor = frame.querySelector(".vn-actor-area").getBoundingClientRect();
-          const room = getComputedStyle(stage, "::before");
+          const room = getComputedStyle(stage.querySelector(":scope > .vn-room"));
           const image = new Image();
           image.src = room.backgroundImage.match(/url\("(.+)"\)/)[1];
           await image.decode();

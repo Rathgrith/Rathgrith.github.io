@@ -673,7 +673,7 @@
         "</button>",
       "</div></div>",
       '<div id="companion-content" data-companion-content>',
-      '<div class="companion-stage" data-companion-stage><span class="companion-load-status" role="status">少女祈祷中…</span></div>',
+      '<div class="companion-stage" data-companion-stage><div class="vn-room" aria-hidden="true"><div class="vn-room-aperture"></div></div><span class="companion-load-status" role="status">少女祈祷中…</span></div>',
       '<div class="companion-conversation" data-companion-conversation><p class="companion-prompt">……</p></div>',
       '<div class="companion-footer" data-companion-footer></div>',
       '</div><div class="playground-sizebar"><button type="button" data-companion-resize aria-label="ウィンドウのサイズを変更" title="ドラッグ・矢印キーでサイズを変更"><span aria-hidden="true"></span></button></div></div>',

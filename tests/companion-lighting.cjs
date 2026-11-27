@@ -12,11 +12,79 @@ async function expectMotion(page, expected) {
   await page.waitForFunction(expected => {
     const stage = document.querySelector("[data-companion-stage]"), motes = document.querySelectorAll(".vn-mote");
     const moving = [...motes].some(el => el.getAnimations().some(a => a.playState === "running"));
-    const secondPlane = getComputedStyle(stage, "::after");
-    const lensMoves = secondPlane.display !== "none" && secondPlane.animationName.includes("vn-aperture");
-    return motes.length && stage.hasAttribute("data-camera-active") === expected &&
-      moving === expected && lensMoves === expected;
+    const room = stage.querySelector(":scope > .vn-room"), aperture = room?.querySelector(":scope > .vn-room-aperture");
+    if (!aperture) return false;
+    const base = getComputedStyle(room), plate = getComputedStyle(aperture), open = getComputedStyle(aperture, "::after");
+    const activePlates = plate.display !== "none" && open.animationName.includes("vn-aperture");
+    return motes.length && stage.hasAttribute("data-camera-active") === expected && moving === expected &&
+      activePlates === expected && base.animationName.includes("vn-handheld") === expected &&
+      (expected || plate.display === "none") && base.backgroundImage.includes(".png") && base.filter === "none";
   }, expected);
+}
+
+async function checkRoomPlates(stage) {
+  const result = await stage.evaluate(async node => {
+    const room = node.querySelector(":scope > .vn-room"), aperture = room.querySelector(":scope > .vn-room-aperture");
+    const styles = [getComputedStyle(room), getComputedStyle(aperture), getComputedStyle(aperture, "::after")];
+    const images = await Promise.all(styles.map(async style => {
+      const url = style.backgroundImage.match(/^url\("([^"]+)"\)$/);
+      if (!url) throw new Error("Each aperture must paint one image: " + style.backgroundImage);
+      const image = new Image();
+      image.src = url[1];
+      await image.decode();
+      // Sample neighboring source pixels across the entire frame. Adding
+      // isolated lights cannot account for the loss of detail across the room.
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0);
+      const rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const stride = 4 * canvas.width;
+      let detail = 0;
+      for (let y = 1; y < canvas.height - 1; y += 11) {
+        for (let x = 1; x < canvas.width - 1; x += 11) {
+          const offset = 4 * x + stride * y;
+          for (let c = offset; c < offset + 3; c++) {
+            detail += Math.abs(rgba[c] - rgba[c + 4]) + Math.abs(rgba[c] - rgba[c + stride]);
+          }
+        }
+      }
+      return { path: new URL(image.src).pathname, width: canvas.width, height: canvas.height, detail };
+    }));
+    const handheld = room.getAnimations().find(a => a.animationName === "vn-handheld");
+    const elapsed = handheld.currentTime;
+    handheld.pause();
+    handheld.currentTime = 0;
+    const start = aperture.getBoundingClientRect();
+    handheld.currentTime = .26 * handheld.effect.getTiming().duration;
+    const originalRect = room.getBoundingClientRect(), apertureRect = aperture.getBoundingClientRect();
+    handheld.currentTime = elapsed;
+    handheld.play();
+    return {
+      images,
+      cameraTravel: Math.hypot(apertureRect.x - start.x, apertureRect.y - start.y),
+      sameRect: ["left", "top", "width", "height"].every(k => Math.abs(originalRect[k] - apertureRect[k]) < 1),
+      crops: styles.map(s => [s.backgroundSize, s.backgroundPosition, s.backgroundRepeat]),
+      fill: styles.slice(1).every(style =>
+        Math.abs(parseFloat(style.width) - parseFloat(styles[0].width)) < 1 &&
+        Math.abs(parseFloat(style.height) - parseFloat(styles[0].height)) < 1 &&
+        parseFloat(style.left) === 0 && parseFloat(style.top) === 0),
+    };
+  });
+  const [source, mid, wide] = result.images;
+  assert.equal(mid.path, source.path.replace(/\.png$/, "-f4.webp"));
+  assert.equal(wide.path, source.path.replace(/\.png$/, "-f2.webp"));
+  for (const plate of [mid, wide]) {
+    assert.deepEqual([plate.width, plate.height], [source.width, source.height],
+      "The photograph keeps the source painting's full resolution");
+  }
+  assert(wide.detail > 0 && wide.detail < mid.detail && mid.detail < source.detail,
+    "Opening the aperture progressively softens the source texture throughout the frame");
+  assert(result.cameraTravel > .15, "The handheld camera actually moves the aperture plane");
+  assert(result.sameRect && result.fill, "Both apertures cover the original painting exactly");
+  assert(result.crops.every(crop => crop[0] === "cover" && crop.join("|") === result.crops[0].join("|")),
+    "Changing aperture keeps the same crop: " + JSON.stringify(result.crops));
 }
 
 async function checkRoomEdges(stage, path) {
@@ -113,20 +181,25 @@ async function checkRoomEdges(stage, path) {
           }
           return {
             verticalTravel, color: style.color.match(/[\d.]+/g).map(Number),
-            bokeh: getComputedStyle(far.querySelector(".vn-mote-bokeh")).backgroundImage.includes("radial-gradient"),
+            particlesOnly: !w.querySelector(".vn-mote-bokeh, [data-light-source]") &&
+              layers.every(layer => [...layer.children].every(mote =>
+                mote.matches(".vn-mote-spark") && getComputedStyle(mote, "::before").clipPath.startsWith("polygon("))),
             controlsClear: layers.every(layer => layer.inert && layer.getAttribute("aria-hidden") === "true" &&
               getComputedStyle(layer).pointerEvents === "none"),
             signature: [style.animationName, style.color, style.clipPath].join("/"),
           };
         });
         assert(theme.controlsClear, "Neither particle layer captures interaction or screen-reader focus");
-        assert(theme.bokeh, "The far plane contains softly shaded bokeh");
+        assert(theme.particlesOnly, "Only airborne sparks or dust are drawn above the processed painting");
         const [red, green, blue] = theme.color;
         assert(id === "alice" ? blue > red : id === "marisa" ? red > blue : blue > green && red > green, JSON.stringify(theme));
         if (dpr === 1) assert(id === "patchouli" ? theme.verticalTravel > 1 : theme.verticalTravel < -1,
           "Book dust falls, sparks and embers rise: " + JSON.stringify(theme));
         themeStyles.add(theme.signature);
-        if (dpr === 1) await checkRoomEdges(stage, `${out}/${id}-room.png`);
+        if (dpr === 1) {
+          await checkRoomPlates(stage);
+          await checkRoomEdges(stage, `${out}/${id}-room.png`);
+        }
         for (const [pose, active] of [[null, dpr === 1], ["3", true]]) {
           await page.emulateMedia({ reducedMotion: active ? "no-preference" : "reduce" });
           await expectMotion(page, active);
@@ -303,6 +376,14 @@ async function checkRoomEdges(stage, path) {
         await widget.locator('[data-vn-lighting]').check();
         await page.keyboard.press("Escape");
         await expectMotion(page, true);
+        await widget.locator('[data-vn-open="settings"]').click();
+        await widget.locator("[data-vn-light-strength]").fill("0");
+        await page.keyboard.press("Escape");
+        await expectMotion(page, false);
+        await widget.locator('[data-vn-open="settings"]').click();
+        await widget.locator("[data-vn-light-strength]").fill("75");
+        await page.keyboard.press("Escape");
+        await expectMotion(page, true);
         await widget.locator('[data-danmaku-open]').click();
         await expectMotion(page, false);
         await widget.locator('[data-danmaku-exit]').click();
@@ -333,8 +414,10 @@ async function checkRoomEdges(stage, path) {
         await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
         await page.waitForFunction(() => document.querySelector("[data-companion-stage]").getBoundingClientRect().top > innerHeight);
         await expectMotion(page, false);
-        await widget.locator("[data-companion-stage]").scrollIntoViewIfNeeded();
+        const phoneStage = widget.locator("[data-companion-stage]");
+        await phoneStage.scrollIntoViewIfNeeded();
         await expectMotion(page, true);
+        await checkRoomPlates(phoneStage);
         await page.setViewportSize({ width: 1440, height: 1000 });
       }
       await page.locator('[data-vn-open="settings"]').click();
@@ -351,7 +434,7 @@ async function checkRoomEdges(stage, path) {
       await page.close();
     }
     console.log(
-      "PASS: three room and particle themes, four lit edges, alpha-safe lighting, DPR 1/2, camera suspension/resumption, 16 stable frames without reallocations or texture uploads, weather and preference persistence."
+      "PASS: three full-resolution aperture sets registered to the source paintings, three particle themes, four lit edges, alpha-safe lighting, DPR 1/2, camera suspension/resumption, 16 stable frames without reallocations or texture uploads, weather and preference persistence."
     );
   } finally {
     await browser.close();
