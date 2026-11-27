@@ -49,7 +49,8 @@ module.exports = function measureLens() {
         vec4 countLookup(sampler2D image, vec2 uv) { lookupCount += 1.0; return texture2D(image, uv); }
       `).replace(/void\s+main\s*\(\s*(?:void)?\s*\)/, "void lensPass()") +
       "\nvoid main(void) { lookupCount = 0.0; lensPass(); gl_FragColor = vec4(vec3(lookupCount / 255.0), 1.0); }";
-    instrumented = new PIXI.Filter(undefined, source, { ...filter.uniforms });
+    // Isolate the aperture taps from the independent silhouette lighting.
+    instrumented = new PIXI.Filter(undefined, source, { ...filter.uniforms, uStrength: 0 });
     instrumented.resolution = filter.resolution;
     app.stage.filters = [instrumented];
     function sampleRange() {
@@ -63,9 +64,12 @@ module.exports = function measureLens() {
       return [minSamples, maxSamples];
     }
     const disabledSamples = sampleRange();
+    instrumented.uniforms.uStrength = .75;
+    const lightingSamples = sampleRange();
+    instrumented.uniforms.uStrength = 0;
     instrumented.uniforms.uLensRadius = radius;
     const activeSamples = sampleRange();
-    return { radius, faceDistance, changedBody, opaqueBody, largestFocusChange, largestAlphaChange, disabledSamples, activeSamples };
+    return { radius, faceDistance, changedBody, opaqueBody, largestFocusChange, largestAlphaChange, disabledSamples, activeSamples, lightingSamples };
   } finally {
     app.stage.filters = [filter];
     filter.uniforms.uLensRadius = radius;

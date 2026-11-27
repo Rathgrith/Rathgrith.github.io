@@ -11,7 +11,9 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
     for (const [width, height, axis] of [[1440, 900, "x"], [390, 844, "y"]]) {
       const page = await browser.newPage({ viewport: { width, height }, hasTouch: width < 500 });
       await captureRenderer(page);
-      await page.addInitScript(() => localStorage.setItem("site-companion-v1", JSON.stringify({ speed: 0 })));
+      // This test scrubs the transition by hand; inactivity folding has its own timing test.
+      await page.addInitScript(() => localStorage.setItem("site-companion-v1",
+        JSON.stringify({ speed: 0, foldIdleReplies: false })));
       await page.goto(new URL("playground/", base).href, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => document.querySelector("#live2d-widget")?.dataset.live2dCharacter === "alice" &&
         window.cameraTestApp?.stage.children[0]?.glContextID === window.cameraTestApp?.renderer.CONTEXT_UID &&

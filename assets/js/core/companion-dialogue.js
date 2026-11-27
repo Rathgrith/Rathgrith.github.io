@@ -21,9 +21,9 @@
     panel = "",
     visible = true,
     gameActive = false;
-  var replyIdleMs = 12000, replyRemaining = replyIdleMs, replyDeadline = 0, replyTimer = 0;
+  var replyIdleMs = 3000, replyRemaining = replyIdleMs, replyDeadline = 0, replyTimer = 0;
   var foldedReplies = null, previousCommand = "", repliesInView = false;
-  var pressedPointer = null, pageBlurred = false;
+  var pressedPointers = new Set(), hoveredReply = null, pageBlurred = false;
   var minimumLoadingMs = 0,
     loadingUntil = 0,
     readyTimer = 0;
@@ -50,6 +50,10 @@
     lighting = saved.lighting !== false,
     lightStrength = number(saved.lightStrength, 75, 0, 100),
     auto = false;
+  var focusPlanes = { near: "手前", subject: "人物", far: "背景" }, apertureStops = [2, 2.8, 4, 5.6];
+  var lensFocusMode = saved.lensFocusMode === "manual" ? "manual" : "auto",
+    lensFocusPlane = Object.hasOwn(focusPlanes, saved.lensFocusPlane) ? saved.lensFocusPlane : "subject",
+    lensFNumber = apertureStops.includes(saved.lensFNumber) ? saved.lensFNumber : 4;
   function persist() {
     try {
       localStorage.setItem(
@@ -60,6 +64,9 @@
           foldIdleReplies: foldIdleReplies,
           lighting: lighting,
           lightStrength: lightStrength,
+          lensFocusMode: lensFocusMode,
+          lensFocusPlane: lensFocusPlane,
+          lensFNumber: lensFNumber,
         })
       );
     } catch (_) {}
@@ -89,7 +96,8 @@
     replyTimer = 0;
     replyRemaining = replyIdleMs;
     foldedReplies = null;
-    pressedPointer = null;
+    pressedPointers.clear();
+    hoveredReply = null;
     root.removeAttribute("data-replies-folded");
   }
   function syncReplyIdle(activity) {
@@ -102,7 +110,8 @@
     if (activity) replyRemaining = replyIdleMs;
     if (!root || !foldIdleReplies || foldedReplies || !repliesInView || !visible ||
         gameActive || panel || document.hidden || pageBlurred ||
-        pressedPointer !== null || !q("[data-vn-choices] button") || q('[data-radio-open][aria-expanded="true"]')) return;
+        pressedPointers.size || hoveredReply || q("[data-vn-choices] button:focus") ||
+        !q("[data-vn-choices] button") || q('[data-radio-open][aria-expanded="true"]')) return;
     replyDeadline = now + replyRemaining;
     replyTimer = setTimeout(checkReplyIdle, replyRemaining);
   }
@@ -690,6 +699,47 @@
       new CustomEvent("site:companion-game", { detail: { active: value } })
     );
   }
+  function mountViewfinder() {
+    q(".companion-stage").insertAdjacentHTML("beforeend",
+      '<div class="pg-scene-mount" aria-hidden="true" inert>' +
+        '<svg class="pg-viewfinder-grid" viewBox="0 0 300 300" preserveAspectRatio="none" focusable="false">' +
+          '<defs><path id="pg-third-lines" d="M100 0v300 M200 0v300 M0 100h300 M0 200h300" vector-effect="non-scaling-stroke"/></defs>' +
+          '<use href="#pg-third-lines" class="pg-grid-shadow"/><use href="#pg-third-lines" class="pg-grid-ink"/>' +
+        '</svg></div>');
+    // Anchor the instrument to the part of the frame left clear by replies.
+    q(".vn-actor-area").insertAdjacentHTML("beforeend",
+      '<span class="pg-lens-readout"><span class="pg-lens-mode"></span>' +
+        '<span data-pg-focus-plane></span><span class="pg-lens-divider">·</span><span data-pg-aperture></span></span>');
+
+    q("[data-vn-reset-position]").insertAdjacentHTML("beforebegin",
+      '<fieldset class="vn-setting-group"><legend>撮影レンズ</legend><div class="pg-lens-controls">' +
+        '<label>ピント<select data-vn-focus-mode><option value="auto">自動（顔追従）</option><option value="manual">手動</option></select></label>' +
+        '<label>合焦位置<select data-vn-focus-plane></select></label>' +
+        '<label>絞り<select data-vn-f-number></select></label></div></fieldset>');
+    var mode = q("[data-vn-focus-mode]"), plane = q("[data-vn-focus-plane]"), aperture = q("[data-vn-f-number]");
+    Object.entries(focusPlanes).forEach(function (entry) { plane.add(new Option(entry[1], entry[0])); });
+    apertureStops.forEach(function (value) { aperture.add(new Option("f/" + value, value)); });
+    function applyLens() {
+      mode.value = root.dataset.lensFocusMode = lensFocusMode;
+      root.dataset.lensFocusPlane = lensFocusPlane;
+      root.dataset.lensFNumber = lensFNumber;
+      plane.disabled = lensFocusMode === "auto";
+      plane.value = plane.disabled ? "subject" : lensFocusPlane;
+      aperture.value = lensFNumber;
+      q(".pg-lens-mode").textContent = plane.disabled ? "AF" : "MF";
+      q("[data-pg-focus-plane]").textContent = focusPlanes[plane.value];
+      q("[data-pg-aperture]").textContent = "f/" + lensFNumber;
+      if (hooks.lighting) hooks.lighting();
+    }
+    q(".pg-lens-controls").addEventListener("change", function (event) {
+      if (event.target === mode) lensFocusMode = mode.value;
+      if (event.target === plane && !plane.disabled) lensFocusPlane = plane.value;
+      if (event.target === aperture) lensFNumber = Number(aperture.value);
+      applyLens();
+      persist();
+    });
+    applyLens();
+  }
   function arrangePlayground(mainView, template) {
     var workspace = template.content.cloneNode(true);
     var roster = workspace.querySelector(".pg-roster");
@@ -722,6 +772,7 @@
     workspace.querySelector(".pg-launchers").append(arcade, forecast);
     mainView.append(workspace);
     roster.after(q(".vn-scene-frame"));
+    mountViewfinder();
   }
 
   function mountDialogueReading(main) {
@@ -793,6 +844,8 @@
   }
   function observeReplyActivity() {
     var menu = q("[data-vn-choices]"), readingArea = "[data-vn-choices], [data-vn-dialogue-body]";
+    var hoverDevice = matchMedia("(any-hover: hover)");
+    var pointerX, pointerY;
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
         var entry = entries[entries.length - 1];
@@ -802,33 +855,55 @@
     } else repliesInView = true;
     window.addEventListener("blur", function () {
       pageBlurred = true;
-      pressedPointer = null;
+      pressedPointers.clear();
+      hoveredReply = null;
       syncReplyIdle();
     });
     window.addEventListener("focus", function () { pageBlurred = false; syncReplyIdle(); });
     new MutationObserver(function () { syncReplyIdle(); }).observe(q("[data-radio-open]"), {
       attributes: true, attributeFilter: ["aria-expanded"]
     });
-    // A stationary pointer or keyboard focus is not ongoing activity.
     root.addEventListener("pointermove", function (event) {
-      if (event.isTrusted && (event.movementX || event.movementY) && menu.childElementCount &&
-          event.target.closest(readingArea)) noteReplyActivity();
+      if (!event.isTrusted || event.pointerType === "touch") return;
+      // WebKit can report zero movementX/Y even for physical mouse travel.
+      var moved = event.movementX || event.movementY ||
+        (pointerX !== undefined && (event.clientX !== pointerX || event.clientY !== pointerY));
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      if (!moved || !menu.childElementCount) return;
+      // A button appearing under a still cursor, or a touch-generated mouseover,
+      // is not a deliberate hover. Only physical pointer travel can claim it.
+      var reply = event.target.closest("[data-vn-choices] button");
+      if (reply && hoverDevice.matches) {
+        if (hoveredReply !== reply) {
+          hoveredReply = reply;
+          syncReplyIdle(true);
+        }
+      } else if (event.target.closest(readingArea)) noteReplyActivity();
     }, { passive: true });
+    menu.addEventListener("pointerout", function (event) {
+      if (hoveredReply && !hoveredReply.contains(event.relatedTarget)) {
+        hoveredReply = null;
+        syncReplyIdle(true);
+      }
+    });
+    // Wait until the browser has placed focus at its destination. Moving
+    // between replies holds the menu; tabbing away starts a fresh interval.
+    function focusChanged() { queueMicrotask(function () { syncReplyIdle(true); }); }
+    menu.addEventListener("focusin", focusChanged);
+    menu.addEventListener("focusout", focusChanged);
     root.addEventListener("pointerdown", function (event) {
-      if (menu.childElementCount && event.target.closest(readingArea)) pressedPointer = event.pointerId;
+      if (menu.childElementCount && event.target.closest(readingArea)) pressedPointers.add(event.pointerId);
       syncReplyIdle(true);
     }, { passive: true });
     function releasePointer(event) {
-      if (event.pointerId === pressedPointer) {
-        pressedPointer = null;
-        syncReplyIdle(true);
-      }
+      if (pressedPointers.delete(event.pointerId)) syncReplyIdle(true);
     }
     document.addEventListener("pointerup", releasePointer, true);
     document.addEventListener("pointercancel", releasePointer, true);
     root.addEventListener("wheel", noteReplyActivity, { passive: true });
     root.addEventListener("keydown", function (event) {
-      if (event.isTrusted) noteReplyActivity();
+      if (event.isTrusted) syncReplyIdle(true);
     }, true);
   }
   function mount(widget, callbacks) {

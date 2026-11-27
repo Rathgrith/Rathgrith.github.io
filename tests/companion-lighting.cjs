@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const captureRenderer = require("./helpers/companion-renderer.cjs");
 const measureLens = require("./helpers/lens-pass.cjs");
+const checkRim = require("./helpers/companion-rim-light.cjs");
 const out =
   process.env.QA_OUTPUT || require("node:os").tmpdir() + "/lighting-qa";
 fs.mkdirSync(out, { recursive: true });
@@ -59,11 +60,23 @@ async function checkRoomPlates(stage) {
     const start = aperture.getBoundingClientRect();
     handheld.currentTime = .26 * handheld.effect.getTiming().duration;
     const originalRect = room.getBoundingClientRect(), apertureRect = aperture.getBoundingClientRect();
+    const slider = node.closest("#live2d-widget").querySelector("[data-vn-light-strength]");
+    const originalStrength = slider.value;
+    const motes = node.querySelector(".vn-motes-far");
+    const normalOpacity = Number(getComputedStyle(motes).opacity);
+    slider.value = "1";
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
+    const quietRect = room.getBoundingClientRect();
+    const quietOpacity = Number(getComputedStyle(motes).opacity);
+    slider.value = originalStrength;
+    slider.dispatchEvent(new Event("input", { bubbles: true }));
     handheld.currentTime = elapsed;
     handheld.play();
     return {
       images,
       cameraTravel: Math.hypot(apertureRect.x - start.x, apertureRect.y - start.y),
+      quietTravel: Math.hypot(quietRect.x - start.x, quietRect.y - start.y),
+      normalOpacity, quietOpacity,
       sameRect: ["left", "top", "width", "height"].every(k => Math.abs(originalRect[k] - apertureRect[k]) < 1),
       crops: styles.map(s => [s.backgroundSize, s.backgroundPosition, s.backgroundRepeat]),
       fill: styles.slice(1).every(style =>
@@ -82,6 +95,8 @@ async function checkRoomPlates(stage) {
   assert(wide.detail > 0 && wide.detail < mid.detail && mid.detail < source.detail,
     "Opening the aperture progressively softens the source texture throughout the frame");
   assert(result.cameraTravel > .15, "The handheld camera actually moves the aperture plane");
+  assert(result.quietTravel < result.cameraTravel * .1 && result.quietOpacity < result.normalOpacity * .1,
+    "At minimum nonzero strength, both the room movement and particles become barely perceptible");
   assert(result.sameRect && result.fill, "Both apertures cover the original painting exactly");
   assert(result.crops.every(crop => crop[0] === "cover" && crop.join("|") === result.crops[0].join("|")),
     "Changing aperture keeps the same crop: " + JSON.stringify(result.crops));
@@ -197,6 +212,7 @@ async function checkRoomEdges(stage, path) {
           "Book dust falls, sparks and embers rise: " + JSON.stringify(theme));
         themeStyles.add(theme.signature);
         if (dpr === 1) {
+          await checkRim(page, id);
           await checkRoomPlates(stage);
           await checkRoomEdges(stage, `${out}/${id}-room.png`);
         }
@@ -215,7 +231,8 @@ async function checkRoomEdges(stage, path) {
           const info = JSON.stringify({ id, dpr, pose, active, lens });
           if (active) assert(lens.faceDistance <= 1.01, "Both eyes and the mouth lie inside the sharp focus ellipse: " + info);
           assert(lens.largestFocusChange <= 1 && lens.largestAlphaChange === 0, "Focused detail and the silhouette stay intact: " + info);
-          assert.deepEqual(lens.disabledSamples, [1, 1], "Disabled depth reads exactly one texel per pixel: " + info);
+          assert.deepEqual(lens.disabledSamples, [1, 1], "Disabled optics reads exactly one texel per pixel: " + info);
+          assert.deepEqual(lens.lightingSamples, [1, 3], "Only lit contours need both coverage probes: " + info);
           assert(lens.activeSamples[0] === 1 && (active ? lens.activeSamples[1] > 1 : lens.activeSamples[1] === 1),
             "Extra samples belong to the active depth pass: " + info);
           if (active) assert(lens.changedBody > 0 && lens.opaqueBody > lens.changedBody,

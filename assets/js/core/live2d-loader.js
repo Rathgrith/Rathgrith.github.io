@@ -893,7 +893,7 @@
     }
     var cameras = {
       alice: { crop: 0.46, top: 0.13 },
-      marisa: { crop: 0.48, top: 0.1 },
+      marisa: { crop: 0.48, top: 0.09 },
       patchouli: { crop: 0.46, top: 0.13 },
     };
     var camera = cameras[currentCharacterId] || cameras.alice;
@@ -963,11 +963,13 @@
   function syncCameraActivity() {
     if (!sceneCamera || !companionWidget) return;
     var amount = Number(companionWidget.dataset.sceneLightStrength || 75) / 100;
-    var active = Boolean(currentModel && currentModel.visible && stageInView &&
-      !document.hidden && !companionGameActive && !companionMinimized && !prefersReducedMotion() &&
+    var optics = Boolean(currentModel && currentModel.visible && stageInView &&
+      !document.hidden && !companionGameActive && !companionMinimized &&
       !shouldDisableLive2D() && companionWidget.dataset.sceneLighting !== "false" && amount > 0 &&
       !companionWidget.matches(".is-loading, .has-live2d-error, .has-vn-panel"));
-    sceneCamera.setActive(active, amount);
+    var active = optics && !prefersReducedMotion();
+    var fNumber = standalone ? Number(companionWidget.dataset.lensFNumber) || 4 : 4;
+    sceneCamera.setActive(active, amount, fNumber, standalone && optics);
   }
 
   function canIdle() {
@@ -1382,7 +1384,7 @@
 
     new MutationObserver(syncCameraActivity).observe(elements.widget, {
       attributes: true,
-      attributeFilter: ["class", "data-scene-lighting", "data-scene-light-strength"]
+      attributeFilter: ["class", "data-scene-lighting", "data-scene-light-strength", "data-lens-f-number"]
     });
     window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", syncCameraActivity);
     syncModelLighting = window.CompanionLighting.create(

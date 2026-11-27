@@ -18,6 +18,9 @@
   --vn-scene: url("../images/classic/scenes/alice-atelier.png");
   --vn-room-f4: url("../images/classic/scenes/alice-atelier-f4.webp");
   --vn-room-f2: url("../images/classic/scenes/alice-atelier-f2.webp");
+  --vn-room-f14: url("../images/classic/scenes/alice-atelier-f1.4.webp");
+  --vn-room-f28: url("../images/classic/scenes/alice-atelier-f2.8.webp");
+  --vn-room-f56: url("../images/classic/scenes/alice-atelier-f5.6.webp");
   --vn-camera-focus: 0.22;
   --vn-light: #99bfff;
   --vn-ornament: url("../images/classic/ornaments/alice.svg");
@@ -62,6 +65,9 @@
   --vn-scene: url("../images/classic/scenes/marisa-workshop.png");
   --vn-room-f4: url("../images/classic/scenes/marisa-workshop-f4.webp");
   --vn-room-f2: url("../images/classic/scenes/marisa-workshop-f2.webp");
+  --vn-room-f14: url("../images/classic/scenes/marisa-workshop-f1.4.webp");
+  --vn-room-f28: url("../images/classic/scenes/marisa-workshop-f2.8.webp");
+  --vn-room-f56: url("../images/classic/scenes/marisa-workshop-f5.6.webp");
   --vn-camera-focus: 0.025;
   --vn-light: #ffc57c;
   --vn-ornament: url("../images/classic/ornaments/marisa.svg");
@@ -73,6 +79,9 @@
   --vn-scene: url("../images/classic/scenes/patchouli-library.png");
   --vn-room-f4: url("../images/classic/scenes/patchouli-library-f4.webp");
   --vn-room-f2: url("../images/classic/scenes/patchouli-library-f2.webp");
+  --vn-room-f14: url("../images/classic/scenes/patchouli-library-f1.4.webp");
+  --vn-room-f28: url("../images/classic/scenes/patchouli-library-f2.8.webp");
+  --vn-room-f56: url("../images/classic/scenes/patchouli-library-f5.6.webp");
   --vn-camera-focus: 0.13;
   --vn-light: #c6a8f6;
   --vn-ornament: url("../images/classic/ornaments/patchouli.svg");
@@ -523,36 +532,46 @@
 /* Each aperture image is a convolution of this room's original painting.
    All exposures share one crop and one camera transform. */
 #live2d-widget .companion-stage {
+  --vn-top-trim: 0px;
   --lens-period: 8.8s;
   --hand-period: 12.8s;
-  --hand-x: 1.05px;
-  --hand-y: .72px;
+  --hand-travel-x: 1.05px;
+  --hand-travel-y: .72px;
 }
 #live2d-widget[data-vn-character="marisa"] .companion-stage {
   --lens-period: 7.2s;
   --hand-period: 10.4s;
-  --hand-x: 1.35px;
-  --hand-y: .88px;
+  --hand-travel-x: 1.35px;
+  --hand-travel-y: .88px;
 }
 #live2d-widget[data-vn-character="patchouli"] .companion-stage {
   --lens-period: 11.6s;
   --hand-period: 16.6s;
-  --hand-x: .7px;
-  --hand-y: .5px;
+  --hand-travel-x: .7px;
+  --hand-travel-y: .5px;
+}
+/* Crop the top of the painted room and its registered actor together. Use the
+   stage's own dimensions, since opening the radio changes its aspect ratio. */
+.playground-page #live2d-widget[data-playground-layout="wide"][data-vn-character="alice"] .companion-stage {
+  --vn-top-trim: clamp(0px, calc((100cqw - 700px) * .24), 11cqh);
+}
+.playground-page #live2d-widget[data-playground-layout="wide"][data-vn-character="patchouli"] .companion-stage {
+  --vn-top-trim: clamp(0px, calc((100cqw - 700px) * .12), 5.5cqh);
 }
 #live2d-widget .vn-room,
 #live2d-widget .vn-motes-far,
 #live2d-widget .vn-scene-light {
   position: absolute;
   --vn-bleed: 10px;
-  --vn-camera-height: max(calc(100cqh + 2 * var(--vn-bleed)), calc((100cqw + 2 * var(--vn-bleed)) * 9 / 16));
+  --vn-shot-height: calc(100cqh + 2 * var(--vn-bleed) + var(--vn-top-trim));
+  --vn-camera-height: max(var(--vn-shot-height), calc((100cqw + 2 * var(--vn-bleed)) * 9 / 16));
   height: var(--vn-camera-height);
   aspect-ratio: 16 / 9;
   --vn-room-width: calc(var(--vn-camera-height) * 16 / 9);
   left: clamp(calc(100cqw - var(--vn-room-width) + var(--vn-bleed)),
     calc((100cqw - var(--vn-room-width)) / 2 + var(--vn-look-x, 0px)), calc(-1 * var(--vn-bleed)));
   top: clamp(calc(100cqh - var(--vn-camera-height) + var(--vn-bleed)),
-    calc((100cqh + 2 * var(--vn-bleed) - var(--vn-camera-height)) * var(--vn-camera-focus) - var(--vn-bleed) + var(--vn-look-y, 0px)), calc(-1 * var(--vn-bleed)));
+    calc((var(--vn-shot-height) - var(--vn-camera-height)) * var(--vn-camera-focus) - var(--vn-bleed) - var(--vn-top-trim) + var(--vn-look-y, 0px)), calc(-1 * var(--vn-bleed)));
   pointer-events: none;
 }
 #live2d-widget .vn-room {
@@ -573,10 +592,10 @@
 #live2d-widget .vn-room-aperture { display: none; }
 @media (prefers-reduced-motion: no-preference) {
   #live2d-widget [data-camera-active] > .vn-room {
-    transition: scale .9s ease;
+    --hand-x: calc(var(--hand-travel-x) * var(--vn-light-strength, .75));
+    --hand-y: calc(var(--hand-travel-y) * var(--vn-light-strength, .75));
     animation: vn-handheld var(--hand-period) ease-in-out infinite;
   }
-  #live2d-widget [data-camera-active][data-camera-shot="closer"] > .vn-room { scale: 1.018; }
   #live2d-widget [data-camera-active] .vn-room-aperture {
     display: block;
     background-image: var(--vn-room-f4);
@@ -589,6 +608,46 @@
     --opening: clamp(0, calc((3 * var(--vn-light-strength, .75) - 1) / 2), 1);
     animation: vn-aperture var(--lens-period) ease-in-out infinite;
   }
+}
+/* Pulling focus towards the foreground increases the blur disk on the distant
+   painting by one stop. Focusing on the room uses the original sharp painting. */
+.playground-page #live2d-widget {
+  --vn-subject-plate: var(--vn-room-f4);
+  --vn-front-plate: var(--vn-room-f28);
+  --vn-iris-ratio: 1;
+}
+.playground-page #live2d-widget[data-lens-f-number="2"] {
+  --vn-subject-plate: var(--vn-room-f2);
+  --vn-front-plate: var(--vn-room-f14);
+  --vn-iris-ratio: 2;
+}
+.playground-page #live2d-widget[data-lens-f-number="2.8"] {
+  --vn-subject-plate: var(--vn-room-f28);
+  --vn-front-plate: var(--vn-room-f2);
+  --vn-iris-ratio: 1.43;
+}
+.playground-page #live2d-widget[data-lens-f-number="5.6"] {
+  --vn-subject-plate: var(--vn-room-f56);
+  --vn-front-plate: var(--vn-room-f4);
+  --vn-iris-ratio: .71;
+}
+.playground-page #live2d-widget [data-lens-engaged] .vn-room-aperture {
+  display: block;
+  background-image: var(--vn-subject-plate);
+  opacity: min(1, calc(1.2 * var(--vn-light-strength, .75)));
+}
+.playground-page #live2d-widget [data-camera-active] .vn-room-aperture::after {
+  --opening: calc(.14 * var(--vn-light-strength, .75));
+  background-image: var(--vn-front-plate);
+}
+.playground-page #live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="near"] [data-lens-engaged] .vn-room-aperture {
+  background-image: var(--vn-front-plate);
+}
+.playground-page #live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="near"] .vn-room-aperture::after {
+  background-image: var(--vn-subject-plate);
+}
+.playground-page #live2d-widget[data-lens-focus-mode="manual"][data-lens-focus-plane="far"] .vn-room-aperture {
+  display: none;
 }
 @keyframes vn-aperture {
   0%, 100% { opacity: calc(.57 * var(--opening)); }

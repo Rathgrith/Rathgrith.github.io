@@ -15,7 +15,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
 
     for (const [width, height, layout] of [
       [1440, 900, "wide"], [1920, 1080, "wide"], [2560, 1080, "wide"],
-      [1280, 720, "wide"], [1024, 600, "wide"], [3200, 1800, "wide"],
+      [1280, 720, "wide"], [1024, 600, "wide"], [2560, 1440, "wide"], [3200, 1800, "wide"],
       [1280, 878, "wide"], [1440, 925, "wide"],
       [1024, 1366, "compact"], [375, 1000, "compact"], [390, 844, "compact"],
       [844, 390, "landscape"],
@@ -47,6 +47,9 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
         const label = width + "×" + height + ", receiver " + (open ? "open" : "closed");
         assert(m.mainOverflowX <= 1, label + " horizontal overflow");
         if (layout === "wide") {
+          if (!open || m.stage.width > m.view.width * .95) {
+            assert(m.stage.width / m.stage.height < 2.32, label + " full-width scene preserves the half-body framing");
+          }
           assert(m.toolsOverflowY <= 2, label + " clipped tools");
           assert(m.view.bottom - m.desk.bottom < 12, label + " reading desk must finish at the bottom frame");
           if (!open) {

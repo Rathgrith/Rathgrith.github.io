@@ -1,7 +1,7 @@
-"""Render the Playground's two aperture settings from each original room PNG.
+"""Render the Playground's aperture settings from each original room PNG.
 
-Run with Python, NumPy, SciPy and Pillow. The browser blends the two exposures
-of the same painting without sampling a blur kernel on every animation frame.
+Run with Python, NumPy, SciPy and Pillow. The browser can select a developed exposure
+without sampling a blur kernel on every animation frame.
 """
 from pathlib import Path
 
@@ -63,8 +63,10 @@ def main():
     for room, narrow_radius in ROOMS.items():
         with Image.open(SCENES / (room + ".png")) as source:
             radiance = scene_radiance(source.convert("RGB"))
-        for aperture, radius in [(4, narrow_radius), (2, narrow_radius * 2)]:
-            plate = develop(aperture_exposure(radiance, radius))
+        # With focus pulled forward the distant painting gets a larger blur disk.
+        # The additional f/1.4 plate supplies that disk at the widest selectable stop.
+        for aperture in [1.4, 2, 2.8, 4, 5.6]:
+            plate = develop(aperture_exposure(radiance, narrow_radius * 4 / aperture))
             output = SCENES / f"{room}-f{aperture}.webp"
             plate.save(output, format="WEBP", quality=95, method=6)
             print(f"{output.name} ({output.stat().st_size // 1024} KiB)", flush=True)

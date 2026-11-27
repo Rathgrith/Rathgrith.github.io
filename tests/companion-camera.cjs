@@ -48,6 +48,9 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           const frame = stage.closest(".vn-scene-frame");
           const choosing = Boolean(frame.querySelector(".vn-scene-choices button"));
           const actor = frame.querySelector(".vn-actor-area").getBoundingClientRect();
+          const mount = stage.querySelector(".pg-scene-mount");
+          const engraving = mount && getComputedStyle(mount, "::before").backgroundImage;
+          const standalone = document.body.classList.contains("playground-page");
           const room = getComputedStyle(stage.querySelector(":scope > .vn-room"));
           const image = new Image();
           image.src = room.backgroundImage.match(/url\("(.+)"\)/)[1];
@@ -64,8 +67,25 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
             frameTop + ((height - paintedHeight) * parseFloat(room.backgroundPositionY)) / 100;
           const roomLeft = parseFloat(room.left);
           const modelCenterInRoom = (model.x - roomLeft) / width;
+          let headroom = null;
+          if (standalone && stage.clientWidth >= 1000) {
+            // Sample the rendered silhouette. The unpainted margin in each
+            // Cubism rig makes the model bounds a poor guide to the hat or hair.
+            const sample = document.createElement("canvas");
+            sample.height = 128;
+            sample.width = Math.ceil(128 * stage.clientWidth / stage.clientHeight);
+            const context = sample.getContext("2d");
+            app.render();
+            context.drawImage(app.view, 0, 0, sample.width, sample.height);
+            const pixels = context.getImageData(0, 0, sample.width, sample.height).data;
+            const first = pixels.findIndex((alpha, i) => i % 4 === 3 && alpha > 128);
+            headroom = Math.floor(first / (4 * sample.width)) / sample.height;
+          }
           return {
             roomFile: new URL(image.src).pathname,
+            headroom, standalone, engraving,
+            decorative: mount && mount.inert && mount.getAttribute("aria-hidden") === "true" &&
+              getComputedStyle(mount).pointerEvents === "none",
             choosing,
             faceFits: !choosing || window.cameraTestFace().every(f =>
               f.left >= actor.left - 2 && f.right <= actor.right + 2 && f.top >= actor.top - 2 && f.bottom <= actor.bottom + 2),
@@ -89,11 +109,22 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           };
         });
         assert(result.roomFile.includes(character), JSON.stringify(result));
+        if (result.standalone) {
+          assert(result.decorative && result.engraving?.includes("frame-" + character + ".svg"),
+            character + " has its own non-interactive foreground engraving at " + view);
+        } else {
+          assert.equal(result.engraving, null, "Embedded windows use their compact frame");
+        }
         assert(
           result.overscan.every((edge) => edge >= 1),
           view + " painted scenery covers all four edges: " + JSON.stringify(result)
         );
-        assert(result.stageAspect < 2.32, view + " preserves the half-body framing");
+        assert(result.stageAspect < 2.32, view + " preserves the half-body framing: " + result.stageAspect);
+        if (result.headroom !== null) {
+          const limit = { alice: .17, marisa: .11, patchouli: .14 }[character];
+          assert(result.headroom > 0 && result.headroom <= limit,
+            character + " retains a visible, bounded margin above the silhouette at " + view + ": " + result.headroom);
+        }
         if (result.choosing) assert(result.faceFits, character + " keeps both eyes and mouth inside the reply-safe area at " + view);
         else assert(Math.abs(result.center - 0.5) < 0.004, view + " centered rig and room");
         assert(
@@ -159,17 +190,14 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
           [768, 1024],
           [1440, 900],
           [2560, 1080],
+          [2560, 1440],
           [3840, 1080],
         ]) {
           await page.setViewportSize({ width, height });
-          await page.waitForFunction((width) => {
-            const widget = document.querySelector("#live2d-widget");
-            return (
-              Math.round(
-                parseFloat(widget.style.getPropertyValue("--vn-width"))
-              ) === width
-            );
-          }, width);
+          await page.waitForFunction(({ width, height }) => {
+            const style = document.querySelector("#live2d-widget").style;
+            return style.getPropertyValue("--vn-width") === width + "px" && style.height === height + "px";
+          }, { width, height });
           await check(id, width + "x" + height);
         }
         await openBranch();
@@ -207,7 +235,7 @@ const base = process.env.PREVIEW_URL || "http://127.0.0.1:4100/";
       await page.goto(new URL("gallery/", base).href);
       await check("alice", "gallery dock");
       console.log(
-        "PASS: cold start with a selected reply branch, three full-bleed room/rig registrations, seven viewport shapes, phone/tablet/desktop docks, floating and disabled lighting at DPR " +
+        "PASS: cold start with a selected reply branch, three full-bleed room/rig registrations, eight viewport shapes, phone/tablet/desktop docks, floating and disabled lighting at DPR " +
           dpr
       );
       await page.close();
